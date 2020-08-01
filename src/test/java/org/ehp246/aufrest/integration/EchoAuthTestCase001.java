@@ -10,5 +10,5 @@ import org.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("${echo.base}/basic-auth")
 interface EchoAuthTestCase001 {
-	Map<String, String> get();
+	Map<String, Boolean> get();
 }
