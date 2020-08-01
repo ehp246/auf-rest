@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.ehp246.aufrest.api.rest.AuthenticationProvider;
+import org.ehp246.aufrest.api.rest.BasicAuth;
 import org.ehp246.aufrest.api.rest.HttpFnConfig;
 import org.ehp246.aufrest.api.rest.Request;
 import org.ehp246.aufrest.api.rest.Response;
@@ -39,6 +41,28 @@ public class ByRestFactoryEchoTest {
 	private final JsonByJackson bodyBuilder = new JsonByJackson(objectMapper);
 	private final ByRestFactory factory = new ByRestFactory(client, env, bodyBuilder.getFromText(),
 			bodyBuilder.getToText(), new HttpFnConfig() {
+
+				@Override
+				public AuthenticationProvider authProvider() {
+					return uri -> {
+						if (uri.getPath().contains("basic-auth")) {
+							return new BasicAuth() {
+
+								@Override
+								public String username() {
+									return "postman";
+								}
+
+								@Override
+								public String password() {
+									return "password";
+								}
+							};
+						}
+						return null;
+					};
+				}
+
 			});
 
 	@Test
@@ -153,5 +177,12 @@ public class ByRestFactoryEchoTest {
 
 		Assertions.assertEquals("Rest", response.getJson().get("firstName"));
 		Assertions.assertEquals("Auf", response.getJson().get("lastName"));
+	}
+
+	@Test
+	void basciAuth001() {
+		final var map = factory.newInstance(EchoAuthTestCase001.class).get();
+
+		Assertions.assertEquals(true, map.get("authenticated"));
 	}
 }
