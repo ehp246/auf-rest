@@ -41,11 +41,14 @@ public class ByRestFactoryEchoTest {
 	private final JsonByJackson bodyBuilder = new JsonByJackson(objectMapper);
 	private final ByRestFactory factory = new ByRestFactory(client, env, bodyBuilder.getFromText(),
 			bodyBuilder.getToText(), new HttpFnConfig() {
+				private int count = 0;
 
 				@Override
 				public AuthenticationProvider authProvider() {
 					return uri -> {
-						if (uri.getPath().contains("basic-auth")) {
+						// Only allow one call.
+						if (uri.getPath().contains("basic-auth") && count == 0) {
+							count++;
 							return new BasicAuth() {
 
 								@Override
@@ -181,8 +184,13 @@ public class ByRestFactoryEchoTest {
 
 	@Test
 	void basciAuth001() {
-		final var map = factory.newInstance(EchoAuthTestCase001.class).get();
+		final var newInstance = factory.newInstance(EchoAuthTestCase001.class);
+
+		final var map = newInstance.get();
 
 		Assertions.assertEquals(true, map.get("authenticated"));
+
+		Assertions.assertThrows(RuntimeException.class, newInstance::get,
+				"Should throw on the second call because the authenticator allows only one call");
 	}
 }
