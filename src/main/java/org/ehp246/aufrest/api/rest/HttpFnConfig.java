@@ -14,4 +14,8 @@ public interface HttpFnConfig {
 	default Duration connectTimeout() {
 		return null;
 	}
+
+	default Duration responseTimeout() {
+		return null;
+	}
 }
