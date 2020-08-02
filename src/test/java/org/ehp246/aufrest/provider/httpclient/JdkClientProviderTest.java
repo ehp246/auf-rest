@@ -36,7 +36,6 @@ class JdkClientProviderTest {
 	private final AtomicReference<URI> reqUriRef = new AtomicReference<>();
 	private final AtomicReference<URI> authUriRef = new AtomicReference<>();
 	private final AtomicReference<Duration> connectTimeoutRef = new AtomicReference<>();
-	private final AtomicReference<Duration> responseTimeoutRef = new AtomicReference<>();
 	private final AtomicReference<InvocationOnMock> mockInvocationRef = new AtomicReference<>();
 	private final List<AtomicReference<?>> refs = List.of(reqUriRef);
 
