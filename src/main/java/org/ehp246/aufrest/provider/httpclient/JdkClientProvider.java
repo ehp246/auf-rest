@@ -66,6 +66,10 @@ public class JdkClientProvider implements HttpFnProvider {
 								body == null ? BodyPublishers.noBody() : BodyPublishers.ofString(body.toString()))
 						.uri(uri);
 
+				if (clientConfig.responseTimeout() != null) {
+					builder.timeout(clientConfig.responseTimeout());
+				}
+
 				if (authHeader != null) {
 					builder.header(HttpUtil.AUTHORIZATION, authHeader);
 				}

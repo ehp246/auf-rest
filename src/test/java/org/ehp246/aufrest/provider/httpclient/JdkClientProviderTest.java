@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.ehp246.aufrest.api.rest.AuthenticationProvider;
@@ -31,7 +33,13 @@ class JdkClientProviderTest {
 	private final static String BASIC_PASSWORD = "root";
 
 	private final AtomicReference<HttpRequest> reqRef = new AtomicReference<>();
+	private final AtomicReference<URI> reqUriRef = new AtomicReference<>();
 	private final AtomicReference<URI> authUriRef = new AtomicReference<>();
+	private final AtomicReference<Duration> connectTimeoutRef = new AtomicReference<>();
+	private final AtomicReference<InvocationOnMock> mockInvocationRef = new AtomicReference<>();
+	private final List<AtomicReference<?>> refs = List.of(reqUriRef);
+
+	private final HttpClient client = Mockito.mock(HttpClient.class);
 
 	private final AuthenticationProvider authProvider = uri -> {
 		authUriRef.set(uri);
@@ -55,8 +63,6 @@ class JdkClientProviderTest {
 	};
 
 	private final JdkClientProvider clientProvider = new JdkClientProvider(() -> {
-		final var builder = Mockito.mock(HttpClient.Builder.class);
-		final var client = Mockito.mock(HttpClient.class);
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).then(new Answer<HttpResponse<?>>() {
 				@Override
@@ -68,13 +74,22 @@ class JdkClientProviderTest {
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();
 		}
+		final var builder = Mockito.mock(HttpClient.Builder.class);
 		Mockito.when(builder.build()).thenReturn(client);
+		Mockito.when(builder.connectTimeout(Mockito.any())).then(invocation -> {
+			connectTimeoutRef.set(invocation.getArgument(0));
+			return builder;
+		});
 		return builder;
 	}, HttpRequest::newBuilder);
 
 	@BeforeEach
 	void beforeAll() {
 		reqRef.set(null);
+		connectTimeoutRef.set(null);
+		authUriRef.set(null);
+		mockInvocationRef.set(null);
+		refs.stream().forEach(ref -> ref.set(null));
 	}
 
 	@Test
@@ -197,5 +212,43 @@ class JdkClientProviderTest {
 
 		Assertions.assertEquals(HttpUtil.basicAuth(BASIC_USERNAME, BASIC_PASSWORD),
 				reqRef.get().headers().firstValue(HttpUtil.AUTHORIZATION).get());
+	}
+
+	@Test
+	void timeout001() {
+		clientProvider.get(new HttpFnConfig() {
+
+			@Override
+			public Duration connectTimeout() {
+				return Duration.ofMillis(1);
+			}
+
+			@Override
+			public Duration responseTimeout() {
+				return Duration.ofMillis(2);
+			}
+		}).apply(new Request() {
+
+			@Override
+			public String uri() {
+				return "http://tonowhere.com";
+			}
+		}).get();
+
+		Assertions.assertEquals(2, reqRef.get().timeout().get().toMillis());
+	}
+
+	@Test
+	void uri001() {
+		clientProvider.get(new HttpFnConfig() {
+		}).apply(new Request() {
+
+			@Override
+			public String uri() {
+				return "http://nowhere";
+			}
+		}).get();
+
+		Assertions.assertEquals("http://nowhere", reqRef.get().uri().toString());
 	}
 }
