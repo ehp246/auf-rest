@@ -1,7 +1,5 @@
 package org.ehp246.aufrest.provider.httpclient;
 
-import static org.mockito.Mockito.RETURNS_SELF;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -84,22 +82,7 @@ class JdkClientProviderTest {
 			return builder;
 		});
 		return builder;
-	}, () -> {
-		final var req = Mockito.mock(HttpRequest.class);
-		final var builder = Mockito.mock(HttpRequest.Builder.class, RETURNS_SELF);
-
-		Mockito.when(builder.uri(Mockito.any())).thenAnswer(invocation -> {
-			reqUriRef.set(invocation.getArgument(0));
-			return builder;
-		});
-		Mockito.when(builder.timeout(Mockito.any())).then(invocation -> {
-			responseTimeoutRef.set(invocation.getArgument(0));
-			return builder;
-		});
-
-		Mockito.when(builder.build()).thenReturn(req);
-		return builder;
-	});
+	}, HttpRequest::newBuilder);
 
 	@BeforeEach
 	void beforeAll() {
@@ -251,10 +234,9 @@ class JdkClientProviderTest {
 			public String uri() {
 				return "http://tonowhere.com";
 			}
-		});
+		}).get();
 
-		Assertions.assertEquals(1, connectTimeoutRef.get().toMillis());
-		Assertions.assertEquals(2, responseTimeoutRef.get().toMillis());
+		Assertions.assertEquals(2, reqRef.get().timeout().get().toMillis());
 	}
 
 	@Test
@@ -268,6 +250,6 @@ class JdkClientProviderTest {
 			}
 		}).get();
 
-		Assertions.assertEquals("http://nowhere", reqUriRef.get().toString());
+		Assertions.assertEquals("http://nowhere", reqRef.get().uri().toString());
 	}
 }
