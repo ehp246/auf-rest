@@ -5,7 +5,7 @@
     </encoder>
   </appender>
 
-  <logger name="org.ehp246" level="TRACE"/>
+  <logger name="me.ehp246" level="TRACE"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
