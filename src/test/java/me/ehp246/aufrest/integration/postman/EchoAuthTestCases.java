@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.integration.postman;
 
+import java.net.http.HttpResponse;
 import java.util.Map;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
@@ -14,6 +15,8 @@ interface EchoAuthTestCases {
 	@ByRest("${echo.base}/basic-auth")
 	interface BasicCase001 {
 		Map<String, Boolean> get();
+
+		HttpResponse<String> getAsResponse();
 	}
 
 	@ByRest(value = "${echo.base}/basic-auth", auth = @Auth(value = "postman:password", type = Type.BASIC))

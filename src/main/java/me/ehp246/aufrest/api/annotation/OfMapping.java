@@ -6,7 +6,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.springframework.web.bind.annotation.RequestMethod;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
  * @author Lei Yang
@@ -17,5 +17,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public @interface OfMapping {
 	String value() default "";
 
-	RequestMethod method() default RequestMethod.GET;
+	String method() default HttpUtils.GET;
+
+	String produces() default HttpUtils.APPLICATION_JSON;
+
 }

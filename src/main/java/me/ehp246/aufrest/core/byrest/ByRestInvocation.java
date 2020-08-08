@@ -1,11 +1,8 @@
 package me.ehp246.aufrest.core.byrest;
 
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,9 +24,8 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.exception.ByRestResponseException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.core.reflection.ObjectToText;
+import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
-import me.ehp246.aufrest.core.reflection.TextToObject;
 import me.ehp246.aufrest.core.util.InvocationUtil;
 
 /**
@@ -42,20 +38,15 @@ class ByRestInvocation implements Request {
 			RequestParam.class);
 
 	private final ProxyInvoked<Object> invoked;
-	private final ObjectToText fromObject;
-	private final TextToObject fromText;
 	private final Environment env;
 	private final Optional<OfMapping> ofMapping;
 	private final Optional<ByRest> byRest;
 	private Supplier<HttpResponse<?>> responseSupplier = null;
 
-	public ByRestInvocation(final ProxyInvoked<Object> invoked, final Environment env, final TextToObject fromText,
-			final ObjectToText toText) {
+	public ByRestInvocation(final ProxyInvoked<Object> invoked, final Environment env) {
 		super();
 		this.invoked = invoked;
 		this.env = env;
-		this.fromText = fromText;
-		this.fromObject = toText;
 		this.ofMapping = invoked.findOnMethod(OfMapping.class);
 		this.byRest = invoked.findOnDeclaringClass(ByRest.class);
 	}
@@ -63,7 +54,7 @@ class ByRestInvocation implements Request {
 	@Override
 	public String method() {
 		if (ofMapping.isPresent()) {
-			return ofMapping.map(anno -> anno.method().name()).get();
+			return ofMapping.map(OfMapping::method).get().toUpperCase();
 		}
 
 		final var invokedMethodName = invoked.getMethodName().toUpperCase();
@@ -100,22 +91,26 @@ class ByRestInvocation implements Request {
 	}
 
 	@Override
-	public Object body() {
-		final var payload = invoked.filterPayloadArgs(PARAMETER_ANNOTATIONS);
-		return fromObject.apply(() -> payload.size() == 1 ? payload.get(0) : payload);
+	public Receiver receiver() {
+		return new Receiver() {
+
+			@Override
+			public List<? extends Annotation> annotations() {
+				return invoked.getMethodDeclaredAnnotations();
+			}
+
+			@Override
+			public Class<?> type() {
+				return invoked.getReturnType();
+			}
+
+		};
 	}
 
 	@Override
-	public BodyHandler<?> bodyHandler() {
-		final var returnType = invoked.getReturnType();
-		if (returnType == Void.class || returnType == void.class) {
-			return BodyHandlers.discarding();
-		}
-		if (returnType == InputStream.class) {
-			return BodyHandlers.ofInputStream();
-		}
-
-		return BodyHandlers.ofString();
+	public Object body() {
+		final var payload = invoked.filterPayloadArgs(PARAMETER_ANNOTATIONS);
+		return payload.size() >= 1 ? payload.get(0) : null;
 	}
 
 	public ByRestInvocation setResponseSupplier(final Supplier<HttpResponse<?>> responseSupplier) throws Throwable {
@@ -124,6 +119,11 @@ class ByRestInvocation implements Request {
 		this.responseSupplier = invoked.findInArguments(HttpResponse.class).stream().findFirst()
 				.map(res -> (Supplier<HttpResponse<?>>) () -> res).orElse(responseSupplier);
 		return this;
+	}
+
+	@Override
+	public String contentType() {
+		return ofMapping.map(OfMapping::produces).orElse(Request.super.contentType());
 	}
 
 	public Object returnInvocation() throws Throwable {
@@ -139,7 +139,6 @@ class ByRestInvocation implements Request {
 		// If the return type is HttpResponse, returns it as is without any processing
 		// regardless the status.
 		if (returnType.isAssignableFrom(HttpResponse.class)) {
-			//
 			return httpResponse;
 		}
 
@@ -152,15 +151,11 @@ class ByRestInvocation implements Request {
 			return null;
 		}
 
-		if (returnType == InputStream.class) {
-			return httpResponse.body();
-		}
-
 		// Defaults to CompletableFuture of HttpResponse for now.
 		if (returnType == CompletableFuture.class) {
 			return httpResponse;
 		}
 
-		return fromText.apply(httpResponse.body().toString(), () -> returnType);
+		return httpResponse.body();
 	}
 }

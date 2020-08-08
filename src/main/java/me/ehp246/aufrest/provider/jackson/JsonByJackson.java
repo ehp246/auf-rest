@@ -10,9 +10,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.core.reflection.ObjectToText;
-import me.ehp246.aufrest.core.reflection.TextToObject;
+import me.ehp246.aufrest.api.rest.TextContentConsumer;
+import me.ehp246.aufrest.api.rest.TextContentProducer;
 import me.ehp246.aufrest.core.util.AnnotationUtil;
+import me.ehp246.aufrest.core.util.InvocationUtil;
 
 /**
  * @author Lei Yang
@@ -28,16 +29,8 @@ public class JsonByJackson {
 		this.objectMapper = objectMapper;
 	}
 
-	public ObjectToText getToText() {
-		return this::toText;
-	}
-
-	public TextToObject getFromText() {
-		return this::fromText;
-	}
-
-	public <T> String toText(final ObjectToText.Supplier<T> supplier) {
-		final var value = supplier.get();
+	public <T> String toText(final TextContentProducer.Supplier supplier) {
+		final var value = supplier.value();
 		if (value == null) {
 			return null;
 		}
@@ -45,23 +38,18 @@ public class JsonByJackson {
 				&& AnnotationUtil.hasType(supplier.annotations(), AsIs.class)) {
 			return value.toString();
 		}
-		try {
-			return this.objectMapper.writeValueAsString(value);
-		} catch (final Exception e) {
-			LOGGER.error("Failed to serialize {}", supplier.get(), e);
-			throw new RuntimeException(e);
-		}
+
+		return InvocationUtil.invoke(() -> this.objectMapper.writeValueAsString(value));
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> T fromText(final String json, final TextToObject.Receiver<T> receiver) {
+	public Object fromText(final String json, final TextContentConsumer.Receiver receiver) {
 		if (receiver == null || json == null || json.isBlank()) {
 			return null;
 		}
 
 		if (String.class.isAssignableFrom(receiver.type())
 				&& AnnotationUtil.hasType(receiver.annotations(), AsIs.class)) {
-			return (T) json;
+			return json;
 		}
 
 		try {

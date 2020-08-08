@@ -1,9 +1,8 @@
 package me.ehp246.aufrest.core.byrest;
 
-import org.springframework.web.bind.annotation.RequestMethod;
-
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
  * @author Lei Yang
@@ -17,19 +16,19 @@ interface MethodTestCase001 {
 
 	void query(int i);
 
-	@OfMapping(method = RequestMethod.GET)
+	@OfMapping
 	void query();
 
 	void post();
 
 	void postByName();
 
-	@OfMapping(method = RequestMethod.POST)
+	@OfMapping(method = HttpUtils.POST)
 	void create();
 
 	void delete();
 
-	@OfMapping(method = RequestMethod.DELETE)
+	@OfMapping(method = HttpUtils.DELETE)
 	void remove();
 
 	void put();

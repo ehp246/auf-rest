@@ -14,9 +14,7 @@ import org.springframework.core.env.Environment;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.core.reflection.ObjectToText;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
-import me.ehp246.aufrest.core.reflection.TextToObject;
 
 /**
  *
@@ -29,22 +27,19 @@ public class ByRestFactory {
 	private final ListableBeanFactory beanFactory;
 	private final Environment env;
 	private final Supplier<ClientFn> clientProvider;
-	private final ObjectToText toText;
-	private final TextToObject fromText;
 
-	public ByRestFactory(final Supplier<ClientFn> clientProvider, final Environment env, final TextToObject fromText,
-			final ObjectToText toText, final ListableBeanFactory beanFactory) {
+	public ByRestFactory(final Supplier<ClientFn> clientProvider, final Environment env,
+			final ListableBeanFactory beanFactory) {
 		super();
 		this.env = env;
 		this.clientProvider = clientProvider;
-		this.toText = toText;
-		this.fromText = fromText;
 		this.beanFactory = beanFactory;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T newInstance(final Class<T> byRestInterface) {
 		LOGGER.debug("Instantiating {}@ByRest", byRestInterface.getCanonicalName());
+
 		final var byRest = Optional.ofNullable(byRestInterface.getAnnotation(ByRest.class));
 		final var timeout = byRest.map(ByRest::timeout).filter(millis -> millis > 0).map(Duration::ofMillis)
 				.orElse(null);
@@ -55,7 +50,7 @@ public class ByRestFactory {
 			case ASIS:
 				return env.resolveRequiredPlaceholders(auth.value());
 			case BASIC:
-				return HttpUtils.basicAuth(env.resolveRequiredPlaceholders(auth.value()));
+				return HttpUtils.basic(env.resolveRequiredPlaceholders(auth.value()));
 			case BEAN:
 				return beanFactory.getBean(auth.value(), Supplier.class).get().toString();
 			case DEFAULT:
@@ -68,8 +63,7 @@ public class ByRestFactory {
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
 				(InvocationHandler) (proxy, method, args) -> {
-					final var request = new ByRestInvocation(new ProxyInvoked<>(proxy, method, args), env, fromText,
-							toText) {
+					final var request = new ByRestInvocation(new ProxyInvoked<>(proxy, method, args), env) {
 
 						@Override
 						public Duration timeout() {

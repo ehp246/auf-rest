@@ -16,8 +16,6 @@ import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.core.byrest.PathVariableCase001.PathObject;
-import me.ehp246.aufrest.core.reflection.ObjectToText;
-import me.ehp246.aufrest.core.reflection.TextToObject;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -34,34 +32,19 @@ class ByRestFactoryTest {
 	};
 
 	private final Supplier<ClientFn> clientSupplier = () -> client;
-	private final TextToObject fromText = new TextToObject() {
-
-		@Override
-		public <T> T apply(final String text, final Receiver<T> receiver) {
-			return null;
-		}
-	};
-
-	private final ObjectToText toText = new ObjectToText() {
-
-		@Override
-		public <T> String apply(final Supplier<T> object) {
-			return null;
-		}
-	};
 
 	private final MockEnvironment env = new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")
 			.withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
 			.withProperty("postman.username", "postman").withProperty("postman.password", "password");
 
-	private final ByRestFactory factory = new ByRestFactory(clientSupplier, env, fromText, toText, beanFactory);
+	private final ByRestFactory factory = new ByRestFactory(clientSupplier, env, beanFactory);
 
 	ByRestFactoryTest() {
 		super();
 		beanFactory.registerSingleton("PostmanBasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean", "password"));
+				(Supplier<String>) () -> HttpUtils.basic("postman_bean", "password"));
 		beanFactory.registerSingleton("Postman2BasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean2", "password"));
+				(Supplier<String>) () -> HttpUtils.basic("postman_bean2", "password"));
 	}
 
 	@BeforeEach
@@ -361,7 +344,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_none_001() {
-		final var factory = new ByRestFactory(clientSupplier, env, fromText, toText, beanFactory);
+		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -370,7 +353,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_global_001() {
-		final var factory = new ByRestFactory(clientSupplier, env, fromText, toText, beanFactory);
+		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -381,14 +364,14 @@ class ByRestFactoryTest {
 	void auth_basic_001() {
 		factory.newInstance(AuthTestCases.Case002.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basic("postman", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_basic_002() {
 		factory.newInstance(AuthTestCases.Case005.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basic("postman", "password"), reqRef.get().authentication());
 	}
 
 	@Test
@@ -410,19 +393,19 @@ class ByRestFactoryTest {
 	void auth_bean_001() {
 		factory.newInstance(AuthTestCases.Case006.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basic("postman_bean", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_bean_002() {
 		factory.newInstance(AuthTestCases.Case007.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean2", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basic("postman_bean2", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void exception_001() {
-		final var factory = new ByRestFactory(() -> req -> null, env, fromText, toText, beanFactory);
+		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
 		final var thrown = Assertions.assertThrows(ByRestResponseException.class,
@@ -436,7 +419,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void exception_002() {
-		final var factory = new ByRestFactory(() -> req -> null, env, fromText, toText, beanFactory);
+		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
 		final var thrown = Assertions.assertThrows(ByRestResponseException.class,

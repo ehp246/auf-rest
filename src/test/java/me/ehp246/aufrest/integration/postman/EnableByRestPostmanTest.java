@@ -6,24 +6,35 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import me.ehp246.aufrest.api.exception.ByRestResponseException;
+import me.ehp246.aufrest.api.rest.ClientConfig;
 
 /**
  * @author Lei Yang
  *
  */
 @SpringBootTest(classes = { PostmanApp.class }, properties = { "echo.base = https://postman-echo.com",
-		"me.ehp246.aufrest.connectTimeout=1500", "me.ehp246.aufrest.responseTimeout=3000" })
+		"me.ehp246.aufrest.connectTimeout=50000", "me.ehp246.aufrest.responseTimeout=50000" })
 class EnableByRestPostmanTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;
 
 	@Test
+	void clientConfig_001() {
+		final var bean = factory.getBean(ClientConfig.class);
+
+		Assertions.assertEquals(50000, bean.connectTimeout().toMillis());
+		Assertions.assertEquals(50000, bean.responseTimeout().toMillis());
+	}
+
+	@Test
+	@Disabled
 	void get_001() {
 		final var newInstance = factory.getBean(EchoGetTestCase001.class);
 
@@ -54,6 +65,7 @@ class EnableByRestPostmanTest {
 	}
 
 	@Test
+	@Disabled
 	void get_004() throws InterruptedException, ExecutionException {
 		final var newInstance = factory.getBean(EchoGetTestCase001.class);
 
@@ -131,6 +143,16 @@ class EnableByRestPostmanTest {
 
 		Assertions.assertThrows(ByRestResponseException.class, newInstance::get,
 				"Should throw on the second call because the global authentication provider allows only one call");
+
+		/*
+		 * If the return type is HttpResponse, the invocation should not throw as long
+		 * as a response is received and can be returned.
+		 */
+		final var response = Assertions.assertDoesNotThrow(newInstance::getAsResponse,
+				"Should return a valid response instead of throwing");
+
+		Assertions.assertEquals(401, response.statusCode(), "Should have correct status code");
+		Assertions.assertEquals("Unauthorized", response.body(), "Should return response body as string");
 	}
 
 	@Test

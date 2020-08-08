@@ -1,6 +1,4 @@
-package me.ehp246.aufrest.integration.postman;
-
-import java.util.concurrent.atomic.AtomicReference;
+package me.ehp246.aufrest.integration.twilio;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -13,8 +11,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.AuthenticationProvider;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
  * @author Lei Yang
@@ -22,20 +18,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @SpringBootApplication
 @EnableByRest
-class PostmanApp {
-	@Bean
-	public AuthenticationProvider authProvider() {
-		final var countRef = new AtomicReference<Integer>(0);
-		return uri -> {
-			// Only allow one call.
-			if (uri.getPath().contains("basic-auth") && countRef.get() == 0) {
-				countRef.getAndUpdate(i -> i + 1);
-				return HttpUtils.basic("postman", "password");
-			}
-			return null;
-		};
-	}
-
+class TwilioApp {
 	@Bean
 	public ObjectMapper objectMapper() {
 		return new ObjectMapper().setSerializationInclusion(Include.NON_NULL)

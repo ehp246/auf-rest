@@ -37,6 +37,10 @@ public class ProxyInvoked<T> {
 		return method;
 	}
 
+	public List<? extends Annotation> getMethodDeclaredAnnotations() {
+		return List.of(method.getDeclaredAnnotations());
+	}
+
 	public Class<?> getDeclaringClass() {
 		return method.getDeclaringClass();
 	}

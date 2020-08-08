@@ -48,7 +48,7 @@ class JdkClientProviderTest {
 		if (uri.toString().contains("bearer")) {
 			return HttpUtils.bearer(BEARER_TOKEN);
 		} else if (uri.toString().contains("basic")) {
-			return HttpUtils.basicAuth(BASIC_USERNAME, BASIC_PASSWORD);
+			return HttpUtils.basic(BASIC_USERNAME, BASIC_PASSWORD);
 		}
 		return null;
 	};
@@ -209,7 +209,7 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(HttpUtils.basicAuth(BASIC_USERNAME, BASIC_PASSWORD),
+		Assertions.assertEquals(HttpUtils.basic(BASIC_USERNAME, BASIC_PASSWORD),
 				reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
 	}
 
@@ -231,7 +231,7 @@ class JdkClientProviderTest {
 		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, new ClientConfig() {
 
 			@Override
-			public Duration requestTimeout() {
+			public Duration responseTimeout() {
 				return Duration.ofDays(2);
 			}
 
@@ -249,7 +249,7 @@ class JdkClientProviderTest {
 		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, new ClientConfig() {
 
 			@Override
-			public Duration requestTimeout() {
+			public Duration responseTimeout() {
 				return Duration.ofDays(2);
 			}
 
