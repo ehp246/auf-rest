@@ -42,9 +42,9 @@ class ByRestFactoryTest {
 	ByRestFactoryTest() {
 		super();
 		beanFactory.registerSingleton("PostmanBasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basic("postman_bean", "password"));
+				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean", "password"));
 		beanFactory.registerSingleton("Postman2BasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basic("postman_bean2", "password"));
+				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean2", "password"));
 	}
 
 	@BeforeEach
@@ -364,21 +364,21 @@ class ByRestFactoryTest {
 	void auth_basic_001() {
 		factory.newInstance(AuthTestCases.Case002.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_basic_002() {
 		factory.newInstance(AuthTestCases.Case005.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_003() {
 		factory.newInstance(AuthTestCases.Case003.class).get();
 
-		Assertions.assertEquals(HttpUtils.bearer("ec3fb099-7fa3-477b-82ce-05547babad95"),
+		Assertions.assertEquals(HttpUtils.bearerToken("ec3fb099-7fa3-477b-82ce-05547babad95"),
 				reqRef.get().authentication());
 	}
 
@@ -393,14 +393,14 @@ class ByRestFactoryTest {
 	void auth_bean_001() {
 		factory.newInstance(AuthTestCases.Case006.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman_bean", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_bean_002() {
 		factory.newInstance(AuthTestCases.Case007.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman_bean2", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean2", "password"), reqRef.get().authentication());
 	}
 
 	@Test

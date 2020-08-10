@@ -26,11 +26,11 @@ public interface Request extends Messsage {
 	}
 
 	default String contentType() {
-		return MediaType.APPLICATION_JSON;
+		return HttpUtils.APPLICATION_JSON;
 	}
 
 	default String accept() {
-		return MediaType.APPLICATION_JSON;
+		return HttpUtils.APPLICATION_JSON;
 	}
 
 	default Receiver receiver() {

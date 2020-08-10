@@ -46,11 +46,11 @@ public class ByRestFactory {
 		final var authHeader = byRest.map(ByRest::auth).map(auth -> {
 			switch (auth.type()) {
 			case BEARER:
-				return HttpUtils.bearer(env.resolveRequiredPlaceholders(auth.value()));
+				return HttpUtils.bearerToken(env.resolveRequiredPlaceholders(auth.value()));
 			case ASIS:
 				return env.resolveRequiredPlaceholders(auth.value());
 			case BASIC:
-				return HttpUtils.basic(env.resolveRequiredPlaceholders(auth.value()));
+				return HttpUtils.basicAuth(env.resolveRequiredPlaceholders(auth.value()));
 			case BEAN:
 				return beanFactory.getBean(auth.value(), Supplier.class).get().toString();
 			case DEFAULT:

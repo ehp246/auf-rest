@@ -16,14 +16,14 @@ public interface ClientConfig {
 	}
 
 	default TextContentProducer contentProducer(final String mediaType) {
-		if (MediaType.TEXT_PLAIN.equalsIgnoreCase(mediaType)) {
+		if (HttpUtils.TEXT_PLAIN.equalsIgnoreCase(mediaType)) {
 			return suplier -> suplier.value().toString();
 		}
 		return null;
 	}
 
 	default TextContentConsumer contentConsumer(final String mediaType) {
-		if (MediaType.TEXT_PLAIN.equalsIgnoreCase(mediaType)) {
+		if (HttpUtils.TEXT_PLAIN.equalsIgnoreCase(mediaType)) {
 			return (text, receiver) -> text;
 		}
 		return null;

@@ -23,7 +23,6 @@ import me.ehp246.aufrest.api.rest.AuthenticationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.MediaType;
 import me.ehp246.aufrest.api.rest.Request;
 
 /**
@@ -123,7 +122,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 							// TODO:
 							final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
 									.toLowerCase();
-							if (!contentType.startsWith(MediaType.APPLICATION_JSON)) {
+							if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
 								throw new RuntimeException("Un-supported response content type:" + contentType);
 							}
 
@@ -153,10 +152,10 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 		// Content-Type
 		builder.header(HttpUtils.CONTENT_TYPE,
-				Optional.ofNullable(req.contentType()).orElse(MediaType.APPLICATION_JSON));
+				Optional.ofNullable(req.contentType()).orElse(HttpUtils.APPLICATION_JSON));
 
 		// Accept
-		builder.header(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(MediaType.APPLICATION_JSON));
+		builder.header(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(HttpUtils.APPLICATION_JSON));
 
 		return builder;
 	}

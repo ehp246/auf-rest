@@ -30,7 +30,7 @@ class PostmanApp {
 			// Only allow one call.
 			if (uri.getPath().contains("basic-auth") && countRef.get() == 0) {
 				countRef.getAndUpdate(i -> i + 1);
-				return HttpUtils.basic("postman", "password");
+				return HttpUtils.basicAuth("postman", "password");
 			}
 			return null;
 		};

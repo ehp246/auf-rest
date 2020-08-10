@@ -46,9 +46,9 @@ class JdkClientProviderTest {
 
 	private final AuthenticationProvider authProvider = uri -> {
 		if (uri.toString().contains("bearer")) {
-			return HttpUtils.bearer(BEARER_TOKEN);
+			return HttpUtils.bearerToken(BEARER_TOKEN);
 		} else if (uri.toString().contains("basic")) {
-			return HttpUtils.basic(BASIC_USERNAME, BASIC_PASSWORD);
+			return HttpUtils.basicAuth(BASIC_USERNAME, BASIC_PASSWORD);
 		}
 		return null;
 	};
@@ -190,7 +190,7 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(HttpUtils.bearer(BEARER_TOKEN),
+		Assertions.assertEquals(HttpUtils.bearerToken(BEARER_TOKEN),
 				reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
 	}
 
@@ -209,7 +209,7 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(HttpUtils.basic(BASIC_USERNAME, BASIC_PASSWORD),
+		Assertions.assertEquals(HttpUtils.basicAuth(BASIC_USERNAME, BASIC_PASSWORD),
 				reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
 	}
 

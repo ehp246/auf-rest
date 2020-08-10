@@ -17,7 +17,6 @@ import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import me.ehp246.aufrest.api.rest.AuthenticationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.MediaType;
 import me.ehp246.aufrest.api.rest.TextContentConsumer;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
 import me.ehp246.aufrest.core.util.InvocationUtil;
@@ -93,7 +92,7 @@ public class ByRestConfiguration {
 			@Override
 			public TextContentConsumer contentConsumer(String mediaType) {
 				mediaType = mediaType.toLowerCase();
-				if (mediaType.startsWith(MediaType.APPLICATION_JSON)) {
+				if (mediaType.startsWith(HttpUtils.APPLICATION_JSON)) {
 					return jackson::fromText;
 				}
 				if (mediaType.startsWith(HttpUtils.TEXT_PLAIN)) {
