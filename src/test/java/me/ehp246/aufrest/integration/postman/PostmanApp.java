@@ -13,7 +13,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.AuthenticationProvider;
+import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 @EnableByRest
 class PostmanApp {
 	@Bean
-	public AuthenticationProvider authProvider() {
+	public AuthorizationProvider authProvider() {
 		final var countRef = new AtomicReference<Integer>(0);
 		return uri -> {
 			// Only allow one call.

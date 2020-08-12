@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import me.ehp246.aufrest.api.rest.AuthenticationProvider;
+import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -39,20 +39,20 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
-	private final Optional<AuthenticationProvider> authProvider;
+	private final Optional<AuthorizationProvider> authProvider;
 	private final ClientConfig clientConfig;
 
 	public JdkClientProvider(final ClientConfig clientConfig) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null);
 	}
 
-	public JdkClientProvider(final ClientConfig clientConfig, final AuthenticationProvider authProvider) {
+	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider);
 	}
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
 			final Supplier<java.net.http.HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
-			final AuthenticationProvider authProvider) {
+			final AuthorizationProvider authProvider) {
 		super();
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;

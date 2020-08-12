@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.AuthenticationProvider;
+import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
@@ -44,7 +44,7 @@ class JdkClientProviderTest {
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 			CALLS_REAL_METHODS);
 
-	private final AuthenticationProvider authProvider = uri -> {
+	private final AuthorizationProvider authProvider = uri -> {
 		if (uri.toString().contains("bearer")) {
 			return HttpUtils.bearerToken(BEARER_TOKEN);
 		} else if (uri.toString().contains("basic")) {
