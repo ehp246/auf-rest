@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
@@ -31,9 +30,6 @@ interface EchoGetTestCase001 {
 	Void getVoid2();
 
 	EchoResponseBody getAsEchoBody();
-
-	@AsIs
-	String getBodyAsIs();
 
 	/**
 	 * Defaults to ResponseSupplier with String body.

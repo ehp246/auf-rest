@@ -10,6 +10,10 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the annotated interface should be scanned by the framework as
  * a proxy of a REST endpoint.
+ * <p>
+ * For each annotated interface, the framework defines a bean of the type and
+ * makes it available for injection. On behalf of the application the framework
+ * implements invocations on the interface as HTTP requests/responses.
  *
  * @author Lei Yang
  * @since 1.0
