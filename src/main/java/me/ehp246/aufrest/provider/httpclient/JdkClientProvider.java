@@ -77,18 +77,19 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 						.orElseGet(() -> authProvider.map(provider -> provider.get(uri))
 								.filter(value -> value != null && !value.isBlank()).orElse(null));
 
-				final var builder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
+				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
 						.uri(uri);
 
 				// Timeout
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
-						.map(builder::timeout);
+						.map(requestBuilder::timeout);
 
 				// Optional Authentication
-				Optional.ofNullable(authHeader).map(header -> builder.header(HttpUtils.AUTHORIZATION, header));
+				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
-				final var httpRequest = builder.build();
-				LOGGER.debug("Sending {} {}", req.method(), req.uri());
+				final var httpRequest = requestBuilder.build();
+				LOGGER.debug("Sending {} {}", httpRequest.method(), req.uri());
+				LOGGER.trace("Sending {}", httpRequest.headers());
 
 				HttpResponse<?> httpResponse;
 				try {
@@ -98,6 +99,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				}
 
 				LOGGER.debug("Received {}", httpResponse.toString());
+				LOGGER.trace("Received {}", httpResponse.headers());
+
 				return httpResponse;
 			}
 
@@ -115,11 +118,12 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 				return responseInfo -> BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8),
 						json -> {
+							LOGGER.trace("Received {}", json);
+
 							if (responseInfo.statusCode() >= 300) {
 								return json;
 							}
 
-							// TODO:
 							final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
 									.toLowerCase();
 							if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
@@ -141,7 +145,9 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					throw new RuntimeException("No content producer for " + req.contentType());
 				}
 
-				return BodyPublishers.ofString(contentProducer.produce(req::body));
+				final var content = contentProducer.produce(req::body);
+				LOGGER.trace("Sending {}", content);
+				return BodyPublishers.ofString(content);
 			}
 
 		};
