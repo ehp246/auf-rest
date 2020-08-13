@@ -5,10 +5,10 @@ import java.time.Duration;
 import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
 
 /**
- * The abstraction of a Rest request message with an expected response.
+ * The abstraction of a REST request message that expects a response.
  *
  * @author Lei Yang
- *
+ * @since 1.0
  */
 public interface Request extends Messsage {
 	String uri();

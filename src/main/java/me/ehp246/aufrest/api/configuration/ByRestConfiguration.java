@@ -24,8 +24,14 @@ import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
 /**
- * @author Lei Yang
+ * Registers infrastructure beans needed by the framework.
  *
+ * <p>
+ * Imported by {@link me.ehp246.aufrest.api.annotation.EnableByRest
+ * EnableByRest}.
+ *
+ * @author Lei Yang
+ * @see me.ehp246.aufrest.api.annotation.EnableByRest
  */
 public class ByRestConfiguration {
 

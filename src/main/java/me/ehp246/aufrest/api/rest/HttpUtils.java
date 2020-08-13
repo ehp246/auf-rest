@@ -6,8 +6,10 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author Lei Yang
+ * HTTP-related constants.
  *
+ * @author Lei Yang
+ * @since 1.0
  */
 public class HttpUtils {
 	// Methods

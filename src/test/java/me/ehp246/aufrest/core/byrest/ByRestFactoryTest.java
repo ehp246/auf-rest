@@ -11,7 +11,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.exception.ByRestResponseException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
@@ -408,7 +408,7 @@ class ByRestFactoryTest {
 		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
-		final var thrown = Assertions.assertThrows(ByRestResponseException.class,
+		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
 				() -> newInstance.get(new MockResponse<String>(300, "")));
 
 		Assertions.assertEquals(300, thrown.statusCode());
@@ -422,7 +422,7 @@ class ByRestFactoryTest {
 		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
-		final var thrown = Assertions.assertThrows(ByRestResponseException.class,
+		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
 				() -> newInstance.getWithThrows(new MockResponse<String>(400, "")));
 
 		Assertions.assertEquals(400, thrown.statusCode());

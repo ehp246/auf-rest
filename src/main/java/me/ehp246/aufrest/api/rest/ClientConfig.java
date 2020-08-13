@@ -3,8 +3,10 @@ package me.ehp246.aufrest.api.rest;
 import java.time.Duration;
 
 /**
- * @author Lei Yang
+ * Defines global configuration points for HttpClient.
  *
+ * @author Lei Yang
+ * @since 1.0
  */
 public interface ClientConfig {
 	default Duration connectTimeout() {

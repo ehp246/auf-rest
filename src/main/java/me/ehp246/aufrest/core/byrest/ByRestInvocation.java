@@ -21,7 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.exception.ByRestResponseException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
@@ -143,7 +143,7 @@ class ByRestInvocation implements Request {
 		}
 
 		if (httpResponse.statusCode() >= 300) {
-			throw new ByRestResponseException(this, httpResponse);
+			throw new UnhandledResponseException(this, httpResponse);
 		}
 
 		// Request still should go out but discarding the response.
