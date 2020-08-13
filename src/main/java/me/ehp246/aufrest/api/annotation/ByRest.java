@@ -85,13 +85,13 @@ public @interface ByRest {
 			 * <code>null</code> for the URI. In which case, the requests from the proxy
 			 * interface will have no Authorization header.
 			 *
-			 * @see me.ehp246.aufrest.api.rest.AuthorizationProvider.AuthorizationProvider
+			 * @see me.ehp246.aufrest.api.rest.AuthorizationProvider
 			 */
 			DEFAULT,
 			/**
 			 * Indicates the endpoint requires HTTP basic authentication. For this type, the
 			 * value element should be of the format of
-			 * <cod>"${username}:${password}"</code>. I.e., a simple concatenation of
+			 * <code>"${username}:${password}"</code>. I.e., a simple concatenation of
 			 * username, ":", and password with no additional encoding. The framework will
 			 * encode the value according to the specification.
 			 */
