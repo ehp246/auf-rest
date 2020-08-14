@@ -11,8 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -52,8 +50,7 @@ public class ByRestConfiguration {
 		final var jackson = new JsonByJackson(Optional.ofNullable(objectMapper).orElseGet(() -> {
 			final var newMapper = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
 					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-					.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new JavaTimeModule())
-					.registerModule(new MrBeanModule());
+					.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
 			var module = InvocationUtil.invokeWithDefault(
 					() -> Class.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule.JavaTimeModule")
