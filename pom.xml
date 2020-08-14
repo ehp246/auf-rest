@@ -8,6 +8,9 @@
 	<name>Auf REST</name>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		
 		<junit-jupiter.version>5.5.2</junit-jupiter.version>
 		<log4j2.version>2.12.1</log4j2.version>
 		<mockito.version>3.1.0</mockito.version>
@@ -15,6 +18,9 @@
 		<spring-framework.version>5.2.3.RELEASE</spring-framework.version>
 		<spring-boot.version>2.2.4.RELEASE</spring-boot.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 	</properties>
 
 	<dependencies>
@@ -147,6 +153,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -159,6 +166,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -171,7 +179,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.6</version>
+				<version>${maven-gpg-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>sign-artifacts</id>
