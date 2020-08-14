@@ -16,8 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -35,7 +35,7 @@ import me.ehp246.aufrest.api.rest.Request;
  *
  */
 public class JdkClientProvider implements Supplier<ClientFn> {
-	private final static Logger LOGGER = LoggerFactory.getLogger(JdkClientProvider.class);
+	private final static Logger LOGGER = LogManager.getLogger(JdkClientProvider.class);
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;

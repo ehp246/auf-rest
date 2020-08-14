@@ -6,8 +6,8 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 
@@ -22,7 +22,7 @@ import me.ehp246.aufrest.core.reflection.ProxyInvoked;
  *
  */
 public class ByRestFactory {
-	private final static Logger LOGGER = LoggerFactory.getLogger(ByRestFactory.class);
+	private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
 	private final ListableBeanFactory beanFactory;
 	private final Environment env;

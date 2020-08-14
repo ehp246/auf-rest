@@ -1,7 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 
 public class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
-	private final static Logger LOGGER = LoggerFactory.getLogger(ByRestRegistrar.class);
+	private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
 
 	@Override
 	public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {

@@ -11,8 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +31,6 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  *
  */
 class ByRestInvocation implements Request {
-	private final static Logger LOGGER = LoggerFactory.getLogger(ByRestInvocation.class);
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
 			RequestParam.class);
 
