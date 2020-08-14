@@ -88,8 +88,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
 				final var httpRequest = requestBuilder.build();
-				LOGGER.debug("Sending {} {}", httpRequest.method(), req.uri());
-				LOGGER.trace("Sending {}", httpRequest.headers());
+				LOGGER.debug("{} {}", httpRequest.method(), req.uri());
+				LOGGER.trace("{}", httpRequest.headers().map());
 
 				HttpResponse<?> httpResponse;
 				try {
@@ -97,9 +97,6 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				} catch (IOException | InterruptedException e) {
 					throw new RuntimeException("Failed to receive response", e);
 				}
-
-				LOGGER.debug("Received {}", httpResponse.toString());
-				LOGGER.trace("Received {}", httpResponse.headers());
 
 				return httpResponse;
 			}
@@ -116,22 +113,26 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodyHandlers.ofInputStream();
 				}
 
-				return responseInfo -> BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8),
-						json -> {
-							LOGGER.trace("Received {}", json);
+				return responseInfo -> {
+					LOGGER.debug("{}", responseInfo.statusCode());
+					LOGGER.trace("{}", responseInfo.headers().map());
 
-							if (responseInfo.statusCode() >= 300) {
-								return json;
-							}
+					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), json -> {
+						LOGGER.trace("{}", json);
 
-							final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
-									.toLowerCase();
-							if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-								throw new RuntimeException("Un-supported response content type:" + contentType);
-							}
+						if (responseInfo.statusCode() >= 300) {
+							return json;
+						}
 
-							return clientConfig.contentConsumer(req.accept()).consume(json, receiver);
-						});
+						final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
+								.toLowerCase();
+						if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
+							throw new RuntimeException("Un-supported response content type:" + contentType);
+						}
+
+						return clientConfig.contentConsumer(req.accept()).consume(json, receiver);
+					});
+				};
 			}
 
 			private BodyPublisher bodyPublisher(final Request req) {
@@ -145,9 +146,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					throw new RuntimeException("No content producer for " + req.contentType());
 				}
 
-				final var content = contentProducer.produce(req::body);
-				LOGGER.trace("Sending {}", content);
-				return BodyPublishers.ofString(content);
+				return BodyPublishers.ofString(contentProducer.produce(req::body));
 			}
 
 		};
