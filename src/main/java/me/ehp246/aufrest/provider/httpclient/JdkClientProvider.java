@@ -16,14 +16,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import me.ehp246.aufrest.api.rest.AuthenticationProvider;
+import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.MediaType;
 import me.ehp246.aufrest.api.rest.Request;
 
 /**
@@ -36,24 +35,24 @@ import me.ehp246.aufrest.api.rest.Request;
  *
  */
 public class JdkClientProvider implements Supplier<ClientFn> {
-	private final static Logger LOGGER = LoggerFactory.getLogger(JdkClientProvider.class);
+	private final static Logger LOGGER = LogManager.getLogger(JdkClientProvider.class);
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
-	private final Optional<AuthenticationProvider> authProvider;
+	private final Optional<AuthorizationProvider> authProvider;
 	private final ClientConfig clientConfig;
 
 	public JdkClientProvider(final ClientConfig clientConfig) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null);
 	}
 
-	public JdkClientProvider(final ClientConfig clientConfig, final AuthenticationProvider authProvider) {
+	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider);
 	}
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
 			final Supplier<java.net.http.HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
-			final AuthenticationProvider authProvider) {
+			final AuthorizationProvider authProvider) {
 		super();
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;
@@ -78,18 +77,19 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 						.orElseGet(() -> authProvider.map(provider -> provider.get(uri))
 								.filter(value -> value != null && !value.isBlank()).orElse(null));
 
-				final var builder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
+				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
 						.uri(uri);
 
 				// Timeout
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
-						.map(builder::timeout);
+						.map(requestBuilder::timeout);
 
 				// Optional Authentication
-				Optional.ofNullable(authHeader).map(header -> builder.header(HttpUtils.AUTHORIZATION, header));
+				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
-				final var httpRequest = builder.build();
-				LOGGER.debug("Sending {} {}", req.method(), req.uri());
+				final var httpRequest = requestBuilder.build();
+				LOGGER.debug("{} {}", httpRequest.method(), req.uri());
+				LOGGER.trace("{}", httpRequest.headers().map());
 
 				HttpResponse<?> httpResponse;
 				try {
@@ -98,7 +98,6 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					throw new RuntimeException("Failed to receive response", e);
 				}
 
-				LOGGER.debug("Received {}", httpResponse.toString());
 				return httpResponse;
 			}
 
@@ -114,21 +113,26 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodyHandlers.ofInputStream();
 				}
 
-				return responseInfo -> BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8),
-						json -> {
-							if (responseInfo.statusCode() >= 300) {
-								return json;
-							}
+				return responseInfo -> {
+					LOGGER.debug("{}", responseInfo.statusCode());
+					LOGGER.trace("{}", responseInfo.headers().map());
 
-							// TODO:
-							final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
-									.toLowerCase();
-							if (!contentType.startsWith(MediaType.APPLICATION_JSON)) {
-								throw new RuntimeException("Un-supported response content type:" + contentType);
-							}
+					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), json -> {
+						LOGGER.trace("{}", json);
 
-							return clientConfig.contentConsumer(req.accept()).consume(json, receiver);
-						});
+						if (responseInfo.statusCode() >= 300) {
+							return json;
+						}
+
+						final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
+								.toLowerCase();
+						if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
+							throw new RuntimeException("Un-supported response content type:" + contentType);
+						}
+
+						return clientConfig.contentConsumer(req.accept()).consume(json, receiver);
+					});
+				};
 			}
 
 			private BodyPublisher bodyPublisher(final Request req) {
@@ -153,10 +157,10 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 		// Content-Type
 		builder.header(HttpUtils.CONTENT_TYPE,
-				Optional.ofNullable(req.contentType()).orElse(MediaType.APPLICATION_JSON));
+				Optional.ofNullable(req.contentType()).orElse(HttpUtils.APPLICATION_JSON));
 
 		// Accept
-		builder.header(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(MediaType.APPLICATION_JSON));
+		builder.header(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(HttpUtils.APPLICATION_JSON));
 
 		return builder;
 	}

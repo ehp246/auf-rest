@@ -13,12 +13,23 @@ import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
 
 /**
- * @author Lei Yang
+ * Enables AufRest's annotation-driven REST-proxing capability for client-side
+ * applications. It imports infrastructure beans and scans the class path for
+ * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest}-annotated interfaces
+ * making them available to be injected as Spring beans.
  *
+ * @author Lei Yang
+ * @since 1.0
+ * @see ByRest
  */
 @Retention(RUNTIME)
 @Target(TYPE)
 @Import({ ByRestRegistrar.class, ByRestConfiguration.class, ByRestFactory.class })
 public @interface EnableByRest {
+	/**
+	 * Specifies the packages to scan for annotated
+	 * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces. The
+	 * package of each class specified will be scanned.
+	 */
 	Class<?>[] scan() default {};
 }

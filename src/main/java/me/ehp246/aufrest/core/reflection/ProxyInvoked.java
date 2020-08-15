@@ -81,12 +81,6 @@ public class ProxyInvoked<T> {
 
 	/**
 	 * Returns the value of the annotation or default if annotation is not found.
-	 *
-	 * @param <A>
-	 * @param <V>
-	 * @param annotationClass
-	 * @param mapper
-	 * @return
 	 */
 	public <A extends Annotation, V> Optional<A> findOnDeclaringClass(final Class<A> annotationClass) {
 		return Optional.ofNullable(this.method.getDeclaringClass().getAnnotation(annotationClass));
@@ -146,13 +140,6 @@ public class ProxyInvoked<T> {
 
 	/**
 	 * Returns the value of the annotation on method or the provided default.
-	 *
-	 * @param <A>
-	 * @param <V>
-	 * @param annotationClass
-	 * @param mapper
-	 * @param def
-	 * @return
 	 */
 	public <A extends Annotation, V> V annotationValueOnMethod(final Class<A> annotationClass,
 			final Function<A, V> mapper, final Supplier<V> supplier) {

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import me.ehp246.aufrest.api.exception.ByRestResponseException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 
 /**
@@ -141,7 +141,7 @@ class EnableByRestPostmanTest {
 
 		Assertions.assertEquals(true, newInstance.get().get("authenticated"));
 
-		Assertions.assertThrows(ByRestResponseException.class, newInstance::get,
+		Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
 				"Should throw on the second call because the global authentication provider allows only one call");
 
 		/*
@@ -169,7 +169,7 @@ class EnableByRestPostmanTest {
 	void basci_auth_003() {
 		final var newInstance = factory.getBean(EchoAuthTestCases.BasicCase003.class);
 
-		Assertions.assertThrows(ByRestResponseException.class, newInstance::get,
+		Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
 				"Should not work because of the wrong authentication type");
 	}
 

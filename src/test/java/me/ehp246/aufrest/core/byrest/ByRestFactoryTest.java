@@ -11,7 +11,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.exception.ByRestResponseException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
@@ -42,9 +42,9 @@ class ByRestFactoryTest {
 	ByRestFactoryTest() {
 		super();
 		beanFactory.registerSingleton("PostmanBasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basic("postman_bean", "password"));
+				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean", "password"));
 		beanFactory.registerSingleton("Postman2BasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basic("postman_bean2", "password"));
+				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean2", "password"));
 	}
 
 	@BeforeEach
@@ -364,21 +364,21 @@ class ByRestFactoryTest {
 	void auth_basic_001() {
 		factory.newInstance(AuthTestCases.Case002.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_basic_002() {
 		factory.newInstance(AuthTestCases.Case005.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_003() {
 		factory.newInstance(AuthTestCases.Case003.class).get();
 
-		Assertions.assertEquals(HttpUtils.bearer("ec3fb099-7fa3-477b-82ce-05547babad95"),
+		Assertions.assertEquals(HttpUtils.bearerToken("ec3fb099-7fa3-477b-82ce-05547babad95"),
 				reqRef.get().authentication());
 	}
 
@@ -393,14 +393,14 @@ class ByRestFactoryTest {
 	void auth_bean_001() {
 		factory.newInstance(AuthTestCases.Case006.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman_bean", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean", "password"), reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_bean_002() {
 		factory.newInstance(AuthTestCases.Case007.class).get();
 
-		Assertions.assertEquals(HttpUtils.basic("postman_bean2", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean2", "password"), reqRef.get().authentication());
 	}
 
 	@Test
@@ -408,7 +408,7 @@ class ByRestFactoryTest {
 		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
-		final var thrown = Assertions.assertThrows(ByRestResponseException.class,
+		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
 				() -> newInstance.get(new MockResponse<String>(300, "")));
 
 		Assertions.assertEquals(300, thrown.statusCode());
@@ -422,7 +422,7 @@ class ByRestFactoryTest {
 		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
-		final var thrown = Assertions.assertThrows(ByRestResponseException.class,
+		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
 				() -> newInstance.getWithThrows(new MockResponse<String>(400, "")));
 
 		Assertions.assertEquals(400, thrown.statusCode());

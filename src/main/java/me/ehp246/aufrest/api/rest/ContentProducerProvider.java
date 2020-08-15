@@ -5,7 +5,7 @@ package me.ehp246.aufrest.api.rest;
  * for the request body.
  *
  * @author Lei Yang
- *
+ * @since 1.0
  */
 @FunctionalInterface
 public interface ContentProducerProvider {

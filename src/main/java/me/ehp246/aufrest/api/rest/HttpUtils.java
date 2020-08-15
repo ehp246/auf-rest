@@ -6,8 +6,10 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author Lei Yang
+ * HTTP-related constants.
  *
+ * @author Lei Yang
+ * @since 1.0
  */
 public class HttpUtils {
 	// Methods
@@ -30,15 +32,15 @@ public class HttpUtils {
 	public static final String APPLICATION_JSON = "application/json";
 	public static final String TEXT_PLAIN = "text/plain";
 
-	public static String bearer(final String token) {
+	public static String bearerToken(final String token) {
 		return BEARER + " " + Objects.requireNonNull(token);
 	}
 
-	public static String basic(final String username, final String password) {
-		return basic(Objects.requireNonNull(username) + ":" + Objects.requireNonNull(password));
+	public static String basicAuth(final String username, final String password) {
+		return basicAuth(Objects.requireNonNull(username) + ":" + Objects.requireNonNull(password));
 	}
 
-	public static String basic(final String value) {
+	public static String basicAuth(final String value) {
 		if (value == null || value.indexOf(":") < 1) {
 			throw new IllegalArgumentException("Invalid value for Basic Auth header");
 		}

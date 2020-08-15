@@ -11,8 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.exception.ByRestResponseException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
@@ -33,7 +31,6 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  *
  */
 class ByRestInvocation implements Request {
-	private final static Logger LOGGER = LoggerFactory.getLogger(ByRestInvocation.class);
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
 			RequestParam.class);
 
@@ -143,7 +140,7 @@ class ByRestInvocation implements Request {
 		}
 
 		if (httpResponse.statusCode() >= 300) {
-			throw new ByRestResponseException(this, httpResponse);
+			throw new UnhandledResponseException(this, httpResponse);
 		}
 
 		// Request still should go out but discarding the response.

@@ -3,16 +3,14 @@ package me.ehp246.aufrest.provider.jackson;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.TextContentConsumer;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
-import me.ehp246.aufrest.core.util.AnnotationUtil;
 import me.ehp246.aufrest.core.util.InvocationUtil;
 
 /**
@@ -20,7 +18,7 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  *
  */
 public class JsonByJackson {
-	private final static Logger LOGGER = LoggerFactory.getLogger(JsonByJackson.class);
+	private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
 
 	private final ObjectMapper objectMapper;
 
@@ -34,10 +32,11 @@ public class JsonByJackson {
 		if (value == null) {
 			return null;
 		}
-		if (String.class.isAssignableFrom(supplier.type())
-				&& AnnotationUtil.hasType(supplier.annotations(), AsIs.class)) {
-			return value.toString();
-		}
+		/*
+		 * if (String.class.isAssignableFrom(supplier.type()) &&
+		 * AnnotationUtil.hasType(supplier.annotations(), AsIs.class)) { return
+		 * value.toString(); }
+		 */
 
 		return InvocationUtil.invoke(() -> this.objectMapper.writeValueAsString(value));
 	}
@@ -47,10 +46,10 @@ public class JsonByJackson {
 			return null;
 		}
 
-		if (String.class.isAssignableFrom(receiver.type())
-				&& AnnotationUtil.hasType(receiver.annotations(), AsIs.class)) {
-			return json;
-		}
+		/*
+		 * if (String.class.isAssignableFrom(receiver.type()) &&
+		 * AnnotationUtil.hasType(receiver.annotations(), AsIs.class)) { return json; }
+		 */
 
 		try {
 			final var collectionOf = receiver.annotations() == null ? null
