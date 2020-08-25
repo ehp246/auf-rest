@@ -3,8 +3,61 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest)
 
 ## Introduction
+The framework is aimed at Spring-based applications that need to implement a REST client to some other services/applications. It offers an annotation-driven, declarative implementation approach similar to what Spring Data Repository offers. It abstracts away most underline HTTP/REST concerns by offering a set of annotations and conventions with which the developers declare their intentions at a higher, application level via plain Java interfaces. They don't need to dictate in an imperative way every detail on how a HTTP client should be created, requests sent, responses processed, and exceptions handled. The framework takes care of these chores for the developers so they can focus on application logic. The framework can reduce the code base of an application significantly by replacing commonly-seen HttpClient/RestTemplate-based helper/util classes. These Template and Util classes are largely repetitive, difficult to test, error prone. Because of the interface-centered implementation approach, the framework makes implementing unit tests much easier. There is little need for heavy yet brittle mocking.
+
+## Quick Start
+
+Add Maven dependency. See [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
+
+Enable the functionality by annotating your Spring application class with `@EnableByRest`.
+
+```
+@SpringBootApplication
+@EnableByRest
+class PostmanApplication {
+	public static void main(final String[] args) {
+		SpringApplication.run(PostmanApplication.class, args);
+	}
+}
+```
+
+Declare an interface that is annotated by `@ByRest` in the same or a sub package.
+
+```
+@ByRest("${postman.echo.base}/get")
+public interface GetProxy {
+	EchoResponseBody getAsEchoBody();
+}
+```
+By this point, you have just implemented a HTTP GET request that
+* has the URL configured by a Spring property
+* takes no parameter
+* returns the response body as a Java object
+
+
+To use the implementation, inject the interface as any other Spring bean.
+
+```
+@RestController
+public class ProxyController {
+	@Autowired
+	GetProxy get;
+	
+	@GetMapping(path = "get", produces = MediaType.APPLICATION_JSON_VALUE)
+	public EchoResponseBody get() {
+		// A simple forward
+		return get.getAsEchoBody();
+	}
+}
+```
+
+
+
+
+
 ## Release
 The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
+
 ## Dependency
 Auf REST is developed and tested on top of these:
 * JDK 11
