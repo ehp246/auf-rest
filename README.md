@@ -9,7 +9,7 @@ The framework is aimed at Spring-based applications that need to implement a RES
 
 Add Maven dependency. See [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
 
-Enable the functionality by annotating your Spring application class with `@EnableByRest`.
+Enable the functionality by annotating your Spring application class with `@EnableByRest`
 
 ```
 @SpringBootApplication
@@ -26,7 +26,7 @@ Declare an interface that is annotated by `@ByRest` in the same or a sub package
 ```
 @ByRest("${postman.echo.base}/get")
 public interface GetProxy {
-	EchoResponseBody getAsEchoBody();
+	EchoResponseBody get();
 }
 ```
 By this point, you have just implemented a HTTP GET request that
@@ -52,11 +52,31 @@ public class ProxyController {
 ```
 
 
+The following are a few examples of different use cases.
 
+```
+@ByRest("${postman.echo.base}/post")
+public interface PostProxy {
+	EchoResponseBody post(NewBorn newBorn);
+}
 
+@ByRest("${postman.echo.base}/patch")
+public interface PatchProxy {
+	EchoResponseBody patch(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
+}
 
-## Release
-The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
+@ByRest("${postman.echo.base}/delete")
+public interface DeleteProxy {
+	EchoResponseBody delete(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
+}
+
+@ByRest("${postman.echo.base}/put")
+public interface PutProxy {
+	EchoResponseBody put(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
+			NewBorn newBorn);
+}
+```
+
 
 ## Dependency
 Auf REST is developed and tested on top of these:
@@ -86,8 +106,7 @@ Logging inside of Auf REST is implemented on Log4j 2 API. Log4j-api module is re
 
 For Log4j 2 details, please visit [here](https://logging.apache.org/log4j/2.x/manual/index.html).
 
-## Examples
-## Authentication
+
 ## Configuration
 The framework supports the following application configuration properties.
 
@@ -115,3 +134,5 @@ Once modularized, all exported classes will be under package:
 
 All code outside of this package is private.
 
+## Release
+The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
