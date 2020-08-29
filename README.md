@@ -3,8 +3,80 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest)
 
 ## Introduction
-## Release
-The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
+The framework is aimed at Spring-based applications that need to implement a REST client to some other services/applications. It offers an annotation-driven, declarative implementation approach similar to what Spring Data Repository offers. It abstracts away most underline HTTP/REST concerns by offering a set of annotations and conventions with which the developers declare their intentions at a higher, application level via plain Java interfaces. They don't need to dictate in an imperative way every detail on how a HTTP client should be created, requests sent, responses processed, and exceptions handled. The framework takes care of these chores for the developers so they can focus on application logic. The framework can reduce the code base of an application significantly by replacing commonly-seen HttpClient/RestTemplate-based helper/util classes. These Template and Util classes are largely repetitive, difficult to test, error prone. Because of the interface-centered implementation approach, the framework makes implementing unit tests much easier. There is little need for heavy yet brittle mocking.
+
+## Quick Start
+
+Add Maven dependency. See [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
+
+Enable the functionality by annotating your Spring application class with `@EnableByRest`
+
+```
+@SpringBootApplication
+@EnableByRest
+class PostmanApplication {
+	public static void main(final String[] args) {
+		SpringApplication.run(PostmanApplication.class, args);
+	}
+}
+```
+
+Declare an interface that is annotated by `@ByRest` in the same or a sub package.
+
+```
+@ByRest("${postman.echo.base}/get")
+public interface GetProxy {
+	EchoResponseBody get();
+}
+```
+By this point, you have just implemented a HTTP GET request that
+* has the URL configured by a Spring property
+* takes no parameter
+* returns the response body as a Java object
+
+
+To use the implementation, inject the interface as any other Spring bean.
+
+```
+@RestController
+public class ProxyController {
+	@Autowired
+	GetProxy get;
+	
+	@GetMapping(path = "get", produces = MediaType.APPLICATION_JSON_VALUE)
+	public EchoResponseBody get() {
+		// A simple forward
+		return get.getAsEchoBody();
+	}
+}
+```
+
+
+The following are a few examples of different use cases.
+
+```
+@ByRest("${postman.echo.base}/post")
+public interface PostProxy {
+	EchoResponseBody post(NewBorn newBorn);
+}
+
+@ByRest("${postman.echo.base}/patch")
+public interface PatchProxy {
+	EchoResponseBody patch(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
+}
+
+@ByRest("${postman.echo.base}/delete")
+public interface DeleteProxy {
+	EchoResponseBody delete(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
+}
+
+@ByRest("${postman.echo.base}/put")
+public interface PutProxy {
+	EchoResponseBody put(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
+			NewBorn newBorn);
+}
+```
+
 ## Dependency
 Auf REST is developed and tested on top of these:
 * JDK 11
@@ -28,37 +100,5 @@ During boot-up the framework looks for an optional ObjectMapper-typed bean in Sp
 
 If you would like to see additional providers supported, please file an issue. I'd be happy to add them.
 
-## Logging
-Logging inside of Auf REST is implemented on Log4j 2 API. Log4j-api module is required by the framework at runtime. But it does not require the log4j2-core module. The application can choose its own preferred implementation.
-
-For Log4j 2 details, please visit [here](https://logging.apache.org/log4j/2.x/manual/index.html).
-
-## Examples
-## Authentication
-## Configuration
-The framework supports the following application configuration properties.
-
-
-```
-me.ehp246.aufrest.connectTimeout
-```
-It defines, in milli-seconds, how long to wait for a connection to a domain host. The default is 15000 milli-seconds.
-
-
-The value is passed to the HttpClient builder. See the details [here](https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpClient.Builder.html#connectTimeout(java.time.Duration)).
-
-```
-me.ehp246.aufrest.responseTimeout
-```
-It defines, in milli-seconds, how long to wait for a response on a request. The default is 30000 milli-seconds.
-
-See the details [here](https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpRequest.Builder.html#timeout(java.time.Duration)).
-
-## Modularity
-While Auf REST is not a Java module yet, the intention is to make it so as soon as I can figure out how to run the unit tests without an issue. Currently I'm having trouble to run unit tests by Maven because of in-accessible classes. If you can provide help, please let me know. It'd be much appreciated.
-
-Once modularized, all exported classes will be under package:
-* me.ehp246.aufrest.api
-
-All code outside of this package is private.
-
+## Release
+The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
