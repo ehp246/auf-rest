@@ -62,14 +62,16 @@ public interface PostProxy {
 ```
 @ByRest("${postman.echo.base}/patch")
 public interface PatchProxy {
-	EchoResponseBody patch(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
+	EchoResponseBody patch(@RequestParam("firstName") String firstName, 
+        @RequestParam("lastName") String lastName);
 }
 ```
 **DELETE**
 ```
 @ByRest("${postman.echo.base}/delete")
 public interface DeleteProxy {
-	EchoResponseBody delete(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
+	EchoResponseBody delete(@RequestParam("firstName") String firstName, 
+        @RequestParam("lastName") String lastName);
 }
 ```
 
@@ -77,10 +79,13 @@ public interface DeleteProxy {
 ```
 @ByRest("${postman.echo.base}/put")
 public interface PutProxy {
-	EchoResponseBody put(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
-			NewBorn newBorn);
+	EchoResponseBody put(@RequestParam("firstName") String firstName, 
+        @RequestParam("lastName") String lastName,
+		NewBorn newBorn);
 }
 ```
+<br>
+For detailed documents, please see project's [wiki](https://github.com/ehp246/auf-rest/wiki).
 
 For detailed documents, please see project's [wiki](https://github.com/ehp246/auf-rest/wiki).
 
