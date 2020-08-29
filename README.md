@@ -7,13 +7,13 @@ The framework is aimed at Spring-based applications that need to implement a RES
 
 ## Quick Start
 
-Add Maven dependency. See [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
+**Add [Maven dependency](https://mvnrepository.com/artifact/me.ehp246/auf-rest).**
 
-Enable the functionality by annotating your Spring application class with `@EnableByRest`
+**Enable the framework using `@EnableByRest`.**
 
 ```
-@SpringBootApplication
 @EnableByRest
+@SpringBootApplication
 class PostmanApplication {
 	public static void main(final String[] args) {
 		SpringApplication.run(PostmanApplication.class, args);
@@ -21,7 +21,7 @@ class PostmanApplication {
 }
 ```
 
-Declare an interface that is annotated by `@ByRest` in the same or a sub package.
+**Declare an interface using `@ByRest`.**
 
 ```
 @ByRest("${postman.echo.base}/get")
@@ -29,53 +29,60 @@ public interface GetProxy {
 	EchoResponseBody get();
 }
 ```
-By this point, you have just implemented a HTTP GET request that
-* has the URL configured by a Spring property
-* takes no parameter
-* returns the response body as a Java object
 
-
-To use the implementation, inject the interface as any other Spring bean.
+**Inject and enjoy.**
 
 ```
-@RestController
-public class ProxyController {
+@Service
+public class ProxyService {
+    // Do something with it
 	@Autowired
-	GetProxy get;
-	
-	@GetMapping(path = "get", produces = MediaType.APPLICATION_JSON_VALUE)
-	public EchoResponseBody get() {
-		// A simple forward
-		return get.getAsEchoBody();
-	}
+	private GetProxy get;
+    
+	...
 }
 ```
+By this point, you have implemented a GET request that
+* has the URL configured by a Spring property
+* takes no parameter
+* returns the response body de-serialized as a Java object
 
+<br>
+The following are a few more examples.
 
-The following are a few examples of different use cases.
-
+**POST with an object for JSON body**
 ```
 @ByRest("${postman.echo.base}/post")
 public interface PostProxy {
 	EchoResponseBody post(NewBorn newBorn);
 }
+```
 
+**PATCH with query parameters**
+```
 @ByRest("${postman.echo.base}/patch")
 public interface PatchProxy {
 	EchoResponseBody patch(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
 }
-
+```
+**DELETE**
+```
 @ByRest("${postman.echo.base}/delete")
 public interface DeleteProxy {
 	EchoResponseBody delete(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName);
 }
+```
 
+**PUT**
+```
 @ByRest("${postman.echo.base}/put")
 public interface PutProxy {
 	EchoResponseBody put(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
 			NewBorn newBorn);
 }
 ```
+
+For detailed documents, please see project's [wiki](https://github.com/ehp246/auf-rest/wiki).
 
 ## Dependency
 Auf REST is developed and tested on top of these:
@@ -92,13 +99,6 @@ It requires the following to run:
 * Spring: beans, context and web
 
 It does not require Spring Boot. It should work on Spring 4 but it's not been tested.
-
-##JSON Provider
-While it's designed to support multiple JSON providers, as of now Jackson is the one used during development and testing. Jackson's core and databind modules are required at the runtime. 
-
-During boot-up the framework looks for an optional ObjectMapper-typed bean in Spring bean factory. If one is found, the framework uses the found as the provider. If there is no such a bean, the framework will configure a private ObjectMapper for its use. For this private instance, the framework tries to include [jsr310](https://github.com/FasterXML/jackson-modules-java8) and [mrbean](https://github.com/FasterXML/jackson-modules-base/tree/master/mrbean) modules if they are present on the class-path. But the two modules are not required.
-
-If you would like to see additional providers supported, please file an issue. I'd be happy to add them.
 
 ## Release
 The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
