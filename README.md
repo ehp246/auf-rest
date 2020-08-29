@@ -15,9 +15,9 @@ The framework is aimed at Spring-based applications that need to implement a RES
 @EnableByRest
 @SpringBootApplication
 class PostmanApplication {
-	public static void main(final String[] args) {
-		SpringApplication.run(PostmanApplication.class, args);
-	}
+    public static void main(final String[] args) {
+        SpringApplication.run(PostmanApplication.class, args);
+    }
 }
 ```
 
@@ -26,7 +26,7 @@ class PostmanApplication {
 ```
 @ByRest("${postman.echo.base}/get")
 public interface GetProxy {
-	EchoResponseBody get();
+    EchoResponseBody get();
 }
 ```
 
@@ -36,10 +36,9 @@ public interface GetProxy {
 @Service
 public class ProxyService {
     // Do something with it
-	@Autowired
-	private GetProxy get;
-    
-	...
+    @Autowired
+    private GetProxy get;
+    ...
 }
 ```
 By this point, you have implemented a GET request that
@@ -54,7 +53,7 @@ The following are a few more examples.
 ```
 @ByRest("${postman.echo.base}/post")
 public interface PostProxy {
-	EchoResponseBody post(NewBorn newBorn);
+    EchoResponseBody post(NewBorn newBorn);
 }
 ```
 
@@ -62,7 +61,7 @@ public interface PostProxy {
 ```
 @ByRest("${postman.echo.base}/patch")
 public interface PatchProxy {
-	EchoResponseBody patch(@RequestParam("firstName") String firstName, 
+    EchoResponseBody patch(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName);
 }
 ```
@@ -70,7 +69,7 @@ public interface PatchProxy {
 ```
 @ByRest("${postman.echo.base}/delete")
 public interface DeleteProxy {
-	EchoResponseBody delete(@RequestParam("firstName") String firstName, 
+    EchoResponseBody delete(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName);
 }
 ```
@@ -79,14 +78,13 @@ public interface DeleteProxy {
 ```
 @ByRest("${postman.echo.base}/put")
 public interface PutProxy {
-	EchoResponseBody put(@RequestParam("firstName") String firstName, 
+    EchoResponseBody put(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName,
-		NewBorn newBorn);
+	NewBorn newBorn);
 }
 ```
-<br>
-For detailed documents, please see project's [wiki](https://github.com/ehp246/auf-rest/wiki).
 
+<br>
 For detailed documents, please see project's [wiki](https://github.com/ehp246/auf-rest/wiki).
 
 ## Dependency
