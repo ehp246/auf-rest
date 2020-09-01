@@ -43,7 +43,7 @@ public class ByRestFactory {
 		final var byRest = Optional.ofNullable(byRestInterface.getAnnotation(ByRest.class));
 		final var timeout = byRest.map(ByRest::timeout).filter(millis -> millis > 0).map(Duration::ofMillis)
 				.orElse(null);
-		final var authHeader = byRest.map(ByRest::auth).map(auth -> {
+		final var authHeader = (Supplier<String>) () -> byRest.map(ByRest::auth).map(auth -> {
 			switch (auth.type()) {
 			case BEARER:
 				return HttpUtils.bearerToken(env.resolveRequiredPlaceholders(auth.value()));
@@ -72,7 +72,7 @@ public class ByRestFactory {
 
 						@Override
 						public String authentication() {
-							return authHeader;
+							return authHeader.get();
 						}
 
 					};

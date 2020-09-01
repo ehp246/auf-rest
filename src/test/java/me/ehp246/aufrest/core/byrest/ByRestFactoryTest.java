@@ -41,10 +41,15 @@ class ByRestFactoryTest {
 
 	ByRestFactoryTest() {
 		super();
-		beanFactory.registerSingleton("PostmanBasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean", "password"));
-		beanFactory.registerSingleton("Postman2BasicAuthSupplier",
-				(Supplier<String>) () -> HttpUtils.basicAuth("postman_bean2", "password"));
+		beanFactory.registerSingleton("PostmanBasicAuthSupplier", new Supplier<String>() {
+			private int counter = 0;
+
+			@Override
+			public String get() {
+				return "postman_bean" + counter++;
+			}
+		});
+		beanFactory.registerSingleton("Postman2BasicAuthSupplier", (Supplier<String>) () -> "postman_bean2");
 	}
 
 	@BeforeEach
@@ -393,14 +398,16 @@ class ByRestFactoryTest {
 	void auth_bean_001() {
 		factory.newInstance(AuthTestCases.Case006.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean", "password"), reqRef.get().authentication());
+		Assertions.assertEquals("postman_bean0", reqRef.get().authentication());
+
+		Assertions.assertEquals("postman_bean1", reqRef.get().authentication());
 	}
 
 	@Test
 	void auth_bean_002() {
 		factory.newInstance(AuthTestCases.Case007.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman_bean2", "password"), reqRef.get().authentication());
+		Assertions.assertEquals("postman_bean2", reqRef.get().authentication());
 	}
 
 	@Test
