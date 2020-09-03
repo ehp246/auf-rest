@@ -3,6 +3,7 @@ package me.ehp246.aufrest.provider.httpclient;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.time.Duration;
@@ -27,10 +28,9 @@ import me.ehp246.aufrest.mock.MockResponse;
  *
  */
 class JdkClientProviderTest {
-	private final static String POSTMAN_ECHO = "https://postman-echo.com/";
-	private final static String BEARER_TOKEN = "I'm a bearer.";
-	private final static String BASIC_USERNAME = "iam";
-	private final static String BASIC_PASSWORD = "root";
+	private final static String POSTMAN_ECHO = "https://postman-echo.com";
+	private final static String BEARER = "I'm a bearer.";
+	private final static String BASIC = "I'm basic.";
 
 	private final AtomicReference<HttpRequest> reqRef = new AtomicReference<>();
 	private final AtomicReference<Integer> clientBuilderCallCountRef = new AtomicReference<>(0);
@@ -44,13 +44,20 @@ class JdkClientProviderTest {
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 			CALLS_REAL_METHODS);
 
-	private final AuthorizationProvider authProvider = uri -> {
-		if (uri.toString().contains("bearer")) {
-			return HttpUtils.bearerToken(BEARER_TOKEN);
-		} else if (uri.toString().contains("basic")) {
-			return HttpUtils.basicAuth(BASIC_USERNAME, BASIC_PASSWORD);
+	private final AuthorizationProvider authProvider = new AuthorizationProvider() {
+		private int count = 0;
+
+		@Override
+		public String get(final URI uri) {
+			if (uri.toString().contains("bearer")) {
+				return BEARER;
+			} else if (uri.toString().contains("basic")) {
+				return BASIC;
+			} else if (uri.toString().contains("count")) {
+				return ++count + "";
+			}
+			return null;
 		}
-		return null;
 	};
 
 	private final ClientConfig clientConfig = new ClientConfig() {
@@ -137,7 +144,7 @@ class JdkClientProviderTest {
 	}
 
 	@Test
-	void auth001() {
+	void auth_null_001() {
 		clientProvider.get().apply(new Request() {
 
 			@Override
@@ -157,7 +164,7 @@ class JdkClientProviderTest {
 	}
 
 	@Test
-	void auth002() {
+	void auth_req_002() {
 		clientProvider.get().apply(new Request() {
 
 			@Override
@@ -169,14 +176,67 @@ class JdkClientProviderTest {
 			public String method() {
 				return "POST";
 			}
+
+			@Override
+			public Supplier<String> authSupplier() {
+				return () -> "req auth header";
+			}
+
 		});
 
-		Assertions.assertEquals(true, reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).isEmpty(),
-				"Should tolerate null");
+		Assertions.assertEquals("req auth header", reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get(),
+				"Should be from request");
 	}
 
 	@Test
-	void auth003() {
+	void auth_req_004() {
+		clientProvider.get().apply(new Request() {
+
+			@Override
+			public String uri() {
+				return POSTMAN_ECHO + "/bearer";
+			}
+
+			@Override
+			public String method() {
+				return "POST";
+			}
+
+			@Override
+			public Supplier<String> authSupplier() {
+				return () -> null;
+			}
+		});
+
+		Assertions.assertEquals(true, reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).isEmpty(),
+				"should be from request");
+	}
+
+	@Test
+	void auth_req_005() {
+		clientProvider.get().apply(new Request() {
+
+			@Override
+			public String uri() {
+				return POSTMAN_ECHO + "/bearer";
+			}
+
+			@Override
+			public String method() {
+				return "POST";
+			}
+
+			@Override
+			public Supplier<String> authSupplier() {
+				return () -> "   ";
+			}
+		});
+
+		Assertions.assertEquals(true, reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).isEmpty());
+	}
+
+	@Test
+	void auth_global_001() {
 		clientProvider.get().apply(new Request() {
 
 			@Override
@@ -190,12 +250,11 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(HttpUtils.bearerToken(BEARER_TOKEN),
-				reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
+		Assertions.assertEquals(BEARER, reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
 	}
 
 	@Test
-	void basicAuth001() {
+	void auth_global_002() {
 		clientProvider.get().apply(new Request() {
 
 			@Override
@@ -209,8 +268,32 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(HttpUtils.basicAuth(BASIC_USERNAME, BASIC_PASSWORD),
-				reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
+		Assertions.assertEquals(BASIC, reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
+	}
+
+	@Test
+	void auth_global_003() {
+		final var request = new Request() {
+
+			@Override
+			public String uri() {
+				return POSTMAN_ECHO + "/count";
+			}
+
+			@Override
+			public String method() {
+				return "POST";
+			}
+		};
+
+		clientProvider.get().apply(request);
+
+		Assertions.assertEquals("1", reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
+
+		clientProvider.get().apply(request);
+
+		Assertions.assertEquals("2", reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get(),
+				"should be dynamic on invocations");
 	}
 
 	@Test

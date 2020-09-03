@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.time.Duration;
+import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
 
@@ -21,7 +22,7 @@ public interface Request extends Messsage {
 		return null;
 	}
 
-	default String authentication() {
+	default Supplier<String> authSupplier() {
 		return null;
 	}
 

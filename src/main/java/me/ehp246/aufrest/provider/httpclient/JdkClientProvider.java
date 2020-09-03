@@ -73,9 +73,10 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 			@Override
 			public HttpResponse<?> apply(final Request req) {
 				final var uri = URI.create(req.uri());
-				final var authHeader = Optional.ofNullable(req.authentication())
-						.orElseGet(() -> authProvider.map(provider -> provider.get(uri))
-								.filter(value -> value != null && !value.isBlank()).orElse(null));
+				final var authHeader = Optional
+						.ofNullable(Optional.ofNullable(req.authSupplier())
+								.orElse(() -> authProvider.map(provider -> provider.get(uri)).orElse(null)).get())
+						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
 				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
 						.uri(uri);
@@ -84,7 +85,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
 						.map(requestBuilder::timeout);
 
-				// Optional Authentication
+				// Authentication
 				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
 				final var httpRequest = requestBuilder.build();

@@ -40,24 +40,23 @@ public class ByRestFactory {
 	public <T> T newInstance(final Class<T> byRestInterface) {
 		LOGGER.debug("Instantiating {}@ByRest", byRestInterface.getCanonicalName());
 
-		final var byRest = Optional.ofNullable(byRestInterface.getAnnotation(ByRest.class));
+		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
 		final var timeout = byRest.map(ByRest::timeout).filter(millis -> millis > 0).map(Duration::ofMillis)
 				.orElse(null);
-		final var authHeader = (Supplier<String>) () -> byRest.map(ByRest::auth).map(auth -> {
+		final var localAuth = byRest.map(ByRest::auth).map(auth -> {
 			switch (auth.type()) {
 			case BEARER:
-				return HttpUtils.bearerToken(env.resolveRequiredPlaceholders(auth.value()));
+				return (Supplier<String>) () -> HttpUtils.bearerToken(env.resolveRequiredPlaceholders(auth.value()));
 			case ASIS:
-				return env.resolveRequiredPlaceholders(auth.value());
+				return (Supplier<String>) () -> env.resolveRequiredPlaceholders(auth.value());
 			case BASIC:
-				return HttpUtils.basicAuth(env.resolveRequiredPlaceholders(auth.value()));
+				return (Supplier<String>) () -> HttpUtils.basicAuth(env.resolveRequiredPlaceholders(auth.value()));
 			case BEAN:
-				return beanFactory.getBean(auth.value(), Supplier.class).get().toString();
-			case DEFAULT:
+				return (Supplier<String>) () -> beanFactory.getBean(auth.value(), Supplier.class).get().toString();
 			default:
 			}
 			return null;
-		}).orElse(null);
+		});
 
 		final var client = clientProvider.get();
 
@@ -71,8 +70,8 @@ public class ByRestFactory {
 						}
 
 						@Override
-						public String authentication() {
-							return authHeader.get();
+						public Supplier<String> authSupplier() {
+							return localAuth.orElse(null);
 						}
 
 					};

@@ -353,7 +353,7 @@ class ByRestFactoryTest {
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
-		Assertions.assertEquals(null, reqRef.get().authentication());
+		Assertions.assertEquals(null, reqRef.get().authSupplier());
 	}
 
 	@Test
@@ -362,21 +362,21 @@ class ByRestFactoryTest {
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
-		Assertions.assertEquals(null, reqRef.get().authentication(), "Should be un-aware the global provider");
+		Assertions.assertEquals(null, reqRef.get().authSupplier(), "Should be un-aware the global provider");
 	}
 
 	@Test
 	void auth_basic_001() {
 		factory.newInstance(AuthTestCases.Case002.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authSupplier().get());
 	}
 
 	@Test
 	void auth_basic_002() {
 		factory.newInstance(AuthTestCases.Case005.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authentication());
+		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authSupplier().get());
 	}
 
 	@Test
@@ -384,30 +384,30 @@ class ByRestFactoryTest {
 		factory.newInstance(AuthTestCases.Case003.class).get();
 
 		Assertions.assertEquals(HttpUtils.bearerToken("ec3fb099-7fa3-477b-82ce-05547babad95"),
-				reqRef.get().authentication());
+				reqRef.get().authSupplier().get());
 	}
 
 	@Test
 	void auth_custom_001() {
 		factory.newInstance(AuthTestCases.Case004.class).get();
 
-		Assertions.assertEquals("CustomKey custom.header.123", reqRef.get().authentication());
+		Assertions.assertEquals("CustomKey custom.header.123", reqRef.get().authSupplier().get());
 	}
 
 	@Test
 	void auth_bean_001() {
 		factory.newInstance(AuthTestCases.Case006.class).get();
 
-		Assertions.assertEquals("postman_bean0", reqRef.get().authentication());
+		Assertions.assertEquals("postman_bean0", reqRef.get().authSupplier().get());
 
-		Assertions.assertEquals("postman_bean1", reqRef.get().authentication());
+		Assertions.assertEquals("postman_bean1", reqRef.get().authSupplier().get());
 	}
 
 	@Test
 	void auth_bean_002() {
 		factory.newInstance(AuthTestCases.Case007.class).get();
 
-		Assertions.assertEquals("postman_bean2", reqRef.get().authentication());
+		Assertions.assertEquals("postman_bean2", reqRef.get().authSupplier().get());
 	}
 
 	@Test
