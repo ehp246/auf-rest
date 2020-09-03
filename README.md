@@ -83,9 +83,7 @@ public interface PutProxy {
 	NewBorn newBorn);
 }
 ```
-
-<br>
-For detailed documents, please see project's [wiki](https://github.com/ehp246/auf-rest/wiki).
+For detailed documents, please see project's Wiki.
 
 ## Dependency
 Auf REST is developed and tested on top of these:
