@@ -32,12 +32,13 @@ public @interface ByRest {
 	String value();
 
 	/**
-	 * Defines how long to wait for a response in milli-seconds before raising a
+	 * Defines how long to wait for a response in milliseconds before raising a
 	 * {@link java.util.concurrent.TimeoutException TimeoutException}.
 	 * <p>
-	 * The value applies to all requests sent by the interface.
-	 * <p>
-	 * Defaults to 0 which means no timeout and wait in-definitely.
+	 * A larger-than-0 value overrides the global configuration for the interface.
+	 * Otherwise, the interface uses the global configuration.
+	 *
+	 * @see me.ehp246.aufrest.api.configuration.AufRestConstants
 	 */
 	long timeout() default 0;
 
