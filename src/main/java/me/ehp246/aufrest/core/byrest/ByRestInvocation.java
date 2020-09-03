@@ -3,26 +3,33 @@ package me.ehp246.aufrest.core.byrest;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
+import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.InvocationUtil;
 
@@ -32,7 +39,7 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  */
 class ByRestInvocation implements Request {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
-			RequestParam.class);
+			RequestParam.class, RequestHeader.class);
 
 	private final ProxyInvoked<Object> invoked;
 	private final Environment env;
@@ -88,17 +95,29 @@ class ByRestInvocation implements Request {
 	}
 
 	@Override
-	public Receiver receiver() {
+	public Receiver bodyReceiver() {
+		final var annos = invoked.getMethodDeclaredAnnotations();
+		final var returnType = invoked.getReturnType();
+
+		if (returnType.isAssignableFrom(HttpResponse.class)) {
+
+		}
+
 		return new Receiver() {
+			private final List<Class<?>> reifying = annos.stream()
+					.filter(anno -> anno.annotationType() == Reifying.class).findAny()
+					.map(anno -> ((Reifying) anno).value())
+					.map(value -> value.length == 0 ? new Class<?>[] { String.class } : value).map(List::of)
+					.orElseGet(ArrayList::new);
 
 			@Override
 			public List<? extends Annotation> annotations() {
-				return invoked.getMethodDeclaredAnnotations();
+				return annos;
 			}
 
 			@Override
 			public Class<?> type() {
-				return invoked.getReturnType();
+				return returnType;
 			}
 
 		};
@@ -110,10 +129,50 @@ class ByRestInvocation implements Request {
 		return payload.size() >= 1 ? payload.get(0) : null;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public Map<String, List<String>> headers() {
+		final var headers = new HashMap<String, List<String>>();
+
+		invoked.streamOfAnnotatedArguments(RequestHeader.class)
+				.forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
+					@Override
+					public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
+						newValue(annoArg.getAnnotation().value(), annoArg.getArgument());
+					}
+
+					private void newValue(final Object key, final Object newValue) {
+						if (newValue == null) {
+							return;
+						}
+
+						if (newValue instanceof Iterable) {
+							((Iterable<Object>) newValue).forEach(v -> newValue(key, v));
+							return;
+						}
+
+						if (newValue instanceof Map) {
+							((Map<Object, Object>) newValue).entrySet().forEach(entry -> {
+								newValue(entry.getKey(), entry.getValue());
+							});
+							return;
+						}
+
+						getMapped(key).add(newValue.toString());
+					}
+
+					private List<String> getMapped(final Object key) {
+						return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
+					}
+				});
+
+		return headers;
+	}
+
 	public ByRestInvocation setResponseSupplier(final Supplier<HttpResponse<?>> responseSupplier) throws Throwable {
 		// Short-circuiting the HTTP call if an argument from the invocation is a
 		// HttpResponse to facilitate testing mostly.
-		this.responseSupplier = invoked.findInArguments(HttpResponse.class).stream().findFirst()
+		this.responseSupplier = invoked.findArgumentsOfType(HttpResponse.class).stream().findFirst()
 				.map(res -> (Supplier<HttpResponse<?>>) () -> res).orElse(responseSupplier);
 		return this;
 	}
@@ -125,12 +184,26 @@ class ByRestInvocation implements Request {
 
 	public Object returnInvocation() throws Throwable {
 		if (invoked.getReturnType().isAssignableFrom(CompletableFuture.class)) {
-			return CompletableFuture.supplyAsync(() -> onResponse(responseSupplier.get()));
+			final var context = HeaderContext.map();
+			return CompletableFuture.supplyAsync(() -> {
+				HeaderContext.set(context);
+				try {
+					final var httpResponse = responseSupplier.get();
+					final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value,
+							() -> new Class<?>[] {});
+					if (reifying.length > 0 && reifying[0].isAssignableFrom(HttpResponse.class)) {
+						return httpResponse;
+					}
+					return httpResponse.body();
+				} finally {
+					HeaderContext.remove();
+				}
+			});
 		}
-		return onResponse(responseSupplier.get());
+		return onHttpResponse(responseSupplier.get());
 	}
 
-	private Object onResponse(final HttpResponse<?> httpResponse) {
+	private Object onHttpResponse(final HttpResponse<?> httpResponse) {
 		final var returnType = invoked.getReturnType();
 
 		// If the return type is HttpResponse, returns it as is without any processing
@@ -146,11 +219,6 @@ class ByRestInvocation implements Request {
 		// Request still should go out but discarding the response.
 		if (returnType == Void.class || returnType == void.class) {
 			return null;
-		}
-
-		// Defaults to CompletableFuture of HttpResponse for now.
-		if (returnType == CompletableFuture.class) {
-			return httpResponse;
 		}
 
 		return httpResponse.body();
