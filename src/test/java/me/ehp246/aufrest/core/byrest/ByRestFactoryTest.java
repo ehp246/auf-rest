@@ -1,6 +1,8 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -436,5 +438,97 @@ class ByRestFactoryTest {
 		Assertions.assertEquals(true, thrown.httpResponse() != null);
 		Assertions.assertEquals(true, thrown.request() != null);
 		Assertions.assertEquals("", thrown.bodyAsString());
+	}
+
+	@Test
+	void header_001() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+		newInstance.get("1234");
+
+		Assertions.assertEquals("1234", reqRef.get().headers().get("x-correl-id").get(0), "should have the value");
+
+		reqRef.set(null);
+
+		newInstance.get("	");
+
+		Assertions.assertEquals(0, reqRef.get().headers().get("x-correl-id").size(), "should have no header");
+
+		reqRef.set(null);
+
+		newInstance.get((String) null);
+
+		Assertions.assertEquals(0, reqRef.get().headers().size(), "should have no header");
+	}
+
+	@Test
+	void header_002() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.getBlank("1234");
+
+		Assertions.assertEquals(0, reqRef.get().headers().size(), "should have no header for non-map arguments");
+	}
+
+	@Test
+	void header_003() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		final var uuid = UUID.randomUUID();
+
+		newInstance.get(uuid);
+
+		Assertions.assertEquals(uuid.toString(), reqRef.get().headers().get("x-uuid").get(0),
+				"should have call toString");
+	}
+
+	// @Test
+	void header_004() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.getRepeated("1", "2");
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(1, headers.size(), "should have call toString");
+		Assertions.assertEquals("2", headers.get("x-correl-id").get(0), "should have call toString");
+	}
+
+	@Test
+	void header_005() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.getMultiple("1", "2");
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(2, headers.size(), "should have both");
+		Assertions.assertEquals("1", headers.get("x-span-id").get(0));
+		Assertions.assertEquals("2", headers.get("x-trace-id").get(0));
+	}
+
+	@Test
+	void header_006() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.get(List.of("CN", "EN", "   "));
+
+		final var headers = reqRef.get().headers().get("accept-language");
+
+		Assertions.assertEquals(2, headers.size(), "should have one header, two values");
+		Assertions.assertEquals("CN", headers.get(0));
+		Assertions.assertEquals("EN", headers.get(1));
+	}
+
+	@Test
+	void header_007() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.get(Map.of("CN", "EN", "   ", ""));
+
+		final var headers = reqRef.get().headers().get("accept-language");
+
+		Assertions.assertEquals(2, headers.size(), "should have one header, two values");
+		Assertions.assertEquals("CN", headers.get(0));
+		Assertions.assertEquals("EN", headers.get(1));
 	}
 }

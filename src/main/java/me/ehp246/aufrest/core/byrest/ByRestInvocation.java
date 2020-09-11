@@ -3,17 +3,21 @@ package me.ehp246.aufrest.core.byrest;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -110,10 +114,32 @@ class ByRestInvocation implements Request {
 		return payload.size() >= 1 ? payload.get(0) : null;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public Map<String, List<String>> headers() {
+		return invoked.mapAnnotatedArguments(RequestHeader.class, RequestHeader::value).entrySet().stream()
+				.filter(entry -> !entry.getKey().isBlank() && entry.getValue() != null)
+				.collect(Collectors.groupingBy(Map.Entry::getKey, Collector.of(ArrayList::new, (list, entry) -> {
+					final var arg = entry.getValue();
+					if (arg instanceof List) {
+						((List<Object>) arg).stream().map(Object::toString).filter(Predicate.not(String::isBlank))
+								.forEach(str -> list.add(str));
+					} else if (arg instanceof Map) {
+
+					} else if (!arg.toString().isBlank()) {
+						list.add(arg.toString());
+					}
+
+				}, (left, right) -> {
+					left.addAll(right);
+					return left;
+				})));
+	}
+
 	public ByRestInvocation setResponseSupplier(final Supplier<HttpResponse<?>> responseSupplier) throws Throwable {
 		// Short-circuiting the HTTP call if an argument from the invocation is a
 		// HttpResponse to facilitate testing mostly.
-		this.responseSupplier = invoked.findInArguments(HttpResponse.class).stream().findFirst()
+		this.responseSupplier = invoked.findArgumentsOfType(HttpResponse.class).stream().findFirst()
 				.map(res -> (Supplier<HttpResponse<?>>) () -> res).orElse(responseSupplier);
 		return this;
 	}

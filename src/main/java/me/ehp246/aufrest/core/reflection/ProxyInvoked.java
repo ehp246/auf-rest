@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProxyInvoked<T> {
@@ -111,24 +110,49 @@ public class ProxyInvoked<T> {
 		return Optional.empty();
 	}
 
+	/**
+	 * Find all arguments of the given parameter type.
+	 *
+	 * @param <R>  Parameter type
+	 * @param type Class of the parameter type
+	 * @return all arguments of the given type. Could have <code>null</code>.
+	 */
 	@SuppressWarnings("unchecked")
-	public <R> List<R> findInArguments(final Class<R> type) {
-		return (List<R>) args.stream().filter(arg -> type.isAssignableFrom(arg.getClass()))
-				.collect(Collectors.toList());
+	public <R> List<R> findArgumentsOfType(final Class<R> type) {
+		final var list = new ArrayList<R>();
+		final var parameterTypes = method.getParameterTypes();
+		for (int i = 0; i < parameterTypes.length; i++) {
+			if (type.isAssignableFrom(parameterTypes[i])) {
+				list.add((R) args.get(i));
+			}
+		}
+		return list;
 	}
 
+	/**
+	 * Looks for arguments that are annotated by the given Annotation type. Returns
+	 * a map with the key provided by the key supplier function, the value the
+	 * argument.
+	 *
+	 * @param <K>            Key from the key supplier
+	 * @param <V>            Argument object reference
+	 * @param <A>            Annotation type
+	 * @param annotationType
+	 * @param keySupplier
+	 * @return returned Map can be modified. Never <code>null</code>.
+	 */
 	@SuppressWarnings("unchecked")
-	public <K, V, A extends Annotation> Map<K, V> mapAnnotatedArguments(final Class<A> annotationClass,
-			final Function<A, K> mapper) {
+	public <K, V, A extends Annotation> Map<K, V> mapAnnotatedArguments(final Class<A> annotationType,
+			final Function<A, K> keySupplier) {
 		final var map = new HashMap<K, V>();
 		for (int i = 0; i < parameterAnnotations.length; i++) {
 			final var found = Stream.of(parameterAnnotations[i])
-					.filter(annotation -> annotation.annotationType() == annotationClass).findFirst();
+					.filter(annotation -> annotation.annotationType() == annotationType).findFirst();
 			if (found.isEmpty()) {
 				continue;
 			}
 
-			map.put(mapper.apply((A) found.get()), (V) args.get(i));
+			map.put(keySupplier.apply((A) found.get()), (V) args.get(i));
 		}
 		return map;
 	}
