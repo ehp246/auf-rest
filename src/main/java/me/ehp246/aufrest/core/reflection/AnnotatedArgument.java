@@ -4,5 +4,12 @@ import java.lang.annotation.Annotation;
 
 public interface AnnotatedArgument<T extends Annotation> {
 	T getAnnotation();
+
+	/**
+	 *
+	 *
+	 * @return argument object of the annotated parameter. Could be
+	 *         <code>null</code>
+	 */
 	Object getArgument();
 }

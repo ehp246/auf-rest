@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -85,31 +86,6 @@ public class ProxyInvoked<T> {
 		return Optional.ofNullable(this.method.getDeclaringClass().getAnnotation(annotationClass));
 	}
 
-	@SuppressWarnings("unchecked")
-	public <A extends Annotation> Optional<AnnotatedArgument<A>> findOnArguments(final Class<A> annotationClass) {
-		for (int i = 0; i < parameterAnnotations.length; i++) {
-			final var found = Stream.of(parameterAnnotations[i])
-					.filter(annotation -> annotation.annotationType() == annotationClass).findFirst();
-			if (found.isPresent()) {
-				final var arg = args.get(i);
-				return Optional.of(new AnnotatedArgument<A>() {
-
-					@Override
-					public A getAnnotation() {
-						return (A) found.get();
-					}
-
-					@Override
-					public Object getArgument() {
-						return arg;
-					}
-
-				});
-			}
-		}
-		return Optional.empty();
-	}
-
 	/**
 	 * Find all arguments of the given parameter type.
 	 *
@@ -155,6 +131,28 @@ public class ProxyInvoked<T> {
 			map.put(keySupplier.apply((A) found.get()), (V) args.get(i));
 		}
 		return map;
+	}
+
+	public <A extends Annotation> void forAnnotatedArguments(final Class<A> annotationType,
+			final Consumer<AnnotatedArgument<A>> consumer) {
+		for (int i = 0; i < parameterAnnotations.length; i++) {
+			final var arg = args.get(i);
+			Stream.of(parameterAnnotations[i]).filter(annotation -> annotation.annotationType() == annotationType)
+					.forEach(anno -> consumer.accept(new AnnotatedArgument<A>() {
+
+						@SuppressWarnings("unchecked")
+						@Override
+						public A getAnnotation() {
+							return (A) anno;
+						}
+
+						@Override
+						public Object getArgument() {
+							return arg;
+						}
+
+					}));
+		}
 	}
 
 	public <A extends Annotation, V> Optional<V> optionalValueOnMethod(final Class<A> annotationClass,

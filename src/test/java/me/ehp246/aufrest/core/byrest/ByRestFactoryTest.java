@@ -451,13 +451,14 @@ class ByRestFactoryTest {
 
 		newInstance.get("	");
 
-		Assertions.assertEquals(0, reqRef.get().headers().get("x-correl-id").size(), "should have no header");
+		Assertions.assertEquals("	", reqRef.get().headers().get("x-correl-id").get(0));
 
 		reqRef.set(null);
 
 		newInstance.get((String) null);
 
-		Assertions.assertEquals(0, reqRef.get().headers().size(), "should have no header");
+		Assertions.assertEquals(1, reqRef.get().headers().size());
+		Assertions.assertEquals(null, reqRef.get().headers().get("x-correl-id").get(0));
 	}
 
 	@Test
@@ -466,7 +467,7 @@ class ByRestFactoryTest {
 
 		newInstance.getBlank("1234");
 
-		Assertions.assertEquals(0, reqRef.get().headers().size(), "should have no header for non-map arguments");
+		Assertions.assertEquals(1, reqRef.get().headers().size());
 	}
 
 	@Test
@@ -514,9 +515,10 @@ class ByRestFactoryTest {
 
 		final var headers = reqRef.get().headers().get("accept-language");
 
-		Assertions.assertEquals(2, headers.size(), "should have one header, two values");
+		Assertions.assertEquals(3, headers.size());
 		Assertions.assertEquals("CN", headers.get(0));
 		Assertions.assertEquals("EN", headers.get(1));
+		Assertions.assertEquals("   ", headers.get(2));
 	}
 
 	@Test
@@ -525,10 +527,10 @@ class ByRestFactoryTest {
 
 		newInstance.get(Map.of("CN", "EN", "   ", ""));
 
-		final var headers = reqRef.get().headers().get("accept-language");
+		final var headers = reqRef.get().headers();
 
-		Assertions.assertEquals(2, headers.size(), "should have one header, two values");
-		Assertions.assertEquals("CN", headers.get(0));
-		Assertions.assertEquals("EN", headers.get(1));
+		Assertions.assertEquals(2, headers.size(), "should have two headers");
+		Assertions.assertEquals(1, headers.get("CN").size());
+		Assertions.assertEquals(1, headers.get("   ").size());
 	}
 }

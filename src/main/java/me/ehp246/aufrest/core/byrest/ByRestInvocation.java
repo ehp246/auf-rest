@@ -4,14 +4,14 @@ import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.core.env.Environment;
@@ -27,6 +27,7 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
+import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.InvocationUtil;
 
@@ -117,23 +118,41 @@ class ByRestInvocation implements Request {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, List<String>> headers() {
-		return invoked.mapAnnotatedArguments(RequestHeader.class, RequestHeader::value).entrySet().stream()
-				.filter(entry -> !entry.getKey().isBlank() && entry.getValue() != null)
-				.collect(Collectors.groupingBy(Map.Entry::getKey, Collector.of(ArrayList::new, (list, entry) -> {
-					final var arg = entry.getValue();
-					if (arg instanceof List) {
-						((List<Object>) arg).stream().map(Object::toString).filter(Predicate.not(String::isBlank))
-								.forEach(str -> list.add(str));
-					} else if (arg instanceof Map) {
+		final var headers = new HashMap<String, List<String>>();
 
-					} else if (!arg.toString().isBlank()) {
-						list.add(arg.toString());
-					}
+		invoked.forAnnotatedArguments(RequestHeader.class, new Consumer<AnnotatedArgument<RequestHeader>>() {
+			@Override
+			public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
+				newValue(annoArg.getAnnotation().value(), annoArg.getArgument());
+			}
 
-				}, (left, right) -> {
-					left.addAll(right);
-					return left;
-				})));
+			private void newValue(final Object key, final Object newValue) {
+				if (newValue == null) {
+					getMapped(key).add(null);
+					return;
+				}
+
+				if (newValue instanceof List) {
+					((List<Object>) newValue).stream().forEach(v -> newValue(key, v));
+					return;
+				}
+
+				if (newValue instanceof Map) {
+					((Map<Object, Object>) newValue).entrySet().forEach(entry -> {
+						newValue(entry.getKey(), entry.getValue());
+					});
+					return;
+				}
+
+				getMapped(key).add(newValue.toString());
+			}
+
+			private List<String> getMapped(final Object key) {
+				return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
+			}
+		});
+
+		return headers;
 	}
 
 	public ByRestInvocation setResponseSupplier(final Supplier<HttpResponse<?>> responseSupplier) throws Throwable {
