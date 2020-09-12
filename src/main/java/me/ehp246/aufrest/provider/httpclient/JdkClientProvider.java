@@ -13,7 +13,10 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -156,13 +159,25 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private HttpRequest.Builder newRequestBuilder(final Request req) {
 		final var builder = reqBuilderSupplier.get();
 
+		// Request headers
+		fillHeaders(builder, req.headers());
+
 		// Content-Type
-		builder.header(HttpUtils.CONTENT_TYPE,
+		builder.setHeader(HttpUtils.CONTENT_TYPE,
 				Optional.ofNullable(req.contentType()).orElse(HttpUtils.APPLICATION_JSON));
 
 		// Accept
-		builder.header(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(HttpUtils.APPLICATION_JSON));
+		builder.setHeader(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(HttpUtils.APPLICATION_JSON));
 
+		return builder;
+	}
+
+	private static HttpRequest.Builder fillHeaders(final HttpRequest.Builder builder,
+			final Map<String, List<String>> headers) {
+		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
+			final var key = entry.getKey();
+			entry.getValue().stream().forEach(value -> builder.header(key, value));
+		});
 		return builder;
 	}
 }

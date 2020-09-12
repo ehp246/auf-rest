@@ -2,6 +2,7 @@ package me.ehp246.aufrest.integration.postman;
 
 import java.io.InputStream;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -84,6 +85,17 @@ class EnableByRestPostmanTest {
 
 		Assertions.assertEquals(true, response instanceof EchoResponseBody);
 		Assertions.assertEquals("https://postman-echo.com/get", response.getUrl());
+	}
+
+	@Test
+	void get_006() {
+		final var newInstance = factory.getBean(EchoGetTestCase001.class);
+
+		final var id = UUID.randomUUID().toString();
+		final var response = newInstance.getAsEchoBody(id);
+
+		final var headers = response.getHeaders();
+		Assertions.assertEquals(id, headers.get("x-auf-rest-id"));
 	}
 
 	@Test

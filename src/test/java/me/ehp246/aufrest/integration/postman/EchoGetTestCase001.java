@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
@@ -30,6 +32,8 @@ interface EchoGetTestCase001 {
 	Void getVoid2();
 
 	EchoResponseBody getAsEchoBody();
+
+	EchoResponseBody getAsEchoBody(@RequestHeader("x-auf-rest-id") String id);
 
 	/**
 	 * Defaults to ResponseSupplier with String body.

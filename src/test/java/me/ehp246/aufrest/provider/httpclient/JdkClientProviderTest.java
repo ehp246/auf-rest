@@ -8,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -384,5 +385,27 @@ class JdkClientProviderTest {
 		});
 
 		Assertions.assertEquals("http://nowhere", reqRef.get().uri().toString());
+	}
+
+	@Test
+	void header_001() {
+		clientProvider.get().apply(new Request() {
+
+			@Override
+			public String uri() {
+				return "http://nowhere";
+			}
+
+			@Override
+			public Map<String, List<String>> headers() {
+				return Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid"));
+			}
+
+		});
+
+		final var map = reqRef.get().headers().map();
+
+		Assertions.assertEquals(2, map.get("accept-language").size(), "should filter out all blank values");
+		Assertions.assertEquals(1, map.get("x-correl-id").size());
 	}
 }
