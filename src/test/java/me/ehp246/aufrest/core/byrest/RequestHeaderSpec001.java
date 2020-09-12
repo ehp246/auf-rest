@@ -40,7 +40,7 @@ public interface RequestHeaderSpec001 {
 	void get(@RequestHeader("x-uuid") UUID correlId);
 
 	/**
-	 * Same Header repeated. Throw or override?
+	 * Same Header repeated are concatenated
 	 *
 	 * @param correlId1
 	 * @param correlId2
@@ -53,15 +53,11 @@ public interface RequestHeaderSpec001 {
 
 	void get(@RequestHeader Map<String, String> headers);
 
-	/**
-	 * Explicitly named should take precedence.
-	 *
-	 * @param headers
-	 * @param correlId
-	 */
-	void get(@RequestHeader Map<String, String> headers, @RequestHeader("x-correl-id") UUID correlId);
+	void get(@RequestHeader Map<String, String> headers, @RequestHeader("x-correl-id") String correlId);
 
 	void get(@RequestHeader MultiValueMap<String, String> headers);
 
 	void getMapOfList(@RequestHeader Map<String, List<String>> headers);
+
+	void getListOfList(@RequestHeader("accept-language") List<List<String>> accepted);
 }

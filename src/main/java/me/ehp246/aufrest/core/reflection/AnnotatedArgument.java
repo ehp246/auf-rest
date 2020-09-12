@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.reflection;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Parameter;
 
 public interface AnnotatedArgument<T extends Annotation> {
 	T getAnnotation();
@@ -12,4 +13,6 @@ public interface AnnotatedArgument<T extends Annotation> {
 	 *         <code>null</code>
 	 */
 	Object getArgument();
+
+	Parameter getParameter();
 }

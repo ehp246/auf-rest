@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
@@ -482,7 +483,7 @@ class ByRestFactoryTest {
 				"should have call toString");
 	}
 
-	// @Test
+	@Test
 	void header_004() {
 		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
 
@@ -490,8 +491,8 @@ class ByRestFactoryTest {
 
 		final var headers = reqRef.get().headers();
 
-		Assertions.assertEquals(1, headers.size(), "should have call toString");
-		Assertions.assertEquals("2", headers.get("x-correl-id").get(0), "should have call toString");
+		Assertions.assertEquals(1, headers.size());
+		Assertions.assertEquals(2, headers.get("x-correl-id").size(), "should concate");
 	}
 
 	@Test
@@ -532,5 +533,57 @@ class ByRestFactoryTest {
 		Assertions.assertEquals(2, headers.size(), "should have two headers");
 		Assertions.assertEquals(1, headers.get("CN").size());
 		Assertions.assertEquals(1, headers.get("   ").size());
+	}
+
+	@Test
+	void header_008() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), "uuid");
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(2, headers.size(), "should have two headers");
+		Assertions.assertEquals(2, headers.get("x-correl-id").size(), "should concate all values");
+		Assertions.assertEquals(1, headers.get("accept-language").size());
+	}
+
+	@Test
+	void header_009() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.get(CollectionUtils
+				.toMultiValueMap(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid"))));
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(2, headers.size(), "should have two headers");
+		Assertions.assertEquals(1, headers.get("x-correl-id").size());
+		Assertions.assertEquals(2, headers.get("accept-language").size());
+	}
+
+	@Test
+	void header_010() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.getMapOfList(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid")));
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(2, headers.size());
+		Assertions.assertEquals(1, headers.get("x-correl-id").size());
+		Assertions.assertEquals(2, headers.get("accept-language").size());
+	}
+
+	@Test
+	void header_011() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.getListOfList(List.of(List.of("DE"), List.of("CN", "EN"), List.of("JP")));
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(1, headers.size());
+		Assertions.assertEquals(4, headers.get("accept-language").size());
 	}
 }

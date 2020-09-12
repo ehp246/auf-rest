@@ -2,6 +2,7 @@ package me.ehp246.aufrest.core.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -133,12 +133,15 @@ public class ProxyInvoked<T> {
 		return map;
 	}
 
-	public <A extends Annotation> void forAnnotatedArguments(final Class<A> annotationType,
-			final Consumer<AnnotatedArgument<A>> consumer) {
+	public <A extends Annotation> Stream<AnnotatedArgument<A>> streamOfAnnotatedArguments(
+			final Class<A> annotationType) {
+		final var builder = Stream.<AnnotatedArgument<A>>builder();
+
 		for (int i = 0; i < parameterAnnotations.length; i++) {
 			final var arg = args.get(i);
+			final var parameter = method.getParameters()[i];
 			Stream.of(parameterAnnotations[i]).filter(annotation -> annotation.annotationType() == annotationType)
-					.forEach(anno -> consumer.accept(new AnnotatedArgument<A>() {
+					.map(anno -> new AnnotatedArgument<A>() {
 
 						@SuppressWarnings("unchecked")
 						@Override
@@ -151,8 +154,16 @@ public class ProxyInvoked<T> {
 							return arg;
 						}
 
-					}));
+						@Override
+						public Parameter getParameter() {
+							return parameter;
+						}
+
+					}).forEach(builder::add);
+			;
 		}
+
+		return builder.build();
 	}
 
 	public <A extends Annotation, V> Optional<V> optionalValueOnMethod(final Class<A> annotationClass,

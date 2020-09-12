@@ -120,37 +120,38 @@ class ByRestInvocation implements Request {
 	public Map<String, List<String>> headers() {
 		final var headers = new HashMap<String, List<String>>();
 
-		invoked.forAnnotatedArguments(RequestHeader.class, new Consumer<AnnotatedArgument<RequestHeader>>() {
-			@Override
-			public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
-				newValue(annoArg.getAnnotation().value(), annoArg.getArgument());
-			}
+		invoked.streamOfAnnotatedArguments(RequestHeader.class)
+				.forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
+					@Override
+					public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
+						newValue(annoArg.getAnnotation().value(), annoArg.getArgument());
+					}
 
-			private void newValue(final Object key, final Object newValue) {
-				if (newValue == null) {
-					getMapped(key).add(null);
-					return;
-				}
+					private void newValue(final Object key, final Object newValue) {
+						if (newValue == null) {
+							getMapped(key).add(null);
+							return;
+						}
 
-				if (newValue instanceof List) {
-					((List<Object>) newValue).stream().forEach(v -> newValue(key, v));
-					return;
-				}
+						if (newValue instanceof Iterable) {
+							((Iterable<Object>) newValue).forEach(v -> newValue(key, v));
+							return;
+						}
 
-				if (newValue instanceof Map) {
-					((Map<Object, Object>) newValue).entrySet().forEach(entry -> {
-						newValue(entry.getKey(), entry.getValue());
-					});
-					return;
-				}
+						if (newValue instanceof Map) {
+							((Map<Object, Object>) newValue).entrySet().forEach(entry -> {
+								newValue(entry.getKey(), entry.getValue());
+							});
+							return;
+						}
 
-				getMapped(key).add(newValue.toString());
-			}
+						getMapped(key).add(newValue.toString());
+					}
 
-			private List<String> getMapped(final Object key) {
-				return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
-			}
-		});
+					private List<String> getMapped(final Object key) {
+						return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
+					}
+				});
 
 		return headers;
 	}
