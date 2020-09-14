@@ -14,9 +14,11 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  * defaultValue is not supported.
  *
- * Non-String type is supported by Object::toString.
+ * Non-String type is supported by <code>Object.toString()</code>.
  *
- * Null/empty/blank tolerant.
+ * Empty/blank strings are tolerated and added as is.
+ *
+ * <code>null</code>'s are filtered out.
  *
  * @author Lei Yang
  *

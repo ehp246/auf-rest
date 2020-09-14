@@ -129,7 +129,6 @@ class ByRestInvocation implements Request {
 
 					private void newValue(final Object key, final Object newValue) {
 						if (newValue == null) {
-							getMapped(key).add(null);
 							return;
 						}
 

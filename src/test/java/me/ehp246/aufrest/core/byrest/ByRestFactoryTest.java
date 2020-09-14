@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -458,8 +459,7 @@ class ByRestFactoryTest {
 
 		newInstance.get((String) null);
 
-		Assertions.assertEquals(1, reqRef.get().headers().size());
-		Assertions.assertEquals(null, reqRef.get().headers().get("x-correl-id").get(0));
+		Assertions.assertEquals(0, reqRef.get().headers().size());
 	}
 
 	@Test
@@ -585,5 +585,35 @@ class ByRestFactoryTest {
 
 		Assertions.assertEquals(1, headers.size());
 		Assertions.assertEquals(4, headers.get("accept-language").size());
+	}
+
+	@Test
+	void header_012() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		final var nullList = new ArrayList<String>();
+		nullList.add("EN");
+		nullList.add(null);
+		nullList.add("CN");
+
+		newInstance.getListOfList(List.of(List.of("DE"), nullList, List.of("JP")));
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(1, headers.size(), "should filter out all nulls");
+		Assertions.assertEquals(4, headers.get("accept-language").size());
+	}
+
+	@Test
+	void header_013() {
+		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+
+		newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), null);
+
+		final var headers = reqRef.get().headers();
+
+		Assertions.assertEquals(2, headers.size(), "should have two headers");
+		Assertions.assertEquals(1, headers.get("x-correl-id").size(), "should filter out nulls");
+		Assertions.assertEquals(1, headers.get("accept-language").size());
 	}
 }
