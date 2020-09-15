@@ -20,11 +20,11 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  */
 class HeaderContextTest {
 	private static class Runner implements Callable<Map<String, List<String>>> {
-		private final int counter;
+		private final int id;
 
-		Runner(final int counter) {
+		Runner(final int id) {
 			super();
-			this.counter = counter;
+			this.id = id;
 		}
 
 		@Override
@@ -36,13 +36,13 @@ class HeaderContextTest {
 
 			sleep();
 
-			HeaderContext.header("x-counter", counter + "");
+			HeaderContext.header("x-id", id + "");
 
 			sleep();
 
 			headers = HeaderContext.headers();
 
-			HeaderContext.remove("x-counter");
+			HeaderContext.remove("x-id");
 
 			return headers;
 		}
@@ -79,10 +79,29 @@ class HeaderContextTest {
 		Assertions.assertEquals(count, headers.size());
 		IntStream.range(0, count).forEach(i -> {
 			Assertions.assertEquals("main", headers.get(i).get("x-trace-id").get(0));
-			Assertions.assertEquals(i + "", headers.get(i).get("x-counter").get(0));
+			Assertions.assertEquals(i + "", headers.get(i).get("x-id").get(0));
 		});
 
 		Assertions.assertEquals(1, HeaderContext.headers().size());
+	}
+
+	@Test
+	void modification_001() {
+		final var headers1 = HeaderContext.headers();
+
+		Assertions.assertThrows(Exception.class, headers1::clear, "should not be able to modify map");
+
+		HeaderContext.header("x-trace-id", "1");
+
+		final var headers2 = HeaderContext.headers();
+
+		final var list = headers2.get("x-trace-id");
+
+		Assertions.assertEquals("1", list.get(0));
+
+		Assertions.assertThrows(Exception.class, () -> list.add(""), "should not be able to modify value list");
+
+		Assertions.assertEquals(0, headers1.size(), "should be separate snapshots without new updates");
 	}
 
 }

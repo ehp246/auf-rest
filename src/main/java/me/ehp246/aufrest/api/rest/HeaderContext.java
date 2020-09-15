@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,12 @@ public class HeaderContext {
 	}
 
 	public static Map<String, List<String>> headers() {
-		return new HashMap<String, List<String>>(CONTEXT.headers.get());
+		final var map = CONTEXT.headers.get();
+		final var mapCopy = new HashMap<String, List<String>>();
+
+		map.entrySet().stream().forEach(entry -> mapCopy.put(entry.getKey(), List.copyOf(entry.getValue())));
+
+		return Collections.unmodifiableMap(mapCopy);
 	}
 
 	public static void header(final String name, final String value) {
