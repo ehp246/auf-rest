@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Lei Yang
@@ -15,7 +16,11 @@ public class HeaderContext {
 
 		@Override
 		protected Map<String, List<String>> childValue(final Map<String, List<String>> parentValue) {
-			return new HashMap<>(parentValue);
+			final var copy = new HashMap<String, List<String>>();
+			parentValue.entrySet().stream().forEach(entry -> {
+				copy.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+			});
+			return copy;
 		}
 
 		@Override
@@ -31,7 +36,7 @@ public class HeaderContext {
 		super();
 	}
 
-	public static Map<String, List<String>> headers() {
+	public static Map<String, List<String>> getAll() {
 		final var map = CONTEXT.headers.get();
 		final var mapCopy = new HashMap<String, List<String>>();
 
@@ -40,7 +45,12 @@ public class HeaderContext {
 		return Collections.unmodifiableMap(mapCopy);
 	}
 
-	public static void header(final String name, final String value) {
+	public static List<String> get(final String name) {
+		return Collections
+				.unmodifiableList(Optional.ofNullable(CONTEXT.headers.get().get(name)).orElseGet(ArrayList::new));
+	}
+
+	public static void add(final String name, final String value) {
 		CONTEXT.headers.get().computeIfAbsent(name, key -> new ArrayList<>()).add(value);
 	}
 

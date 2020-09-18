@@ -29,18 +29,19 @@ class HeaderContextTest {
 
 		@Override
 		public Map<String, List<String>> call() {
-			var headers = HeaderContext.headers();
+			var headers = HeaderContext.getAll();
 
 			Assertions.assertEquals(1, headers.size());
 			Assertions.assertEquals("main", headers.get("x-trace-id").get(0));
 
 			sleep();
 
-			HeaderContext.header("x-id", id + "");
+			HeaderContext.add("x-trace-id", id + "");
+			HeaderContext.add("x-id", id + "");
 
 			sleep();
 
-			headers = HeaderContext.headers();
+			headers = HeaderContext.getAll();
 
 			HeaderContext.remove("x-id");
 
@@ -59,10 +60,10 @@ class HeaderContextTest {
 
 	@Test
 	void test() throws InterruptedException, ExecutionException {
-		Assertions.assertEquals(0, HeaderContext.headers().size());
+		Assertions.assertEquals(0, HeaderContext.getAll().size());
 
 		// Should propagate to child threads
-		HeaderContext.header("x-trace-id", "main");
+		HeaderContext.add("x-trace-id", "main");
 
 		final var count = 20;
 
@@ -82,18 +83,19 @@ class HeaderContextTest {
 			Assertions.assertEquals(i + "", headers.get(i).get("x-id").get(0));
 		});
 
-		Assertions.assertEquals(1, HeaderContext.headers().size());
+		Assertions.assertEquals(1, HeaderContext.getAll().size());
+		Assertions.assertEquals(1, HeaderContext.getAll().get("x-trace-id").size());
 	}
 
 	@Test
 	void modification_001() {
-		final var headers1 = HeaderContext.headers();
+		final var headers1 = HeaderContext.getAll();
 
 		Assertions.assertThrows(Exception.class, headers1::clear, "should not be able to modify map");
 
-		HeaderContext.header("x-trace-id", "1");
+		HeaderContext.add("x-trace-id", "1");
 
-		final var headers2 = HeaderContext.headers();
+		final var headers2 = HeaderContext.getAll();
 
 		final var list = headers2.get("x-trace-id");
 
@@ -104,4 +106,15 @@ class HeaderContextTest {
 		Assertions.assertEquals(0, headers1.size(), "should be separate snapshots without new updates");
 	}
 
+	@Test
+	void modification_002() {
+		Assertions.assertEquals(0, HeaderContext.get("").size());
+
+		HeaderContext.add("x-trace-id", "1");
+
+		final var ids = HeaderContext.get("x-trace-id");
+
+		Assertions.assertThrows(Exception.class, () -> ids.add("2"));
+		Assertions.assertThrows(Exception.class, ids::clear);
+	}
 }
