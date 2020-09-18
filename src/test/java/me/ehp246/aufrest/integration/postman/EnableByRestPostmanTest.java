@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.postman;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 
 /**
  * @author Lei Yang
@@ -148,7 +150,7 @@ class EnableByRestPostmanTest {
 	}
 
 	@Test
-	void basci_auth_001() {
+	void basic_auth_001() {
 		final var newInstance = factory.getBean(EchoAuthTestCases.BasicCase001.class);
 
 		Assertions.assertEquals(true, newInstance.get().get("authenticated"));
@@ -168,7 +170,7 @@ class EnableByRestPostmanTest {
 	}
 
 	@Test
-	void basci_auth_002() {
+	void basic_auth_002() {
 		final var newInstance = factory.getBean(EchoAuthTestCases.BasicCase002.class);
 
 		Assertions.assertEquals(true, newInstance.get().get("authenticated"));
@@ -178,7 +180,7 @@ class EnableByRestPostmanTest {
 	}
 
 	@Test
-	void basci_auth_003() {
+	void basic_auth_003() {
 		final var newInstance = factory.getBean(EchoAuthTestCases.BasicCase003.class);
 
 		Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
@@ -186,7 +188,7 @@ class EnableByRestPostmanTest {
 	}
 
 	@Test
-	void basci_auth_004() {
+	void basic_auth_004() {
 		final var newInstance = factory.getBean(EchoAuthTestCases.BasicCase004.class);
 
 		Assertions.assertEquals(true, newInstance.get().get("authenticated"));
@@ -196,5 +198,47 @@ class EnableByRestPostmanTest {
 	void timeout001() {
 		Assertions.assertThrows(RuntimeException.class, factory.getBean(EchoTimeoutTestCase.class)::get,
 				"Can you complete it in one millisecond?");
+	}
+
+	@Test
+	void header_context_001() {
+		final var newInstance = factory.getBean(EchoGetTestCase001.class);
+
+		final var name = UUID.randomUUID().toString();
+		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+		HeaderContext.add(name, values.get(0));
+
+		var response = newInstance.getAsEchoBody();
+
+		Assertions.assertEquals(values.get(0), response.getHeaders().get(name), "should have the single value");
+
+		HeaderContext.add(name, values.get(1));
+
+		response = newInstance.getAsEchoBody();
+
+		Assertions.assertEquals(values.get(0) + ", " + values.get(1), response.getHeaders().get(name),
+				"should have both values");
+
+		HeaderContext.clear();
+
+		response = newInstance.getAsEchoBody();
+
+		Assertions.assertEquals(null, response.getHeaders().get(name), "should have no value");
+	}
+
+	@Test
+	void header_context_002() {
+		final var newInstance = factory.getBean(EchoGetTestCase001.class);
+
+		final var name = "x-auf-rest-id";
+		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+		HeaderContext.add(name, values.get(0));
+
+		final var response = newInstance.getAsEchoBody(values.get(1));
+
+		Assertions.assertEquals(values.get(0) + ", " + values.get(1), response.getHeaders().get(name),
+				"should have both values");
 	}
 }
