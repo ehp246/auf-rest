@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
-import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.api.rest.ContextHeader;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 
@@ -161,7 +161,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		final var builder = reqBuilderSupplier.get();
 
 		// Context headers
-		fillHeaders(builder, HeaderContext.getAll());
+		fillHeaders(builder, ContextHeader.copy());
 
 		// Request headers
 		fillHeaders(builder, req.headers());

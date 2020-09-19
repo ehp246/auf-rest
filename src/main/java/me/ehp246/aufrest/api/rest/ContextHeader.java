@@ -5,13 +5,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Lei Yang
  *
  */
-public class HeaderContext {
+public class ContextHeader {
 	private final InheritableThreadLocal<Map<String, List<String>>> headers = new InheritableThreadLocal<Map<String, List<String>>>() {
 
 		@Override
@@ -30,13 +29,18 @@ public class HeaderContext {
 
 	};
 
-	private final static HeaderContext CONTEXT = new HeaderContext();
+	private final static ContextHeader CONTEXT = new ContextHeader();
 
-	private HeaderContext() {
+	private ContextHeader() {
 		super();
 	}
 
-	public static Map<String, List<String>> getAll() {
+	/**
+	 * Makes an un-modifiable copy of all header names and values.
+	 *
+	 * @return
+	 */
+	public static Map<String, List<String>> copy() {
 		final var map = CONTEXT.headers.get();
 		final var mapCopy = new HashMap<String, List<String>>();
 
@@ -45,20 +49,51 @@ public class HeaderContext {
 		return Collections.unmodifiableMap(mapCopy);
 	}
 
+	/**
+	 * Returns the value list of the name. It can be modified.
+	 *
+	 * @param name
+	 * @return
+	 */
 	public static List<String> get(final String name) {
-		return Collections
-				.unmodifiableList(Optional.ofNullable(CONTEXT.headers.get().get(name)).orElseGet(ArrayList::new));
+		return CONTEXT.headers.get().computeIfAbsent(name, key -> new ArrayList<>());
 	}
 
-	public static void add(final String name, final String value) {
-		CONTEXT.headers.get().computeIfAbsent(name, key -> new ArrayList<>()).add(value);
+	/**
+	 * Adds the value to the value list of the named header. Returns the live list
+	 * that can be modified.
+	 *
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public static List<String> add(final String name, final String value) {
+		return CONTEXT.headers.get().computeIfAbsent(name, key -> {
+			final var values = new ArrayList<String>();
+			values.add(value);
+			return values;
+		});
+	}
+
+	/**
+	 * Sets the header to the specified value. All existing values are removed.
+	 *
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public static List<String> set(final String name, final String value) {
+		final var values = get(name);
+		values.clear();
+		values.add(value);
+		return values;
 	}
 
 	public static void remove(final String name) {
 		CONTEXT.headers.get().remove(name);
 	}
 
-	public static void clear() {
+	public static void removeAll() {
 		CONTEXT.headers.get().clear();
 	}
 }

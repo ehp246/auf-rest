@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import me.ehp246.aufrest.core.util.InvocationUtil;
@@ -18,7 +19,7 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  * @author Lei Yang
  *
  */
-class HeaderContextTest {
+class ContextHeaderTest {
 	private static class Runner implements Callable<Map<String, List<String>>> {
 		private final int id;
 
@@ -29,21 +30,21 @@ class HeaderContextTest {
 
 		@Override
 		public Map<String, List<String>> call() {
-			var headers = HeaderContext.getAll();
+			var headers = ContextHeader.copy();
 
 			Assertions.assertEquals(1, headers.size());
 			Assertions.assertEquals("main", headers.get("x-trace-id").get(0));
 
 			sleep();
 
-			HeaderContext.add("x-trace-id", id + "");
-			HeaderContext.add("x-id", id + "");
+			ContextHeader.add("x-trace-id", id + "");
+			ContextHeader.add("x-id", id + "");
 
 			sleep();
 
-			headers = HeaderContext.getAll();
+			headers = ContextHeader.copy();
 
-			HeaderContext.remove("x-id");
+			ContextHeader.remove("x-id");
 
 			return headers;
 		}
@@ -58,12 +59,17 @@ class HeaderContextTest {
 
 	}
 
+	@BeforeEach
+	void clear() {
+		ContextHeader.removeAll();
+	}
+
 	@Test
-	void test() throws InterruptedException, ExecutionException {
-		Assertions.assertEquals(0, HeaderContext.getAll().size());
+	void thread_001() throws InterruptedException, ExecutionException {
+		Assertions.assertEquals(0, ContextHeader.copy().size());
 
 		// Should propagate to child threads
-		HeaderContext.add("x-trace-id", "main");
+		ContextHeader.add("x-trace-id", "main");
 
 		final var count = 20;
 
@@ -83,19 +89,19 @@ class HeaderContextTest {
 			Assertions.assertEquals(i + "", headers.get(i).get("x-id").get(0));
 		});
 
-		Assertions.assertEquals(1, HeaderContext.getAll().size());
-		Assertions.assertEquals(1, HeaderContext.getAll().get("x-trace-id").size());
+		Assertions.assertEquals(1, ContextHeader.copy().size());
+		Assertions.assertEquals(1, ContextHeader.copy().get("x-trace-id").size());
 	}
 
 	@Test
-	void modification_001() {
-		final var headers1 = HeaderContext.getAll();
+	void copy_001() {
+		final var headers1 = ContextHeader.copy();
 
 		Assertions.assertThrows(Exception.class, headers1::clear, "should not be able to modify map");
 
-		HeaderContext.add("x-trace-id", "1");
+		ContextHeader.add("x-trace-id", "1");
 
-		final var headers2 = HeaderContext.getAll();
+		final var headers2 = ContextHeader.copy();
 
 		final var list = headers2.get("x-trace-id");
 
@@ -107,14 +113,38 @@ class HeaderContextTest {
 	}
 
 	@Test
-	void modification_002() {
-		Assertions.assertEquals(0, HeaderContext.get("").size());
+	void add_001() {
+		Assertions.assertEquals(0, ContextHeader.get("").size());
 
-		HeaderContext.add("x-trace-id", "1");
+		ContextHeader.add("x-trace-id", "1");
 
-		final var ids = HeaderContext.get("x-trace-id");
+		ContextHeader.get("x-trace-id").add("2");
 
-		Assertions.assertThrows(Exception.class, () -> ids.add("2"));
-		Assertions.assertThrows(Exception.class, ids::clear);
+		Assertions.assertEquals(2, ContextHeader.get("x-trace-id").size());
+	}
+
+	@Test
+	void set_001() {
+		ContextHeader.add("x-trace-id", "1");
+
+		ContextHeader.set("x-trace-id", "2").add("1");
+
+		Assertions.assertEquals("[2, 1]", ContextHeader.get("x-trace-id").toString());
+	}
+
+	@Test
+	void remove_001() {
+		ContextHeader.add("x-trace-id", "1");
+
+		ContextHeader.remove("x-trace-id");
+
+		Assertions.assertEquals(0, ContextHeader.get("x-trace-id").size());
+
+		ContextHeader.add("x-trace-id", "1");
+		ContextHeader.add("x-trace-id-1", "1");
+
+		ContextHeader.removeAll();
+
+		Assertions.assertEquals(0, ContextHeader.copy().size());
 	}
 }
