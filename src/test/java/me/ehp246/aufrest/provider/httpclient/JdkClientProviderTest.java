@@ -20,6 +20,7 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.ContextHeader;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -407,5 +408,84 @@ class JdkClientProviderTest {
 
 		Assertions.assertEquals(2, map.get("accept-language").size(), "should filter out all blank values");
 		Assertions.assertEquals(1, map.get("x-correl-id").size());
+	}
+
+	@Test
+	void header_context_001() {
+		ContextHeader.set("accept-language", "DE");
+
+		clientProvider.get().apply(new Request() {
+
+			@Override
+			public String uri() {
+				return "http://nowhere";
+			}
+
+			@Override
+			public Map<String, List<String>> headers() {
+				return null;
+			}
+
+		});
+
+		final var map = reqRef.get().headers().map();
+
+		final var accept = map.get("accept-language");
+
+		Assertions.assertEquals(1, accept.size(), "should have context headers");
+		Assertions.assertEquals("DE", accept.get(0));
+	}
+
+	@Test
+	void header_context_002() {
+		ContextHeader.set("accept-language", "DE");
+
+		clientProvider.get().apply(new Request() {
+
+			@Override
+			public String uri() {
+				return "http://nowhere";
+			}
+
+			@Override
+			public Map<String, List<String>> headers() {
+				return Map.of("x-correl-id", List.of("uuid"));
+			}
+
+		});
+
+		final var map = reqRef.get().headers().map();
+
+		final var accept = map.get("accept-language");
+
+		Assertions.assertEquals(1, accept.size(), "should have context headers");
+		Assertions.assertEquals("DE", accept.get(0));
+		Assertions.assertEquals(1, map.get("x-correl-id").size(), "should merge");
+	}
+
+	@Test
+	void header_context_003() {
+		ContextHeader.set("accept-language", "DE");
+
+		clientProvider.get().apply(new Request() {
+
+			@Override
+			public String uri() {
+				return "http://nowhere";
+			}
+
+			@Override
+			public Map<String, List<String>> headers() {
+				return Map.of("accept-language", List.of("EN"));
+			}
+
+		});
+
+		final var map = reqRef.get().headers().map();
+
+		final var accept = map.get("accept-language");
+
+		Assertions.assertEquals(1, accept.size(), "should override context headers");
+		Assertions.assertEquals("EN", accept.get(0));
 	}
 }

@@ -127,9 +127,9 @@ class ContextHeaderTest {
 	void set_001() {
 		ContextHeader.add("x-trace-id", "1");
 
-		ContextHeader.set("x-trace-id", "2").add("1");
+		ContextHeader.set("x-trace-id", "2");
 
-		Assertions.assertEquals("[2, 1]", ContextHeader.get("x-trace-id").toString());
+		Assertions.assertEquals("[2]", ContextHeader.get("x-trace-id").toString());
 	}
 
 	@Test

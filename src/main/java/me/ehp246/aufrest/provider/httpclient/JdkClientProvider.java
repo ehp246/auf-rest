@@ -163,7 +163,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		// Context headers
 		fillHeaders(builder, ContextHeader.copy());
 
-		// Request headers
+		// Request headers overwriting Context
 		fillHeaders(builder, req.headers());
 
 		// Content-Type
@@ -176,12 +176,10 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		return builder;
 	}
 
-	private static HttpRequest.Builder fillHeaders(final HttpRequest.Builder builder,
-			final Map<String, List<String>> headers) {
+	private static void fillHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
 		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
 			final var key = entry.getKey();
-			entry.getValue().stream().forEach(value -> builder.header(key, value));
+			entry.getValue().stream().forEach(value -> builder.setHeader(key, value));
 		});
-		return builder;
 	}
 }

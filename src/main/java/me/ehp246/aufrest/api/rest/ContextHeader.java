@@ -67,12 +67,8 @@ public class ContextHeader {
 	 * @param value
 	 * @return
 	 */
-	public static List<String> add(final String name, final String value) {
-		return CONTEXT.headers.get().computeIfAbsent(name, key -> {
-			final var values = new ArrayList<String>();
-			values.add(value);
-			return values;
-		});
+	public static void add(final String name, final String value) {
+		CONTEXT.headers.get().computeIfAbsent(name, key -> new ArrayList<String>()).add(value);
 	}
 
 	/**
@@ -82,11 +78,10 @@ public class ContextHeader {
 	 * @param value
 	 * @return
 	 */
-	public static List<String> set(final String name, final String value) {
+	public static void set(final String name, final String value) {
 		final var values = get(name);
 		values.clear();
 		values.add(value);
-		return values;
 	}
 
 	public static void remove(final String name) {
