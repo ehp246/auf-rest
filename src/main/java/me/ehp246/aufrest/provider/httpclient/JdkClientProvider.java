@@ -15,6 +15,7 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -26,6 +27,7 @@ import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.ContextHeader;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 
@@ -44,23 +46,35 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
 	private final Optional<AuthorizationProvider> authProvider;
+	private final Optional<HeaderProvider> headerProvider;
 	private final ClientConfig clientConfig;
 
 	public JdkClientProvider(final ClientConfig clientConfig) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null);
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null, null);
 	}
 
 	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider);
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, null);
+	}
+
+	public JdkClientProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
+			final Supplier<HttpRequest.Builder> requestBuilderSupplier, final ClientConfig clientConfig) {
+		this(clientBuilderSupplier, requestBuilderSupplier, clientConfig, null, null);
+	}
+
+	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider,
+			final HeaderProvider headerProvider) {
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, headerProvider);
 	}
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
-			final Supplier<java.net.http.HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
-			final AuthorizationProvider authProvider) {
+			final Supplier<HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
+			final AuthorizationProvider authProvider, final HeaderProvider headerProvider) {
 		super();
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;
 		this.authProvider = Optional.ofNullable(authProvider);
+		this.headerProvider = Optional.ofNullable(headerProvider);
 		this.clientConfig = clientConfig;
 	}
 
@@ -77,6 +91,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 			@Override
 			public HttpResponse<?> apply(final Request req) {
 				final var uri = URI.create(req.uri());
+
 				final var authHeader = Optional
 						.ofNullable(Optional.ofNullable(req.authSupplier())
 								.orElse(() -> authProvider.map(provider -> provider.get(uri)).orElse(null)).get())
@@ -160,11 +175,15 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private HttpRequest.Builder newRequestBuilder(final Request req) {
 		final var builder = reqBuilderSupplier.get();
 
+		// Provider headers. At the least priority.
+		headerProvider.map(provider -> provider.get(req.uri())).filter(Objects::nonNull)
+				.ifPresent(headers -> setHeaders(builder, headers));
+
 		// Context headers
-		fillHeaders(builder, ContextHeader.copy());
+		setHeaders(builder, ContextHeader.copy());
 
 		// Request headers overwriting Context
-		fillHeaders(builder, req.headers());
+		setHeaders(builder, req.headers());
 
 		// Content-Type
 		builder.setHeader(HttpUtils.CONTENT_TYPE,
@@ -176,9 +195,13 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		return builder;
 	}
 
-	private static void fillHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
+	private static void setHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
 		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
 			final var key = entry.getKey();
+			final var values = entry.getValue();
+			if (values == null || values.isEmpty()) {
+				return;
+			}
 			entry.getValue().stream().forEach(value -> builder.setHeader(key, value));
 		});
 	}

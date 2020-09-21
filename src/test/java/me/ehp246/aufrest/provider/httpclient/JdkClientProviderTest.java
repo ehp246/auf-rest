@@ -9,6 +9,7 @@ import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -23,6 +24,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ContextHeader;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -43,6 +45,25 @@ class JdkClientProviderTest {
 			requestBuilderCallCountRef);
 
 	private final HttpClient client = Mockito.mock(HttpClient.class);
+	private final Supplier<HttpClient.Builder> clientBuilderSupplier = () -> {
+		clientBuilderCallCountRef.getAndUpdate(i -> i == null ? 1 : ++i);
+		try {
+			Mockito.when(client.send(Mockito.any(), Mockito.any())).then(invocation -> {
+				reqRef.set(invocation.getArgument(0));
+				return new MockResponse<>();
+			});
+		} catch (IOException | InterruptedException e) {
+			throw new RuntimeException();
+		}
+		final var builder = Mockito.mock(HttpClient.Builder.class);
+		Mockito.when(builder.build()).thenReturn(client);
+		Mockito.when(builder.connectTimeout(Mockito.any())).then(invocation -> {
+			connectTimeoutRef.set(invocation.getArgument(0));
+			return builder;
+		});
+		return builder;
+	};
+
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 			CALLS_REAL_METHODS);
 
@@ -82,7 +103,7 @@ class JdkClientProviderTest {
 			return builder;
 		});
 		return builder;
-	}, reqBuilderSupplier, clientConfig, authProvider);
+	}, reqBuilderSupplier, clientConfig, authProvider, null);
 
 	@BeforeEach
 	void beforeAll() {
@@ -97,7 +118,7 @@ class JdkClientProviderTest {
 	@Test
 	void client_builder_001() {
 		final var client = new MockClientBuilderSupplier();
-		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, clientConfig, null);
+		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, clientConfig);
 		final var count = (int) (Math.random() * 20);
 
 		IntStream.range(0, count).forEach(i -> clientProvider.get());
@@ -112,7 +133,7 @@ class JdkClientProviderTest {
 		final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 				CALLS_REAL_METHODS);
 
-		final var clientProvider = new JdkClientProvider(client::builder, reqBuilderSupplier, clientConfig, null);
+		final var clientProvider = new JdkClientProvider(client::builder, reqBuilderSupplier, clientConfig);
 		final var httpFn = clientProvider.get();
 
 		final int count = (int) (Math.random() * 20);
@@ -302,7 +323,7 @@ class JdkClientProviderTest {
 	void timeout_global_default_001() {
 		final var client = new MockClientBuilderSupplier();
 
-		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, clientConfig, null);
+		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, clientConfig);
 
 		clientProvider.get().apply(() -> "http://tonowhere");
 
@@ -320,7 +341,7 @@ class JdkClientProviderTest {
 				return Duration.ofDays(2);
 			}
 
-		}, null);
+		});
 
 		clientProvider.get().apply(() -> "http://tonowhere");
 
@@ -338,7 +359,7 @@ class JdkClientProviderTest {
 				return Duration.ofDays(2);
 			}
 
-		}, null);
+		});
 
 		final var httpFn = clientProvider.get();
 
@@ -389,17 +410,12 @@ class JdkClientProviderTest {
 	}
 
 	@Test
-	void header_001() {
-		clientProvider.get().apply(new Request() {
-
-			@Override
-			public String uri() {
-				return "http://nowhere";
-			}
+	void requst_header_001() {
+		clientProvider.get().apply(new MockReq() {
 
 			@Override
 			public Map<String, List<String>> headers() {
-				return Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid"));
+				return Map.of("accept-language", List.of("CN", "EN", ""), "x-correl-id", List.of("uuid"));
 			}
 
 		});
@@ -487,5 +503,61 @@ class JdkClientProviderTest {
 
 		Assertions.assertEquals(1, accept.size(), "should override context headers");
 		Assertions.assertEquals("EN", accept.get(0));
+	}
+
+	@Test
+	void header_provider_001() {
+		final var value = UUID.randomUUID().toString();
+
+		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				uri -> Map.of("header-provider", List.of(value))).get();
+
+		clientFn.apply(new MockReq());
+
+		final var headers = reqRef.get().headers().map();
+
+		Assertions.assertEquals(value, headers.get("header-provider").get(0));
+	}
+
+	@Test
+	void header_provider_002() {
+		final var name = UUID.randomUUID().toString();
+
+		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
+
+		final var req = new MockReq() {
+
+			@Override
+			public Map<String, List<String>> headers() {
+				return Map.of(name, List.of(super.reqId));
+			}
+
+		};
+
+		clientFn.apply(req);
+
+		final var headers = reqRef.get().headers().map().get(name);
+
+		Assertions.assertEquals(1, headers.size());
+		Assertions.assertEquals(req.reqId, headers.get(0), "should be overwritten by Request");
+	}
+
+	@Test
+	void header_provider_003() {
+		final var name = UUID.randomUUID().toString();
+		final var value = UUID.randomUUID().toString();
+
+		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
+
+		ContextHeader.set(name, value);
+
+		clientFn.apply(new MockReq());
+
+		final var headers = reqRef.get().headers().map().get(name);
+
+		Assertions.assertEquals(1, headers.size());
+		Assertions.assertEquals(value, headers.get(0), "should be overwritten by Context");
 	}
 }
