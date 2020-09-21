@@ -13,9 +13,9 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -176,14 +176,16 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		final var builder = reqBuilderSupplier.get();
 
 		// Provider headers. At the least priority.
-		headerProvider.map(provider -> provider.get(req.uri())).filter(Objects::nonNull)
-				.ifPresent(headers -> setHeaders(builder, headers));
+		final var headers = new HashMap<String, List<String>>(
+				headerProvider.map(provider -> provider.get(req.uri())).orElse(new HashMap<>()));
 
-		// Context headers
-		setHeaders(builder, ContextHeader.copy());
+		// Context headers next.
+		headers.putAll(ContextHeader.copy());
 
-		// Request headers overwriting Context
-		setHeaders(builder, req.headers());
+		// Request headers overwrite all above.
+		Optional.ofNullable(req.headers()).ifPresent(reqHeaders -> headers.putAll(reqHeaders));
+
+		fillHeaders(builder, headers);
 
 		// Content-Type
 		builder.setHeader(HttpUtils.CONTENT_TYPE,
@@ -195,14 +197,15 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		return builder;
 	}
 
-	private static void setHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
+	private static void fillHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
 		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
 			final var key = entry.getKey();
 			final var values = entry.getValue();
 			if (values == null || values.isEmpty()) {
 				return;
 			}
-			entry.getValue().stream().forEach(value -> builder.setHeader(key, value));
+			entry.getValue().stream().filter(value -> value != null && !value.isBlank())
+					.forEach(value -> builder.header(key, value));
 		});
 	}
 }

@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -106,7 +105,7 @@ class JdkClientProviderTest {
 	}, reqBuilderSupplier, clientConfig, authProvider, null);
 
 	@BeforeEach
-	void beforeAll() {
+	void beforeEach() {
 		refs.stream().forEach(ref -> ref.set(null));
 	}
 
@@ -505,59 +504,4 @@ class JdkClientProviderTest {
 		Assertions.assertEquals("EN", accept.get(0));
 	}
 
-	@Test
-	void header_provider_001() {
-		final var value = UUID.randomUUID().toString();
-
-		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of("header-provider", List.of(value))).get();
-
-		clientFn.apply(new MockReq());
-
-		final var headers = reqRef.get().headers().map();
-
-		Assertions.assertEquals(value, headers.get("header-provider").get(0));
-	}
-
-	@Test
-	void header_provider_002() {
-		final var name = UUID.randomUUID().toString();
-
-		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
-
-		final var req = new MockReq() {
-
-			@Override
-			public Map<String, List<String>> headers() {
-				return Map.of(name, List.of(super.reqId));
-			}
-
-		};
-
-		clientFn.apply(req);
-
-		final var headers = reqRef.get().headers().map().get(name);
-
-		Assertions.assertEquals(1, headers.size());
-		Assertions.assertEquals(req.reqId, headers.get(0), "should be overwritten by Request");
-	}
-
-	@Test
-	void header_provider_003() {
-		final var name = UUID.randomUUID().toString();
-		final var value = UUID.randomUUID().toString();
-
-		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
-
-		ContextHeader.set(name, value);
-
-		clientFn.apply(new MockReq());
-
-		final var headers = reqRef.get().headers().map().get(name);
-
-		Assertions.assertEquals(1, headers.size());
-		Assertions.assertEquals(value, headers.get(0), "should be overwritten by Context");
-	}
 }

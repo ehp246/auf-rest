@@ -38,7 +38,7 @@ public class ContextHeader {
 	/**
 	 * Makes an un-modifiable copy of all header names and values.
 	 *
-	 * @return
+	 * @return never <code>null</code>
 	 */
 	public static Map<String, List<String>> copy() {
 		final var map = CONTEXT.headers.get();
