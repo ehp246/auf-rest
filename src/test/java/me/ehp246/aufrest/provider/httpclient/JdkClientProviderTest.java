@@ -70,7 +70,8 @@ class JdkClientProviderTest {
 		private int count = 0;
 
 		@Override
-		public String get(final URI uri) {
+		public String get(final Request req) {
+			final var uri = URI.create(req.uri());
 			if (uri.toString().contains("bearer")) {
 				return BEARER;
 			} else if (uri.toString().contains("basic")) {
