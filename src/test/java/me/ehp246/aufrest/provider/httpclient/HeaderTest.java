@@ -77,6 +77,32 @@ class HeaderTest {
 	}
 
 	@Test
+	void headers_002() {
+		final var name = UUID.randomUUID().toString();
+
+		ContextHeader.set(name, UUID.randomUUID().toString());
+
+		final var req = new MockReq() {
+
+			@Override
+			public Map<String, List<String>> headers() {
+				return Map.of(reqId, List.of(super.reqId));
+			}
+
+		};
+
+		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
+
+		final var headers = reqRef.get().headers().map();
+
+		Assertions.assertEquals(req.reqId, headers.get(req.reqId).get(0), "Request should be merged");
+		Assertions.assertEquals(1, headers.get(name).size(), "Provider should overwrite Context");
+		Assertions.assertEquals(ContextHeader.get(name).get(0), headers.get(name).get(0),
+				"Provider should overwrite Context");
+	}
+
+	@Test
 	void header_provider_001() {
 		final var value = UUID.randomUUID().toString();
 
