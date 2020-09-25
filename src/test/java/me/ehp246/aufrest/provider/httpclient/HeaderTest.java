@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ContextHeader;
+import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.mock.MockResponse;
 
@@ -68,7 +69,7 @@ class HeaderTest {
 		};
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
+				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
 
 		final var headers = reqRef.get().headers().map().get(name);
 
@@ -92,7 +93,7 @@ class HeaderTest {
 		};
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
+				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
 
 		final var headers = reqRef.get().headers().map();
 
@@ -107,7 +108,7 @@ class HeaderTest {
 		final var value = UUID.randomUUID().toString();
 
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of("header-provider", List.of(value))).get();
+				r -> Map.of("header-provider", List.of(value))).get();
 
 		clientFn.apply(new MockReq());
 
@@ -121,7 +122,7 @@ class HeaderTest {
 		final var name = UUID.randomUUID().toString();
 
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
+				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
 
 		final var req = new MockReq() {
 
@@ -146,7 +147,7 @@ class HeaderTest {
 		final var value = UUID.randomUUID().toString();
 
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				uri -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
+				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
 
 		ContextHeader.set(name, value);
 
@@ -156,5 +157,18 @@ class HeaderTest {
 
 		Assertions.assertEquals(1, headers.size());
 		Assertions.assertEquals(value, headers.get(0), "should be overwritten by Context");
+	}
+
+	@Test
+	void header_provider_004() {
+		final var mockReq = new MockReq();
+		final var reqRef = new AtomicReference<Request>();
+
+		new JdkClientProvider(r -> {
+			reqRef.set(r);
+			return null;
+		}).get().apply(mockReq);
+
+		Assertions.assertEquals(true, reqRef.get() == mockReq, "Should be passed to the header provider");
 	}
 }

@@ -67,6 +67,11 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, headerProvider);
 	}
 
+	public JdkClientProvider(final HeaderProvider headerProvider) {
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, new ClientConfig() {
+		}, null, headerProvider);
+	}
+
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
 			final Supplier<HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
 			final AuthorizationProvider authProvider, final HeaderProvider headerProvider) {
@@ -177,7 +182,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 		// Provider headers. At the least priority.
 		final var headers = new HashMap<String, List<String>>(
-				headerProvider.map(provider -> provider.get(req.uri())).orElse(new HashMap<>()));
+				headerProvider.map(provider -> provider.get(req)).orElse(new HashMap<>()));
 
 		// Context headers next.
 		headers.putAll(ContextHeader.copy());

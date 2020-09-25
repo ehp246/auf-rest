@@ -29,8 +29,8 @@ import java.util.Map;
 public interface HeaderProvider {
 	/**
 	 *
-	 * @param uri the target URI of the request
+	 * @param request the out-going request.
 	 * @return header names and values. <code>null</code> is acceptable.
 	 */
-	Map<String, List<String>> get(String uri);
+	Map<String, List<String>> get(Request request);
 }

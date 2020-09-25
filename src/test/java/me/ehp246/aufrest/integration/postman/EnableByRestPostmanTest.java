@@ -238,7 +238,6 @@ class EnableByRestPostmanTest {
 
 		final var response = newInstance.getAsEchoBody(values.get(1));
 
-		Assertions.assertEquals(values.get(0) + ", " + values.get(1), response.getHeaders().get(name),
-				"should have both values");
+		Assertions.assertEquals(values.get(1), response.getHeaders().get(name), "should overwrite");
 	}
 }
