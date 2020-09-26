@@ -3,12 +3,12 @@ package me.ehp246.aufrest.provider.httpclient;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -70,8 +70,7 @@ class JdkClientProviderTest {
 		private int count = 0;
 
 		@Override
-		public String get(final Request req) {
-			final var uri = URI.create(req.uri());
+		public String get(final String uri) {
 			if (uri.toString().contains("bearer")) {
 				return BEARER;
 			} else if (uri.toString().contains("basic")) {
@@ -311,12 +310,37 @@ class JdkClientProviderTest {
 
 		clientProvider.get().apply(request);
 
+		Assertions.assertEquals(1, reqRef.get().headers().allValues("authorization").size());
+
 		Assertions.assertEquals("1", reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get());
 
 		clientProvider.get().apply(request);
 
 		Assertions.assertEquals("2", reqRef.get().headers().firstValue(HttpUtils.AUTHORIZATION).get(),
 				"should be dynamic on invocations");
+	}
+
+	@Test
+	void auth_header_001() {
+		ContextHeader.add("authorization", UUID.randomUUID().toString());
+
+		final var request = new MockReq() {
+			@Override
+			public Map<String, List<String>> headers() {
+				return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+			}
+
+			@Override
+			public Supplier<String> authSupplier() {
+				return () -> null;
+			}
+
+		};
+
+		clientProvider.get().apply(request);
+
+		Assertions.assertEquals(0, reqRef.get().headers().allValues("authorization").size(),
+				"Request has Authorization explicitly off");
 	}
 
 	@Test

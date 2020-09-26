@@ -95,15 +95,13 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 			@Override
 			public HttpResponse<?> apply(final Request req) {
-				final var uri = URI.create(req.uri());
-
 				final var authHeader = Optional
 						.ofNullable(Optional.ofNullable(req.authSupplier())
-								.orElse(() -> authProvider.map(provider -> provider.get(req)).orElse(null)).get())
+								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
 				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
-						.uri(uri);
+						.uri(URI.create(req.uri()));
 
 				// Timeout
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
@@ -181,16 +179,16 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		final var builder = reqBuilderSupplier.get();
 
 		// Provider headers. At the least priority.
-		final var headers = new HashMap<String, List<String>>(
+		final var appheaders = new HashMap<String, List<String>>(
 				headerProvider.map(provider -> provider.get(req)).orElse(new HashMap<>()));
 
 		// Context headers next.
-		headers.putAll(ContextHeader.copy());
+		appheaders.putAll(ContextHeader.copy());
 
 		// Request headers overwrite all above.
-		Optional.ofNullable(req.headers()).ifPresent(reqHeaders -> headers.putAll(reqHeaders));
+		Optional.ofNullable(req.headers()).ifPresent(reqHeaders -> appheaders.putAll(reqHeaders));
 
-		fillHeaders(builder, headers);
+		fillAppHeaders(builder, appheaders);
 
 		// Content-Type
 		builder.setHeader(HttpUtils.CONTENT_TYPE,
@@ -202,10 +200,20 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		return builder;
 	}
 
-	private static void fillHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
+	/**
+	 * Fill application-provided headers with reserved names filtering.
+	 *
+	 * @param builder
+	 * @param headers
+	 */
+	private static void fillAppHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
 		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
 			final var key = entry.getKey();
 			final var values = entry.getValue();
+			if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase())) {
+				LOGGER.atWarn().log("Ignoring header {}: {}", key, values);
+				return;
+			}
 			if (values == null || values.isEmpty()) {
 				return;
 			}

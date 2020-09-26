@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.integration.postman;
 
-import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,10 +26,9 @@ class PostmanApp {
 	@Bean
 	public AuthorizationProvider authProvider() {
 		final var countRef = new AtomicReference<Integer>(0);
-		return req -> {
-			final var uri = URI.create(req.uri());
+		return uri -> {
 			// Only allow one call.
-			if (uri.getPath().contains("basic-auth") && countRef.get() == 0) {
+			if (uri.contains("basic-auth") && countRef.get() == 0) {
 				countRef.getAndUpdate(i -> i + 1);
 				return HttpUtils.basicAuth("postman", "password");
 			}

@@ -8,9 +8,8 @@ package me.ehp246.aufrest.api.rest;
  * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Type DEFAULT}.
  *
  * <p>
- * The framework calls the bean passing in the {@link Request Request} to
- * retrieve the value of Authorization header for all out-going requests of
- * these interfaces.
+ * The framework calls the bean passing in resolved target URL to retrieve the
+ * value of Authorization header for all out-going requests of these interfaces.
  *
  * <p>
  * The authorization provider should return the value for HTTP Authorization
@@ -26,9 +25,9 @@ package me.ehp246.aufrest.api.rest;
 public interface AuthorizationProvider {
 	/**
 	 *
-	 * @param request the out-going request
+	 * @param uri the target resolved URL of the out-going request
 	 * @return the header value. Null, blank, or empty value indicates the header
 	 *         should not be set.
 	 */
-	String get(Request request);
+	String get(String uri);
 }
