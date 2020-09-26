@@ -30,7 +30,7 @@ class ContextHeaderTest {
 
 		@Override
 		public Map<String, List<String>> call() {
-			var headers = ContextHeader.copy();
+			var headers = ContextHeader.copyAsMap();
 
 			Assertions.assertEquals(1, headers.size());
 			Assertions.assertEquals("main", headers.get("x-trace-id").get(0));
@@ -42,7 +42,7 @@ class ContextHeaderTest {
 
 			sleep();
 
-			headers = ContextHeader.copy();
+			headers = ContextHeader.copyAsMap();
 
 			ContextHeader.remove("x-id");
 
@@ -66,7 +66,7 @@ class ContextHeaderTest {
 
 	@Test
 	void thread_001() throws InterruptedException, ExecutionException {
-		Assertions.assertEquals(0, ContextHeader.copy().size());
+		Assertions.assertEquals(0, ContextHeader.copyAsMap().size());
 
 		// Should propagate to child threads
 		ContextHeader.add("x-trace-id", "main");
@@ -89,27 +89,18 @@ class ContextHeaderTest {
 			Assertions.assertEquals(i + "", headers.get(i).get("x-id").get(0));
 		});
 
-		Assertions.assertEquals(1, ContextHeader.copy().size());
-		Assertions.assertEquals(1, ContextHeader.copy().get("x-trace-id").size());
+		Assertions.assertEquals(1, ContextHeader.copyAsMap().size());
+		Assertions.assertEquals(1, ContextHeader.copyAsMap().get("x-trace-id").size());
 	}
 
 	@Test
 	void copy_001() {
-		final var headers1 = ContextHeader.copy();
+		ContextHeader.add("trace-id", "1");
 
-		Assertions.assertThrows(Exception.class, headers1::clear, "should not be able to modify map");
+		ContextHeader.copyAsMap().clear();
 
-		ContextHeader.add("x-trace-id", "1");
-
-		final var headers2 = ContextHeader.copy();
-
-		final var list = headers2.get("x-trace-id");
-
-		Assertions.assertEquals("1", list.get(0));
-
-		Assertions.assertThrows(Exception.class, () -> list.add(""), "should not be able to modify value list");
-
-		Assertions.assertEquals(0, headers1.size(), "should be separate snapshots without new updates");
+		Assertions.assertEquals(1, ContextHeader.get("trace-id").size(),
+				"should be separate snapshots without new updates");
 	}
 
 	@Test
@@ -145,6 +136,22 @@ class ContextHeaderTest {
 
 		ContextHeader.removeAll();
 
-		Assertions.assertEquals(0, ContextHeader.copy().size());
+		Assertions.assertEquals(0, ContextHeader.copyAsMap().size());
+	}
+
+	@Test
+	void casing_001() {
+		ContextHeader.add("x-trace-id", "1");
+		ContextHeader.add("x-trace-Id", "2");
+
+		Assertions.assertEquals(2, ContextHeader.copyAsMap().get("x-trace-iD".toLowerCase()).size());
+
+		ContextHeader.set("x-Trace-Id", "1");
+
+		Assertions.assertEquals(1, ContextHeader.copyAsMap().get("x-trace-iD".toLowerCase()).size());
+
+		ContextHeader.remove("X-Trace-Id");
+
+		Assertions.assertEquals(null, ContextHeader.copyAsMap().get("x-trace-iD".toLowerCase()));
 	}
 }

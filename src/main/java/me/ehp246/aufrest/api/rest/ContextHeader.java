@@ -1,10 +1,11 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Lei Yang
@@ -36,27 +37,27 @@ public class ContextHeader {
 	}
 
 	/**
-	 * Makes an un-modifiable copy of all header names and values.
+	 * Makes a copy of all header names and values.
+	 * <p>
+	 * Header names are all in lower-case.
+	 * <p>
+	 * Modification on the returned has no effect on the original.
 	 *
 	 * @return never <code>null</code>
 	 */
-	public static Map<String, List<String>> copy() {
-		final var map = CONTEXT.headers.get();
-		final var mapCopy = new HashMap<String, List<String>>();
-
-		map.entrySet().stream().forEach(entry -> mapCopy.put(entry.getKey(), List.copyOf(entry.getValue())));
-
-		return Collections.unmodifiableMap(mapCopy);
+	public static Map<String, List<String>> copyAsMap() {
+		return CONTEXT.headers.get().entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
 	}
 
 	/**
-	 * Returns the value list of the name. It can be modified.
+	 * Returns the value list of the name. It can be modified with live effect.
 	 *
 	 * @param name
 	 * @return
 	 */
 	public static List<String> get(final String name) {
-		return CONTEXT.headers.get().computeIfAbsent(name, key -> new ArrayList<>());
+		return CONTEXT.headers.get().computeIfAbsent(name.toLowerCase(Locale.US), key -> new ArrayList<>());
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class ContextHeader {
 	 * @return
 	 */
 	public static void add(final String name, final String value) {
-		CONTEXT.headers.get().computeIfAbsent(name, key -> new ArrayList<String>()).add(value);
+		get(name).add(value);
 	}
 
 	/**
@@ -85,7 +86,7 @@ public class ContextHeader {
 	}
 
 	public static void remove(final String name) {
-		CONTEXT.headers.get().remove(name);
+		CONTEXT.headers.get().remove(name.toLowerCase(Locale.US));
 	}
 
 	public static void removeAll() {

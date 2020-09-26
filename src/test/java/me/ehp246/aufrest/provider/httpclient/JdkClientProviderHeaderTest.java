@@ -24,7 +24,7 @@ import me.ehp246.aufrest.mock.MockResponse;
  * @author Lei Yang
  *
  */
-class HeaderTest {
+class JdkClientProviderHeaderTest {
 	private final AtomicReference<HttpRequest> reqRef = new AtomicReference<>();
 
 	private final HttpClient client = Mockito.mock(HttpClient.class);
@@ -170,5 +170,49 @@ class HeaderTest {
 		}).get().apply(mockReq);
 
 		Assertions.assertEquals(true, reqRef.get() == mockReq, "Should be passed to the header provider");
+	}
+
+	@Test
+	void header_priority_001() {
+		final var name = "Filter-Them";
+
+		ContextHeader.add(name.toLowerCase(), "2");
+
+		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				req -> Map.of(name.toLowerCase(), List.of("3"))).get().apply(new MockReq() {
+
+					@Override
+					public Map<String, List<String>> headers() {
+						return Map.of("filter-Them", List.of("1"));
+					}
+
+				});
+
+		Assertions.assertEquals("1", reqRef.get().headers().allValues(name).get(0));
+	}
+
+	@Test
+	void header_priority_002() {
+		final var name = "Filter-Them";
+
+		ContextHeader.add(name, "2");
+
+		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				req -> Map.of(name.toLowerCase(), List.of("3"))).get().apply(new MockReq());
+
+		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
+	}
+
+	@Test
+	void header_priority_003() {
+		final var name = "Filter-These";
+
+		ContextHeader.add(name, "2");
+
+		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
+				req -> Map.of("merge-these", List.of("1", "2"))).get().apply(new MockReq());
+
+		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
+		Assertions.assertEquals(2, reqRef.get().headers().allValues("merge-these").size());
 	}
 }

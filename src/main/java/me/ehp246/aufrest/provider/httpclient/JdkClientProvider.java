@@ -15,10 +15,13 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -178,17 +181,13 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private HttpRequest.Builder newRequestBuilder(final Request req) {
 		final var builder = reqBuilderSupplier.get();
 
-		// Provider headers. At the least priority.
-		final var appheaders = new HashMap<String, List<String>>(
-				headerProvider.map(provider -> provider.get(req)).orElse(new HashMap<>()));
-
-		// Context headers next.
-		appheaders.putAll(ContextHeader.copy());
-
-		// Request headers overwrite all above.
-		Optional.ofNullable(req.headers()).ifPresent(reqHeaders -> appheaders.putAll(reqHeaders));
-
-		fillAppHeaders(builder, appheaders);
+		// Provider headers, Context headers, request headers
+		fillAppHeaders(builder, Stream
+				.of(new HashMap<String, List<String>>(
+						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)),
+						ContextHeader.copyAsMap(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
+				.map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
+						Map.Entry::getValue, (left, right) -> right)));
 
 		// Content-Type
 		builder.setHeader(HttpUtils.CONTENT_TYPE,
@@ -208,9 +207,9 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	 */
 	private static void fillAppHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
 		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
-			final var key = entry.getKey();
+			final var key = entry.getKey().toLowerCase(Locale.US);
 			final var values = entry.getValue();
-			if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase())) {
+			if (HttpUtils.RESERVED_HEADERS.contains(key)) {
 				LOGGER.atWarn().log("Ignoring header {}: {}", key, values);
 				return;
 			}
