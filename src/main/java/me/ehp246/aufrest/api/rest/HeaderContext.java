@@ -17,6 +17,7 @@ import me.ehp246.aufrest.core.util.FunctionUtils;
  * out and dropped.
  *
  * @author Lei Yang
+ * @since 1.1.0
  *
  */
 public class HeaderContext {
