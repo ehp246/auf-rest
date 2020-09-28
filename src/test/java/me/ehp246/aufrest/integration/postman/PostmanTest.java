@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,14 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
  */
 @SpringBootTest(classes = { PostmanApp.class }, properties = { "echo.base = https://postman-echo.com",
 		"me.ehp246.aufrest.connectTimeout=50000", "me.ehp246.aufrest.responseTimeout=50000" })
-class EnableByRestPostmanTest {
+class PostmanTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;
+
+	@BeforeEach
+	void clear() {
+		HeaderContext.clear();
+	}
 
 	@Test
 	void clientConfig_001() {
@@ -229,15 +235,13 @@ class EnableByRestPostmanTest {
 
 	@Test
 	void header_context_002() {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
 		final var name = "x-auf-rest-id";
 		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
 		HeaderContext.add(name, values.get(0));
 
-		final var response = newInstance.getAsEchoBody(values.get(1));
+		final var response = factory.getBean(EchoGetTestCase001.class).getAsEchoBody(values.get(1));
 
-		Assertions.assertEquals(values.get(1), response.getHeaders().get(name), "should overwrite");
+		Assertions.assertEquals(values.get(1), response.getHeaders().get(name), "should be overwritten by request");
 	}
 }

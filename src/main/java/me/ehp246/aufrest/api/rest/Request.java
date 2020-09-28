@@ -11,7 +11,7 @@ import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
  * @author Lei Yang
  * @since 1.0
  */
-public interface Request extends Messsage {
+public interface Request extends Message {
 	String uri();
 
 	default String method() {

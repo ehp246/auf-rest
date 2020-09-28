@@ -1,9 +1,13 @@
 package me.ehp246.aufrest.integration.postman;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -14,6 +18,7 @@ import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
@@ -23,6 +28,8 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 @SpringBootApplication
 @EnableByRest
 class PostmanApp {
+	public static final List<String> HEADERS = List.of("x-aufrest-trace-id", UUID.randomUUID().toString());
+
 	@Bean
 	public AuthorizationProvider authProvider() {
 		final var countRef = new AtomicReference<Integer>(0);
@@ -42,5 +49,11 @@ class PostmanApp {
 				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 				.registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 				.registerModule(new MrBeanModule());
+	}
+
+	@Bean
+	@Profile("headerProvider")
+	public HeaderProvider headerProvider() {
+		return req -> Map.of(HEADERS.get(0), List.of("1", "2"), HEADERS.get(1), List.of("3"));
 	}
 }

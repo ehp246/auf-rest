@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.TextContentConsumer;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
@@ -35,8 +36,9 @@ public class ByRestConfiguration {
 
 	@Bean
 	public JdkClientProvider jdkClientProvider(final ClientConfig clientConfig,
-			@Autowired(required = false) final AuthorizationProvider authProvider) {
-		return new JdkClientProvider(clientConfig, authProvider);
+			@Autowired(required = false) final AuthorizationProvider authProvider,
+			@Autowired(required = false) final HeaderProvider headerProvider) {
+		return new JdkClientProvider(clientConfig, authProvider, headerProvider);
 	}
 
 	@Bean
