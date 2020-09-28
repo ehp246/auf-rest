@@ -82,7 +82,8 @@ class HeaderContextTest {
 
 	@Test
 	void add_003() {
-		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.merge((Map<String, List<String>>) null));
+		Assertions.assertThrows(NullPointerException.class,
+				() -> HeaderContext.merge((Map<String, List<String>>) null));
 
 		final var list = new ArrayList<String>();
 		list.add("123");
@@ -123,6 +124,17 @@ class HeaderContextTest {
 		HeaderContext.add("x-Trace-id", List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
 
 		Assertions.assertEquals(4, HeaderContext.values("X-trace-ID").size());
+	}
+
+	@Test
+	void set_003() {
+		HeaderContext.add("x-request-id", List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+		HeaderContext.add("x-Trace-id", List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+
+		HeaderContext.set(Map.of("X-trace-id", List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString())));
+
+		Assertions.assertEquals(1, HeaderContext.map().size());
+		Assertions.assertEquals(2, HeaderContext.values("X-trace-ID").size());
 	}
 
 	@Test

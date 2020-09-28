@@ -116,6 +116,16 @@ public class HeaderContext {
 	}
 
 	/**
+	 * Clear all existing names and values, then set to the given map.
+	 *
+	 * @param headers
+	 */
+	public static void set(final Map<String, List<String>> headers) {
+		clear();
+		merge(headers);
+	}
+
+	/**
 	 * Remove all values of the name.
 	 *
 	 * @param name Required non-<code>null</code>
