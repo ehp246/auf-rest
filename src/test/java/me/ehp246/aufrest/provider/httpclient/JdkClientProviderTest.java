@@ -20,7 +20,7 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ContextHeader;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.mock.MockReq;
@@ -322,7 +322,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_header_001() {
-		ContextHeader.add("authorization", UUID.randomUUID().toString());
+		HeaderContext.add("authorization", UUID.randomUUID().toString());
 
 		final var request = new MockReq() {
 			@Override
@@ -452,7 +452,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void header_context_001() {
-		ContextHeader.set("accept-language", "DE");
+		HeaderContext.set("accept-language", "DE");
 
 		clientProvider.get().apply(new Request() {
 
@@ -478,7 +478,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void header_context_002() {
-		ContextHeader.set("accept-language", "DE");
+		HeaderContext.set("accept-language", "DE");
 
 		clientProvider.get().apply(new Request() {
 
@@ -505,7 +505,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void header_context_003() {
-		ContextHeader.set("accept-language", "DE");
+		HeaderContext.set("accept-language", "DE");
 
 		clientProvider.get().apply(new Request() {
 

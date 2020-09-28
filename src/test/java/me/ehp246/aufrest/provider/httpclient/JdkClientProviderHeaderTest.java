@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ContextHeader;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -50,14 +50,14 @@ class JdkClientProviderHeaderTest {
 	@BeforeEach
 	void beforeEach() {
 		reqRef.set(null);
-		ContextHeader.removeAll();
+		HeaderContext.clear();
 	}
 
 	@Test
 	void headers_001() {
 		final var name = UUID.randomUUID().toString();
 
-		ContextHeader.set(name, UUID.randomUUID().toString());
+		HeaderContext.set(name, UUID.randomUUID().toString());
 
 		final var req = new MockReq() {
 
@@ -81,7 +81,7 @@ class JdkClientProviderHeaderTest {
 	void headers_002() {
 		final var name = UUID.randomUUID().toString();
 
-		ContextHeader.set(name, UUID.randomUUID().toString());
+		HeaderContext.set(name, UUID.randomUUID().toString());
 
 		final var req = new MockReq() {
 
@@ -99,7 +99,7 @@ class JdkClientProviderHeaderTest {
 
 		Assertions.assertEquals(req.reqId, headers.get(req.reqId).get(0), "Request should be merged");
 		Assertions.assertEquals(1, headers.get(name).size(), "Provider should overwrite Context");
-		Assertions.assertEquals(ContextHeader.get(name).get(0), headers.get(name).get(0),
+		Assertions.assertEquals(HeaderContext.values(name).get(0), headers.get(name).get(0),
 				"Provider should overwrite Context");
 	}
 
@@ -149,7 +149,7 @@ class JdkClientProviderHeaderTest {
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
 				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
 
-		ContextHeader.set(name, value);
+		HeaderContext.set(name, value);
 
 		clientFn.apply(new MockReq());
 
@@ -176,7 +176,7 @@ class JdkClientProviderHeaderTest {
 	void header_priority_001() {
 		final var name = "Filter-Them";
 
-		ContextHeader.add(name.toLowerCase(), "2");
+		HeaderContext.add(name.toLowerCase(), "2");
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
 				req -> Map.of(name.toLowerCase(), List.of("3"))).get().apply(new MockReq() {
@@ -195,7 +195,7 @@ class JdkClientProviderHeaderTest {
 	void header_priority_002() {
 		final var name = "Filter-Them";
 
-		ContextHeader.add(name, "2");
+		HeaderContext.add(name, "2");
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
 				req -> Map.of(name.toLowerCase(), List.of("3"))).get().apply(new MockReq());
@@ -207,7 +207,7 @@ class JdkClientProviderHeaderTest {
 	void header_priority_003() {
 		final var name = "Filter-These";
 
-		ContextHeader.add(name, "2");
+		HeaderContext.add(name, "2");
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
 				req -> Map.of("merge-these", List.of("1", "2"))).get().apply(new MockReq());

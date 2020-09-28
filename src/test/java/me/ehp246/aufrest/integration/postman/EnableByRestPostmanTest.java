@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ContextHeader;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 
 /**
  * @author Lei Yang
@@ -207,20 +207,20 @@ class EnableByRestPostmanTest {
 		final var name = UUID.randomUUID().toString();
 		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-		ContextHeader.add(name, values.get(0));
+		HeaderContext.add(name, values.get(0));
 
 		var response = newInstance.getAsEchoBody();
 
 		Assertions.assertEquals(values.get(0), response.getHeaders().get(name), "should have the single value");
 
-		ContextHeader.add(name, values.get(1));
+		HeaderContext.add(name, values.get(1));
 
 		response = newInstance.getAsEchoBody();
 
 		Assertions.assertEquals(values.get(0) + ", " + values.get(1), response.getHeaders().get(name),
 				"should have both values");
 
-		ContextHeader.removeAll();
+		HeaderContext.clear();
 
 		response = newInstance.getAsEchoBody();
 
@@ -234,7 +234,7 @@ class EnableByRestPostmanTest {
 		final var name = "x-auf-rest-id";
 		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-		ContextHeader.add(name, values.get(0));
+		HeaderContext.add(name, values.get(0));
 
 		final var response = newInstance.getAsEchoBody(values.get(1));
 

@@ -29,7 +29,7 @@ import org.apache.logging.log4j.Logger;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
-import me.ehp246.aufrest.api.rest.ContextHeader;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
@@ -184,8 +184,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		// Provider headers, Context headers, request headers
 		fillAppHeaders(builder, Stream
 				.of(new HashMap<String, List<String>>(
-						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)),
-						ContextHeader.copyAsMap(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
+						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),
+						Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
 				.map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
 						Map.Entry::getValue, (left, right) -> right)));
 
