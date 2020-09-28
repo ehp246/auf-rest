@@ -82,13 +82,17 @@ public class HeaderContext {
 	}
 
 	/**
-	 * Add all names and values.
+	 * Merge all names and values.
 	 * <p>
 	 * All null, empty, and blank names and values are filtered and dropped.
+	 * <p>
+	 * Non-existing names will be added.
+	 * <p>
+	 * If the name exists, the values are added.
 	 *
 	 * @param headers Can not be <code>null</code>.
 	 */
-	public static void add(final Map<String, List<String>> headers) {
+	public static void merge(final Map<String, List<String>> headers) {
 		headers.entrySet().stream().filter(entry -> FunctionUtils.hasValue(entry.getKey()))
 				.forEach(entry -> listOf(entry.getKey()).addAll(FunctionUtils.listValues(entry.getValue())));
 	}

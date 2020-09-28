@@ -82,7 +82,7 @@ class HeaderContextTest {
 
 	@Test
 	void add_003() {
-		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.add((Map<String, List<String>>) null));
+		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.merge((Map<String, List<String>>) null));
 
 		final var list = new ArrayList<String>();
 		list.add("123");
@@ -91,11 +91,11 @@ class HeaderContextTest {
 		list.add("   ");
 		list.add("123");
 
-		HeaderContext.add(Map.of("", Collections.unmodifiableList(list)));
+		HeaderContext.merge(Map.of("", Collections.unmodifiableList(list)));
 
 		Assertions.assertEquals(0, HeaderContext.map().size());
 
-		HeaderContext.add(Map.of("x-trace-id", Collections.unmodifiableList(list)));
+		HeaderContext.merge(Map.of("x-trace-id", Collections.unmodifiableList(list)));
 
 		Assertions.assertEquals(1, HeaderContext.map().size());
 
