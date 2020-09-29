@@ -38,7 +38,7 @@ import me.ehp246.aufrest.core.util.InvocationUtil;
  */
 class ByRestInvocation implements Request {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
-			RequestParam.class);
+			RequestParam.class, RequestHeader.class);
 
 	private final ProxyInvoked<Object> invoked;
 	private final Environment env;

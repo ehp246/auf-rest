@@ -1,6 +1,8 @@
 package me.ehp246.aufrest.integration.postman;
 
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -18,4 +20,6 @@ public interface HeaderTestCase001 {
 	CompletableFuture<HttpResponse<String>> getAsFuture();
 
 	EchoResponseBody get(@RequestHeader("X-aufrest-Trace-Id") String value);
+
+	EchoResponseBody get(@RequestHeader Map<String, List<String>> headers);
 }

@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.integration.postman;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -111,5 +113,14 @@ class PostmanHeaderProviderTest {
 		Assertions.assertEquals(null, objectMapper.readValue(bean.getAsFuture().get().body(), EchoResponseBody.class)
 				.getHeaders().get("x-aufrest-context-id"), "should be gone");
 	}
-	// TODO: RequestHeader on map.
+
+	@Test
+	void header_map_004() {
+		final var bean = factory.getBean(HeaderTestCase001.class);
+
+		final var body = bean.get(Map.of("h1", List.of("1", "2", "3"), "h2", List.of("4")));
+
+		Assertions.assertEquals("1, 2, 3", body.getHeaders().get("h1"));
+		Assertions.assertEquals("4", body.getHeaders().get("h2"));
+	}
 }
