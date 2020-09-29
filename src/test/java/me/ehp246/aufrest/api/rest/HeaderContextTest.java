@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class HeaderContextTest {
 	@BeforeEach
 	void clear() {
-		HeaderContext.clear();
+		HeaderContext.remove();
 	}
 
 	@Test
@@ -150,7 +150,7 @@ class HeaderContextTest {
 		HeaderContext.add("x-trace-id", "1");
 		HeaderContext.add("x-trace-id-1", "1");
 
-		HeaderContext.clear();
+		HeaderContext.remove();
 
 		Assertions.assertEquals(0, HeaderContext.map().size());
 	}

@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -131,6 +132,10 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				final var receiver = req.receiver();
 				final var type = receiver.type();
 
+				if (type.isAssignableFrom(CompletableFuture.class) || type.isAssignableFrom(HttpResponse.class)) {
+					return BodyHandlers.ofString();
+				}
+
 				if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
 					return BodyHandlers.discarding();
 				}
@@ -139,6 +144,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodyHandlers.ofInputStream();
 				}
 
+				// Default content consumer.
 				return responseInfo -> {
 					LOGGER.debug("{}", responseInfo.statusCode());
 					LOGGER.trace("{}", responseInfo.headers().map());

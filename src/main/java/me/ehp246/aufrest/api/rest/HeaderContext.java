@@ -40,7 +40,7 @@ public class HeaderContext {
 	}
 
 	/**
-	 * Makes an un-modifiable copy of all header names and values.
+	 * Makes an un-modifiable deep copy of all header names and values.
 	 * <p>
 	 * Keys of returned map is case-insensitive.
 	 *
@@ -122,7 +122,7 @@ public class HeaderContext {
 	 * @param headers
 	 */
 	public static void set(final Map<String, List<String>> headers) {
-		clear();
+		remove();
 		merge(headers);
 	}
 
@@ -136,9 +136,9 @@ public class HeaderContext {
 	}
 
 	/**
-	 * Clear all names and values.
+	 * Remove all names and values from the thread context.
 	 */
-	public static void clear() {
-		CONTEXT.threadHeaders.get().clear();
+	public static void remove() {
+		CONTEXT.threadHeaders.remove();
 	}
 }

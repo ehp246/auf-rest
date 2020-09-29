@@ -24,6 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
@@ -170,7 +171,15 @@ class ByRestInvocation implements Request {
 
 	public Object returnInvocation() throws Throwable {
 		if (invoked.getReturnType().isAssignableFrom(CompletableFuture.class)) {
-			return CompletableFuture.supplyAsync(() -> onResponse(responseSupplier.get()));
+			final var context = HeaderContext.map();
+			return CompletableFuture.supplyAsync(() -> {
+				HeaderContext.set(context);
+				try {
+					return onResponse(responseSupplier.get());
+				} finally {
+					HeaderContext.remove();
+				}
+			});
 		}
 		return onResponse(responseSupplier.get());
 	}
@@ -184,6 +193,11 @@ class ByRestInvocation implements Request {
 			return httpResponse;
 		}
 
+		// Defaults to CompletableFuture<HttpResponse<String>> for now.
+		if (returnType.isAssignableFrom(CompletableFuture.class)) {
+			return httpResponse;
+		}
+
 		if (httpResponse.statusCode() >= 300) {
 			throw new UnhandledResponseException(this, httpResponse);
 		}
@@ -191,11 +205,6 @@ class ByRestInvocation implements Request {
 		// Request still should go out but discarding the response.
 		if (returnType == Void.class || returnType == void.class) {
 			return null;
-		}
-
-		// Defaults to CompletableFuture of HttpResponse for now.
-		if (returnType == CompletableFuture.class) {
-			return httpResponse;
 		}
 
 		return httpResponse.body();

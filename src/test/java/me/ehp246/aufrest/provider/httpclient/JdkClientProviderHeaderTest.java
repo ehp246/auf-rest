@@ -50,7 +50,7 @@ class JdkClientProviderHeaderTest {
 	@BeforeEach
 	void beforeEach() {
 		reqRef.set(null);
-		HeaderContext.clear();
+		HeaderContext.remove();
 	}
 
 	@Test

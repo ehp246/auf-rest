@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.postman;
 
 import java.io.InputStream;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -9,11 +10,15 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -31,7 +36,7 @@ class PostmanTest {
 
 	@BeforeEach
 	void clear() {
-		HeaderContext.clear();
+		HeaderContext.remove();
 	}
 
 	@Test
@@ -43,14 +48,31 @@ class PostmanTest {
 	}
 
 	@Test
-	@Disabled
-	void get_001() {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
+	void future_001() throws InterruptedException, ExecutionException, JsonMappingException, BeansException,
+			JsonProcessingException {
+		final var responseFuture = factory.getBean(EchoGetTestCase001.class).getAsResponseFuture();
 
-		final var response = newInstance.getAsHttpResponse();
+		Assertions.assertEquals(true, responseFuture instanceof CompletableFuture);
 
-		Assertions.assertEquals(true, response.body() instanceof String);
-		Assertions.assertEquals(true, response.body().toString().length() > 10);
+		final var httpResponse = responseFuture.get();
+
+		Assertions.assertEquals(true, httpResponse instanceof HttpResponse);
+
+		final var body = httpResponse.body();
+
+		Assertions.assertEquals(true, body instanceof String, "Should default to String body");
+
+		Assertions
+				.assertDoesNotThrow(() -> factory.getBean(ObjectMapper.class).readValue(body, EchoResponseBody.class));
+	}
+
+	@Test
+	void httpresponse_001() {
+		final var body = factory.getBean(EchoGetTestCase001.class).getAsHttpResponse().body();
+
+		Assertions.assertEquals(true, body instanceof String);
+		Assertions
+				.assertDoesNotThrow(() -> factory.getBean(ObjectMapper.class).readValue(body, EchoResponseBody.class));
 	}
 
 	@Test
@@ -71,18 +93,6 @@ class PostmanTest {
 		final var response = newInstance.getVoid2();
 
 		Assertions.assertEquals(true, response == null);
-	}
-
-	@Test
-	@Disabled
-	void get_004() throws InterruptedException, ExecutionException {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
-		final var responseFuture = newInstance.getAsResponseFuture();
-
-		Assertions.assertEquals(true, responseFuture instanceof CompletableFuture);
-		Assertions.assertEquals(true, responseFuture.get().body() instanceof String,
-				"Should default to ResponseSupplier with String body");
 	}
 
 	@Test
@@ -226,7 +236,7 @@ class PostmanTest {
 		Assertions.assertEquals(values.get(0) + ", " + values.get(1), response.getHeaders().get(name),
 				"should have both values");
 
-		HeaderContext.clear();
+		HeaderContext.remove();
 
 		response = newInstance.getAsEchoBody();
 

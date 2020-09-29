@@ -16,9 +16,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 interface EchoGetTestCase001 {
 
 	/**
-	 * Body defaults to String.
-	 *
-	 * @return
+	 * Body defaults to String for now.
 	 */
 	HttpResponse<String> getAsHttpResponse();
 
@@ -37,9 +35,6 @@ interface EchoGetTestCase001 {
 
 	/**
 	 * Defaults to ResponseSupplier with String body.
-	 *
-	 * @return
 	 */
-	CompletableFuture<HttpResponse<?>> getAsResponseFuture();
-
+	CompletableFuture<HttpResponse<String>> getAsResponseFuture();
 }
