@@ -12,8 +12,9 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.rest.BasicAuth;
+import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientFn;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 
 /**
@@ -43,19 +44,28 @@ public class ByRestFactory {
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
 		final var timeout = byRest.map(ByRest::timeout).filter(millis -> millis > 0).map(Duration::ofMillis)
 				.orElse(null);
-		final var localAuth = byRest.map(ByRest::auth).map(auth -> {
+		final Optional<Supplier<String>> localAuthSupplier = byRest.map(ByRest::auth).map(auth -> {
 			switch (auth.type()) {
-			case BEARER:
-				return (Supplier<String>) () -> HttpUtils.bearerToken(env.resolveRequiredPlaceholders(auth.value()));
 			case ASIS:
-				return (Supplier<String>) () -> env.resolveRequiredPlaceholders(auth.value());
+				return env.resolveRequiredPlaceholders(auth.value())::toString;
 			case BASIC:
-				return (Supplier<String>) () -> HttpUtils.basicAuth(env.resolveRequiredPlaceholders(auth.value()));
+				return new BasicAuth(env.resolveRequiredPlaceholders(auth.value()))::value;
 			case BEAN:
-				return (Supplier<String>) () -> beanFactory.getBean(auth.value(), Supplier.class).get().toString();
+				return new Supplier<String>() {
+					// Look up bean once.
+					private final Supplier<?> bean = beanFactory.getBean(auth.value(), Supplier.class);
+
+					@Override
+					public String get() {
+						// Get should be called once for each invocation.
+						return bean.get().toString();
+					}
+				};
+			case BEARER:
+				return new BearerToken(env.resolveRequiredPlaceholders(auth.value()))::value;
 			default:
+				return null;
 			}
-			return null;
 		});
 
 		final var client = clientProvider.get();
@@ -71,7 +81,7 @@ public class ByRestFactory {
 
 						@Override
 						public Supplier<String> authSupplier() {
-							return localAuth.orElse(null);
+							return localAuthSupplier.orElse(null);
 						}
 
 					};

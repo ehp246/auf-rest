@@ -11,10 +11,10 @@ import java.util.List;
  * @since 1.0
  */
 public interface TextContentConsumer {
-	Object consume(String text, Receiver receiver);
+	Object consume(String text, Receiver<?> receiver);
 
-	interface Receiver {
-		Class<?> type();
+	interface Receiver<T> {
+		Class<T> type();
 
 		default List<? extends Annotation> annotations() {
 			return List.of();

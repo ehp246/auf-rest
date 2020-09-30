@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import me.ehp246.aufrest.api.annotation.Parameterized;
 import me.ehp246.aufrest.api.rest.TextContentConsumer;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
 import me.ehp246.aufrest.core.util.InvocationUtil;
@@ -41,7 +42,7 @@ public class JsonByJackson {
 		return InvocationUtil.invoke(() -> this.objectMapper.writeValueAsString(value));
 	}
 
-	public Object fromText(final String json, final TextContentConsumer.Receiver receiver) {
+	public <T> T fromText(final String json, final TextContentConsumer.Receiver<T> receiver) {
 		if (receiver == null || json == null || json.isBlank()) {
 			return null;
 		}
@@ -53,8 +54,8 @@ public class JsonByJackson {
 
 		try {
 			final var collectionOf = receiver.annotations() == null ? null
-					: receiver.annotations().stream().filter(ann -> ann instanceof CollectionOf).findAny()
-							.map(ann -> ((CollectionOf) ann).value()).orElse(null);
+					: receiver.annotations().stream().filter(ann -> ann instanceof Parameterized).findAny()
+							.map(ann -> ((Parameterized) ann).value()).orElse(null);
 
 			if (collectionOf == null) {
 				return objectMapper.readValue(json, receiver.type());

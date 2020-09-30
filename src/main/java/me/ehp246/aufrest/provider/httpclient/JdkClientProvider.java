@@ -130,7 +130,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 			private BodyHandler<?> bodyHandler(final Request req) {
 				final var receiver = req.receiver();
-				final var type = receiver.type();
+				final Class<?> type = receiver.type();
 
 				if (type.isAssignableFrom(CompletableFuture.class) || type.isAssignableFrom(HttpResponse.class)) {
 					return BodyHandlers.ofString();
