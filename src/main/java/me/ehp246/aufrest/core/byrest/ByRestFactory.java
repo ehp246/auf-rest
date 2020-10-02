@@ -5,11 +5,14 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,25 +83,22 @@ public class ByRestFactory {
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
 				(InvocationHandler) (proxy, method, args) -> {
 					final var proxyInvoked = new ProxyInvoked<>(proxy, method, args);
-					final var reifying = proxyInvoked.getMethodValueOf(Reifying.class, Reifying::value,
-							() -> new Class<?>[] {});
-					final var returnType = validateReturnType(proxyInvoked.getReturnType(), reifying);
+					final var returnTypes = bodyType(
+							Stream.concat(Arrays.stream(new Class<?>[] { proxyInvoked.getReturnType() }),
+									Arrays.stream(proxyInvoked.getMethodValueOf(Reifying.class, Reifying::value,
+											() -> new Class<?>[] {})))
+									.collect(Collectors.toList()));
 
 					final var bodyReceiver = new Receiver() {
 
 						@Override
 						public Class<?> type() {
-							return returnType.isAssignableFrom(HttpResponse.class) ? reifying[0] : returnType;
+							return returnTypes.get(0);
 						}
 
 						@Override
 						public List<Class<?>> reifying() {
-							if (returnType.isAssignableFrom(HttpResponse.class)) {
-								return reifying.length == 1 ? List.of()
-										: List.of(Arrays.copyOfRange(reifying, 1, reifying.length));
-							}
-
-							return List.of(reifying);
+							return returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size());
 						}
 
 						@Override
@@ -130,24 +130,15 @@ public class ByRestFactory {
 
 	}
 
-	private static Class<?> validateReturnType(final Class<?> type, final Class<?>[] reifying) {
-		final var e = new IllegalArgumentException(
-				Reifying.class.getName() + " is required for return type " + type.getName());
-
-		if (HttpResponse.class.isAssignableFrom(type)) {
-			if (reifying.length == 0) {
-				throw e;
-			}
-		} else if (CompletableFuture.class.isAssignableFrom(type)) {
-			if (reifying.length == 0) {
-				throw e;
-			}
-			if (reifying[0].isAssignableFrom(HttpResponse.class)) {
-				if (reifying.length < 2) {
-					throw e;
-				}
-			}
+	private static List<Class<?>> bodyType(final List<Class<?>> types) {
+		if (types.size() == 0) {
+			throw new IllegalArgumentException();
 		}
-		return type;
+
+		final var head = types.get(0);
+		if (head.isAssignableFrom(HttpResponse.class) || head.isAssignableFrom(CompletableFuture.class)) {
+			return bodyType(new ArrayList<>(types.subList(1, types.size())));
+		}
+		return types;
 	}
 }

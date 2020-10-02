@@ -27,8 +27,8 @@ import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.api.rest.Receiver;
+import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.InvocationUtil;
@@ -188,7 +188,13 @@ class ByRestInvocation implements Request {
 			return CompletableFuture.supplyAsync(() -> {
 				HeaderContext.set(context);
 				try {
-					return onHttpResponse(responseSupplier.get());
+					final var httpResponse = responseSupplier.get();
+					final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value,
+							() -> new Class<?>[] {});
+					if (reifying.length > 0 && reifying[0].isAssignableFrom(HttpResponse.class)) {
+						return httpResponse;
+					}
+					return httpResponse.body();
 				} finally {
 					HeaderContext.remove();
 				}
@@ -203,10 +209,6 @@ class ByRestInvocation implements Request {
 		// If the return type is HttpResponse, returns it as is without any processing
 		// regardless the status.
 		if (returnType.isAssignableFrom(HttpResponse.class)) {
-			return httpResponse;
-		}
-
-		if (returnType.isAssignableFrom(CompletableFuture.class)) {
 			return httpResponse;
 		}
 

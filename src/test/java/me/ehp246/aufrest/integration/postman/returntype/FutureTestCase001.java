@@ -15,14 +15,16 @@ import me.ehp246.aufrest.integration.postman.EchoResponseBody;
 @ByRest("https://postman-echo.com/get")
 interface FutureTestCase001 {
 	@Reifying({ EchoResponseBody.class })
-	CompletableFuture<EchoResponseBody> getAsFuture_001();
+	CompletableFuture<EchoResponseBody> get001();
 
+	@Reifying({ HttpResponse.class, EchoResponseBody.class })
+	CompletableFuture<HttpResponse<EchoResponseBody>> get002();
+
+	// TODO
 	@Reifying({ List.class, EchoResponseBody.class })
 	CompletableFuture<List<EchoResponseBody>> getAsFuture_004();
 
-	@Reifying({ HttpResponse.class, EchoResponseBody.class })
-	CompletableFuture<HttpResponse<EchoResponseBody>> getAsFuture_002();
-
+	// TODO
 	@Reifying({ HttpResponse.class, List.class, EchoResponseBody.class })
 	CompletableFuture<HttpResponse<List<EchoResponseBody>>> getAsFuture_003();
 
