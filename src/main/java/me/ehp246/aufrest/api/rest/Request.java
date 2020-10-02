@@ -3,8 +3,6 @@ package me.ehp246.aufrest.api.rest;
 import java.time.Duration;
 import java.util.function.Supplier;
 
-import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
-
 /**
  * The abstraction of a REST request that expects a response.
  *
@@ -47,7 +45,7 @@ public interface Request extends Message {
 		return HttpUtils.APPLICATION_JSON;
 	}
 
-	default Receiver receiver() {
-		return () -> void.class;
+	default Receiver bodyReceiver() {
+		return null;
 	}
 }

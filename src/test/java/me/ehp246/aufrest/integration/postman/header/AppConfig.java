@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.postman;
+package me.ehp246.aufrest.integration.postman.header;
 
 import java.util.List;
 import java.util.Map;
@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -27,7 +26,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @SpringBootApplication
 @EnableByRest
-class PostmanApp {
+class AppConfig {
 	public static final List<String> HEADERS = List.of("x-aufrest-trace-id", UUID.randomUUID().toString());
 
 	@Bean
@@ -52,7 +51,6 @@ class PostmanApp {
 	}
 
 	@Bean
-	@Profile("headerProvider")
 	public HeaderProvider headerProvider() {
 		return req -> Map.of(HEADERS.get(0), List.of("1", "2"), HEADERS.get(1), List.of("3"));
 	}

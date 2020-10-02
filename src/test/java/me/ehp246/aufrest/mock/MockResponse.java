@@ -36,6 +36,12 @@ public class MockResponse<T> implements HttpResponse<T> {
 		this.body = body;
 	}
 
+	public MockResponse(final T body) {
+		super();
+		this.statusCode = 200;
+		this.body = body;
+	}
+
 	@Override
 	public int statusCode() {
 		return statusCode;

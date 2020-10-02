@@ -1,12 +1,9 @@
-package me.ehp246.aufrest.integration.postman;
-
-import java.io.InputStream;
-import java.net.http.HttpResponse;
-import java.util.concurrent.CompletableFuture;
+package me.ehp246.aufrest.integration.postman.method;
 
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.integration.postman.EchoResponseBody;
 
 /**
  * @author Lei Yang
@@ -14,14 +11,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("${echo.base}/get")
 interface EchoGetTestCase001 {
-
-	/**
-	 * Body defaults to String for now.
-	 */
-	HttpResponse<String> getAsHttpResponse();
-
-	InputStream getAsInputStream();
-
 	/**
 	 * Send the request and ignore the response
 	 */
@@ -33,8 +22,4 @@ interface EchoGetTestCase001 {
 
 	EchoResponseBody getAsEchoBody(@RequestHeader("x-auf-rest-id") String id);
 
-	/**
-	 * Defaults to ResponseSupplier with String body.
-	 */
-	CompletableFuture<HttpResponse<String>> getAsResponseFuture();
 }

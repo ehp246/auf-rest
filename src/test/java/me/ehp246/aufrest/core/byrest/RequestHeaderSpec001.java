@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest("")
-public interface RequestHeaderSpec001 {
+interface RequestHeaderSpec001 {
 	void get(@RequestHeader("x-correl-id") String correlId);
 
 	/**

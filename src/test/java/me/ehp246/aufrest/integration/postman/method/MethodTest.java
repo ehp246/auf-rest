@@ -1,28 +1,21 @@
-package me.ehp246.aufrest.integration.postman;
+package me.ehp246.aufrest.integration.postman.method;
 
-import java.io.InputStream;
-import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.integration.postman.EchoResponseBody;
 
 /**
  * @author Lei Yang
@@ -30,7 +23,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
  */
 @SpringBootTest(classes = { PostmanApp.class }, properties = { "echo.base = https://postman-echo.com",
 		"me.ehp246.aufrest.connectTimeout=50000", "me.ehp246.aufrest.responseTimeout=50000" })
-class PostmanTest {
+class MethodTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;
 
@@ -45,43 +38,6 @@ class PostmanTest {
 
 		Assertions.assertEquals(50000, bean.connectTimeout().toMillis());
 		Assertions.assertEquals(50000, bean.responseTimeout().toMillis());
-	}
-
-	@Test
-	void future_001() throws InterruptedException, ExecutionException, JsonMappingException, BeansException,
-			JsonProcessingException {
-		final var responseFuture = factory.getBean(EchoGetTestCase001.class).getAsResponseFuture();
-
-		Assertions.assertEquals(true, responseFuture instanceof CompletableFuture);
-
-		final var httpResponse = responseFuture.get();
-
-		Assertions.assertEquals(true, httpResponse instanceof HttpResponse);
-
-		final var body = httpResponse.body();
-
-		Assertions.assertEquals(true, body instanceof String, "Should default to String body");
-
-		Assertions
-				.assertDoesNotThrow(() -> factory.getBean(ObjectMapper.class).readValue(body, EchoResponseBody.class));
-	}
-
-	@Test
-	void httpresponse_001() {
-		final var body = factory.getBean(EchoGetTestCase001.class).getAsHttpResponse().body();
-
-		Assertions.assertEquals(true, body instanceof String);
-		Assertions
-				.assertDoesNotThrow(() -> factory.getBean(ObjectMapper.class).readValue(body, EchoResponseBody.class));
-	}
-
-	@Test
-	void get_002() {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
-		final var response = newInstance.getAsInputStream();
-
-		Assertions.assertEquals(true, response instanceof InputStream);
 	}
 
 	@Test

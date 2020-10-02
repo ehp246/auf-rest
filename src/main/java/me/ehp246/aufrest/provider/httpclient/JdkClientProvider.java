@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.provider.httpclient;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Builder;
@@ -19,7 +18,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,6 +25,7 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
@@ -34,6 +33,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.core.util.AnnotationUtils;
 
 /**
  * For each call to return a HTTP client, the provider should ask the
@@ -115,61 +115,51 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
 				final var httpRequest = requestBuilder.build();
-				LOGGER.debug("{} {}", httpRequest.method(), req.uri());
-				LOGGER.trace("{}", httpRequest.headers().map());
+				LOGGER.atDebug().log("Request: {} {}", httpRequest.method(), req.uri());
+				LOGGER.atTrace().log("Headers:{}", httpRequest.headers().map());
 
 				HttpResponse<?> httpResponse;
 				try {
 					httpResponse = client.send(httpRequest, bodyHandler(req));
 				} catch (IOException | InterruptedException e) {
-					throw new RuntimeException("Failed to receive response", e);
+					throw new RuntimeException(e);
 				}
 
 				return httpResponse;
 			}
 
 			private BodyHandler<?> bodyHandler(final Request req) {
-				final var receiver = req.receiver();
-				final Class<?> type = receiver.type();
-
-				if (type.isAssignableFrom(CompletableFuture.class) || type.isAssignableFrom(HttpResponse.class)) {
-					return BodyHandlers.ofString();
-				}
+				final var receiver = req.bodyReceiver();
+				final Class<?> type = receiver == null ? void.class : receiver.type();
 
 				if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
 					return BodyHandlers.discarding();
 				}
 
-				if (type.isAssignableFrom(InputStream.class)) {
-					return BodyHandlers.ofInputStream();
-				}
-
-				// Default content consumer.
 				return responseInfo -> {
-					LOGGER.debug("{}", responseInfo.statusCode());
-					LOGGER.trace("{}", responseInfo.headers().map());
+					LOGGER.atDebug().log("Response status: {}", responseInfo.statusCode());
+					LOGGER.atTrace().log("Headers: {}", responseInfo.headers().map());
 
 					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), json -> {
-						LOGGER.trace("{}", json);
+						LOGGER.atTrace().log("Body: {}", json);
 
-						if (responseInfo.statusCode() >= 300) {
+						if (responseInfo.statusCode() >= 300
+								|| AnnotationUtils.contains(receiver.annotations(), AsIs.class)) {
 							return json;
 						}
 
 						final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
 								.toLowerCase();
 						if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-							throw new RuntimeException("Un-supported response content type:" + contentType);
+							throw new RuntimeException();
 						}
-
 						return clientConfig.contentConsumer(req.accept()).consume(json, receiver);
 					});
 				};
 			}
 
 			private BodyPublisher bodyPublisher(final Request req) {
-				final var body = req.body();
-				if (body == null) {
+				if (req.body() == null) {
 					return BodyPublishers.noBody();
 				}
 

@@ -1,11 +1,13 @@
-package me.ehp246.aufrest.integration.postman;
+package me.ehp246.aufrest.integration.postman.method;
 
 import java.net.http.HttpResponse;
 import java.util.Map;
 
+import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth.Type;
+import me.ehp246.aufrest.api.annotation.Reifying;
 
 /**
  * @author Lei Yang
@@ -16,6 +18,8 @@ interface EchoAuthTestCases {
 	interface BasicCase001 {
 		Map<String, Boolean> get();
 
+		@Reifying(String.class)
+		@AsIs
 		HttpResponse<String> getAsResponse();
 	}
 

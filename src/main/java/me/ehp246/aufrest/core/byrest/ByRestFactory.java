@@ -1,9 +1,14 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,9 +17,11 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.env.Environment;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientFn;
+import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 
 /**
@@ -72,7 +79,35 @@ public class ByRestFactory {
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
 				(InvocationHandler) (proxy, method, args) -> {
-					final var request = new ByRestInvocation(new ProxyInvoked<>(proxy, method, args), env) {
+					final var proxyInvoked = new ProxyInvoked<>(proxy, method, args);
+					final var reifying = proxyInvoked.getMethodValueOf(Reifying.class, Reifying::value,
+							() -> new Class<?>[] {});
+					final var returnType = validateReturnType(proxyInvoked.getReturnType(), reifying);
+
+					final var bodyReceiver = new Receiver() {
+
+						@Override
+						public Class<?> type() {
+							return returnType.isAssignableFrom(HttpResponse.class) ? reifying[0] : returnType;
+						}
+
+						@Override
+						public List<Class<?>> reifying() {
+							if (returnType.isAssignableFrom(HttpResponse.class)) {
+								return reifying.length == 1 ? List.of()
+										: List.of(Arrays.copyOfRange(reifying, 1, reifying.length));
+							}
+
+							return List.of(reifying);
+						}
+
+						@Override
+						public List<? extends Annotation> annotations() {
+							return proxyInvoked.getMethodDeclaredAnnotations();
+						}
+					};
+
+					final var request = new ByRestInvocation(proxyInvoked, env) {
 
 						@Override
 						public Duration timeout() {
@@ -84,9 +119,35 @@ public class ByRestFactory {
 							return localAuthSupplier.orElse(null);
 						}
 
+						@Override
+						public Receiver bodyReceiver() {
+							return bodyReceiver;
+						}
+
 					};
 					return request.setResponseSupplier(() -> client.apply(request)).returnInvocation();
 				});
 
+	}
+
+	private static Class<?> validateReturnType(final Class<?> type, final Class<?>[] reifying) {
+		final var e = new IllegalArgumentException(
+				Reifying.class.getName() + " is required for return type " + type.getName());
+
+		if (HttpResponse.class.isAssignableFrom(type)) {
+			if (reifying.length == 0) {
+				throw e;
+			}
+		} else if (CompletableFuture.class.isAssignableFrom(type)) {
+			if (reifying.length == 0) {
+				throw e;
+			}
+			if (reifying[0].isAssignableFrom(HttpResponse.class)) {
+				if (reifying.length < 2) {
+					throw e;
+				}
+			}
+		}
+		return type;
 	}
 }

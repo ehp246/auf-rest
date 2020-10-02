@@ -616,4 +616,26 @@ class ByRestFactoryTest {
 		Assertions.assertEquals(1, headers.get("x-correl-id").size(), "should filter out nulls");
 		Assertions.assertEquals(1, headers.get("accept-language").size());
 	}
+
+	@Test
+	void return_type_001() {
+		Assertions.assertThrows(IllegalArgumentException.class,
+				factory.newInstance(ReturnTypeTestCase001.class)::get001);
+	}
+
+	@Test
+	void return_type_002() {
+		Assertions.assertThrows(IllegalArgumentException.class,
+				factory.newInstance(ReturnTypeTestCase001.class)::get002);
+	}
+
+	@Test
+	void return_type_003() {
+		Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get004);
+	}
+
+	@Test
+	void return_type_004() {
+		Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get005);
+	}
 }

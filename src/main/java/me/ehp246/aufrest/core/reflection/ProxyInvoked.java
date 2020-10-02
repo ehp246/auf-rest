@@ -22,6 +22,10 @@ public class ProxyInvoked<T> {
 	private final List<?> args;
 	private final Annotation[][] parameterAnnotations;
 
+	public ProxyInvoked(final T target, final Method method) {
+		this(target, method, null);
+	}
+
 	public ProxyInvoked(final T target, final Method method, final Object[] args) {
 		this.target = target;
 		this.method = Objects.requireNonNull(method);
@@ -172,10 +176,11 @@ public class ProxyInvoked<T> {
 	}
 
 	/**
-	 * Returns the value of the annotation on method or the provided default.
+	 * Returns the value of the annotation on method or the provided default if the
+	 * annotation does not exist on the method.
 	 */
-	public <A extends Annotation, V> V annotationValueOnMethod(final Class<A> annotationClass,
-			final Function<A, V> mapper, final Supplier<V> supplier) {
+	public <A extends Annotation, V> V getMethodValueOf(final Class<A> annotationClass, final Function<A, V> mapper,
+			final Supplier<V> supplier) {
 		return this.findOnMethod(annotationClass).map(mapper).orElseGet(supplier);
 	}
 

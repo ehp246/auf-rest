@@ -23,11 +23,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.api.rest.TextContentConsumer.Receiver;
+import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.InvocationUtil;
@@ -94,17 +95,29 @@ class ByRestInvocation implements Request {
 	}
 
 	@Override
-	public Receiver receiver() {
+	public Receiver bodyReceiver() {
+		final var annos = invoked.getMethodDeclaredAnnotations();
+		final var returnType = invoked.getReturnType();
+
+		if (returnType.isAssignableFrom(HttpResponse.class)) {
+
+		}
+
 		return new Receiver() {
+			private final List<Class<?>> reifying = annos.stream()
+					.filter(anno -> anno.annotationType() == Reifying.class).findAny()
+					.map(anno -> ((Reifying) anno).value())
+					.map(value -> value.length == 0 ? new Class<?>[] { String.class } : value).map(List::of)
+					.orElseGet(ArrayList::new);
 
 			@Override
 			public List<? extends Annotation> annotations() {
-				return invoked.getMethodDeclaredAnnotations();
+				return annos;
 			}
 
 			@Override
 			public Class<?> type() {
-				return invoked.getReturnType();
+				return returnType;
 			}
 
 		};
@@ -175,16 +188,16 @@ class ByRestInvocation implements Request {
 			return CompletableFuture.supplyAsync(() -> {
 				HeaderContext.set(context);
 				try {
-					return onResponse(responseSupplier.get());
+					return onHttpResponse(responseSupplier.get());
 				} finally {
 					HeaderContext.remove();
 				}
 			});
 		}
-		return onResponse(responseSupplier.get());
+		return onHttpResponse(responseSupplier.get());
 	}
 
-	private Object onResponse(final HttpResponse<?> httpResponse) {
+	private Object onHttpResponse(final HttpResponse<?> httpResponse) {
 		final var returnType = invoked.getReturnType();
 
 		// If the return type is HttpResponse, returns it as is without any processing
@@ -193,7 +206,6 @@ class ByRestInvocation implements Request {
 			return httpResponse;
 		}
 
-		// Defaults to CompletableFuture<HttpResponse<String>> for now.
 		if (returnType.isAssignableFrom(CompletableFuture.class)) {
 			return httpResponse;
 		}

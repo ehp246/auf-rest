@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.postman;
+package me.ehp246.aufrest.integration.postman.method;
 
 import java.util.Map;
 
