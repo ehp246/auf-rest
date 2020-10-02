@@ -20,14 +20,6 @@ public class InvocationUtil {
 		}
 	}
 
-	public static <V> V invokeWithDefault(final Callable<V> callable, final V v) {
-		try {
-			return callable.call();
-		} catch (final Exception e) {
-			return v;
-		}
-	}
-
 	public static <V> V invoke(final Callable<V> callable, final String message) {
 		try {
 			return callable.call();

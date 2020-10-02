@@ -6,7 +6,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * @author Lei Yang
  *
  */
-@ByRest(value = "${echo.base}/get", timeout = 1)
+@ByRest(value = "${echo.base}/get", timeout = "PT1S")
 interface EchoTimeoutTestCase {
 	String get();
 }

@@ -331,27 +331,6 @@ class ByRestFactoryTest {
 	}
 
 	@Test
-	void timeout001() {
-		factory.newInstance(TimeoutTestCases.Case001.class).get();
-
-		Assertions.assertEquals(null, reqRef.get().timeout());
-	}
-
-	@Test
-	void timeout002() {
-		factory.newInstance(TimeoutTestCases.Case002.class).get();
-
-		Assertions.assertEquals(null, reqRef.get().timeout());
-	}
-
-	@Test
-	void timeout003() {
-		factory.newInstance(TimeoutTestCases.Case003.class).get();
-
-		Assertions.assertEquals(11, reqRef.get().timeout().toMillis());
-	}
-
-	@Test
 	void auth_none_001() {
 		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
 

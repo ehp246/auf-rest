@@ -40,7 +40,7 @@ public @interface ByRest {
 	 *
 	 * @see me.ehp246.aufrest.api.configuration.AufRestConstants
 	 */
-	long timeout() default 0;
+	String timeout() default "";
 
 	/**
 	 * Defines the Authorization type and value required by the endpoint.

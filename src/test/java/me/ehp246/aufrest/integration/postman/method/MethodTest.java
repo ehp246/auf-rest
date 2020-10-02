@@ -22,7 +22,7 @@ import me.ehp246.aufrest.integration.postman.EchoResponseBody;
  *
  */
 @SpringBootTest(classes = { PostmanApp.class }, properties = { "echo.base = https://postman-echo.com",
-		"me.ehp246.aufrest.connectTimeout=50000", "me.ehp246.aufrest.responseTimeout=50000" })
+		"me.ehp246.aufrest.connectTimeout=PT50S", "me.ehp246.aufrest.responseTimeout=PT50S" })
 class MethodTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;

@@ -28,11 +28,11 @@ public class AufRestConstants {
 	/**
 	 * The default connection timeout in milliseconds.
 	 */
-	public static final long CONNECT_TIMEOUT_DEFAULT = 15000;
+	public static final String CONNECT_TIMEOUT_DEFAULT = "PT15S";
 	/**
 	 * The default response timeout in milliseconds.
 	 */
-	public static final long RESPONSE_TIMEOUT_DEFAULT = 30000;
+	public static final String RESPONSE_TIMEOUT_DEFAULT = "PT30S";
 
 	private AufRestConstants() {
 		super();
