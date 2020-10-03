@@ -37,7 +37,7 @@ class ReturnTypeTest {
 	}
 
 	@Test
-	void testt_002() {
+	void test_002() {
 		final var count = (int) (Math.random() * 10);
 		final var returned = case001.get002(count);
 
@@ -50,7 +50,7 @@ class ReturnTypeTest {
 	}
 
 	@Test
-	void testt_003() throws Exception {
+	void test_003() throws Exception {
 		final var count = (int) (Math.random() * 10);
 		final var returned = case001.get003(count);
 
