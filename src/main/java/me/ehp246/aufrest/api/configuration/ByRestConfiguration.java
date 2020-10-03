@@ -19,7 +19,7 @@ import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.TextContentConsumer;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
-import me.ehp246.aufrest.core.util.FunctionUtils;
+import me.ehp246.aufrest.core.util.Utils;
 import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
@@ -57,24 +57,24 @@ public class ByRestConfiguration {
 					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 					.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-			var module = FunctionUtils
+			var module = Utils
 					.orElse(() -> Class.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule.JavaTimeModule")
 							.getDeclaredConstructor((Class<?>[]) null).newInstance(), null);
 
 			Optional.ofNullable(module).map(m -> newMapper.registerModule((com.fasterxml.jackson.databind.Module) m));
 
-			module = FunctionUtils.orElse(() -> Class.forName("com.fasterxml.jackson.module.mrbean.MrBeanModule")
+			module = Utils.orElse(() -> Class.forName("com.fasterxml.jackson.module.mrbean.MrBeanModule")
 					.getDeclaredConstructor((Class<?>[]) null).newInstance(), null);
 
 			Optional.ofNullable(module).map(m -> newMapper.registerModule((com.fasterxml.jackson.databind.Module) m));
 			return objectMapper;
 		}));
 
-		final var conTimeout = FunctionUtils.orThrow(() -> Duration.parse(connectTimeout),
-				e -> new IllegalReceiveException("Invalid Duration: " + connectTimeout));
+		final var conTimeout = Utils.orThrow(() -> Duration.parse(connectTimeout),
+				e -> new IllegalReceiveException("Invalid Connection Timeout: " + connectTimeout));
 
-		final var reqTimeout = FunctionUtils.orThrow(() -> Duration.parse(requestTimeout),
-				e -> new IllegalReceiveException("Invalid Duration: " + requestTimeout));
+		final var reqTimeout = Utils.orThrow(() -> Duration.parse(requestTimeout),
+				e -> new IllegalReceiveException("Invalid Response Timeout: " + requestTimeout));
 
 		return new ClientConfig() {
 			@Override

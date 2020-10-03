@@ -60,4 +60,16 @@ class TimeoutTest {
 	void timeout_005() {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase005.class));
 	}
+
+	@Test
+	void timeout_006() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase006.class));
+	}
+
+	@Test
+	void timeout_007() {
+		factory.newInstance(TestCase007.class).get();
+
+		Assertions.assertEquals(10, reqRef.get().timeout().toMillis());
+	}
 }

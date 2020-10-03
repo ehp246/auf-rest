@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import me.ehp246.aufrest.core.util.FunctionUtils;
+import me.ehp246.aufrest.core.util.Utils;
 
 /**
  * Unless otherwise documented, the names are required and can't be
@@ -79,7 +79,7 @@ public class HeaderContext {
 	 * @param values <code>null</code> is no-op.
 	 */
 	public static void add(final String name, final List<String> values) {
-		listOf(name).addAll(FunctionUtils.listValues(Objects.requireNonNull(values)));
+		listOf(name).addAll(Utils.listValues(Objects.requireNonNull(values)));
 	}
 
 	/**
@@ -94,8 +94,8 @@ public class HeaderContext {
 	 * @param headers Can not be <code>null</code>.
 	 */
 	public static void merge(final Map<String, List<String>> headers) {
-		headers.entrySet().stream().filter(entry -> FunctionUtils.hasValue(entry.getKey()))
-				.forEach(entry -> listOf(entry.getKey()).addAll(FunctionUtils.listValues(entry.getValue())));
+		headers.entrySet().stream().filter(entry -> Utils.hasValue(entry.getKey()))
+				.forEach(entry -> listOf(entry.getKey()).addAll(Utils.listValues(entry.getValue())));
 	}
 
 	/**
@@ -113,7 +113,7 @@ public class HeaderContext {
 	public static void set(final String name, final List<String> values) {
 		final var list = listOf(name);
 		list.clear();
-		list.addAll(FunctionUtils.listValues(values));
+		list.addAll(Utils.listValues(values));
 	}
 
 	/**

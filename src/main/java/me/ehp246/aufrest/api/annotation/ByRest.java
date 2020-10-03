@@ -6,6 +6,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.time.Duration;
 
 /**
  * Indicates that the annotated interface should be scanned by the framework as
@@ -25,18 +26,22 @@ import java.lang.annotation.Target;
 public @interface ByRest {
 
 	/**
-	 * Full URL of the REST endpoint that the interface proxies. The value supports
-	 * placeholder (e.g. <code>"/${api.base}"</code>). The value must resolve to a
-	 * full HTTP-based URL.
+	 * Full URL of the REST endpoint that the interface proxies. The element
+	 * supports Spring property placeholder (e.g. <code>"/${api.base}"</code>). The
+	 * value must resolve to a full HTTP-based URL.
 	 */
 	String value();
 
 	/**
-	 * Defines how long to wait for a response in milliseconds before raising a
-	 * {@link java.util.concurrent.TimeoutException TimeoutException}.
+	 * Defines how long to wait for a response before raising a
+	 * {@link java.util.concurrent.TimeoutException TimeoutException}. The value is
+	 * parsed by {@link Duration java.time.Duration.parse(CharSequence)} and should
+	 * follow IS8601 Duration standard.
 	 * <p>
-	 * A larger-than-0 value overrides the global configuration for the interface.
-	 * Otherwise, the interface uses the global configuration.
+	 * Spring property placeholder is supported.
+	 * <p>
+	 * The specified value overrides the global configuration for the interface.
+	 * Otherwise, the interface follows the global configuration.
 	 *
 	 * @see me.ehp246.aufrest.api.configuration.AufRestConstants
 	 */

@@ -13,8 +13,8 @@ import java.util.stream.Stream;
  * @author Lei Yang
  *
  */
-public class FunctionUtils {
-	private FunctionUtils() {
+public class Utils {
+	private Utils() {
 		super();
 	}
 
@@ -23,7 +23,7 @@ public class FunctionUtils {
 	}
 
 	public static Stream<String> streamValues(final Collection<String> values) {
-		return Optional.ofNullable(values).orElseGet(ArrayList::new).stream().filter(FunctionUtils::hasValue);
+		return Optional.ofNullable(values).orElseGet(ArrayList::new).stream().filter(Utils::hasValue);
 	}
 
 	public static List<String> listValues(final Collection<String> values) {
