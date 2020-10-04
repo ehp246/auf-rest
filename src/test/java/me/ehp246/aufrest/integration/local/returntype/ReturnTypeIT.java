@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-class ReturnTypeTest {
+class ReturnTypeIT {
 	@Autowired
 	private ObjectMapper objectMapper;
 	@Autowired
