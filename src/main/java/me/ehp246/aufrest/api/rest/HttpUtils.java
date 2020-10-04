@@ -21,11 +21,14 @@ public class HttpUtils {
 	public final static String DELETE = "DELETE";
 
 	// Headers
-	public final static String AUTHORIZATION = "Authorization";
-	public final static String CONTENT_TYPE = "Content-Type";
-	public final static String ACCEPT = "Accept";
+	public final static String AUTHORIZATION = "authorization";
+	public final static String CONTENT_TYPE = "content-type";
+	public final static String ACCEPT = "accept";
+
 	public final static String BEARER = "Bearer";
 	public final static String BASIC = "Basic";
+
+	public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION);
 
 	// Media types
 	public static final String APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";

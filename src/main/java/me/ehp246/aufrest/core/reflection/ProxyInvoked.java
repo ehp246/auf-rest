@@ -2,6 +2,7 @@ package me.ehp246.aufrest.core.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProxyInvoked<T> {
@@ -21,6 +21,10 @@ public class ProxyInvoked<T> {
 	private final Method method;
 	private final List<?> args;
 	private final Annotation[][] parameterAnnotations;
+
+	public ProxyInvoked(final T target, final Method method) {
+		this(target, method, null);
+	}
 
 	public ProxyInvoked(final T target, final Method method, final Object[] args) {
 		this.target = target;
@@ -86,51 +90,84 @@ public class ProxyInvoked<T> {
 		return Optional.ofNullable(this.method.getDeclaringClass().getAnnotation(annotationClass));
 	}
 
+	/**
+	 * Find all arguments of the given parameter type.
+	 *
+	 * @param <R>  Parameter type
+	 * @param type Class of the parameter type
+	 * @return all arguments of the given type. Could have <code>null</code>.
+	 */
 	@SuppressWarnings("unchecked")
-	public <A extends Annotation> Optional<AnnotatedArgument<A>> findOnArguments(final Class<A> annotationClass) {
-		for (int i = 0; i < parameterAnnotations.length; i++) {
-			final var found = Stream.of(parameterAnnotations[i])
-					.filter(annotation -> annotation.annotationType() == annotationClass).findFirst();
-			if (found.isPresent()) {
-				final var arg = args.get(i);
-				return Optional.of(new AnnotatedArgument<A>() {
-
-					@Override
-					public A getAnnotation() {
-						return (A) found.get();
-					}
-
-					@Override
-					public Object getArgument() {
-						return arg;
-					}
-
-				});
+	public <R> List<R> findArgumentsOfType(final Class<R> type) {
+		final var list = new ArrayList<R>();
+		final var parameterTypes = method.getParameterTypes();
+		for (int i = 0; i < parameterTypes.length; i++) {
+			if (type.isAssignableFrom(parameterTypes[i])) {
+				list.add((R) args.get(i));
 			}
 		}
-		return Optional.empty();
+		return list;
 	}
 
+	/**
+	 * Looks for arguments that are annotated by the given Annotation type. Returns
+	 * a map with the key provided by the key supplier function, the value the
+	 * argument.
+	 *
+	 * @param <K>            Key from the key supplier
+	 * @param <V>            Argument object reference
+	 * @param <A>            Annotation type
+	 * @param annotationType
+	 * @param keySupplier
+	 * @return returned Map can be modified. Never <code>null</code>.
+	 */
 	@SuppressWarnings("unchecked")
-	public <R> List<R> findInArguments(final Class<R> type) {
-		return (List<R>) args.stream().filter(arg -> type.isAssignableFrom(arg.getClass()))
-				.collect(Collectors.toList());
-	}
-
-	@SuppressWarnings("unchecked")
-	public <K, V, A extends Annotation> Map<K, V> mapAnnotatedArguments(final Class<A> annotationClass,
-			final Function<A, K> mapper) {
+	public <K, V, A extends Annotation> Map<K, V> mapAnnotatedArguments(final Class<A> annotationType,
+			final Function<A, K> keySupplier) {
 		final var map = new HashMap<K, V>();
 		for (int i = 0; i < parameterAnnotations.length; i++) {
 			final var found = Stream.of(parameterAnnotations[i])
-					.filter(annotation -> annotation.annotationType() == annotationClass).findFirst();
+					.filter(annotation -> annotation.annotationType() == annotationType).findFirst();
 			if (found.isEmpty()) {
 				continue;
 			}
 
-			map.put(mapper.apply((A) found.get()), (V) args.get(i));
+			map.put(keySupplier.apply((A) found.get()), (V) args.get(i));
 		}
 		return map;
+	}
+
+	public <A extends Annotation> Stream<AnnotatedArgument<A>> streamOfAnnotatedArguments(
+			final Class<A> annotationType) {
+		final var builder = Stream.<AnnotatedArgument<A>>builder();
+
+		for (int i = 0; i < parameterAnnotations.length; i++) {
+			final var arg = args.get(i);
+			final var parameter = method.getParameters()[i];
+			Stream.of(parameterAnnotations[i]).filter(annotation -> annotation.annotationType() == annotationType)
+					.map(anno -> new AnnotatedArgument<A>() {
+
+						@SuppressWarnings("unchecked")
+						@Override
+						public A getAnnotation() {
+							return (A) anno;
+						}
+
+						@Override
+						public Object getArgument() {
+							return arg;
+						}
+
+						@Override
+						public Parameter getParameter() {
+							return parameter;
+						}
+
+					}).forEach(builder::add);
+			;
+		}
+
+		return builder.build();
 	}
 
 	public <A extends Annotation, V> Optional<V> optionalValueOnMethod(final Class<A> annotationClass,
@@ -139,10 +176,11 @@ public class ProxyInvoked<T> {
 	}
 
 	/**
-	 * Returns the value of the annotation on method or the provided default.
+	 * Returns the value of the annotation on method or the provided default if the
+	 * annotation does not exist on the method.
 	 */
-	public <A extends Annotation, V> V annotationValueOnMethod(final Class<A> annotationClass,
-			final Function<A, V> mapper, final Supplier<V> supplier) {
+	public <A extends Annotation, V> V getMethodValueOf(final Class<A> annotationClass, final Function<A, V> mapper,
+			final Supplier<V> supplier) {
 		return this.findOnMethod(annotationClass).map(mapper).orElseGet(supplier);
 	}
 
