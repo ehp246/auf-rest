@@ -5,7 +5,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,16 +23,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-class ReturnTypeIT {
+class ReturnTypeTest {
+	private static Logger LOGGER = LogManager.getLogger();
+
 	@Autowired
 	private ObjectMapper objectMapper;
 	@Autowired
 	private TestCase001 case001;
 
+	@BeforeAll
+	static void clear() {
+		// HeaderContext.remove();
+	}
+
 	@Test
 	void test_001() {
 		final var count = (int) (Math.random() * 10);
-		final var instants = case001.get001(count);
+		List<Instant> instants;
+		try {
+			instants = case001.get001(count);
+		} catch (final Exception e) {
+			LOGGER.error(e);
+			throw e;
+		}
 
 		Assertions.assertEquals(count, instants.size());
 

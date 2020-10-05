@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +18,13 @@ import org.junit.jupiter.api.Test;
  */
 class HeaderContextTest {
 	@BeforeEach
-	void clear() {
+	void beforeEach() {
+		HeaderContext.remove();
+	}
+
+	@BeforeAll
+	@AfterAll
+	static void clear() {
 		HeaderContext.remove();
 	}
 
