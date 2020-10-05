@@ -18,6 +18,7 @@ import java.time.Duration;
  *
  * @author Lei Yang
  * @since 1.0
+ * @version 2.0
  * @see EnableByRest
  */
 @Retention(RUNTIME)

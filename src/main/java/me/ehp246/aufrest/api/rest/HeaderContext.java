@@ -17,8 +17,7 @@ import me.ehp246.aufrest.core.util.Utils;
  * out and dropped.
  *
  * @author Lei Yang
- * @since 1.1.0
- *
+ * @since 2.0
  */
 public class HeaderContext {
 	private final static HeaderContext CONTEXT = new HeaderContext();

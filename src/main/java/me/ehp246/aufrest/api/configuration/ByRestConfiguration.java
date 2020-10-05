@@ -32,8 +32,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  *
  * @author Lei Yang
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
- * @version 1.1
  * @since 1.0
+ * @version 2.0
  */
 public class ByRestConfiguration {
 
