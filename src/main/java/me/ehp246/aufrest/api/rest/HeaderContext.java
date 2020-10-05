@@ -36,6 +36,9 @@ public class HeaderContext {
 	 * @return
 	 */
 	private static List<String> listOf(final String name) {
+		if (!Utils.hasValue(name)) {
+			throw new IllegalArgumentException("Invalid header name: " + name);
+		}
 		return CONTEXT.threadHeaders.get().computeIfAbsent(name.toLowerCase(Locale.US), key -> new ArrayList<>());
 	}
 
@@ -132,6 +135,9 @@ public class HeaderContext {
 	 * @param name Required non-<code>null</code>
 	 */
 	public static void remove(final String name) {
+		if (!Utils.hasValue(name)) {
+			return;
+		}
 		CONTEXT.threadHeaders.get().remove(name.toLowerCase(Locale.US));
 	}
 

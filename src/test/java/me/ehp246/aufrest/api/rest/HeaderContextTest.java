@@ -25,6 +25,7 @@ class HeaderContextTest {
 	@BeforeAll
 	@AfterAll
 	static void clear() {
+		// To avoid polluting the thread in Maven test.
 		HeaderContext.remove();
 	}
 
@@ -50,16 +51,20 @@ class HeaderContextTest {
 
 	@Test
 	void values_001() {
-		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.values(null));
+		Assertions.assertThrows(Exception.class, () -> HeaderContext.values(null));
 
-		Assertions.assertEquals(0, HeaderContext.values("").size());
-		Assertions.assertEquals(0, HeaderContext.values("  ").size());
+		Assertions.assertThrows(Exception.class, () -> HeaderContext.values(""));
+		Assertions.assertThrows(Exception.class, () -> HeaderContext.values("  "));
+
 		Assertions.assertEquals(0, HeaderContext.values(UUID.randomUUID().toString()).size());
 	}
 
 	@Test
 	void add_001() {
-		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.add(null, "1"));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add(null, "1"));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("", "1"));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add(" ", "1"));
+
 		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.add("x-trace-id", (String) null));
 
 		HeaderContext.add("x-trace-id", "1");
@@ -72,8 +77,11 @@ class HeaderContextTest {
 	}
 
 	@Test
-	void add_002() {
-		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.add(null, List.of("1")));
+	void add_list_002() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add(null, List.of("1")));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("", List.of("1")));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("   ", List.of("1")));
+
 		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.add("x-trace-id", (List<String>) null));
 
 		final var list = new ArrayList<String>();
@@ -113,17 +121,24 @@ class HeaderContextTest {
 
 	@Test
 	void set_001() {
-		Assertions.assertThrows(NullPointerException.class,
+		Assertions.assertThrows(IllegalArgumentException.class,
 				() -> HeaderContext.set(null, UUID.randomUUID().toString()));
+		Assertions.assertThrows(IllegalArgumentException.class,
+				() -> HeaderContext.set("", UUID.randomUUID().toString()));
+		Assertions.assertThrows(IllegalArgumentException.class,
+				() -> HeaderContext.set("  ", UUID.randomUUID().toString()));
 
-		Assertions.assertThrows(NullPointerException.class,
-				() -> HeaderContext.set(UUID.randomUUID().toString(), (String) null));
+		Assertions.assertThrows(Exception.class, () -> HeaderContext.set(UUID.randomUUID().toString(), (String) null));
 	}
 
 	@Test
 	void set_002() {
-		Assertions.assertThrows(NullPointerException.class,
+		Assertions.assertThrows(IllegalArgumentException.class,
 				() -> HeaderContext.set(null, List.of(UUID.randomUUID().toString())));
+		Assertions.assertThrows(IllegalArgumentException.class,
+				() -> HeaderContext.set("", List.of(UUID.randomUUID().toString())));
+		Assertions.assertThrows(IllegalArgumentException.class,
+				() -> HeaderContext.set(" \r\n ", List.of(UUID.randomUUID().toString())));
 
 		HeaderContext.set("x-trace-id", List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
 
@@ -147,7 +162,10 @@ class HeaderContextTest {
 
 	@Test
 	void remove_001() {
-		Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.remove(null));
+		// Should we care?
+		Assertions.assertDoesNotThrow(() -> HeaderContext.remove(null));
+		Assertions.assertDoesNotThrow(() -> HeaderContext.remove(""));
+		Assertions.assertDoesNotThrow(() -> HeaderContext.remove("  "));
 
 		HeaderContext.add("x-trace-id", "1");
 
