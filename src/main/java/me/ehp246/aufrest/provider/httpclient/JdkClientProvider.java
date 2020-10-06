@@ -109,7 +109,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 				// Timeout
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
-						.map(requestBuilder::timeout);
+						.ifPresent(timeout -> requestBuilder.timeout(timeout));
 
 				// Authentication
 				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));

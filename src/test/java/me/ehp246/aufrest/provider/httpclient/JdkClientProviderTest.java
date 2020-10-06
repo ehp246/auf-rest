@@ -344,32 +344,68 @@ class JdkClientProviderTest {
 	}
 
 	@Test
-	void timeout_global_default_001() {
+	void timeout_global_connect_001() {
+		final HttpClient.Builder mockBuilder = Mockito.mock(HttpClient.Builder.class);
+		final var ref = new AtomicReference<Duration>();
+
+		Mockito.when(mockBuilder.connectTimeout(Mockito.any())).thenAnswer(invocation -> {
+			ref.set(invocation.getArgument(0));
+			return mockBuilder;
+		});
+
+		new JdkClientProvider(() -> mockBuilder, HttpRequest::newBuilder, new ClientConfig() {
+		}).get();
+
+		Assertions.assertEquals(null, ref.get());
+	}
+
+	@Test
+	void timeout_global_connect_002() {
+		final HttpClient.Builder mockBuilder = Mockito.mock(HttpClient.Builder.class);
+		final var ref = new AtomicReference<Duration>();
+		final var timeout = Duration.ofDays(1);
+
+		Mockito.when(mockBuilder.connectTimeout(Mockito.any())).thenAnswer(invocation -> {
+			ref.set(invocation.getArgument(0));
+			return mockBuilder;
+		});
+
+		new JdkClientProvider(() -> mockBuilder, HttpRequest::newBuilder, new ClientConfig() {
+
+			@Override
+			public Duration connectTimeout() {
+				return timeout;
+			}
+
+		}).get();
+
+		Assertions.assertEquals(timeout, ref.get());
+	}
+
+	@Test
+	void timeout_global_reponse_001() {
 		final var client = new MockClientBuilderSupplier();
 
-		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, clientConfig);
-
-		clientProvider.get().apply(() -> "http://tonowhere");
+		new JdkClientProvider(client::builder, HttpRequest::newBuilder, new ClientConfig() {
+		}).get().apply(() -> "http://tonowhere");
 
 		Assertions.assertEquals(true, client.request().timeout().isEmpty(), "Should have no timeout on request");
 	}
 
 	@Test
-	void timeout_per_client_001() {
+	void timeout_global_reponse_002() {
 		final var client = new MockClientBuilderSupplier();
 
-		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder, new ClientConfig() {
+		new JdkClientProvider(client::builder, HttpRequest::newBuilder, new ClientConfig() {
 
 			@Override
 			public Duration responseTimeout() {
-				return Duration.ofDays(2);
+				return Duration.ofDays(1);
 			}
 
-		});
+		}).get().apply(() -> "http://tonowhere");
 
-		clientProvider.get().apply(() -> "http://tonowhere");
-
-		Assertions.assertEquals(2, client.request().timeout().get().toDays(), "Should have take timeout on the client");
+		Assertions.assertEquals(1, client.request().timeout().get().toDays());
 	}
 
 	@Test
