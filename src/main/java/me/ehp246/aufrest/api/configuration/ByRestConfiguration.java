@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.sun.nio.sctp.IllegalReceiveException;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -45,11 +44,8 @@ public class ByRestConfiguration {
 	}
 
 	@Bean
-	public ClientConfig clientConfig(
-			@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":" + AufRestConstants.CONNECT_TIMEOUT_DEFAULT
-					+ "}") final String connectTimeout,
-			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":" + AufRestConstants.RESPONSE_TIMEOUT_DEFAULT
-					+ "}") final String requestTimeout,
+	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + "}") final String connectTimeout,
+			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + "}") final String requestTimeout,
 			@Autowired(required = false) final ObjectMapper objectMapper) {
 
 		final var jackson = new JsonByJackson(Optional.ofNullable(objectMapper).orElseGet(() -> {
@@ -70,11 +66,15 @@ public class ByRestConfiguration {
 			return objectMapper;
 		}));
 
-		final var conTimeout = Utils.orThrow(() -> Duration.parse(connectTimeout),
-				e -> new IllegalReceiveException("Invalid Connection Timeout: " + connectTimeout));
+		final var conTimeout = Optional.ofNullable(connectTimeout).filter(Utils::hasValue)
+				.map(value -> Utils.orThrow(() -> Duration.parse(value),
+						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
+				.orElse(null);
 
-		final var reqTimeout = Utils.orThrow(() -> Duration.parse(requestTimeout),
-				e -> new IllegalReceiveException("Invalid Response Timeout: " + requestTimeout));
+		final var reqTimeout = Optional.ofNullable(requestTimeout).filter(Utils::hasValue)
+				.map(value -> Utils.orThrow(() -> Duration.parse(value),
+						e -> new IllegalArgumentException("Invalid Response Timeout: " + value)))
+				.orElse(null);
 
 		return new ClientConfig() {
 			@Override
