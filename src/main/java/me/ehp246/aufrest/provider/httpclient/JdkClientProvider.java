@@ -122,6 +122,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				try {
 					httpResponse = client.send(httpRequest, bodyHandler(req));
 				} catch (IOException | InterruptedException e) {
+					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					throw new RuntimeException(e);
 				}
 

@@ -66,12 +66,12 @@ public class ByRestConfiguration {
 			return objectMapper;
 		}));
 
-		final var conTimeout = Optional.ofNullable(connectTimeout).filter(Utils::hasValue)
+		final var connTimeout = Optional.ofNullable(connectTimeout).filter(Utils::hasValue)
 				.map(value -> Utils.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
 				.orElse(null);
 
-		final var reqTimeout = Optional.ofNullable(requestTimeout).filter(Utils::hasValue)
+		final var responseTimeout = Optional.ofNullable(requestTimeout).filter(Utils::hasValue)
 				.map(value -> Utils.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Response Timeout: " + value)))
 				.orElse(null);
@@ -79,12 +79,12 @@ public class ByRestConfiguration {
 		return new ClientConfig() {
 			@Override
 			public Duration connectTimeout() {
-				return conTimeout;
+				return connTimeout;
 			}
 
 			@Override
 			public Duration responseTimeout() {
-				return reqTimeout;
+				return responseTimeout;
 			}
 
 			@Override

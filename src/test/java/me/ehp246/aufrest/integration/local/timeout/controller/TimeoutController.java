@@ -18,8 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 class TimeoutController {
 
 	@GetMapping
-	Instant getInstant(@RequestParam("timeout") final String duration) throws Exception {
-		Thread.sleep(Duration.parse(duration).toMillis());
+	Instant getInstant(@RequestParam(value = "sleep", required = false) final String duration) throws Exception {
+		if (duration != null) {
+			Thread.sleep(Duration.parse(duration).toMillis());
+		}
+
 		return Instant.now();
 	}
 }

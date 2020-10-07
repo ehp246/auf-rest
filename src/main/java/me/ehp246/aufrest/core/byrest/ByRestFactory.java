@@ -53,9 +53,8 @@ public class ByRestFactory {
 		LOGGER.debug("Instantiating {}@ByRest", byRestInterface.getCanonicalName());
 
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
-		final var timeout = byRest.map(ByRest::timeout).filter(Utils::hasValue)
-				.map(text -> env.resolveRequiredPlaceholders(text))
-				.map(text -> Utils.orThrow(() -> Duration.parse(text),
+		final var timeout = byRest.map(ByRest::timeout).map(text -> env.resolveRequiredPlaceholders(text))
+				.filter(Utils::hasValue).map(text -> Utils.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
 		final Optional<Supplier<String>> localAuthSupplier = byRest.map(ByRest::auth).map(auth -> {

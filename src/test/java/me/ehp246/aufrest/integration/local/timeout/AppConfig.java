@@ -10,9 +10,11 @@ import me.ehp246.aufrest.mock.Jackson;
  * @author Lei Yang
  *
  */
-@SpringBootApplication
-@EnableByRest
-@Import(Jackson.class)
 class AppConfig {
+	@SpringBootApplication
+	@EnableByRest
+	@Import(Jackson.class)
+	static class AppConfig01 {
 
+	}
 }
