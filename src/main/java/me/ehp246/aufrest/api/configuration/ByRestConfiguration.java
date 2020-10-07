@@ -44,8 +44,8 @@ public class ByRestConfiguration {
 	}
 
 	@Bean
-	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + "}") final String connectTimeout,
-			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + "}") final String requestTimeout,
+	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
+			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
 			@Autowired(required = false) final ObjectMapper objectMapper) {
 
 		final var jackson = new JsonByJackson(Optional.ofNullable(objectMapper).orElseGet(() -> {
