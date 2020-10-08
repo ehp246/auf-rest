@@ -20,35 +20,15 @@ import me.ehp246.aufrest.integration.model.Person;
 @SuppressWarnings("rawtypes")
 @ByRest("http://localhost:${local.server.port}/returntype")
 interface TestCase001 {
+	// Body types
+
 	@OfMapping("/instants")
 	@Reifying(Instant.class)
 	List<Instant> get001(@RequestParam("count") int count);
 
 	@OfMapping("/instants")
-	@Reifying({ List.class, Instant.class })
-	HttpResponse<List<Instant>> get002(@RequestParam("count") int count);
-
-	@OfMapping("/instants")
-	@Reifying({ HttpResponse.class, List.class, Instant.class })
-	CompletableFuture<HttpResponse<List<Instant>>> get003(@RequestParam("count") int count);
-
-	@OfMapping("/instants")
-	@Reifying({ List.class, Instant.class })
-	HttpResponse get004(@RequestParam("count") int count);
-
-	@OfMapping("/instants")
 	@AsIs
 	String get006(@RequestParam("count") int count);
-
-	@OfMapping("/instants")
-	@AsIs
-	@Reifying(String.class)
-	HttpResponse<String> get007(@RequestParam("count") int count);
-
-	@OfMapping("/instants")
-	@AsIs
-	@Reifying({ HttpResponse.class, String.class })
-	CompletableFuture<HttpResponse<String>> get008(@RequestParam("count") int count);
 
 	@OfMapping("/person")
 	Person get007();
@@ -56,4 +36,42 @@ interface TestCase001 {
 	@OfMapping("/persons")
 	@Reifying(Person.class)
 	List<Person> get008();
+
+	// Response types
+
+	@OfMapping("/person")
+	@Reifying(Person.class)
+	HttpResponse<Person> get011();
+
+	@OfMapping("/instants")
+	@Reifying({ List.class, Instant.class })
+	HttpResponse<List<Instant>> get002(@RequestParam("count") int count);
+
+	@OfMapping("/instants")
+	@Reifying({ List.class, Instant.class })
+	HttpResponse get004(@RequestParam("count") int count);
+
+	@OfMapping("/instants")
+	@AsIs
+	@Reifying(String.class)
+	HttpResponse<String> get007(@RequestParam("count") int count);
+
+	// Future types
+
+	@OfMapping("/person")
+	@Reifying(Person.class)
+	CompletableFuture<Person> get010();
+
+	@OfMapping("/persons")
+	@Reifying({ List.class, Person.class })
+	CompletableFuture<List<Person>> get009();
+
+	@OfMapping("/instants")
+	@Reifying({ HttpResponse.class, List.class, Instant.class })
+	CompletableFuture<HttpResponse<List<Instant>>> get003(@RequestParam("count") int count);
+
+	@OfMapping("/instants")
+	@AsIs
+	@Reifying({ HttpResponse.class, String.class })
+	CompletableFuture<HttpResponse<String>> get008(@RequestParam("count") int count);
 }

@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import me.ehp246.aufrest.integration.model.Person;
 
 /**
  * @author Lei Yang
@@ -28,13 +29,9 @@ class ReturnTypeTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
 	@Autowired
 	private TestCase001 case001;
-
-	@BeforeAll
-	static void clear() {
-		// HeaderContext.remove();
-	}
 
 	@Test
 	void test_001() {
@@ -168,5 +165,33 @@ class ReturnTypeTest {
 		Assertions.assertEquals(1, persons.size());
 
 		persons.stream().forEach(person -> Assertions.assertEquals(true, person.getDob() instanceof Instant));
+	}
+
+	@Test
+	void test_011() {
+		final var response = case001.get011();
+
+		Assertions.assertEquals(true, response instanceof HttpResponse);
+		Assertions.assertEquals(true, response.body() instanceof Person);
+	}
+
+	@Test
+	void test_012() throws Exception {
+		final var future = case001.get010();
+
+		Assertions.assertEquals(true, future instanceof CompletableFuture);
+		Assertions.assertEquals(true, future.get() instanceof Person);
+	}
+
+	@Test
+	void test_013() throws Exception {
+		final var future = case001.get009();
+
+		Assertions.assertEquals(true, future instanceof CompletableFuture);
+
+		final var list = future.get();
+		Assertions.assertEquals(true, list instanceof List);
+
+		list.forEach(person -> Assertions.assertEquals(true, person instanceof Person));
 	}
 }
