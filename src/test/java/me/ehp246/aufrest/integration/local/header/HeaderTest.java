@@ -1,12 +1,14 @@
 package me.ehp246.aufrest.integration.local.header;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
@@ -16,11 +18,15 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, properties = {
-		"echo.base = https://postman-echo.com" }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class HeaderTest {
 	@Autowired
-	private AutowireCapableBeanFactory factory;
+	private TestCase001 case001;
+
+	@AfterAll
+	static void afterAll() {
+		HeaderContext.remove();
+	}
 
 	@BeforeEach
 	void clear() {
@@ -30,53 +36,96 @@ class HeaderTest {
 	@Test
 	void header_001() {
 		final var value = UUID.randomUUID().toString();
-		final var response = factory.getBean(TestCase001.class).get("x-aufrest-id", value);
 
-		Assertions.assertEquals(value, response.get(0));
-//		Assertions.assertEquals("3", response.getHeaders().get(AppConfig.HEADERS.get(1)));
+		Assertions.assertEquals(value, case001.get(value).get("x-req-id").get(0), "Should have request header");
 	}
 
 	@Test
-	void headers_001() {
-		final var value = UUID.randomUUID().toString();
-		// final var response = factory.getBean(TestCase001.class).get(value);
+	void header_002() {
+		final var headers = case001.get();
 
-//		Assertions.assertEquals(value, response.getHeaders().get("x-aufrest-trace-id"));
-//		Assertions.assertEquals("3", response.getHeaders().get(AppConfig.HEADERS.get(1)));
+		Assertions.assertEquals(AppConfig.VALUES.get(0), headers.get(AppConfig.NAMES.get(0)).get(0));
+		Assertions.assertEquals(AppConfig.VALUES.get(1), headers.get(AppConfig.NAMES.get(1)).get(0));
+		Assertions.assertEquals(AppConfig.VALUES.get(2), headers.get(AppConfig.NAMES.get(1)).get(1));
 	}
 
 	@Test
-	void headers_002() {
+	void header_003() {
 		final var value = UUID.randomUUID().toString();
 
-		HeaderContext.add("x-aufrest-trace-id", value);
+		HeaderContext.set("x-req-id", value);
 
-		// final var response = factory.getBean(TestCase001.class).get();
+		var headers = case001.get();
+		Assertions.assertEquals(1, headers.get("x-req-id").size());
+		Assertions.assertEquals(value, headers.get("x-req-id").get(0));
 
-//		Assertions.assertEquals(value, response.getHeaders().get("x-aufrest-trace-id"));
-//		Assertions.assertEquals("3", response.getHeaders().get(AppConfig.HEADERS.get(1)));
+		/**
+		 * Should add to the list.
+		 */
+		HeaderContext.add("x-req-id", value);
+
+		headers = case001.get();
+		Assertions.assertEquals(2, headers.get("x-req-id").size());
+		Assertions.assertEquals(value, headers.get("x-req-id").get(0));
+		Assertions.assertEquals(value, headers.get("x-req-id").get(1));
 	}
 
+	/**
+	 * Request should overwrite Context
+	 */
 	@Test
-	void headers_003() {
-		HeaderContext.add("x-aufrest-trace-id", UUID.randomUUID().toString());
-
+	void header_004() {
 		final var value = UUID.randomUUID().toString();
 
-		// final var response = factory.getBean(TestCase001.class).get(value);
+		HeaderContext.set("x-req-id", UUID.randomUUID().toString());
 
-//		Assertions.assertEquals(value, response.getHeaders().get("x-aufrest-trace-id"));
-//		Assertions.assertEquals("3", response.getHeaders().get(AppConfig.HEADERS.get(1)));
+		Assertions.assertEquals(1, case001.get(value).get("x-req-id").size());
+		Assertions.assertEquals(value, case001.get(value).get("x-req-id").get(0));
+	}
+
+	/**
+	 * Context should overwrite Provider
+	 */
+	@Test
+	void header_005() {
+		final var name = AppConfig.NAMES.get(0);
+
+		HeaderContext.set(name, UUID.randomUUID().toString());
+
+		final var headers = case001.get();
+
+		Assertions.assertEquals(1, headers.get(name).size());
+		Assertions.assertEquals(HeaderContext.values(name).get(0), headers.get(name).get(0));
+	}
+
+	/**
+	 * Request should overwrite all
+	 */
+	@Test
+	void header_006() {
+		// Set implicitly by Provider
+		final var name = AppConfig.NAMES.get(1);
+		final var value = UUID.randomUUID().toString();
+
+		// Set on Context
+		HeaderContext.set(name, UUID.randomUUID().toString());
+
+		// Set on Request
+		final var values = case001.get(Map.of(name, List.of(value))).get(name);
+
+		Assertions.assertEquals(1, values.size());
+		Assertions.assertEquals(value, values.get(0));
 	}
 
 	@Test
-	void header_map_004() {
-		final var bean = factory.getBean(TestCase001.class);
+	void header_map_001() {
+		final var headers = case001.get(Map.of("h1", List.of("1", "2", "3"), "h2", List.of("4")));
 
-		// final var body = bean.get(Map.of("h1", List.of("1", "2", "3"), "h2",
-		// List.of("4")));
-
-//		Assertions.assertEquals("1, 2, 3", body.getHeaders().get("h1"));
-//		Assertions.assertEquals("4", body.getHeaders().get("h2"));
+		Assertions.assertEquals(3, headers.get("h1").size());
+		Assertions.assertEquals("1", headers.get("h1").get(0));
+		Assertions.assertEquals("2", headers.get("h1").get(1));
+		Assertions.assertEquals("3", headers.get("h1").get(2));
+		Assertions.assertEquals(1, headers.get("h2").size());
+		Assertions.assertEquals("4", headers.get("h2").get(0));
 	}
 }

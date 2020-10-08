@@ -178,7 +178,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private HttpRequest.Builder newRequestBuilder(final Request req) {
 		final var builder = reqBuilderSupplier.get();
 
-		// Provider headers, Context headers, request headers
+		// Provider headers, context headers, request headers in ascending priorities.
 		fillAppHeaders(builder, Stream
 				.of(new HashMap<String, List<String>>(
 						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),
