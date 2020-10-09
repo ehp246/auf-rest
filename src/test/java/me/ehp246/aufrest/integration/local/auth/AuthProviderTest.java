@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.local.auth;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 
 /**
  * @author Lei Yang
@@ -19,6 +21,11 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 class AuthProviderTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;
+
+	@BeforeAll
+	static void clear() {
+		HeaderContext.remove();
+	}
 
 	@Test
 	void basic_auth_001() {

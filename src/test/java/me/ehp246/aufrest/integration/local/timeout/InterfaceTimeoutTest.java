@@ -13,7 +13,7 @@ import org.springframework.test.context.TestPropertySource;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.AppConfig01.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "me.ehp246.aufrest.responseTimeout=PT0.01S", "api.request.timeout=PT0.5S" })
 class InterfaceTimeoutTest {
 	@Autowired
