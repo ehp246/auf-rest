@@ -135,7 +135,7 @@ public class ByRestFactory {
 
 	private static List<Class<?>> bodyType(final List<Class<?>> types) {
 		if (types.size() == 0) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
 		}
 
 		final var head = types.get(0);

@@ -3,6 +3,7 @@ package me.ehp246.aufrest.integration.local.header;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -117,6 +118,27 @@ class HeaderTest {
 		Assertions.assertEquals(value, values.get(0));
 	}
 
+	/**
+	 * Context should propagate to the execution thread and be sent with the
+	 * request, then cleared from the execution thread before the invocation
+	 * returns;
+	 */
+	@Test
+	void header_007() throws Exception {
+		final var name = UUID.randomUUID().toString();
+		HeaderContext.set(name, UUID.randomUUID().toString());
+
+		final var ref = new AtomicReference<Map<String, List<String>>>();
+
+		final var returned = case001.getAsFuture().thenApply(headers -> {
+			ref.set(HeaderContext.map());
+			return headers;
+		}).get();
+
+		Assertions.assertEquals(0, ref.get().size());
+		Assertions.assertEquals(HeaderContext.values(name).get(0), returned.get(name).get(0));
+	}
+
 	@Test
 	void header_map_001() {
 		final var headers = case001.get(Map.of("h1", List.of("1", "2", "3"), "h2", List.of("4")));
@@ -128,4 +150,5 @@ class HeaderTest {
 		Assertions.assertEquals(1, headers.get("h2").size());
 		Assertions.assertEquals("4", headers.get("h2").get(0));
 	}
+
 }

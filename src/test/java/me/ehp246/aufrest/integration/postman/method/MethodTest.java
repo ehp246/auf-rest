@@ -167,12 +167,6 @@ class MethodTest {
 	}
 
 	@Test
-	void timeout001() {
-		Assertions.assertThrows(RuntimeException.class, factory.getBean(EchoTimeoutTestCase.class)::get,
-				"Can you complete it in one millisecond?");
-	}
-
-	@Test
 	void header_context_001() {
 		final var newInstance = factory.getBean(EchoGetTestCase001.class);
 

@@ -27,7 +27,6 @@ import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
@@ -92,35 +91,6 @@ class ByRestInvocation implements Request {
 						e -> InvocationUtil
 								.invoke(() -> List.of(URLEncoder.encode(e.getValue().toString(), "UTF-8")))))))
 				.buildAndExpand(pathParams).toUriString();
-	}
-
-	@Override
-	public Receiver bodyReceiver() {
-		final var annos = invoked.getMethodDeclaredAnnotations();
-		final var returnType = invoked.getReturnType();
-
-		if (returnType.isAssignableFrom(HttpResponse.class)) {
-
-		}
-
-		return new Receiver() {
-			private final List<Class<?>> reifying = annos.stream()
-					.filter(anno -> anno.annotationType() == Reifying.class).findAny()
-					.map(anno -> ((Reifying) anno).value())
-					.map(value -> value.length == 0 ? new Class<?>[] { String.class } : value).map(List::of)
-					.orElseGet(ArrayList::new);
-
-			@Override
-			public List<? extends Annotation> annotations() {
-				return annos;
-			}
-
-			@Override
-			public Class<?> type() {
-				return returnType;
-			}
-
-		};
 	}
 
 	@Override
