@@ -1,8 +1,8 @@
-package me.ehp246.aufrest.integration.postman;
+package me.ehp246.aufrest.core.byrest;
 
 import java.util.Map;
 
-public interface EchoResponseBody {
+interface EchoResponseBody {
 	Map<String, String> getArgs();
 
 	Map<String, String> getHeaders();

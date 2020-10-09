@@ -1,6 +1,4 @@
-package me.ehp246.aufrest.integration.postman.method;
-
-import java.util.Map;
+package me.ehp246.aufrest.integration.postman.auth;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +17,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
  */
 @SpringBootTest(classes = { PostmanApp.class }, properties = { "echo.base = https://postman-echo.com",
 		"me.ehp246.aufrest.connectTimeout=PT50S", "me.ehp246.aufrest.responseTimeout=PT50S" })
-class MethodTest {
+class AuthTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;
 
@@ -34,55 +32,6 @@ class MethodTest {
 
 		Assertions.assertEquals(50000, bean.connectTimeout().toMillis());
 		Assertions.assertEquals(50000, bean.responseTimeout().toMillis());
-	}
-
-	@Test
-	void post_001() {
-		final var newInstance = factory.getBean(EchoPostTestCase001.class);
-
-		final var response = newInstance.post("1234");
-
-		Assertions.assertEquals("\"1234\"", response.getData());
-	}
-
-	@Test
-	void post_002() {
-		final var newInstance = factory.getBean(EchoPostTestCase001.class);
-
-		final var response = newInstance.post(Map.of("firstName", "Rest", "lastName", "Auf"));
-
-		Assertions.assertEquals("Rest", response.getJson().get("firstName"));
-		Assertions.assertEquals("Auf", response.getJson().get("lastName"));
-	}
-
-	@Test
-	void put_001() {
-		final var newInstance = factory.getBean(EchoPutTestCase001.class);
-
-		final var response = newInstance.put(Map.of("firstName", "Rest", "lastName", "Auf"));
-
-		Assertions.assertEquals("Rest", response.getJson().get("firstName"));
-		Assertions.assertEquals("Auf", response.getJson().get("lastName"));
-	}
-
-	@Test
-	void patch001() {
-		final var newInstance = factory.getBean(EchoPatchTestCase001.class);
-
-		final var response = newInstance.patch(Map.of("firstName", "Rest", "lastName", "Auf"));
-
-		Assertions.assertEquals("Rest", response.getJson().get("firstName"));
-		Assertions.assertEquals("Auf", response.getJson().get("lastName"));
-	}
-
-	@Test
-	void delete001() {
-		final var newInstance = factory.getBean(EchoDeleteTestCase001.class);
-
-		final var response = newInstance.delete(Map.of("firstName", "Rest", "lastName", "Auf"));
-
-		Assertions.assertEquals("Rest", response.getJson().get("firstName"));
-		Assertions.assertEquals("Auf", response.getJson().get("lastName"));
 	}
 
 	@Test

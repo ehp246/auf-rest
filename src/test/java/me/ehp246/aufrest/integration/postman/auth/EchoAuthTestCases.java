@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.postman.method;
+package me.ehp246.aufrest.integration.postman.auth;
 
 import java.net.http.HttpResponse;
 import java.util.Map;
