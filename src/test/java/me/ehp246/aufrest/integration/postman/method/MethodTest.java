@@ -1,9 +1,6 @@
 package me.ehp246.aufrest.integration.postman.method;
 
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
-import me.ehp246.aufrest.integration.postman.EchoResponseBody;
 
 /**
  * @author Lei Yang
@@ -38,38 +34,6 @@ class MethodTest {
 
 		Assertions.assertEquals(50000, bean.connectTimeout().toMillis());
 		Assertions.assertEquals(50000, bean.responseTimeout().toMillis());
-	}
-
-	@Test
-	void get_003() {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
-		newInstance.getVoid();
-
-		final var response = newInstance.getVoid2();
-
-		Assertions.assertEquals(true, response == null);
-	}
-
-	@Test
-	void get_005() throws InterruptedException, ExecutionException {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
-		final var response = newInstance.getAsEchoBody();
-
-		Assertions.assertEquals(true, response instanceof EchoResponseBody);
-		Assertions.assertEquals("https://postman-echo.com/get", response.getUrl());
-	}
-
-	@Test
-	void get_006() {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
-		final var id = UUID.randomUUID().toString();
-		final var response = newInstance.getAsEchoBody(id);
-
-		final var headers = response.getHeaders();
-		Assertions.assertEquals(id, headers.get("x-auf-rest-id"));
 	}
 
 	@Test
@@ -166,42 +130,4 @@ class MethodTest {
 		Assertions.assertEquals(true, newInstance.get().get("authenticated"));
 	}
 
-	@Test
-	void header_context_001() {
-		final var newInstance = factory.getBean(EchoGetTestCase001.class);
-
-		final var name = UUID.randomUUID().toString();
-		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-
-		HeaderContext.add(name, values.get(0));
-
-		var response = newInstance.getAsEchoBody();
-
-		Assertions.assertEquals(values.get(0), response.getHeaders().get(name), "should have the single value");
-
-		HeaderContext.add(name, values.get(1));
-
-		response = newInstance.getAsEchoBody();
-
-		Assertions.assertEquals(values.get(0) + ", " + values.get(1), response.getHeaders().get(name),
-				"should have both values");
-
-		HeaderContext.remove();
-
-		response = newInstance.getAsEchoBody();
-
-		Assertions.assertEquals(null, response.getHeaders().get(name), "should have no value");
-	}
-
-	@Test
-	void header_context_002() {
-		final var name = "x-auf-rest-id";
-		final var values = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-
-		HeaderContext.add(name, values.get(0));
-
-		final var response = factory.getBean(EchoGetTestCase001.class).getAsEchoBody(values.get(1));
-
-		Assertions.assertEquals(values.get(1), response.getHeaders().get(name), "should be overwritten by request");
-	}
 }
