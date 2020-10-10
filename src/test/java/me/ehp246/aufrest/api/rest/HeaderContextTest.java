@@ -19,14 +19,14 @@ import org.junit.jupiter.api.Test;
 class HeaderContextTest {
 	@BeforeEach
 	void beforeEach() {
-		HeaderContext.remove();
+		HeaderContext.clear();
 	}
 
 	@BeforeAll
 	@AfterAll
 	static void clear() {
 		// To avoid polluting the thread in Maven test.
-		HeaderContext.remove();
+		HeaderContext.clear();
 	}
 
 	@Test
@@ -176,7 +176,7 @@ class HeaderContextTest {
 		HeaderContext.add("x-trace-id", "1");
 		HeaderContext.add("x-trace-id-1", "1");
 
-		HeaderContext.remove();
+		HeaderContext.clear();
 
 		Assertions.assertEquals(0, HeaderContext.map().size());
 	}

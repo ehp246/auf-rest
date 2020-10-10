@@ -124,7 +124,7 @@ public class HeaderContext {
 	 * @param headers
 	 */
 	public static void set(final Map<String, List<String>> headers) {
-		remove();
+		clear();
 		merge(headers);
 	}
 
@@ -141,9 +141,9 @@ public class HeaderContext {
 	}
 
 	/**
-	 * Remove all names and values from the thread context.
+	 * Clear and remove all names and values from the thread context.
 	 */
-	public static void remove() {
+	public static void clear() {
 		CONTEXT.threadHeaders.remove();
 	}
 }

@@ -26,12 +26,12 @@ class HeaderTest {
 
 	@AfterAll
 	static void afterAll() {
-		HeaderContext.remove();
+		HeaderContext.clear();
 	}
 
 	@BeforeEach
 	void clear() {
-		HeaderContext.remove();
+		HeaderContext.clear();
 	}
 
 	@Test

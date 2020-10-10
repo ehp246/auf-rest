@@ -166,7 +166,7 @@ class ByRestInvocation implements Request {
 					}
 					return httpResponse.body();
 				} finally {
-					HeaderContext.remove();
+					HeaderContext.clear();
 				}
 			});
 		}

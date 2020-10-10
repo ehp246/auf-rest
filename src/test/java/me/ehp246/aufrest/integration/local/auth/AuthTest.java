@@ -22,7 +22,7 @@ class AuthTest {
 
 	@BeforeAll
 	static void clear() {
-		HeaderContext.remove();
+		HeaderContext.clear();
 	}
 
 	@Test
