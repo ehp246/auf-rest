@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import me.ehp246.aufrest.core.util.Utils;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * Unless otherwise documented, the names are required and can't be
@@ -17,8 +17,7 @@ import me.ehp246.aufrest.core.util.Utils;
  * out and dropped.
  *
  * @author Lei Yang
- * @since 1.1.0
- *
+ * @since 2.0
  */
 public class HeaderContext {
 	private final static HeaderContext CONTEXT = new HeaderContext();
@@ -36,6 +35,9 @@ public class HeaderContext {
 	 * @return
 	 */
 	private static List<String> listOf(final String name) {
+		if (!OneUtil.hasValue(name)) {
+			throw new IllegalArgumentException("Invalid header name: " + name);
+		}
 		return CONTEXT.threadHeaders.get().computeIfAbsent(name.toLowerCase(Locale.US), key -> new ArrayList<>());
 	}
 
@@ -79,7 +81,7 @@ public class HeaderContext {
 	 * @param values <code>null</code> is no-op.
 	 */
 	public static void add(final String name, final List<String> values) {
-		listOf(name).addAll(Utils.listValues(Objects.requireNonNull(values)));
+		listOf(name).addAll(OneUtil.listValues(Objects.requireNonNull(values)));
 	}
 
 	/**
@@ -94,8 +96,8 @@ public class HeaderContext {
 	 * @param headers Can not be <code>null</code>.
 	 */
 	public static void merge(final Map<String, List<String>> headers) {
-		headers.entrySet().stream().filter(entry -> Utils.hasValue(entry.getKey()))
-				.forEach(entry -> listOf(entry.getKey()).addAll(Utils.listValues(entry.getValue())));
+		headers.entrySet().stream().filter(entry -> OneUtil.hasValue(entry.getKey()))
+				.forEach(entry -> listOf(entry.getKey()).addAll(OneUtil.listValues(entry.getValue())));
 	}
 
 	/**
@@ -113,7 +115,7 @@ public class HeaderContext {
 	public static void set(final String name, final List<String> values) {
 		final var list = listOf(name);
 		list.clear();
-		list.addAll(Utils.listValues(values));
+		list.addAll(OneUtil.listValues(values));
 	}
 
 	/**
@@ -122,7 +124,7 @@ public class HeaderContext {
 	 * @param headers
 	 */
 	public static void set(final Map<String, List<String>> headers) {
-		remove();
+		clear();
 		merge(headers);
 	}
 
@@ -132,13 +134,16 @@ public class HeaderContext {
 	 * @param name Required non-<code>null</code>
 	 */
 	public static void remove(final String name) {
+		if (!OneUtil.hasValue(name)) {
+			return;
+		}
 		CONTEXT.threadHeaders.get().remove(name.toLowerCase(Locale.US));
 	}
 
 	/**
-	 * Remove all names and values from the thread context.
+	 * Clear and remove all names and values from the thread context.
 	 */
-	public static void remove() {
+	public static void clear() {
 		CONTEXT.threadHeaders.remove();
 	}
 }

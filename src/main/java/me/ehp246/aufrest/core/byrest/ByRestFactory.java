@@ -26,7 +26,7 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
-import me.ehp246.aufrest.core.util.Utils;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  *
@@ -53,9 +53,8 @@ public class ByRestFactory {
 		LOGGER.debug("Instantiating {}@ByRest", byRestInterface.getCanonicalName());
 
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
-		final var timeout = byRest.map(ByRest::timeout).filter(Utils::hasValue)
-				.map(text -> env.resolveRequiredPlaceholders(text))
-				.map(text -> Utils.orThrow(() -> Duration.parse(text),
+		final var timeout = byRest.map(ByRest::timeout).map(text -> env.resolveRequiredPlaceholders(text))
+				.filter(OneUtil::hasValue).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
 		final Optional<Supplier<String>> localAuthSupplier = byRest.map(ByRest::auth).map(auth -> {
@@ -136,7 +135,7 @@ public class ByRestFactory {
 
 	private static List<Class<?>> bodyType(final List<Class<?>> types) {
 		if (types.size() == 0) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
 		}
 
 		final var head = types.get(0);

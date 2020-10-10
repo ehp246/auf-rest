@@ -33,7 +33,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.core.util.AnnotationUtils;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * For each call to return a HTTP client, the provider should ask the
@@ -109,7 +109,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 				// Timeout
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
-						.map(requestBuilder::timeout);
+						.ifPresent(timeout -> requestBuilder.timeout(timeout));
 
 				// Authentication
 				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
@@ -122,6 +122,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				try {
 					httpResponse = client.send(httpRequest, bodyHandler(req));
 				} catch (IOException | InterruptedException e) {
+					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					throw new RuntimeException(e);
 				}
 
@@ -144,7 +145,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 						LOGGER.atTrace().log("Body: {}", json);
 
 						if (responseInfo.statusCode() >= 300
-								|| AnnotationUtils.contains(receiver.annotations(), AsIs.class)) {
+								|| OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
 							return json;
 						}
 
@@ -177,7 +178,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private HttpRequest.Builder newRequestBuilder(final Request req) {
 		final var builder = reqBuilderSupplier.get();
 
-		// Provider headers, Context headers, request headers
+		// Provider headers, context headers, request headers in ascending priorities.
 		fillAppHeaders(builder, Stream
 				.of(new HashMap<String, List<String>>(
 						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),

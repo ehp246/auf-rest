@@ -6,7 +6,7 @@ package me.ehp246.aufrest.api.rest;
  * The class does not allow empty/blank token.
  *
  * @author Lei Yang
- * @since 1.1
+ * @since 2.0
  */
 public class BearerToken {
 	private final String value;

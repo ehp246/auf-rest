@@ -7,7 +7,7 @@ import java.util.Map;
  * The abstraction of a HTTP message. It can be a request or a response.
  *
  * @author Lei Yang
- * @since 1.1.0
+ * @since 1.0
  */
 public interface Message {
 	default Object body() {

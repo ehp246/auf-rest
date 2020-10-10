@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
-import me.ehp246.aufrest.core.util.InvocationUtil;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
@@ -38,7 +38,7 @@ public class JsonByJackson {
 		 * value.toString(); }
 		 */
 
-		return InvocationUtil.invoke(() -> this.objectMapper.writeValueAsString(value));
+		return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
 	}
 
 	public Object fromText(final String json, final Receiver receiver) {

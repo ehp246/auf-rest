@@ -23,7 +23,7 @@ import java.util.Map;
  *
  *
  * @author Lei Yang
- * @since 1.1
+ * @since 2.0
  */
 @FunctionalInterface
 public interface HeaderProvider {

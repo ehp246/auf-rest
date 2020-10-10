@@ -6,7 +6,6 @@ import java.util.concurrent.CompletableFuture;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.Reifying;
-import me.ehp246.aufrest.integration.postman.EchoResponseBody;
 
 /**
  * @author Lei Yang
