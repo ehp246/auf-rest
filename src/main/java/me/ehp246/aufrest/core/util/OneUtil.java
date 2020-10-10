@@ -1,8 +1,10 @@
 package me.ehp246.aufrest.core.util;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -13,8 +15,8 @@ import java.util.stream.Stream;
  * @author Lei Yang
  *
  */
-public class Utils {
-	private Utils() {
+public class OneUtil {
+	private OneUtil() {
 		super();
 	}
 
@@ -23,7 +25,7 @@ public class Utils {
 	}
 
 	public static Stream<String> streamValues(final Collection<String> values) {
-		return Optional.ofNullable(values).orElseGet(ArrayList::new).stream().filter(Utils::hasValue);
+		return Optional.ofNullable(values).orElseGet(ArrayList::new).stream().filter(OneUtil::hasValue);
 	}
 
 	public static List<String> listValues(final Collection<String> values) {
@@ -61,5 +63,15 @@ public class Utils {
 		} catch (final Exception e) {
 			throw fn.apply(e);
 		}
+	}
+
+	public static boolean isPresent(final List<? extends Annotation> annos, final Class<? extends Annotation> type) {
+		return OneUtil.filter(annos, type).findAny().isPresent();
+	}
+
+	public static Stream<? extends Annotation> filter(final List<? extends Annotation> annos,
+			final Class<? extends Annotation> type) {
+		return Optional.ofNullable(annos).filter(Objects::nonNull).orElseGet(ArrayList::new).stream()
+				.filter(anno -> anno.annotationType() == type);
 	}
 }

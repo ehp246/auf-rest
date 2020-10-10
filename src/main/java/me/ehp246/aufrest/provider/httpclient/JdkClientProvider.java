@@ -33,7 +33,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.core.util.AnnotationUtils;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * For each call to return a HTTP client, the provider should ask the
@@ -145,7 +145,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 						LOGGER.atTrace().log("Body: {}", json);
 
 						if (responseInfo.statusCode() >= 300
-								|| AnnotationUtils.contains(receiver.annotations(), AsIs.class)) {
+								|| OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
 							return json;
 						}
 

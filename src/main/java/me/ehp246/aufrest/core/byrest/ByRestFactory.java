@@ -26,7 +26,7 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
-import me.ehp246.aufrest.core.util.Utils;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  *
@@ -54,7 +54,7 @@ public class ByRestFactory {
 
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
 		final var timeout = byRest.map(ByRest::timeout).map(text -> env.resolveRequiredPlaceholders(text))
-				.filter(Utils::hasValue).map(text -> Utils.orThrow(() -> Duration.parse(text),
+				.filter(OneUtil::hasValue).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
 		final Optional<Supplier<String>> localAuthSupplier = byRest.map(ByRest::auth).map(auth -> {

@@ -30,7 +30,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
-import me.ehp246.aufrest.core.util.InvocationUtil;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
@@ -87,9 +87,8 @@ class ByRestInvocation implements Request {
 
 		return UriComponentsBuilder.fromUriString(base + path).queryParams(CollectionUtils.toMultiValueMap(queryParams
 				.entrySet().stream()
-				.collect(Collectors.toMap(e -> InvocationUtil.invoke(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
-						e -> InvocationUtil
-								.invoke(() -> List.of(URLEncoder.encode(e.getValue().toString(), "UTF-8")))))))
+				.collect(Collectors.toMap(e -> OneUtil.orThrow(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
+						e -> OneUtil.orThrow(() -> List.of(URLEncoder.encode(e.getValue().toString(), "UTF-8")))))))
 				.buildAndExpand(pathParams).toUriString();
 	}
 

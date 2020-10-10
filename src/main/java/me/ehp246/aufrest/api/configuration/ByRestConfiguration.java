@@ -18,7 +18,7 @@ import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.TextContentConsumer;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
-import me.ehp246.aufrest.core.util.Utils;
+import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
@@ -53,26 +53,26 @@ public class ByRestConfiguration {
 					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 					.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-			var module = Utils
+			var module = OneUtil
 					.orElse(() -> Class.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule.JavaTimeModule")
 							.getDeclaredConstructor((Class<?>[]) null).newInstance(), null);
 
 			Optional.ofNullable(module).map(m -> newMapper.registerModule((com.fasterxml.jackson.databind.Module) m));
 
-			module = Utils.orElse(() -> Class.forName("com.fasterxml.jackson.module.mrbean.MrBeanModule")
+			module = OneUtil.orElse(() -> Class.forName("com.fasterxml.jackson.module.mrbean.MrBeanModule")
 					.getDeclaredConstructor((Class<?>[]) null).newInstance(), null);
 
 			Optional.ofNullable(module).map(m -> newMapper.registerModule((com.fasterxml.jackson.databind.Module) m));
 			return objectMapper;
 		}));
 
-		final var connTimeout = Optional.ofNullable(connectTimeout).filter(Utils::hasValue)
-				.map(value -> Utils.orThrow(() -> Duration.parse(value),
+		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
+				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
 				.orElse(null);
 
-		final var responseTimeout = Optional.ofNullable(requestTimeout).filter(Utils::hasValue)
-				.map(value -> Utils.orThrow(() -> Duration.parse(value),
+		final var responseTimeout = Optional.ofNullable(requestTimeout).filter(OneUtil::hasValue)
+				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Response Timeout: " + value)))
 				.orElse(null);
 
