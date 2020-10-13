@@ -11,5 +11,5 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 @ByRest("http://localhost:${local.server.port}/returntype")
 interface TextTestCase001 {
 	@OfMapping(value = "/instant", consumes = HttpUtils.TEXT_PLAIN)
-	String get001();
+	String get();
 }
