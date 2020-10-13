@@ -51,4 +51,10 @@ class ReturnTypeController {
 	List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
 		return IntStream.range(0, count).mapToObj(i -> (Person) Instant::now).collect(Collectors.toList());
 	}
+
+	// Text
+	@GetMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE)
+	String getInstantAsString() {
+		return Instant.now().toString();
+	}
 }

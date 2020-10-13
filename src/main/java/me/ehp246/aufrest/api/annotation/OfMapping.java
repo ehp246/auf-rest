@@ -18,6 +18,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  *
  * @author Lei Yang
  * @since 1.0
+ * @version 2.0.1
  * @see ByRest
  */
 @Retention(RUNTIME)
@@ -43,4 +44,5 @@ public @interface OfMapping {
 	 */
 	String produces() default HttpUtils.APPLICATION_JSON;
 
+	String consumes() default HttpUtils.APPLICATION_JSON;
 }

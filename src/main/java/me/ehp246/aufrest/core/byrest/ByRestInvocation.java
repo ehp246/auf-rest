@@ -65,6 +65,11 @@ class ByRestInvocation implements Request {
 				.orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 	}
 
+	@Override
+	public String accept() {
+		return ofMapping.map(OfMapping::consumes).orElseGet(Request.super::accept);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public String uri() {
