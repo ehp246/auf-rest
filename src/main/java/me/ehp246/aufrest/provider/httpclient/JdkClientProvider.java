@@ -53,6 +53,11 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private final Optional<HeaderProvider> headerProvider;
 	private final ClientConfig clientConfig;
 
+	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier) {
+		this(clientBuilderSupplier, HttpRequest::newBuilder, new ClientConfig() {
+		}, null, null);
+	}
+
 	public JdkClientProvider(final ClientConfig clientConfig) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null, null);
 	}
@@ -82,9 +87,9 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		super();
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;
+		this.clientConfig = clientConfig;
 		this.authProvider = Optional.ofNullable(authProvider);
 		this.headerProvider = Optional.ofNullable(headerProvider);
-		this.clientConfig = clientConfig;
 	}
 
 	@Override
@@ -144,8 +149,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), json -> {
 						LOGGER.atTrace().log("Body: {}", json);
 
-						if (responseInfo.statusCode() >= 300
-								|| OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
+						if (responseInfo.statusCode() >= 300 || OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
 							return json;
 						}
 
@@ -186,12 +190,14 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				.map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
 						Map.Entry::getValue, (left, right) -> right)));
 
-		// Content-Type
-		builder.setHeader(HttpUtils.CONTENT_TYPE,
-				Optional.ofNullable(req.contentType()).orElse(HttpUtils.APPLICATION_JSON));
+		/**
+		 * Required headers. Null and blank not allowed.
+		 */
+		// Content-Type.
+		builder.setHeader(HttpUtils.CONTENT_TYPE, Optional.of(req.contentType()).filter(OneUtil::hasValue).get());
 
-		// Accept
-		builder.setHeader(HttpUtils.ACCEPT, Optional.ofNullable(req.accept()).orElse(HttpUtils.APPLICATION_JSON));
+		// Accept.
+		builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
 
 		return builder;
 	}

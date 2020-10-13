@@ -44,24 +44,6 @@ class JdkClientProviderTest {
 			requestBuilderCallCountRef);
 
 	private final HttpClient client = Mockito.mock(HttpClient.class);
-	private final Supplier<HttpClient.Builder> clientBuilderSupplier = () -> {
-		clientBuilderCallCountRef.getAndUpdate(i -> i == null ? 1 : ++i);
-		try {
-			Mockito.when(client.send(Mockito.any(), Mockito.any())).then(invocation -> {
-				reqRef.set(invocation.getArgument(0));
-				return new MockResponse<>();
-			});
-		} catch (IOException | InterruptedException e) {
-			throw new RuntimeException();
-		}
-		final var builder = Mockito.mock(HttpClient.Builder.class);
-		Mockito.when(builder.build()).thenReturn(client);
-		Mockito.when(builder.connectTimeout(Mockito.any())).then(invocation -> {
-			connectTimeoutRef.set(invocation.getArgument(0));
-			return builder;
-		});
-		return builder;
-	};
 
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 			CALLS_REAL_METHODS);
@@ -565,4 +547,49 @@ class JdkClientProviderTest {
 		Assertions.assertEquals("EN", accept.get(0));
 	}
 
+	@Test
+	void conneg_test001() {
+		clientProvider.get().apply(() -> "http://nowhere");
+
+		final var contentType = reqRef.get().headers().map().get("content-type");
+
+		Assertions.assertEquals(1, contentType.size());
+		Assertions.assertEquals("application/json", contentType.get(0));
+
+		final var accept = reqRef.get().headers().map().get("accept");
+
+		Assertions.assertEquals(1, accept.size());
+		Assertions.assertEquals("application/json", accept.get(0));
+	}
+
+	@Test
+	void conneg_test002() {
+		clientProvider.get().apply(new Request() {
+			@Override
+			public String uri() {
+				return "http://nowhere";
+			}
+
+			@Override
+			public String contentType() {
+				return "produce this";
+			}
+
+			@Override
+			public String accept() {
+				return "consume that";
+			}
+
+		});
+
+		final var contentType = reqRef.get().headers().map().get("content-type");
+
+		Assertions.assertEquals(1, contentType.size());
+		Assertions.assertEquals("produce this", contentType.get(0));
+
+		final var accept = reqRef.get().headers().map().get("accept");
+
+		Assertions.assertEquals(1, accept.size());
+		Assertions.assertEquals("consume that", accept.get(0));
+	}
 }
