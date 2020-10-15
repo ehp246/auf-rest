@@ -23,11 +23,4 @@ public interface ClientConfig {
 		}
 		return null;
 	}
-
-	default TextContentConsumer contentConsumer(final String mediaType) {
-		if (HttpUtils.TEXT_PLAIN.equalsIgnoreCase(mediaType)) {
-			return (text, receiver) -> text;
-		}
-		return null;
-	}
 }

@@ -5,8 +5,7 @@ package me.ehp246.aufrest.api.rest;
  * into an Java object of specified type.
  *
  * @author Lei Yang
- * @since 1.0
  */
-public interface TextContentConsumer {
-	Object consume(String text, Receiver receiver);
+public interface BodyConsumer {
+	Object consume(Object body, Receiver receiver);
 }

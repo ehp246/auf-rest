@@ -44,5 +44,8 @@ public @interface OfMapping {
 	 */
 	String produces() default HttpUtils.APPLICATION_JSON;
 
-	String consumes() default HttpUtils.APPLICATION_JSON;
+	/**
+	 * Defines the Accept header. Usually derived by the return type of the method.
+	 */
+	String consumes() default "";
 }

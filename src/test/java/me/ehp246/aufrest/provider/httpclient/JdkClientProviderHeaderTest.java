@@ -69,7 +69,7 @@ class JdkClientProviderHeaderTest {
 		};
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
+				r -> Map.of(name, List.of(UUID.randomUUID().toString())), null).get().apply(req);
 
 		final var headers = reqRef.get().headers().map().get(name);
 
@@ -93,7 +93,7 @@ class JdkClientProviderHeaderTest {
 		};
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get().apply(req);
+				r -> Map.of(name, List.of(UUID.randomUUID().toString())), null).get().apply(req);
 
 		final var headers = reqRef.get().headers().map();
 
@@ -108,7 +108,7 @@ class JdkClientProviderHeaderTest {
 		final var value = UUID.randomUUID().toString();
 
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				r -> Map.of("header-provider", List.of(value))).get();
+				r -> Map.of("header-provider", List.of(value)), null).get();
 
 		clientFn.apply(new MockReq());
 
@@ -122,7 +122,7 @@ class JdkClientProviderHeaderTest {
 		final var name = UUID.randomUUID().toString();
 
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
+				r -> Map.of(name, List.of(UUID.randomUUID().toString())), null).get();
 
 		final var req = new MockReq() {
 
@@ -147,7 +147,7 @@ class JdkClientProviderHeaderTest {
 		final var value = UUID.randomUUID().toString();
 
 		final var clientFn = new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				r -> Map.of(name, List.of(UUID.randomUUID().toString()))).get();
+				r -> Map.of(name, List.of(UUID.randomUUID().toString())), null).get();
 
 		HeaderContext.set(name, value);
 
@@ -179,7 +179,7 @@ class JdkClientProviderHeaderTest {
 		HeaderContext.add(name.toLowerCase(), "2");
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				req -> Map.of(name.toLowerCase(), List.of("3"))).get().apply(new MockReq() {
+				req -> Map.of(name.toLowerCase(), List.of("3")), null).get().apply(new MockReq() {
 
 					@Override
 					public Map<String, List<String>> headers() {
@@ -198,7 +198,7 @@ class JdkClientProviderHeaderTest {
 		HeaderContext.add(name, "2");
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				req -> Map.of(name.toLowerCase(), List.of("3"))).get().apply(new MockReq());
+				req -> Map.of(name.toLowerCase(), List.of("3")), null).get().apply(new MockReq());
 
 		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
 	}
@@ -210,7 +210,7 @@ class JdkClientProviderHeaderTest {
 		HeaderContext.add(name, "2");
 
 		new JdkClientProvider(clientBuilderSupplier, HttpRequest::newBuilder, clientConfig, null,
-				req -> Map.of("merge-these", List.of("1", "2"))).get().apply(new MockReq());
+				req -> Map.of("merge-these", List.of("1", "2")), null).get().apply(new MockReq());
 
 		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
 		Assertions.assertEquals(2, reqRef.get().headers().allValues("merge-these").size());

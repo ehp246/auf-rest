@@ -84,7 +84,7 @@ class JdkClientProviderTest {
 			return builder;
 		});
 		return builder;
-	}, reqBuilderSupplier, clientConfig, authProvider, null);
+	}, reqBuilderSupplier, clientConfig, authProvider, null, null);
 
 	@BeforeEach
 	void beforeEach() {

@@ -202,6 +202,7 @@ class ReturnTypeTest {
 	void text_test_001() {
 		final var instant = textCase001.get();
 
+		Assertions.assertEquals(true, instant instanceof String);
 		Assertions.assertDoesNotThrow(() -> Instant.parse(instant));
 	}
 }

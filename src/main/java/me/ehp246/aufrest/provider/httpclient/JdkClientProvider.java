@@ -25,8 +25,8 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
+import me.ehp246.aufrest.api.rest.BodyConsumerProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HeaderContext;
@@ -52,44 +52,48 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private final Optional<AuthorizationProvider> authProvider;
 	private final Optional<HeaderProvider> headerProvider;
 	private final ClientConfig clientConfig;
+	private final Optional<BodyConsumerProvider> consumerProvider;
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier) {
 		this(clientBuilderSupplier, HttpRequest::newBuilder, new ClientConfig() {
-		}, null, null);
+		}, null, null, null);
 	}
 
 	public JdkClientProvider(final ClientConfig clientConfig) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null, null);
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null, null, null);
 	}
 
 	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, null);
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, null, null);
 	}
 
 	public JdkClientProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
 			final Supplier<HttpRequest.Builder> requestBuilderSupplier, final ClientConfig clientConfig) {
-		this(clientBuilderSupplier, requestBuilderSupplier, clientConfig, null, null);
+		this(clientBuilderSupplier, requestBuilderSupplier, clientConfig, null, null, null);
 	}
 
 	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider,
-			final HeaderProvider headerProvider) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, headerProvider);
+			final HeaderProvider headerProvider, final BodyConsumerProvider consumerProvider) {
+		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, headerProvider,
+				consumerProvider);
 	}
 
 	public JdkClientProvider(final HeaderProvider headerProvider) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, new ClientConfig() {
-		}, null, headerProvider);
+		}, null, headerProvider, null);
 	}
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
 			final Supplier<HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
-			final AuthorizationProvider authProvider, final HeaderProvider headerProvider) {
+			final AuthorizationProvider authProvider, final HeaderProvider headerProvider,
+			final BodyConsumerProvider consumerProvider) {
 		super();
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;
 		this.clientConfig = clientConfig;
 		this.authProvider = Optional.ofNullable(authProvider);
 		this.headerProvider = Optional.ofNullable(headerProvider);
+		this.consumerProvider = Optional.ofNullable(consumerProvider);
 	}
 
 	@Override
@@ -103,29 +107,29 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 			private final HttpClient client = clientBuilder.build();
 
 			@Override
-			public HttpResponse<?> apply(final Request req) {
-				final var authHeader = Optional
-						.ofNullable(Optional.ofNullable(req.authSupplier())
-								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
+			public HttpResponse<?> apply(final Request request) {
+				final var authHeader = Optional.ofNullable(Optional.ofNullable(request.authSupplier())
+						.orElse(() -> authProvider.map(provider -> provider.get(request.uri())).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
-				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
-						.uri(URI.create(req.uri()));
+				final var requestBuilder = newRequestBuilder(request)
+						.method(request.method().toUpperCase(), bodyPublisher(request)).uri(URI.create(request.uri()));
 
 				// Timeout
-				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
+				Optional.ofNullable(request.timeout() == null ? clientConfig.responseTimeout() : request.timeout())
 						.ifPresent(timeout -> requestBuilder.timeout(timeout));
 
 				// Authentication
-				Optional.ofNullable(authHeader).map(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
+				Optional.ofNullable(authHeader)
+						.ifPresent(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
 				final var httpRequest = requestBuilder.build();
-				LOGGER.atDebug().log("Request: {} {}", httpRequest.method(), req.uri());
+				LOGGER.atDebug().log("Request: {} {}", httpRequest.method(), request.uri());
 				LOGGER.atTrace().log("Headers:{}", httpRequest.headers().map());
 
 				HttpResponse<?> httpResponse;
 				try {
-					httpResponse = client.send(httpRequest, bodyHandler(req));
+					httpResponse = client.send(httpRequest, bodyHandler(request));
 				} catch (IOException | InterruptedException e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					throw new RuntimeException(e);
@@ -134,8 +138,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				return httpResponse;
 			}
 
-			private BodyHandler<?> bodyHandler(final Request req) {
-				final var receiver = req.bodyReceiver();
+			private BodyHandler<?> bodyHandler(final Request request) {
+				final var receiver = request.bodyReceiver();
 				final Class<?> type = receiver == null ? void.class : receiver.type();
 
 				if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
@@ -143,22 +147,21 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				}
 
 				return responseInfo -> {
-					LOGGER.atDebug().log("Response status: {}", responseInfo.statusCode());
+					LOGGER.atDebug().log("Status: {}", responseInfo.statusCode());
 					LOGGER.atTrace().log("Headers: {}", responseInfo.headers().map());
 
-					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), json -> {
-						LOGGER.atTrace().log("Body: {}", json);
+					// Default to UTF-8 text
+					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+						LOGGER.atTrace().log("Body: {}", text);
 
-						if (responseInfo.statusCode() >= 300 || OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
-							return json;
+						if (responseInfo.statusCode() >= 300) {
+							return text;
 						}
 
-						final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
-								.toLowerCase();
-						if (!contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-							throw new RuntimeException();
-						}
-						return clientConfig.contentConsumer(req.accept()).consume(json, receiver);
+						return consumerProvider
+								.map(provider -> provider.get(responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
+										.orElse(HttpUtils.APPLICATION_JSON).toLowerCase()))
+								.map(consumer -> consumer.consume(text, receiver)).orElse(text);
 					});
 				};
 			}

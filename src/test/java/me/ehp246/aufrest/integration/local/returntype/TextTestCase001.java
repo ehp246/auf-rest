@@ -12,4 +12,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 interface TextTestCase001 {
 	@OfMapping(value = "/instant", consumes = HttpUtils.TEXT_PLAIN)
 	String get();
+
+	@OfMapping(value = "/instant", produces = "text/plain", consumes = HttpUtils.TEXT_PLAIN)
+	String post(String text);
 }
