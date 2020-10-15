@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.Receiver;
 import me.ehp246.aufrest.api.rest.TextContentProducer;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -32,11 +33,6 @@ public class JsonByJackson {
 		if (value == null) {
 			return null;
 		}
-		/*
-		 * if (String.class.isAssignableFrom(supplier.type()) &&
-		 * AnnotationUtil.hasType(supplier.annotations(), AsIs.class)) { return
-		 * value.toString(); }
-		 */
 
 		return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
 	}
@@ -44,6 +40,10 @@ public class JsonByJackson {
 	public Object fromText(final String json, final Receiver receiver) {
 		if (receiver == null || json == null || json.isBlank()) {
 			return null;
+		}
+
+		if (OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
+			return json;
 		}
 
 		try {
