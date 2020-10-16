@@ -13,6 +13,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,13 +27,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
-import me.ehp246.aufrest.api.rest.BodyConsumerProvider;
+import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -52,7 +54,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private final Optional<AuthorizationProvider> authProvider;
 	private final Optional<HeaderProvider> headerProvider;
 	private final ClientConfig clientConfig;
-	private final Optional<BodyConsumerProvider> consumerProvider;
+	private final Map<String, BodyFn> bodyFns;
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier) {
 		this(clientBuilderSupplier, HttpRequest::newBuilder, new ClientConfig() {
@@ -72,8 +74,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		this(clientBuilderSupplier, requestBuilderSupplier, clientConfig, null, null, null);
 	}
 
-	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider,
-			final HeaderProvider headerProvider, final BodyConsumerProvider consumerProvider) {
+	public JdkClientProvider(final ClientConfig clientConfig, final Set<BodyFn> consumerProvider,
+			final AuthorizationProvider authProvider, final HeaderProvider headerProvider) {
 		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, headerProvider,
 				consumerProvider);
 	}
@@ -85,15 +87,17 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
 			final Supplier<HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
-			final AuthorizationProvider authProvider, final HeaderProvider headerProvider,
-			final BodyConsumerProvider consumerProvider) {
+			final AuthorizationProvider authProvider, final HeaderProvider headerProvider, final Set<BodyFn> readers) {
 		super();
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;
 		this.clientConfig = clientConfig;
 		this.authProvider = Optional.ofNullable(authProvider);
 		this.headerProvider = Optional.ofNullable(headerProvider);
-		this.consumerProvider = Optional.ofNullable(consumerProvider);
+		this.bodyFns = Optional.ofNullable(readers).orElseGet(HashSet::new).stream().collect(Collectors
+				.toUnmodifiableMap(reader -> reader.getContentType().toLowerCase(), reader -> reader, (l, r) -> {
+					throw new RuntimeException("Duplicate readers for type: " + l.getContentType());
+				}));
 	}
 
 	@Override
@@ -158,10 +162,10 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 							return text;
 						}
 
-						return consumerProvider
-								.map(provider -> provider.get(responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
-										.orElse(HttpUtils.APPLICATION_JSON).toLowerCase()))
-								.map(consumer -> consumer.consume(text, receiver)).orElse(text);
+						final var reader = bodyFns
+								.get(responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).get().toLowerCase());
+
+						return ((TextBodyFn) reader).fromText(text, receiver);
 					});
 				};
 			}
@@ -171,12 +175,12 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodyPublishers.noBody();
 				}
 
-				final var contentProducer = clientConfig.contentProducer(req.contentType());
-				if (contentProducer == null) {
+				final var contentProducer = bodyFns.get(req.contentType().toLowerCase());
+				if (contentProducer == null || !(contentProducer instanceof TextBodyFn)) {
 					throw new RuntimeException("No content producer for " + req.contentType());
 				}
 
-				return BodyPublishers.ofString(contentProducer.produce(req::body));
+				return BodyPublishers.ofString(((TextBodyFn) contentProducer).toText(req::body));
 			}
 
 		};

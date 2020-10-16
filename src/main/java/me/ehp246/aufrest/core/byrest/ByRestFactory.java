@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientFn;
-import me.ehp246.aufrest.api.rest.Receiver;
+import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -92,7 +92,7 @@ public class ByRestFactory {
 											() -> new Class<?>[] {})))
 									.collect(Collectors.toList()));
 
-					final var bodyReceiver = new Receiver() {
+					final var bodyReceiver = new BodyReceiver() {
 
 						@Override
 						public Class<?> type() {
@@ -123,7 +123,7 @@ public class ByRestFactory {
 						}
 
 						@Override
-						public Receiver bodyReceiver() {
+						public BodyReceiver bodyReceiver() {
 							return bodyReceiver;
 						}
 

@@ -7,6 +7,7 @@ import java.time.Duration;
  *
  * @author Lei Yang
  * @since 1.0
+ * @version 2.1
  */
 public interface ClientConfig {
 	default Duration connectTimeout() {
@@ -14,13 +15,6 @@ public interface ClientConfig {
 	}
 
 	default Duration responseTimeout() {
-		return null;
-	}
-
-	default TextContentProducer contentProducer(final String mediaType) {
-		if (HttpUtils.TEXT_PLAIN.equalsIgnoreCase(mediaType)) {
-			return suplier -> suplier.value().toString();
-		}
 		return null;
 	}
 }

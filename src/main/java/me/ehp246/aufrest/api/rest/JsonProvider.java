@@ -7,5 +7,5 @@ package me.ehp246.aufrest.api.rest;
 public interface JsonProvider {
 	String toJson(Object value);
 
-	Object fromJson(final String json, final Receiver receiver);
+	Object fromJson(final String json, final BodyReceiver receiver);
 }

@@ -45,7 +45,7 @@ public interface Request extends Message {
 		return HttpUtils.APPLICATION_JSON;
 	}
 
-	default Receiver bodyReceiver() {
+	default BodyReceiver bodyReceiver() {
 		return null;
 	}
 }

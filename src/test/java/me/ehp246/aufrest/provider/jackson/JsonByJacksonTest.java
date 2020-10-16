@@ -15,7 +15,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-import me.ehp246.aufrest.api.rest.Receiver;
+import me.ehp246.aufrest.api.rest.BodyReceiver;
 
 /**
  * @author Lei Yang
@@ -45,7 +45,7 @@ public class JsonByJacksonTest {
 		final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
 		final List<Instant> back = (List<Instant>) jackson.fromText(jackson.toText(() -> from),
-				new Receiver() {
+				new BodyReceiver() {
 					@Override
 					public Class<List> type() {
 						return List.class;
@@ -67,7 +67,7 @@ public class JsonByJacksonTest {
 		final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
 		final List<List<Instant>> back = (List<List<Instant>>) jackson.fromText(jackson.toText(() -> from),
-				new Receiver() {
+				new BodyReceiver() {
 					@Override
 					public Class<List> type() {
 						return List.class;
@@ -94,7 +94,7 @@ public class JsonByJacksonTest {
 				new Person(Instant.now(), "Eddard", "Starks"));
 
 		final List<Person> back = (List<Person>) jackson.fromText(jackson.toText(() -> from),
-				new Receiver() {
+				new BodyReceiver() {
 					@Override
 					public Class<List> type() {
 						return List.class;

@@ -10,15 +10,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.api.rest.Receiver;
-import me.ehp246.aufrest.api.rest.TextContentProducer;
+import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BodySupplier;
+import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-public class JsonByJackson {
+public class JsonByJackson implements TextBodyFn {
 	private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
 
 	private final ObjectMapper objectMapper;
@@ -28,8 +30,10 @@ public class JsonByJackson {
 		this.objectMapper = objectMapper;
 	}
 
-	public <T> String toText(final TextContentProducer.Supplier supplier) {
-		final var value = supplier.value();
+	@Override
+	public String toText(final BodySupplier supplier) {
+		final var value = supplier.get();
+
 		if (value == null) {
 			return null;
 		}
@@ -37,7 +41,8 @@ public class JsonByJackson {
 		return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
 	}
 
-	public Object fromText(final String json, final Receiver receiver) {
+	@Override
+	public Object fromText(final String json, final BodyReceiver receiver) {
 		if (receiver == null || json == null || json.isBlank()) {
 			return null;
 		}
@@ -74,4 +79,10 @@ public class JsonByJackson {
 			throw new RuntimeException(e);
 		}
 	}
+
+	@Override
+	public String getContentType() {
+		return HttpUtils.APPLICATION_JSON;
+	}
+
 }

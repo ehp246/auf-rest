@@ -8,7 +8,7 @@ import java.util.List;
  * @author Lei Yang
  * @since 1.0
  */
-public interface Receiver {
+public interface BodyReceiver {
 	Class<?> type();
 
 	default List<Class<?>> reifying() {
