@@ -6,5 +6,5 @@ package me.ehp246.aufrest.api.rest;
  * @version 2.1
  */
 public interface BodyFn {
-	String getContentType();
+	boolean accept(String contentType);
 }

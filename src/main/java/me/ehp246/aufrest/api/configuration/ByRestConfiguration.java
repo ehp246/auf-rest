@@ -79,8 +79,8 @@ public class ByRestConfiguration {
 		return new TextBodyFn() {
 
 			@Override
-			public String getContentType() {
-				return HttpUtils.TEXT_PLAIN;
+			public boolean accept(final String contentType) {
+				return contentType.toLowerCase().startsWith(HttpUtils.TEXT_PLAIN);
 			}
 
 			@Override

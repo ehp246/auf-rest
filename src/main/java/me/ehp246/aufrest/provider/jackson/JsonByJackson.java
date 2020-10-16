@@ -81,8 +81,8 @@ public class JsonByJackson implements TextBodyFn {
 	}
 
 	@Override
-	public String getContentType() {
-		return HttpUtils.APPLICATION_JSON;
+	public boolean accept(final String contentType) {
+		return contentType.toLowerCase().startsWith(HttpUtils.APPLICATION_JSON);
 	}
 
 }

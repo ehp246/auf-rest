@@ -54,7 +54,7 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 	private final Optional<AuthorizationProvider> authProvider;
 	private final Optional<HeaderProvider> headerProvider;
 	private final ClientConfig clientConfig;
-	private final Map<String, BodyFn> bodyFns;
+	private final Set<BodyFn> bodyFns;
 
 	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier) {
 		this(clientBuilderSupplier, HttpRequest::newBuilder, new ClientConfig() {
@@ -94,10 +94,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 		this.clientConfig = clientConfig;
 		this.authProvider = Optional.ofNullable(authProvider);
 		this.headerProvider = Optional.ofNullable(headerProvider);
-		this.bodyFns = Optional.ofNullable(readers).orElseGet(HashSet::new).stream().collect(Collectors
-				.toUnmodifiableMap(reader -> reader.getContentType().toLowerCase(), reader -> reader, (l, r) -> {
-					throw new RuntimeException("Duplicate readers for type: " + l.getContentType());
-				}));
+		this.bodyFns = Optional.ofNullable(readers).orElseGet(HashSet::new).stream()
+				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	@Override
@@ -162,8 +160,11 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 							return text;
 						}
 
-						final var reader = bodyFns
-								.get(responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).get().toLowerCase());
+						final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).get()
+								.toLowerCase();
+
+						final var reader = bodyFns.stream().filter(bodyFn -> bodyFn.accept(contentType)).findAny()
+								.get();
 
 						return ((TextBodyFn) reader).fromText(text, receiver);
 					});
@@ -175,12 +176,13 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodyPublishers.noBody();
 				}
 
-				final var contentProducer = bodyFns.get(req.contentType().toLowerCase());
-				if (contentProducer == null || !(contentProducer instanceof TextBodyFn)) {
+				final var writer = bodyFns.stream()
+						.filter(bodyFn -> bodyFn.accept((req.contentType().toLowerCase()))).findAny().get();
+				if (writer == null || !(writer instanceof TextBodyFn)) {
 					throw new RuntimeException("No content producer for " + req.contentType());
 				}
 
-				return BodyPublishers.ofString(((TextBodyFn) contentProducer).toText(req::body));
+				return BodyPublishers.ofString(((TextBodyFn) writer).toText(req::body));
 			}
 
 		};
