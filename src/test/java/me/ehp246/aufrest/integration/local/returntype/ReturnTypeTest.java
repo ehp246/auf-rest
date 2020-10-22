@@ -33,9 +33,6 @@ class ReturnTypeTest {
 	@Autowired
 	private TestCase001 case001;
 
-	@Autowired
-	private TextTestCase001 textCase001;
-
 	@Test
 	void test_001() {
 		final var count = (int) (Math.random() * 10);
@@ -196,13 +193,5 @@ class ReturnTypeTest {
 		Assertions.assertEquals(true, list instanceof List);
 
 		list.forEach(person -> Assertions.assertEquals(true, person instanceof Person));
-	}
-
-	@Test
-	void text_test_001() {
-		final var instant = textCase001.get();
-
-		Assertions.assertEquals(true, instant instanceof String);
-		Assertions.assertDoesNotThrow(() -> Instant.parse(instant));
 	}
 }

@@ -176,8 +176,8 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 					return BodyPublishers.noBody();
 				}
 
-				final var writer = bodyFns.stream()
-						.filter(bodyFn -> bodyFn.accept((req.contentType().toLowerCase()))).findAny().get();
+				final var writer = bodyFns.stream().filter(bodyFn -> bodyFn.accept((req.contentType().toLowerCase())))
+						.findAny().get();
 				if (writer == null || !(writer instanceof TextBodyFn)) {
 					throw new RuntimeException("No content producer for " + req.contentType());
 				}

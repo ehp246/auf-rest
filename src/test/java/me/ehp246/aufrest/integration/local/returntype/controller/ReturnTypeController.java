@@ -64,4 +64,9 @@ class ReturnTypeController {
 	String postInstantAsString(@RequestBody final String text) {
 		return Instant.parse(text).toString();
 	}
+
+	@PostMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE, consumes = "application/json")
+	String postInstant(@RequestBody final Instant instant) {
+		return instant.toString();
+	}
 }
