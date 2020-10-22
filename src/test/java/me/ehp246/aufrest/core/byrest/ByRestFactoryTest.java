@@ -35,13 +35,11 @@ class ByRestFactoryTest {
 		return new MockResponse<>();
 	};
 
-	private final Supplier<ClientFn> clientSupplier = () -> client;
-
 	private final MockEnvironment env = new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")
 			.withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
 			.withProperty("postman.username", "postman").withProperty("postman.password", "password");
 
-	private final ByRestFactory factory = new ByRestFactory(clientSupplier, env, beanFactory);
+	private final ByRestFactory factory = new ByRestFactory(cfg -> client, env, beanFactory);
 
 	ByRestFactoryTest() {
 		super();
@@ -332,7 +330,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_none_001() {
-		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> client, env, beanFactory);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -341,7 +339,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_global_001() {
-		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> client, env, beanFactory);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -395,7 +393,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void exception_001() {
-		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
 		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
@@ -409,7 +407,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void exception_002() {
-		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
 		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,

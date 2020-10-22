@@ -3,7 +3,6 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Builder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -12,6 +11,8 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,10 +31,12 @@ import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ClientFn;
+import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -44,62 +47,33 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * provider should not cache/re-use any builders.
  *
  * @author Lei Yang
- *
+ * @since 1.0
+ * @version 2.1
  */
-public class JdkClientProvider implements Supplier<ClientFn> {
+public class JdkClientProvider implements ClientFnProvider {
 	private final static Logger LOGGER = LogManager.getLogger(JdkClientProvider.class);
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
-	private final Optional<AuthorizationProvider> authProvider;
-	private final Optional<HeaderProvider> headerProvider;
-	private final ClientConfig clientConfig;
-	private final Set<BodyFn> bodyFns;
 
-	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier) {
-		this(clientBuilderSupplier, HttpRequest::newBuilder, new ClientConfig() {
-		}, null, null, null);
+	public JdkClientProvider() {
+		this.clientBuilderSupplier = HttpClient::newBuilder;
+		this.reqBuilderSupplier = HttpRequest::newBuilder;
 	}
 
-	public JdkClientProvider(final ClientConfig clientConfig) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, null, null, null);
-	}
-
-	public JdkClientProvider(final ClientConfig clientConfig, final AuthorizationProvider authProvider) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, null, null);
+	public JdkClientProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
+		this.clientBuilderSupplier = clientBuilderSupplier;
+		this.reqBuilderSupplier = HttpRequest::newBuilder;
 	}
 
 	public JdkClientProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
-			final Supplier<HttpRequest.Builder> requestBuilderSupplier, final ClientConfig clientConfig) {
-		this(clientBuilderSupplier, requestBuilderSupplier, clientConfig, null, null, null);
-	}
-
-	public JdkClientProvider(final ClientConfig clientConfig, final Set<BodyFn> consumerProvider,
-			final AuthorizationProvider authProvider, final HeaderProvider headerProvider) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, clientConfig, authProvider, headerProvider,
-				consumerProvider);
-	}
-
-	public JdkClientProvider(final HeaderProvider headerProvider) {
-		this(HttpClient::newBuilder, HttpRequest::newBuilder, new ClientConfig() {
-		}, null, headerProvider, null);
-	}
-
-	public JdkClientProvider(final Supplier<Builder> clientBuilderSupplier,
-			final Supplier<HttpRequest.Builder> reqBuilderSupplier, final ClientConfig clientConfig,
-			final AuthorizationProvider authProvider, final HeaderProvider headerProvider, final Set<BodyFn> readers) {
-		super();
+			final Supplier<HttpRequest.Builder> reqBuilderSupplier) {
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;
-		this.clientConfig = clientConfig;
-		this.authProvider = Optional.ofNullable(authProvider);
-		this.headerProvider = Optional.ofNullable(headerProvider);
-		this.bodyFns = Optional.ofNullable(readers).orElseGet(HashSet::new).stream()
-				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	@Override
-	public ClientFn get() {
+	public ClientFn get(final ClientConfig clientConfig) {
 		final var clientBuilder = clientBuilderSupplier.get();
 		if (clientConfig.connectTimeout() != null) {
 			clientBuilder.connectTimeout(clientConfig.connectTimeout());
@@ -107,6 +81,13 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 
 		return new ClientFn() {
 			private final HttpClient client = clientBuilder.build();
+			private final List<RequestFilter> requestFilters = Collections
+					.unmodifiableList(Optional.ofNullable(clientConfig.requestFilters()).orElseGet(ArrayList::new));
+			private final Optional<AuthorizationProvider> authProvider = Optional
+					.ofNullable(clientConfig.authProvider());
+			private final Optional<HeaderProvider> headerProvider = Optional.ofNullable(clientConfig.headerProvider());
+			private final Set<BodyFn> bodyFns = Optional.ofNullable(clientConfig.bodyFns()).orElseGet(HashSet::new)
+					.stream().collect(Collectors.toUnmodifiableSet());
 
 			@Override
 			public HttpResponse<?> apply(final Request request) {
@@ -125,9 +106,12 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				Optional.ofNullable(authHeader)
 						.ifPresent(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
-				final var httpRequest = requestBuilder.build();
-				LOGGER.atDebug().log("Request: {} {}", httpRequest.method(), request.uri());
-				LOGGER.atTrace().log("Headers:{}", httpRequest.headers().map());
+				// Applying filters
+				var httpRequest = requestBuilder.build();
+				for (final var filter : requestFilters) {
+					LOGGER.atDebug().log("Applying filter {}", filter.getClass().getName());
+					httpRequest = filter.apply(httpRequest, request);
+				}
 
 				HttpResponse<?> httpResponse;
 				try {
@@ -185,30 +169,30 @@ public class JdkClientProvider implements Supplier<ClientFn> {
 				return BodyPublishers.ofString(((TextBodyFn) writer).toText(req::body));
 			}
 
+			private HttpRequest.Builder newRequestBuilder(final Request req) {
+				final var builder = reqBuilderSupplier.get();
+
+				// Provider headers, context headers, request headers in ascending priorities.
+				fillAppHeaders(builder, Stream
+						.of(new HashMap<String, List<String>>(
+								headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)),
+								HeaderContext.map(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
+						.map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(
+								entry -> entry.getKey().toLowerCase(), Map.Entry::getValue, (left, right) -> right)));
+
+				/**
+				 * Required headers. Null and blank not allowed.
+				 */
+				// Content-Type.
+				builder.setHeader(HttpUtils.CONTENT_TYPE,
+						Optional.of(req.contentType()).filter(OneUtil::hasValue).get());
+
+				// Accept.
+				builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
+
+				return builder;
+			}
 		};
-	}
-
-	private HttpRequest.Builder newRequestBuilder(final Request req) {
-		final var builder = reqBuilderSupplier.get();
-
-		// Provider headers, context headers, request headers in ascending priorities.
-		fillAppHeaders(builder, Stream
-				.of(new HashMap<String, List<String>>(
-						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),
-						Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
-				.map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
-						Map.Entry::getValue, (left, right) -> right)));
-
-		/**
-		 * Required headers. Null and blank not allowed.
-		 */
-		// Content-Type.
-		builder.setHeader(HttpUtils.CONTENT_TYPE, Optional.of(req.contentType()).filter(OneUtil::hasValue).get());
-
-		// Accept.
-		builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
-
-		return builder;
 	}
 
 	/**

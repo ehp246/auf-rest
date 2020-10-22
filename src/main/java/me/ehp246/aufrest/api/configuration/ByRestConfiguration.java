@@ -1,12 +1,14 @@
 package me.ehp246.aufrest.api.configuration;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,6 +19,7 @@ import me.ehp246.aufrest.api.rest.BodySupplier;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
@@ -34,18 +37,10 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @since 1.0
  * @version 2.1
  */
+@Import(JdkClientProvider.class)
 public class ByRestConfiguration {
 
-	@Bean
-	public JdkClientProvider jdkClientProvider(final ClientConfig clientConfig, final Set<BodyFn> bodyFns,
-			@Autowired(required = false) final AuthorizationProvider authProvider,
-			@Autowired(required = false) final HeaderProvider headerProvider) {
-		return new JdkClientProvider(clientConfig, bodyFns, authProvider, headerProvider);
-	}
-
-	@Bean
-	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
-			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
+	public ClientConfig clientConfig(final String connectTimeout, final String requestTimeout) {
 		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
 				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
@@ -55,7 +50,6 @@ public class ByRestConfiguration {
 				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Response Timeout: " + value)))
 				.orElse(null);
-
 		return new ClientConfig() {
 			@Override
 			public Duration connectTimeout() {
@@ -66,6 +60,50 @@ public class ByRestConfiguration {
 			public Duration responseTimeout() {
 				return responseTimeout;
 			}
+		};
+	}
+
+	@Bean
+	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
+			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
+			@Autowired(required = false) final AuthorizationProvider authProvider,
+			@Autowired(required = false) final HeaderProvider headerProvider, final Set<BodyFn> bodyFns,
+			final List<RequestFilter> requestFilters) {
+
+		final ClientConfig base = clientConfig(connectTimeout, requestTimeout);
+
+		return new ClientConfig() {
+
+			@Override
+			public Duration connectTimeout() {
+				return base.connectTimeout();
+			}
+
+			@Override
+			public Duration responseTimeout() {
+				return base.responseTimeout();
+			}
+
+			@Override
+			public Set<BodyFn> bodyFns() {
+				return bodyFns;
+			}
+
+			@Override
+			public AuthorizationProvider authProvider() {
+				return authProvider;
+			}
+
+			@Override
+			public HeaderProvider headerProvider() {
+				return headerProvider;
+			}
+
+			@Override
+			public List<RequestFilter> requestFilters() {
+				return requestFilters;
+			}
+
 		};
 	}
 

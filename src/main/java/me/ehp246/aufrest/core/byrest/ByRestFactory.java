@@ -17,14 +17,16 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -38,14 +40,23 @@ public class ByRestFactory {
 
 	private final ListableBeanFactory beanFactory;
 	private final Environment env;
-	private final Supplier<ClientFn> clientProvider;
+	private final ClientFnProvider clientProvider;
+	private final ClientConfig clientConfig;
 
-	public ByRestFactory(final Supplier<ClientFn> clientProvider, final Environment env,
+	@Autowired
+	public ByRestFactory(final ClientFnProvider clientProvider, final ClientConfig clientConfig, final Environment env,
 			final ListableBeanFactory beanFactory) {
 		super();
 		this.env = env;
 		this.clientProvider = clientProvider;
+		this.clientConfig = clientConfig;
 		this.beanFactory = beanFactory;
+	}
+
+	public ByRestFactory(final ClientFnProvider clientProvider, final Environment env,
+			final ListableBeanFactory beanFactory) {
+		this(clientProvider, new ClientConfig() {
+		}, env, beanFactory);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -81,7 +92,7 @@ public class ByRestFactory {
 			}
 		});
 
-		final var client = clientProvider.get();
+		final var client = clientProvider.get(clientConfig);
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
 				(InvocationHandler) (proxy, method, args) -> {

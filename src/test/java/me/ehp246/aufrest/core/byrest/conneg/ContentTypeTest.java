@@ -23,7 +23,7 @@ class ContentTypeTest {
 	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 	private final AtomicReference<Request> reqRef = new AtomicReference<>();
 
-	private final ByRestFactory factory = new ByRestFactory(() -> request -> {
+	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
 		return new MockResponse<>();
 	}, new MockEnvironment(), beanFactory);
