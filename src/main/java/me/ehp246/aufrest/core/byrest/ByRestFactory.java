@@ -16,12 +16,14 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.Reifying;
+import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
@@ -139,7 +141,11 @@ public class ByRestFactory {
 						}
 
 					};
-					return request.setResponseSupplier(() -> client.apply(request)).returnInvocation();
+
+					ThreadContext.put(AufRestConstants.REQUEST_ID, request.id());
+					final var returning = request.setResponseSupplier(() -> client.apply(request)).returnInvocation();
+					ThreadContext.remove(AufRestConstants.REQUEST_ID);
+					return returning;
 				});
 
 	}

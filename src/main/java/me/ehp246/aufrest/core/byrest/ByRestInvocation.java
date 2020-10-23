@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,12 +35,14 @@ import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
- *
+ * @since 1.0
+ * @version 2.1
  */
 class ByRestInvocation implements Request {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
 			RequestParam.class, RequestHeader.class);
 
+	private final String id = UUID.randomUUID().toString();
 	private final ProxyInvoked<Object> invoked;
 	private final Environment env;
 	private final Optional<OfMapping> ofMapping;
@@ -63,6 +66,11 @@ class ByRestInvocation implements Request {
 		final var invokedMethodName = invoked.getMethodName().toUpperCase();
 		return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny()
 				.orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
+	}
+
+	@Override
+	public String id() {
+		return id;
 	}
 
 	@Override

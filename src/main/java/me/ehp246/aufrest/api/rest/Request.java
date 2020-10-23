@@ -8,12 +8,17 @@ import java.util.function.Supplier;
  *
  * @author Lei Yang
  * @since 1.0
+ * @version 2.1
  */
 public interface Request extends Message {
 	String uri();
 
 	default String method() {
 		return "GET";
+	}
+
+	default String id() {
+		return null;
 	}
 
 	default Duration timeout() {

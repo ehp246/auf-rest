@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -183,6 +184,9 @@ public class JdkClientProvider implements ClientFnProvider {
 				/**
 				 * Required headers. Null and blank not allowed.
 				 */
+				// Request id
+				builder.setHeader(HttpUtils.REQUEST_ID,
+						Optional.ofNullable(req.id()).orElseGet(() -> UUID.randomUUID().toString()));
 				// Content-Type.
 				builder.setHeader(HttpUtils.CONTENT_TYPE,
 						Optional.of(req.contentType()).filter(OneUtil::hasValue).get());
