@@ -18,7 +18,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.0.1
+ * @version 2.1
  * @see ByRest
  */
 @Retention(RUNTIME)
@@ -36,8 +36,15 @@ public @interface OfMapping {
 
 	/**
 	 * Defines HTTP method for the request.
+	 * <p>
+	 * Empty string indicates to derive HTTP method from interface method prefix.
+	 * Exception will be thrown if the HTTP method can't be determined by the
+	 * framework.
+	 * <p>
+	 * Specified string is changed to upper case before sent. There is no validation
+	 * on the specified value.
 	 */
-	String method() default HttpUtils.GET;
+	String method() default "";
 
 	/**
 	 * Defines the content type and appropriate serialization provider.

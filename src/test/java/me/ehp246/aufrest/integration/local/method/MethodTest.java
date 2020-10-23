@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+
 /**
  * @author Lei Yang
  *
@@ -38,5 +40,25 @@ class MethodTest {
 	@Test
 	void delete() {
 		Assertions.assertEquals("DELETE", case001.delete());
+	}
+
+	@Test
+	void test_001() {
+		Assertions.assertThrows(Exception.class, case001::m001);
+	}
+
+	@Test
+	void test_002() {
+		Assertions.assertEquals("GET", case001.m002());
+	}
+
+	@Test
+	void test_003() {
+		Assertions.assertThrows(UnhandledResponseException.class, case001::m003);
+	}
+
+	@Test
+	void test_004() {
+		Assertions.assertEquals("PUT", case001.put001());
 	}
 }

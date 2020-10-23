@@ -59,13 +59,10 @@ class ByRestInvocation implements Request {
 
 	@Override
 	public String method() {
-		if (ofMapping.isPresent()) {
-			return ofMapping.map(OfMapping::method).get().toUpperCase();
-		}
-
-		final var invokedMethodName = invoked.getMethodName().toUpperCase();
-		return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny()
-				.orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
+		return ofMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
+			final var invokedMethodName = invoked.getMethodName().toUpperCase();
+			return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
+		}).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 	}
 
 	@Override
