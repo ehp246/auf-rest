@@ -1,10 +1,13 @@
 package me.ehp246.aufrest.api.configuration;
 
+import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +22,9 @@ import me.ehp246.aufrest.api.rest.BodySupplier;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.api.rest.RequestFilter;
+import me.ehp246.aufrest.api.rest.RequestLogger;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
@@ -131,5 +136,10 @@ public class ByRestConfiguration {
 				return body.toString();
 			}
 		};
+	}
+
+	@Bean
+	public RequestFilter loggingRequestFilter() {
+		return new RequestLogger();
 	}
 }
