@@ -79,7 +79,7 @@ class ByRestInvocation implements Request {
 	@Override
 	public String uri() {
 		final var base = env.resolveRequiredPlaceholders(byRest.map(ByRest::value).get());
-		final var path = ofMapping.map(OfMapping::value).orElse("");
+		final var path = ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).map(value -> "/" + value).orElse("");
 		final var pathParams = invoked.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
 		final var unnamedPathMap = pathParams.get("");
 		if (unnamedPathMap != null && unnamedPathMap instanceof Map) {

@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.core.byrest;
+package me.ehp246.aufrest.core.byrest.uri;
 
 import java.util.Map;
 
@@ -14,11 +14,14 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  *
  */
 @ByRest("${echo.base}")
-interface PathVariableCase001 {
-	@OfMapping("/get/{path1}/path2/{path3}")
+interface TestCase001 {
+	@OfMapping
+	void get001();
+
+	@OfMapping("get/{path1}/path2/{path3}")
 	void getByPathVariable(@PathVariable("path1") String path1, @PathVariable("path3") String path3);
 
-	@OfMapping("/{path3}/{path4}")
+	@OfMapping("{path3}/{path4}")
 	void getByPathParam(@PathVariable("path4") String path4, @PathVariable("path1") String path1,
 			@PathVariable("path3") String path2);
 
@@ -28,7 +31,7 @@ interface PathVariableCase001 {
 	 * @param pathParams
 	 * @return
 	 */
-	@OfMapping("/get/{path1}/path2/{path3}")
+	@OfMapping("get/{path1}/path2/{path3}")
 	void getByMap(@PathVariable Map<String, String> pathParams);
 
 	/**
@@ -40,10 +43,10 @@ interface PathVariableCase001 {
 	 * @param path1
 	 * @return
 	 */
-	@OfMapping("/get/{path1}/path2/{path3}")
+	@OfMapping("get/{path1}/path2/{path3}")
 	void getByMap(@PathVariable Map<String, String> pathParams, @PathVariable("path1") String path1);
 
-	@OfMapping("/get/{path1}/path2/{path3}")
+	@OfMapping("get/{path1}/path2/{path3}")
 	void getByObject(@PathVariable PathObject pathObject);
 
 	/**
@@ -51,8 +54,11 @@ interface PathVariableCase001 {
 	 *
 	 * @return
 	 */
-	@OfMapping("/get/{path1}/path2/{path3}")
+	@OfMapping("get/{path1}/path2/{path3}")
 	void get();
+
+	@OfMapping("get")
+	void getWithPlaceholder();
 
 	interface PathObject {
 		String getPath1();

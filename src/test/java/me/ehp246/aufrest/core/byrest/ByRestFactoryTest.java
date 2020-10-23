@@ -19,7 +19,6 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.core.byrest.PathVariableCase001.PathObject;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -89,107 +88,7 @@ class ByRestFactoryTest {
 
 		newInstance.get(0);
 
-		final var request = reqRef.get();
-
-		Assertions.assertEquals("https://postman-echo.com", request.uri());
-		Assertions.assertEquals("GET", request.method().toUpperCase());
-	}
-
-	@Test
-	void path001() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByPathVariable("1", "3");
-
-		final var request = reqRef.get();
-
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
-	}
-
-	@Test
-	void path002() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByPathParam("4", "1", "3");
-
-		final var request = reqRef.get();
-
-		/**
-		 * Method-level annotation overwrites type-level. This behavior is different
-		 * from Spring's RequestMapping.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/3/4", request.uri(),
-				"Should overwrite type-level annotation");
-	}
-
-	@Test
-	void path003() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByPathVariable("1", "3");
-
-		final var request = reqRef.get();
-
-		/**
-		 * Method-level annotation overwrites type-level. This behavior is different
-		 * from Spring's RequestMapping.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri(),
-				"Should overwrite type-level annotation");
-	}
-
-	@Test
-	void pathMap001() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByMap(Map.of("path1", "1", "path3", "3"));
-
-		final var request = reqRef.get();
-
-		/**
-		 * Method-level annotation overwrites type-level. This behavior is different
-		 * from Spring's RequestMapping.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
-	}
-
-	@Test
-	void pathMap002() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
-
-		final var request = reqRef.get();
-
-		/**
-		 * Explicit parameter takes precedence.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
-	}
-
-	/*
-	 * TODO
-	 */
-	// @Test
-	void pathObject001() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByObject(new PathObject() {
-
-			@Override
-			public String getPath3() {
-				return "3";
-			}
-
-			@Override
-			public String getPath1() {
-				return "1";
-			}
-		});
-
-		final var request = reqRef.get();
-
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
+		Assertions.assertEquals("GET", reqRef.get().method().toUpperCase());
 	}
 
 	@Test
@@ -255,7 +154,7 @@ class ByRestFactoryTest {
 	void method002() {
 		factory.newInstance(MethodTestCase001.class).query();
 
-		Assertions.assertEquals("GET", reqRef.get().method());
+		Assertions.assertThrows(Exception.class, reqRef.get()::method);
 	}
 
 	@Test
@@ -290,7 +189,7 @@ class ByRestFactoryTest {
 	void method008() {
 		factory.newInstance(MethodTestCase001.class).query();
 
-		Assertions.assertEquals("GET", reqRef.get().method());
+		Assertions.assertThrows(Exception.class, reqRef.get()::method);
 	}
 
 	@Test
