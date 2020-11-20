@@ -9,6 +9,11 @@ import java.util.List;
  * @since 1.0
  */
 public interface BodyReceiver {
+	/**
+	 * Type of the response body. Can be a generic container, e.g., {@link List}.
+	 *
+	 * @return
+	 */
 	Class<?> type();
 
 	default List<Class<?>> reifying() {
