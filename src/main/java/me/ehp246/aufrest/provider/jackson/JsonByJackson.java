@@ -9,15 +9,18 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.Receiver;
-import me.ehp246.aufrest.api.rest.TextContentProducer;
+import me.ehp246.aufrest.api.annotation.AsIs;
+import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BodySupplier;
+import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-public class JsonByJackson {
+public class JsonByJackson implements TextBodyFn {
 	private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
 
 	private final ObjectMapper objectMapper;
@@ -27,23 +30,25 @@ public class JsonByJackson {
 		this.objectMapper = objectMapper;
 	}
 
-	public <T> String toText(final TextContentProducer.Supplier supplier) {
-		final var value = supplier.value();
+	@Override
+	public String toText(final BodySupplier supplier) {
+		final var value = supplier.get();
+
 		if (value == null) {
 			return null;
 		}
-		/*
-		 * if (String.class.isAssignableFrom(supplier.type()) &&
-		 * AnnotationUtil.hasType(supplier.annotations(), AsIs.class)) { return
-		 * value.toString(); }
-		 */
 
 		return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
 	}
 
-	public Object fromText(final String json, final Receiver receiver) {
+	@Override
+	public Object fromText(final String json, final BodyReceiver receiver) {
 		if (receiver == null || json == null || json.isBlank()) {
 			return null;
+		}
+
+		if (OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
+			return json;
 		}
 
 		try {
@@ -74,4 +79,10 @@ public class JsonByJackson {
 			throw new RuntimeException(e);
 		}
 	}
+
+	@Override
+	public boolean accept(final String contentType) {
+		return contentType.toLowerCase().startsWith(HttpUtils.APPLICATION_JSON);
+	}
+
 }

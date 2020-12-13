@@ -19,7 +19,6 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.Request;
-import me.ehp246.aufrest.core.byrest.PathVariableCase001.PathObject;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -35,13 +34,11 @@ class ByRestFactoryTest {
 		return new MockResponse<>();
 	};
 
-	private final Supplier<ClientFn> clientSupplier = () -> client;
-
 	private final MockEnvironment env = new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")
 			.withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
 			.withProperty("postman.username", "postman").withProperty("postman.password", "password");
 
-	private final ByRestFactory factory = new ByRestFactory(clientSupplier, env, beanFactory);
+	private final ByRestFactory factory = new ByRestFactory(cfg -> client, env, beanFactory);
 
 	ByRestFactoryTest() {
 		super();
@@ -91,107 +88,7 @@ class ByRestFactoryTest {
 
 		newInstance.get(0);
 
-		final var request = reqRef.get();
-
-		Assertions.assertEquals("https://postman-echo.com", request.uri());
-		Assertions.assertEquals("GET", request.method().toUpperCase());
-	}
-
-	@Test
-	void path001() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByPathVariable("1", "3");
-
-		final var request = reqRef.get();
-
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
-	}
-
-	@Test
-	void path002() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByPathParam("4", "1", "3");
-
-		final var request = reqRef.get();
-
-		/**
-		 * Method-level annotation overwrites type-level. This behavior is different
-		 * from Spring's RequestMapping.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/3/4", request.uri(),
-				"Should overwrite type-level annotation");
-	}
-
-	@Test
-	void path003() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByPathVariable("1", "3");
-
-		final var request = reqRef.get();
-
-		/**
-		 * Method-level annotation overwrites type-level. This behavior is different
-		 * from Spring's RequestMapping.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri(),
-				"Should overwrite type-level annotation");
-	}
-
-	@Test
-	void pathMap001() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByMap(Map.of("path1", "1", "path3", "3"));
-
-		final var request = reqRef.get();
-
-		/**
-		 * Method-level annotation overwrites type-level. This behavior is different
-		 * from Spring's RequestMapping.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
-	}
-
-	@Test
-	void pathMap002() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
-
-		final var request = reqRef.get();
-
-		/**
-		 * Explicit parameter takes precedence.
-		 */
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
-	}
-
-	/*
-	 * TODO
-	 */
-	// @Test
-	void pathObject001() {
-		final var newInstance = factory.newInstance(PathVariableCase001.class);
-
-		newInstance.getByObject(new PathObject() {
-
-			@Override
-			public String getPath3() {
-				return "3";
-			}
-
-			@Override
-			public String getPath1() {
-				return "1";
-			}
-		});
-
-		final var request = reqRef.get();
-
-		Assertions.assertEquals("https://postman-echo.com/get/1/path2/3", request.uri());
+		Assertions.assertEquals("GET", reqRef.get().method().toUpperCase());
 	}
 
 	@Test
@@ -257,7 +154,7 @@ class ByRestFactoryTest {
 	void method002() {
 		factory.newInstance(MethodTestCase001.class).query();
 
-		Assertions.assertEquals("GET", reqRef.get().method());
+		Assertions.assertThrows(Exception.class, reqRef.get()::method);
 	}
 
 	@Test
@@ -292,7 +189,7 @@ class ByRestFactoryTest {
 	void method008() {
 		factory.newInstance(MethodTestCase001.class).query();
 
-		Assertions.assertEquals("GET", reqRef.get().method());
+		Assertions.assertThrows(Exception.class, reqRef.get()::method);
 	}
 
 	@Test
@@ -332,7 +229,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_none_001() {
-		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> client, env, beanFactory);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -341,7 +238,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_global_001() {
-		final var factory = new ByRestFactory(clientSupplier, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> client, env, beanFactory);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -395,7 +292,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void exception_001() {
-		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
 		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
@@ -409,7 +306,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void exception_002() {
-		final var factory = new ByRestFactory(() -> req -> null, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> req -> null, env, beanFactory);
 		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
 
 		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
@@ -594,27 +491,5 @@ class ByRestFactoryTest {
 		Assertions.assertEquals(2, headers.size(), "should have two headers");
 		Assertions.assertEquals(1, headers.get("x-correl-id").size(), "should filter out nulls");
 		Assertions.assertEquals(1, headers.get("accept-language").size());
-	}
-
-	@Test
-	void return_type_001() {
-		Assertions.assertThrows(IllegalArgumentException.class,
-				factory.newInstance(ReturnTypeTestCase001.class)::get001);
-	}
-
-	@Test
-	void return_type_002() {
-		Assertions.assertThrows(IllegalArgumentException.class,
-				factory.newInstance(ReturnTypeTestCase001.class)::get002);
-	}
-
-	@Test
-	void return_type_003() {
-		Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get004);
-	}
-
-	@Test
-	void return_type_004() {
-		Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get005);
 	}
 }

@@ -7,6 +7,8 @@ import java.util.stream.IntStream;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,5 +52,21 @@ class ReturnTypeController {
 	@GetMapping("persons")
 	List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
 		return IntStream.range(0, count).mapToObj(i -> (Person) Instant::now).collect(Collectors.toList());
+	}
+
+	// Text
+	@GetMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE)
+	String getInstantAsString() {
+		return Instant.now().toString();
+	}
+
+	@PostMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE, consumes = "text/plain")
+	String postInstantAsString(@RequestBody final String text) {
+		return Instant.parse(text).toString();
+	}
+
+	@PostMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE, consumes = "application/json")
+	String postInstant(@RequestBody final Instant instant) {
+		return instant.toString();
 	}
 }

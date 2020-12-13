@@ -4,16 +4,11 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
- *
  * @author Lei Yang
- * @since 1.0
+ *
  */
-public interface Receiver {
-	Class<?> type();
-
-	default List<Class<?>> reifying() {
-		return List.of();
-	}
+public interface BodySupplier {
+	Object get();
 
 	default List<? extends Annotation> annotations() {
 		return List.of();
