@@ -38,7 +38,7 @@
 		<junit-jupiter.version>5.5.2</junit-jupiter.version>
 		<log4j2.version>2.13.3</log4j2.version>
 		<mockito.version>3.1.0</mockito.version>
-		<jackson.version>2.10.2</jackson.version>
+		<jackson.version>2.12.1</jackson.version>
 		<spring-framework.version>5.2.3.RELEASE</spring-framework.version>
 		<spring-boot.version>2.2.4.RELEASE</spring-boot.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
