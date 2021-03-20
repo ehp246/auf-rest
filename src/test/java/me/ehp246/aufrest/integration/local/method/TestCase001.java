@@ -1,7 +1,7 @@
 package me.ehp246.aufrest.integration.local.method;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfMapping;
 
 /**
  * @author Lei Yang
@@ -9,18 +9,31 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("http://localhost:${local.server.port}/method")
 interface TestCase001 {
-	@AsIs
+	@OfMapping(accept = "text/plain")
 	String get();
 
-	@AsIs
+	@OfMapping(accept = "text/plain")
 	String put();
 
-	@AsIs
+	@OfMapping(accept = "text/plain")
 	String post();
 
-	@AsIs
+	@OfMapping(accept = "text/plain")
 	String patch();
 
-	@AsIs
+	@OfMapping(accept = "text/plain")
 	String delete();
+
+	String m001();
+
+	@OfMapping(method = "get", accept = "text/plain")
+	String m002();
+
+	// Request should go out with the wrong method name.
+	@OfMapping(method = "got", accept = "text/plain")
+	String m003();
+
+	// Should ignore the blank string and use prefix
+	@OfMapping(accept = "text/plain", method = " ")
+	String put001();
 }

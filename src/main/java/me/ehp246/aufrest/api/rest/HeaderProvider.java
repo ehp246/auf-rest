@@ -9,17 +9,14 @@ import java.util.Map;
  * interfaces.
  *
  * <p>
- * The framework calls the bean passing in the URI of the endpoint to retrieve
- * header names and values for all out-going requests. The framework calls the
- * bean once for each request. It does not cache any value. The framework does
- * not promise to pass in the same URI object for the same interface across
- * requests. It does promise to not pass in <code>null</code>.
+ * The framework calls the bean passing in the out-going request to retrieve
+ * header names and values. The framework calls the bean once for each request.
+ * It does not cache any value.
  *
  * <p>
- * For a given URI, the provider should return the header names and values. The
- * returned values are set to the headers as-is with no additional processing
- * unless the value is null, blank, or empty. In these cases, the value will not
- * be set.
+ * The returned values are set to the headers as-is with no additional
+ * processing unless the value is null, blank, or empty. In these cases, the
+ * header will not be modified.
  *
  *
  * @author Lei Yang

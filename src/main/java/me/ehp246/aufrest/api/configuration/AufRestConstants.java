@@ -35,6 +35,8 @@ public class AufRestConstants {
 	 */
 	public static final String RESPONSE_TIMEOUT = "me.ehp246.aufrest.responseTimeout";
 
+	public static final String REQUEST_ID = "Aufrest-Request-Id";
+
 	private AufRestConstants() {
 		super();
 	}

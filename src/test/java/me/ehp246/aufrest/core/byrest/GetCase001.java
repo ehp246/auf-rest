@@ -15,7 +15,7 @@ interface GetCase001 {
 	 * @param str
 	 * @return
 	 */
-	@OfMapping("/get")
+	@OfMapping("get")
 	void get();
 
 	/**
@@ -27,7 +27,7 @@ interface GetCase001 {
 	 * @param value2
 	 * @return
 	 */
-	@OfMapping("/get1")
+	@OfMapping("get1")
 	void get(String str);
 
 	@OfMapping

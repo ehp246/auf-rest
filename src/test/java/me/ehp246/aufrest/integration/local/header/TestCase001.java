@@ -24,4 +24,6 @@ interface TestCase001 {
 	Headers get(@RequestHeader("x-req-id") String value);
 
 	Headers get(@RequestHeader Map<String, List<String>> headers);
+
+	Headers getWithMap2(@RequestHeader Map<String, String> headers);
 }

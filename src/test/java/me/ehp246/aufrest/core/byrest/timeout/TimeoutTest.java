@@ -1,14 +1,12 @@
 package me.ehp246.aufrest.core.byrest.timeout;
 
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.Request;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -23,12 +21,11 @@ class TimeoutTest {
 			.withProperty("api.timeout.illegal", "5");
 
 	private final AtomicReference<Request> reqRef = new AtomicReference<>();
-	private final Supplier<ClientFn> clientSupplier = () -> request -> {
+
+	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
 		return new MockResponse<>();
-	};
-
-	private final ByRestFactory factory = new ByRestFactory(clientSupplier, env, beanFactory);
+	}, env, beanFactory);
 
 	@Test
 	void timeout_001() {

@@ -151,4 +151,11 @@ class HeaderTest {
 		Assertions.assertEquals("4", headers.get("h2").get(0));
 	}
 
+	@Test
+	void header_map_002() {
+		final var headers = case001.getWithMap2(Map.of("h1", "1"));
+
+		Assertions.assertEquals(1, headers.get("h1").size());
+		Assertions.assertEquals("1", headers.get("h1").get(0));
+	}
 }
