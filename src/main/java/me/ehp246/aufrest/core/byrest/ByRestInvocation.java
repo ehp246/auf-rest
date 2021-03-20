@@ -72,7 +72,7 @@ class ByRestInvocation implements Request {
 
 	@Override
 	public String accept() {
-		return ofMapping.map(OfMapping::consumes).orElseGet(Request.super::accept);
+		return ofMapping.map(OfMapping::accept).orElseGet(Request.super::accept);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -158,7 +158,7 @@ class ByRestInvocation implements Request {
 
 	@Override
 	public String contentType() {
-		return ofMapping.map(OfMapping::produces).orElse(Request.super.contentType());
+		return ofMapping.map(OfMapping::contentType).orElse(Request.super.contentType());
 	}
 
 	public Object returnInvocation() throws Throwable {

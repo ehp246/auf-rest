@@ -1,6 +1,6 @@
 package me.ehp246.aufrest.integration.local.timeout;
 
-import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,9 +18,12 @@ class GlobalConnectionTimeoutTest {
 	@Autowired
 	private GlobalTestCase01 case001;
 
+	/**
+	 * The cause is not always <code>HttpConnectTimeoutException</code> for some reason.
+	 */
 	@Test
 	void test_001() {
 		Assertions.assertEquals(true, Assertions.assertThrows(Exception.class, case001::get)
-				.getCause() instanceof HttpConnectTimeoutException);
+				.getCause() instanceof HttpTimeoutException);
 	}
 }

@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -83,6 +84,7 @@ class ReturnTypeTest {
 		Assertions.assertEquals(Instant.class, bodyReceiver.reifying().get(0));
 	}
 
+	@Disabled
 	@Test
 	void receiver_002() throws Exception {
 		final var typeRef = new ParameterizedTypeReference<List<Instant>>() {
