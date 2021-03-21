@@ -9,7 +9,7 @@ import java.util.Set;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.1
+ * @version 2.1.1
  */
 public interface ClientConfig {
 	default Duration connectTimeout() {
@@ -35,4 +35,8 @@ public interface ClientConfig {
 	default List<RequestFilter> requestFilters() {
 		return List.of();
 	}
+	
+	default List<ResponseFilter> responseFilters() {
+		return List.of();
+	}	
 }
