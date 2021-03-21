@@ -32,7 +32,7 @@ class AppConfig {
 			
 			@Override
 			public HttpRequest apply(HttpRequest httpRequest, ReqByRest req) {
-				if (req.invokedOn() != case001)
+				if (req.invokedOn().target() != case001)
 					return httpRequest;
 				return httpRequest;
 			}

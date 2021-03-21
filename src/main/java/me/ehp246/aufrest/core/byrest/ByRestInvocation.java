@@ -26,6 +26,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.ProxyByRest;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.ReqByRest;
@@ -204,7 +205,7 @@ class ByRestInvocation implements ReqByRest {
 	}
 
 	@Override
-	public Object invokedOn() {
-		return this.invoked.getTarget();
+	public ProxyByRest invokedOn() {
+		return this.invoked;
 	}
 }

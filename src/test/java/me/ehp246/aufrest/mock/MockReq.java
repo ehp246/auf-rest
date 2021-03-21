@@ -2,6 +2,7 @@ package me.ehp246.aufrest.mock;
 
 import java.util.UUID;
 
+import me.ehp246.aufrest.api.rest.ProxyByRest;
 import me.ehp246.aufrest.api.rest.ReqByRest;
 
 /**
@@ -17,7 +18,7 @@ public class MockReq implements ReqByRest {
 	}
 
 	@Override
-	public Object invokedOn() {
+	public ProxyByRest invokedOn() {
 		return null;
 	}
 

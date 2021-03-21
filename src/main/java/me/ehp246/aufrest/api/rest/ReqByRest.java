@@ -60,13 +60,13 @@ public interface ReqByRest {
 	}
 
 	/**
-	 * Specifies the target object that the request is generated from. Most often
-	 * the target is a {@link ByRest}-annotated interface. Could be
+	 * Specifies the target proxy object that the request is generated from. Most
+	 * often the target is a {@link ByRest}-annotated interface. Could be
 	 * <code>null</code>.
 	 * 
 	 * @return
 	 */
-	default Object invokedOn() {
+	default ProxyByRest invokedOn() {
 		return null;
 	}
 
