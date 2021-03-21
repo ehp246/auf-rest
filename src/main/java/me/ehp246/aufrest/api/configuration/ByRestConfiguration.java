@@ -23,7 +23,7 @@ import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
-import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
+import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
 /**
@@ -38,7 +38,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @since 1.0
  * @version 2.1.1
  */
-@Import(JdkClientProvider.class)
+@Import(JdkRestFnProvider.class)
 public class ByRestConfiguration {
 
 	public ClientConfig clientConfig(final String connectTimeout, final String requestTimeout) {

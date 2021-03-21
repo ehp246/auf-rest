@@ -31,7 +31,7 @@ import me.ehp246.aufrest.mock.MockReq;
  * @author Lei Yang
  *
  */
-class JdkClientProviderTest {
+class JdkRestFnProviderTest {
 	private final static String POSTMAN_ECHO = "https://postman-echo.com";
 	private final static String BEARER = "I'm a bearer.";
 	private final static String BASIC = "I'm basic.";
@@ -73,7 +73,7 @@ class JdkClientProviderTest {
 
 	};
 
-	private final JdkClientProvider clientProvider = new JdkClientProvider(() -> {
+	private final JdkRestFnProvider clientProvider = new JdkRestFnProvider(() -> {
 		clientBuilderCallCountRef.getAndUpdate(i -> i == null ? 1 : ++i);
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).then(invocation -> {
@@ -107,7 +107,7 @@ class JdkClientProviderTest {
 	@Test
 	void client_builder_001() {
 		final var client = new MockClientBuilderSupplier();
-		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder);
+		final var clientProvider = new JdkRestFnProvider(client::builder, HttpRequest::newBuilder);
 		final var count = (int) (Math.random() * 20);
 
 		IntStream.range(0, count).forEach(i -> clientProvider.get(clientConfig));
@@ -122,7 +122,7 @@ class JdkClientProviderTest {
 		final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 				CALLS_REAL_METHODS);
 
-		final var clientProvider = new JdkClientProvider(client::builder, reqBuilderSupplier);
+		final var clientProvider = new JdkRestFnProvider(client::builder, reqBuilderSupplier);
 		final var httpFn = clientProvider.get(clientConfig);
 
 		final int count = (int) (Math.random() * 20);
@@ -343,7 +343,7 @@ class JdkClientProviderTest {
 			return mockBuilder;
 		});
 
-		new JdkClientProvider(() -> mockBuilder, HttpRequest::newBuilder).get(clientConfig);
+		new JdkRestFnProvider(() -> mockBuilder, HttpRequest::newBuilder).get(clientConfig);
 
 		Assertions.assertEquals(null, ref.get());
 	}
@@ -359,7 +359,7 @@ class JdkClientProviderTest {
 			return mockBuilder;
 		});
 
-		new JdkClientProvider(() -> mockBuilder, HttpRequest::newBuilder).get(new ClientConfig() {
+		new JdkRestFnProvider(() -> mockBuilder, HttpRequest::newBuilder).get(new ClientConfig() {
 
 			@Override
 			public Duration connectTimeout() {
@@ -375,7 +375,7 @@ class JdkClientProviderTest {
 	void timeout_global_reponse_001() {
 		final var client = new MockClientBuilderSupplier();
 
-		new JdkClientProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
+		new JdkRestFnProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
 		}).apply(() -> "http://tonowhere");
 
 		Assertions.assertEquals(true, client.requestSent().timeout().isEmpty(), "Should have no timeout on request");
@@ -385,7 +385,7 @@ class JdkClientProviderTest {
 	void timeout_global_reponse_002() {
 		final var client = new MockClientBuilderSupplier();
 
-		new JdkClientProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
+		new JdkRestFnProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
 
 			@Override
 			public Duration responseTimeout() {
@@ -401,7 +401,7 @@ class JdkClientProviderTest {
 	void timeout_per_request_001() {
 		final var client = new MockClientBuilderSupplier();
 
-		final var clientProvider = new JdkClientProvider(client::builder, HttpRequest::newBuilder);
+		final var clientProvider = new JdkRestFnProvider(client::builder, HttpRequest::newBuilder);
 
 		final var httpFn = clientProvider.get(new ClientConfig() {
 

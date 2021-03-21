@@ -28,7 +28,7 @@ import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ClientFnProvider;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -42,11 +42,11 @@ public class ByRestFactory {
 
 	private final ListableBeanFactory beanFactory;
 	private final Environment env;
-	private final ClientFnProvider clientProvider;
+	private final RestFnProvider clientProvider;
 	private final ClientConfig clientConfig;
 
 	@Autowired
-	public ByRestFactory(final ClientFnProvider clientProvider, final ClientConfig clientConfig, final Environment env,
+	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig, final Environment env,
 			final ListableBeanFactory beanFactory) {
 		super();
 		this.env = env;
@@ -55,7 +55,7 @@ public class ByRestFactory {
 		this.beanFactory = beanFactory;
 	}
 
-	public ByRestFactory(final ClientFnProvider clientProvider, final Environment env,
+	public ByRestFactory(final RestFnProvider clientProvider, final Environment env,
 			final ListableBeanFactory beanFactory) {
 		this(clientProvider, new ClientConfig() {
 		}, env, beanFactory);

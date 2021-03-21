@@ -70,7 +70,7 @@ class JdkClientProviderHeaderTest {
 
 		};
 
-		new JdkClientProvider(clientBuilderSupplier).get(new ClientConfig() {
+		new JdkRestFnProvider(clientBuilderSupplier).get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -100,7 +100,7 @@ class JdkClientProviderHeaderTest {
 
 		};
 
-		new JdkClientProvider(clientBuilderSupplier).get(new ClientConfig() {
+		new JdkRestFnProvider(clientBuilderSupplier).get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -121,7 +121,7 @@ class JdkClientProviderHeaderTest {
 	void header_provider_001() {
 		final var value = UUID.randomUUID().toString();
 
-		final var clientFn = new JdkClientProvider(clientBuilderSupplier).get(new ClientConfig() {
+		final var clientFn = new JdkRestFnProvider(clientBuilderSupplier).get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -141,7 +141,7 @@ class JdkClientProviderHeaderTest {
 	void header_provider_002() {
 		final var name = UUID.randomUUID().toString();
 
-		final var clientFn = new JdkClientProvider(clientBuilderSupplier).get(new ClientConfig() {
+		final var clientFn = new JdkRestFnProvider(clientBuilderSupplier).get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -172,7 +172,7 @@ class JdkClientProviderHeaderTest {
 		final var name = UUID.randomUUID().toString();
 		final var value = UUID.randomUUID().toString();
 
-		final var clientFn = new JdkClientProvider(clientBuilderSupplier).get(new ClientConfig() {
+		final var clientFn = new JdkRestFnProvider(clientBuilderSupplier).get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -196,7 +196,7 @@ class JdkClientProviderHeaderTest {
 		final var mockReq = new MockReq();
 		final var reqRef = new AtomicReference<RestRequest>();
 
-		new JdkClientProvider().get(new ClientConfig() {
+		new JdkRestFnProvider().get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -217,7 +217,7 @@ class JdkClientProviderHeaderTest {
 
 		HeaderContext.add(name.toLowerCase(), "2");
 
-		new JdkClientProvider(clientBuilderSupplier).get(new ClientConfig() {
+		new JdkRestFnProvider(clientBuilderSupplier).get(new ClientConfig() {
 
 			@Override
 			public HeaderProvider headerProvider() {
@@ -242,7 +242,7 @@ class JdkClientProviderHeaderTest {
 
 		HeaderContext.add(name, "2");
 
-		new JdkClientProvider(clientBuilderSupplier)
+		new JdkRestFnProvider(clientBuilderSupplier)
 				.get(new MockClientConfig(req -> Map.of(name.toLowerCase(), List.of("3")))).apply(new MockReq());
 
 		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
@@ -254,7 +254,7 @@ class JdkClientProviderHeaderTest {
 
 		HeaderContext.add(name, "2");
 
-		new JdkClientProvider(clientBuilderSupplier)
+		new JdkRestFnProvider(clientBuilderSupplier)
 				.get(new MockClientConfig(req -> Map.of("merge-these", List.of("1", "2")))).apply(new MockReq());
 
 		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));

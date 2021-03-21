@@ -1,20 +1,27 @@
 package me.ehp246.aufrest.integration.local.filter;
 
+import java.net.http.HttpResponse;
+
 import org.springframework.stereotype.Component;
 
-import me.ehp246.aufrest.api.rest.RestResponse;
+import me.ehp246.aufrest.api.rest.RestRequest;
 
 @Component
 class RespFilter {
-	private RestResponse restResp;
+	private RestRequest req;
+	private HttpResponse<?> resp;
 
-	RestResponse apply(RestResponse resp) {
-		this.restResp = resp;
+	HttpResponse<?> apply(HttpResponse<?> httpResponse, RestRequest req) {
+		this.req = req;
+		this.resp = httpResponse;
+		return httpResponse;
+	}
+
+	HttpResponse<?> httpResponse() {
 		return resp;
 	}
 
-	RestResponse responseByRest() {
-		return restResp;
+	RestRequest restRequest() {
+		return this.req;
 	}
-
 }

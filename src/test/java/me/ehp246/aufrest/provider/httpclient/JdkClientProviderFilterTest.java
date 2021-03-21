@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,10 +12,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
+import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * @author Lei Yang
@@ -36,7 +36,7 @@ class JdkClientProviderFilterTest {
 		final var map = new HashMap<>();
 		final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
-		new JdkClientProvider(clientBuilderSupplier::builder)
+		new JdkRestFnProvider(clientBuilderSupplier::builder)
 				.get(new ClientConfig() {
 			@Override
 			public List<RequestFilter> requestFilters() {
@@ -69,19 +69,19 @@ class JdkClientProviderFilterTest {
 			}
 		};
 		
-		final var swap = Mockito.mock(RestResponse.class);
+		final var swap = Mockito.mock(HttpResponse.class);
 		final var map = new HashMap<>();
 		final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
-		final var res = new JdkClientProvider(clientBuilderSupplier::builder).get(new ClientConfig() {
+		final var res = new JdkRestFnProvider(clientBuilderSupplier::builder).get(new ClientConfig() {
 
 			@Override
 			public List<ResponseFilter> responseFilters() {
-				return List.of((resp) -> {
+				return List.of((resp, req) -> {
 					map.put("orig", resp);
 					map.put("req1", req);
 					return swap;
-				}, (resp) -> {
+				}, (resp, req) -> {
 					map.put("swap", resp);
 					map.put("req2", req);
 					return null;
@@ -89,7 +89,7 @@ class JdkClientProviderFilterTest {
 			}
 		}).apply(req);
 		
-		Assertions.assertEquals(null, res, "Should be the second return");
+		Assertions.assertEquals(null, res.httpResponse(), "Should be the second return");
 		Assertions.assertEquals(true, map.get("orig") != swap, "Should be the original");
 		Assertions.assertEquals(true, map.get("swap") == swap, "Should be from the first");
 		Assertions.assertEquals(true, map.get("req1") == req, "Should be the original");
