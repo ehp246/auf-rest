@@ -118,7 +118,6 @@ public class JdkRestFnProvider implements RestFnProvider {
 					LOGGER.atTrace().log("Applying request filter {}", filter.getClass().getName());
 					httpRequest = filter.apply(httpRequest, req);
 				}
-				final var reqRef = new AtomicReference<>(httpRequest);
 
 				HttpResponse<Object> httpResponse;
 				try {
@@ -128,7 +127,14 @@ public class JdkRestFnProvider implements RestFnProvider {
 					throw new RuntimeException(e);
 				}
 
-				RestResponse responseByRest = new RestResponse() {
+				for (final var filter : responseFilters) {
+					LOGGER.atTrace().log("Applying response filter {}", filter.getClass().getName());
+					httpResponse = (HttpResponse<Object>) filter.apply(httpResponse, req);
+				}
+
+				final var reqRef = new AtomicReference<>(httpRequest);
+				final var resRef = new AtomicReference<>(httpResponse);
+				return new RestResponse() {
 
 					@Override
 					public RestRequest restRequest() {
@@ -137,7 +143,7 @@ public class JdkRestFnProvider implements RestFnProvider {
 
 					@Override
 					public HttpResponse<Object> httpResponse() {
-						return httpResponse;
+						return resRef.get();
 					}
 
 					@Override
@@ -146,13 +152,6 @@ public class JdkRestFnProvider implements RestFnProvider {
 					}
 
 				};
-
-				for (final var filter : responseFilters) {
-					LOGGER.atTrace().log("Applying response filter {}", filter.getClass().getName());
-					responseByRest = filter.apply(responseByRest);
-				}
-
-				return responseByRest;
 			}
 
 			private BodyHandler<?> bodyHandler(final RestRequest request) {

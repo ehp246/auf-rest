@@ -37,10 +37,7 @@ class FilterTest {
 
 		final var payload = case001.post(now);
 
-		final var responseByRest = respFilter.responseByRest();
-
-		Assertions.assertEquals(true, responseByRest.restRequest() == reqFilter.reqByRest());
-		Assertions.assertEquals(true, responseByRest.httpRequest() == reqFilter.httpReq());
-		Assertions.assertEquals(true, responseByRest.httpResponse().body() == payload);
+		Assertions.assertEquals(true, respFilter.restRequest() == reqFilter.reqByRest());
+		Assertions.assertEquals(true, respFilter.httpResponse().body() == payload);
 	}
 }
