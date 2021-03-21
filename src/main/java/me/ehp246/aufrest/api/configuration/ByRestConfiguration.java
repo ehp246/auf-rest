@@ -1,13 +1,10 @@
 package me.ehp246.aufrest.api.configuration;
 
-import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,9 +19,9 @@ import me.ehp246.aufrest.api.rest.BodySupplier;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.ReqByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.RequestLogger;
+import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkClientProvider;
@@ -40,7 +37,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @author Lei Yang
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
- * @version 2.1
+ * @version 2.1.1
  */
 @Import(JdkClientProvider.class)
 public class ByRestConfiguration {
@@ -73,7 +70,7 @@ public class ByRestConfiguration {
 			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
 			@Autowired(required = false) final AuthorizationProvider authProvider,
 			@Autowired(required = false) final HeaderProvider headerProvider, final Set<BodyFn> bodyFns,
-			final List<RequestFilter> requestFilters) {
+			final List<RequestFilter> requestFilters, final List<ResponseFilter> responseFilters) {
 
 		final ClientConfig base = clientConfig(connectTimeout, requestTimeout);
 
@@ -106,7 +103,12 @@ public class ByRestConfiguration {
 
 			@Override
 			public List<RequestFilter> requestFilters() {
-				return requestFilters;
+				return requestFilters == null ? List.of() : requestFilters;
+			}
+
+			@Override
+			public List<ResponseFilter> responseFilters() {
+				return responseFilters == null ? List.of() : responseFilters;
 			}
 
 		};

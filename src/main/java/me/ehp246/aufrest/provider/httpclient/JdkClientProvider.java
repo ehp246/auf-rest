@@ -50,7 +50,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.1
+ * @version 2.1.1
  */
 public class JdkClientProvider implements ClientFnProvider {
 	private final static Logger LOGGER = LogManager.getLogger(JdkClientProvider.class);
