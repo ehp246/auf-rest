@@ -9,5 +9,5 @@ import java.net.http.HttpResponse;
  */
 @FunctionalInterface
 public interface ResponseFilter {
-	HttpResponse<?> apply(HttpResponse<?> httpRespons, ReqByRest req); 
+	HttpResponse<?> apply(HttpResponse<?> httpRespons, RequestByRest req); 
 }

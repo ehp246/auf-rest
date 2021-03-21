@@ -12,9 +12,8 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.1.1
  */
-public interface ReqByRest {
+public interface RequestByRest {
 	String uri();
 
 
@@ -66,7 +65,7 @@ public interface ReqByRest {
 	 * 
 	 * @return
 	 */
-	default ProxyByRest invokedOn() {
+	default InvokedOn invokedOn() {
 		return null;
 	}
 

@@ -31,12 +31,12 @@ import org.apache.logging.log4j.Logger;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ClientFn;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
@@ -75,13 +75,13 @@ public class JdkClientProvider implements ClientFnProvider {
 	}
 
 	@Override
-	public ClientFn get(final ClientConfig clientConfig) {
+	public RestFn get(final ClientConfig clientConfig) {
 		final var clientBuilder = clientBuilderSupplier.get();
 		if (clientConfig.connectTimeout() != null) {
 			clientBuilder.connectTimeout(clientConfig.connectTimeout());
 		}
 
-		return new ClientFn() {
+		return new RestFn() {
 			private final HttpClient client = clientBuilder.build();
 			private final List<RequestFilter> requestFilters = Collections
 					.unmodifiableList(Optional.ofNullable(clientConfig.requestFilters()).orElseGet(ArrayList::new));
@@ -94,7 +94,7 @@ public class JdkClientProvider implements ClientFnProvider {
 					.stream().collect(Collectors.toUnmodifiableSet());
 
 			@Override
-			public HttpResponse<?> apply(final ReqByRest req) {
+			public HttpResponse<?> apply(final RequestByRest req) {
 				final var authHeader = Optional.ofNullable(Optional.ofNullable(req.authSupplier())
 						.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
@@ -133,7 +133,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				return httpResponse;
 			}
 
-			private BodyHandler<?> bodyHandler(final ReqByRest request) {
+			private BodyHandler<?> bodyHandler(final RequestByRest request) {
 				final var receiver = request.bodyReceiver();
 				final Class<?> type = receiver == null ? void.class : receiver.type();
 
@@ -164,7 +164,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				};
 			}
 
-			private BodyPublisher bodyPublisher(final ReqByRest req) {
+			private BodyPublisher bodyPublisher(final RequestByRest req) {
 				if (req.body() == null) {
 					return BodyPublishers.noBody();
 				}
@@ -178,7 +178,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				return BodyPublishers.ofString(((TextBodyFn) writer).toText(req::body));
 			}
 
-			private HttpRequest.Builder newRequestBuilder(final ReqByRest req) {
+			private HttpRequest.Builder newRequestBuilder(final RequestByRest req) {
 				final var builder = reqBuilderSupplier.get();
 
 				// Provider headers, context headers, request headers in ascending priorities.

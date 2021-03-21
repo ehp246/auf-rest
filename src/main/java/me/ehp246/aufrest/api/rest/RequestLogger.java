@@ -38,7 +38,7 @@ public class RequestLogger implements RequestFilter {
 	};
 
 	@Override
-	public HttpRequest apply(final HttpRequest httpRequest, final ReqByRest request) {
+	public HttpRequest apply(final HttpRequest httpRequest, final RequestByRest request) {
 		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
 		LOGGER.atDebug().log(httpRequest.headers().map());
 

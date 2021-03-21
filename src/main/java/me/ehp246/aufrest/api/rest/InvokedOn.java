@@ -5,10 +5,10 @@ import java.lang.reflect.Method;
 /**
  * 
  * @author Lei Yang
- * @since 2.1.1
+ * @since 2.2
  *
  */
-public interface ProxyByRest {
+public interface InvokedOn {
 	Object target();
 
 	Method method();

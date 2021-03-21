@@ -13,7 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 
@@ -25,7 +25,7 @@ import me.ehp246.aufrest.api.rest.ResponseFilter;
 class JdkClientProviderFilterTest {
 	@Test
 	void request_filter_001() {
-		final var req = new ReqByRest() {
+		final var req = new RequestByRest() {
 
 			@Override
 			public String uri() {
@@ -34,7 +34,7 @@ class JdkClientProviderFilterTest {
 		};
 		final var swappedRequest = Mockito.mock(HttpRequest.class);
 		final var sentRef = new AtomicReference<HttpRequest>();
-		final var filter1Ref = new AtomicReference<ReqByRest>();
+		final var filter1Ref = new AtomicReference<RequestByRest>();
 		final var filter2Ref = new AtomicReference<HttpRequest>();
 
 		new JdkClientProvider(() -> MockClientBuilderSupplier.builder(sentRef)).get(new ClientConfig() {
@@ -59,7 +59,7 @@ class JdkClientProviderFilterTest {
 	
 	@Test
 	void response_filter_002() {
-		final var req = new ReqByRest() {
+		final var req = new RequestByRest() {
 
 			@Override
 			public String uri() {

@@ -17,7 +17,7 @@ import org.mockito.Mockito;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.mock.MockClientConfig;
 import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -194,7 +194,7 @@ class JdkClientProviderHeaderTest {
 	@Test
 	void header_provider_004() {
 		final var mockReq = new MockReq();
-		final var reqRef = new AtomicReference<ReqByRest>();
+		final var reqRef = new AtomicReference<RequestByRest>();
 
 		new JdkClientProvider().get(new ClientConfig() {
 

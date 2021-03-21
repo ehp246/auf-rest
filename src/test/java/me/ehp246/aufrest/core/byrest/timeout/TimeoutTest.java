@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.MockResponse;
 
@@ -20,7 +20,7 @@ class TimeoutTest {
 	private final MockEnvironment env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
 			.withProperty("api.timeout.illegal", "5");
 
-	private final AtomicReference<ReqByRest> reqRef = new AtomicReference<>();
+	private final AtomicReference<RequestByRest> reqRef = new AtomicReference<>();
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);

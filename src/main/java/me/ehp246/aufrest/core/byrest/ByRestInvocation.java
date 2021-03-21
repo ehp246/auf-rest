@@ -26,10 +26,10 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.ProxyByRest;
+import me.ehp246.aufrest.api.rest.InvokedOn;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -39,7 +39,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @since 1.0
  * @version 2.1.1
  */
-class ByRestInvocation implements ReqByRest {
+class ByRestInvocation implements RequestByRest {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
 			RequestParam.class, RequestHeader.class);
 
@@ -73,7 +73,7 @@ class ByRestInvocation implements ReqByRest {
 
 	@Override
 	public String accept() {
-		return ofMapping.map(OfMapping::accept).orElseGet(ReqByRest.super::accept);
+		return ofMapping.map(OfMapping::accept).orElseGet(RequestByRest.super::accept);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -159,7 +159,7 @@ class ByRestInvocation implements ReqByRest {
 
 	@Override
 	public String contentType() {
-		return ofMapping.map(OfMapping::contentType).orElse(ReqByRest.super.contentType());
+		return ofMapping.map(OfMapping::contentType).orElse(RequestByRest.super.contentType());
 	}
 
 	public Object returnInvocation() throws Throwable {
@@ -205,7 +205,7 @@ class ByRestInvocation implements ReqByRest {
 	}
 
 	@Override
-	public ProxyByRest invokedOn() {
+	public InvokedOn invokedOn() {
 		return this.invoked;
 	}
 }

@@ -7,5 +7,5 @@ package me.ehp246.aufrest.api.rest;
  */
 @FunctionalInterface
 public interface ClientFnProvider {
-	ClientFn get(ClientConfig clientConfig);
+	RestFn get(ClientConfig clientConfig);
 }

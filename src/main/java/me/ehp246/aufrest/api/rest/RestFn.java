@@ -8,9 +8,8 @@ import java.net.http.HttpResponse;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.1
  */
 @FunctionalInterface
-public interface ClientFn {
-	HttpResponse<?> apply(ReqByRest request);
+public interface RestFn {
+	HttpResponse<?> apply(RequestByRest request);
 }

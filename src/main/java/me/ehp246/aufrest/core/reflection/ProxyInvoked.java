@@ -16,9 +16,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import me.ehp246.aufrest.api.rest.ProxyByRest;
+import me.ehp246.aufrest.api.rest.InvokedOn;
 
-public class ProxyInvoked<T> implements ProxyByRest {
+public class ProxyInvoked<T> implements InvokedOn {
 	private final T target;
 	private final Method method;
 	private final List<?> args;

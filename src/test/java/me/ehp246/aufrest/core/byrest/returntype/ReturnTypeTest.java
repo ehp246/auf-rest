@@ -17,8 +17,8 @@ import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ClientFn;
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.Jackson;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -36,8 +36,8 @@ class ReturnTypeTest {
 			return Set.of(new JsonByJackson(Jackson.OBJECT_MAPPER));
 		}
 	};
-	private final AtomicReference<ReqByRest> reqRef = new AtomicReference<>();
-	private final ClientFn client = request -> {
+	private final AtomicReference<RequestByRest> reqRef = new AtomicReference<>();
+	private final RestFn client = request -> {
 		reqRef.set(request);
 		return new MockResponse<>();
 	};

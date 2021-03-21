@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.ReqByRest;
+import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.mock.Jackson;
@@ -31,7 +31,7 @@ class AppConfig {
 		return new RequestFilter() {
 			
 			@Override
-			public HttpRequest apply(HttpRequest httpRequest, ReqByRest req) {
+			public HttpRequest apply(HttpRequest httpRequest, RequestByRest req) {
 				if (req.invokedOn().target() != case001)
 					return httpRequest;
 				return httpRequest;
@@ -44,7 +44,7 @@ class AppConfig {
 		return new ResponseFilter() {
 			
 			@Override
-			public HttpResponse<?> apply(HttpResponse<?> response, ReqByRest req) {
+			public HttpResponse<?> apply(HttpResponse<?> response, RequestByRest req) {
 				return response;
 			}
 		};
