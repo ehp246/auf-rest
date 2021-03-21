@@ -1,7 +1,11 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+
+import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
  * The abstraction of a REST request that expects a response.
@@ -10,8 +14,9 @@ import java.util.function.Supplier;
  * @since 1.0
  * @version 2.1.1
  */
-public interface ReqByRest extends Message {
+public interface ReqByRest {
 	String uri();
+
 
 	default String method() {
 		return "GET";
@@ -51,6 +56,25 @@ public interface ReqByRest extends Message {
 	}
 
 	default BodyReceiver bodyReceiver() {
+		return null;
+	}
+
+	/**
+	 * Specifies the target object that the request is generated from. Most often
+	 * the target is a {@link ByRest}-annotated interface. Could be
+	 * <code>null</code>.
+	 * 
+	 * @return
+	 */
+	default Object invokedOn() {
+		return null;
+	}
+
+	default Object body() {
+		return null;
+	}
+
+	default Map<String, List<String>> headers() {
 		return null;
 	}
 }

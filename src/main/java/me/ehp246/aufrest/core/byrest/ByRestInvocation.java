@@ -36,7 +36,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
 /**
  * @author Lei Yang
  * @since 1.0
- * @version 2.1
+ * @version 2.1.1
  */
 class ByRestInvocation implements ReqByRest {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
@@ -201,5 +201,10 @@ class ByRestInvocation implements ReqByRest {
 		}
 
 		return httpResponse.body();
+	}
+
+	@Override
+	public Object invokedOn() {
+		return this.invoked.getTarget();
 	}
 }

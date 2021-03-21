@@ -20,7 +20,6 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.RequestLogger;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -138,10 +137,5 @@ public class ByRestConfiguration {
 				return body.toString();
 			}
 		};
-	}
-
-	@Bean
-	public RequestFilter loggingRequestFilter() {
-		return new RequestLogger();
 	}
 }

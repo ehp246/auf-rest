@@ -16,4 +16,9 @@ public class MockReq implements ReqByRest {
 		return "http://nowhere.com";
 	}
 
+	@Override
+	public Object invokedOn() {
+		return null;
+	}
+
 }
