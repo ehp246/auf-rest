@@ -32,15 +32,15 @@ import org.apache.logging.log4j.Logger;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -51,26 +51,24 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * provider should not cache/re-use any builders.
  *
  * @author Lei Yang
- * @since 1.0
- * @version 2.1.1
  */
-public class JdkClientProvider implements ClientFnProvider {
-	private final static Logger LOGGER = LogManager.getLogger(JdkClientProvider.class);
+public class JdkRestFnProvider implements RestFnProvider {
+	private final static Logger LOGGER = LogManager.getLogger(JdkRestFnProvider.class);
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
 
-	public JdkClientProvider() {
+	public JdkRestFnProvider() {
 		this.clientBuilderSupplier = HttpClient::newBuilder;
 		this.reqBuilderSupplier = HttpRequest::newBuilder;
 	}
 
-	public JdkClientProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
+	public JdkRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = HttpRequest::newBuilder;
 	}
 
-	public JdkClientProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
+	public JdkRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
 			final Supplier<HttpRequest.Builder> reqBuilderSupplier) {
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilderSupplier = reqBuilderSupplier;

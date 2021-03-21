@@ -36,7 +36,7 @@ class JdkClientProviderFilterTest {
 		final var map = new HashMap<>();
 		final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
-		new JdkClientProvider(clientBuilderSupplier::builder)
+		new JdkRestFnProvider(clientBuilderSupplier::builder)
 				.get(new ClientConfig() {
 			@Override
 			public List<RequestFilter> requestFilters() {
@@ -73,7 +73,7 @@ class JdkClientProviderFilterTest {
 		final var map = new HashMap<>();
 		final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
-		final var res = new JdkClientProvider(clientBuilderSupplier::builder).get(new ClientConfig() {
+		final var res = new JdkRestFnProvider(clientBuilderSupplier::builder).get(new ClientConfig() {
 
 			@Override
 			public List<ResponseFilter> responseFilters() {

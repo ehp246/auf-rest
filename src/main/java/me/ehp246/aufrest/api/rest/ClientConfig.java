@@ -8,8 +8,6 @@ import java.util.Set;
  * Defines global configuration points for HttpClient.
  *
  * @author Lei Yang
- * @since 1.0
- * @version 2.1.1
  */
 public interface ClientConfig {
 	default Duration connectTimeout() {
