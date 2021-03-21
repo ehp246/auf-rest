@@ -2,7 +2,7 @@ package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.http.HttpResponse.BodyHandler;
 
-import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * @author Lei Yang
@@ -10,5 +10,5 @@ import me.ehp246.aufrest.api.rest.RequestByRest;
  */
 @FunctionalInterface
 public interface BodyHandlerProvider {
-	BodyHandler<?> get(RequestByRest request);
+	BodyHandler<?> get(RestRequest request);
 }

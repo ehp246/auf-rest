@@ -7,5 +7,5 @@ package me.ehp246.aufrest.api.rest;
  */
 @FunctionalInterface
 public interface ResponseFilter {
-	ResponseByRest apply(ResponseByRest response);
+	RestResponse apply(RestResponse response);
 }

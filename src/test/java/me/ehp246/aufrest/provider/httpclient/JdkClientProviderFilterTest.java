@@ -11,9 +11,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.ResponseByRest;
+import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 
 /**
@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.rest.ResponseFilter;
 class JdkClientProviderFilterTest {
 	@Test
 	void request_filtter_001() {
-		final var req = new RequestByRest() {
+		final var req = new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -61,7 +61,7 @@ class JdkClientProviderFilterTest {
 	
 	@Test
 	void response_filter_002() {
-		final var req = new RequestByRest() {
+		final var req = new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -69,7 +69,7 @@ class JdkClientProviderFilterTest {
 			}
 		};
 		
-		final var swap = Mockito.mock(ResponseByRest.class);
+		final var swap = Mockito.mock(RestResponse.class);
 		final var map = new HashMap<>();
 		final var clientBuilderSupplier = new MockClientBuilderSupplier();
 

@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * @author Lei Yang
  * @since 1.0
  */
-public interface RequestByRest {
+public interface RestRequest {
 	String uri();
 
 

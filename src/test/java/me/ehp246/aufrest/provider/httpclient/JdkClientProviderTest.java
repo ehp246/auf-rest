@@ -22,7 +22,7 @@ import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 import me.ehp246.aufrest.mock.MockReq;
@@ -136,7 +136,7 @@ class JdkClientProviderTest {
 	@Test
 	void general001() {
 		final var url = POSTMAN_ECHO + "get?foo1=bar1&foo2=bar2";
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -157,7 +157,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_null_001() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -177,7 +177,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_req_002() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -202,7 +202,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_req_004() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -226,7 +226,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_req_005() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -249,7 +249,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_global_001() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -267,7 +267,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_global_002() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -285,7 +285,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void auth_global_003() {
-		final var request = new RequestByRest() {
+		final var request = new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -412,7 +412,7 @@ class JdkClientProviderTest {
 
 		});
 
-		httpFn.apply(new RequestByRest() {
+		httpFn.apply(new RestRequest() {
 
 			@Override
 			public Duration timeout() {
@@ -428,7 +428,7 @@ class JdkClientProviderTest {
 		Assertions.assertEquals(60, client.requestSent().timeout().get().toMinutes(),
 				"Should have take timeout on the request");
 
-		httpFn.apply(new RequestByRest() {
+		httpFn.apply(new RestRequest() {
 
 			@Override
 			public Duration timeout() {
@@ -447,7 +447,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void uri001() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -479,7 +479,7 @@ class JdkClientProviderTest {
 	void header_context_001() {
 		HeaderContext.set("accept-language", "DE");
 
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -505,7 +505,7 @@ class JdkClientProviderTest {
 	void header_context_002() {
 		HeaderContext.set("accept-language", "DE");
 
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -532,7 +532,7 @@ class JdkClientProviderTest {
 	void header_context_003() {
 		HeaderContext.set("accept-language", "DE");
 
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 
 			@Override
 			public String uri() {
@@ -571,7 +571,7 @@ class JdkClientProviderTest {
 
 	@Test
 	void conneg_002() {
-		clientFn.apply(new RequestByRest() {
+		clientFn.apply(new RestRequest() {
 			@Override
 			public String uri() {
 				return "http://nowhere";

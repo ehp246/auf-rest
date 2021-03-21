@@ -29,8 +29,8 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvokedOn;
-import me.ehp246.aufrest.api.rest.RequestByRest;
-import me.ehp246.aufrest.api.rest.ResponseByRest;
+import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -40,7 +40,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @since 1.0
  *
  */
-class ByRestInvocation implements RequestByRest {
+class ByRestInvocation implements RestRequest {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
 			RequestParam.class, RequestHeader.class);
 
@@ -49,7 +49,7 @@ class ByRestInvocation implements RequestByRest {
 	private final Environment env;
 	private final Optional<OfMapping> ofMapping;
 	private final Optional<ByRest> byRest;
-	private Supplier<ResponseByRest> responseSupplier = null;
+	private Supplier<RestResponse> responseSupplier = null;
 
 	public ByRestInvocation(final ProxyInvoked<Object> invoked, final Environment env) {
 		super();
@@ -74,7 +74,7 @@ class ByRestInvocation implements RequestByRest {
 
 	@Override
 	public String accept() {
-		return ofMapping.map(OfMapping::accept).orElseGet(RequestByRest.super::accept);
+		return ofMapping.map(OfMapping::accept).orElseGet(RestRequest.super::accept);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -150,14 +150,14 @@ class ByRestInvocation implements RequestByRest {
 		return headers;
 	}
 
-	public ByRestInvocation setResponseSupplier(final Supplier<ResponseByRest> responseSupplier) throws Throwable {
+	public ByRestInvocation setResponseSupplier(final Supplier<RestResponse> responseSupplier) throws Throwable {
 		this.responseSupplier = responseSupplier;
 		return this;
 	}
 
 	@Override
 	public String contentType() {
-		return ofMapping.map(OfMapping::contentType).orElse(RequestByRest.super.contentType());
+		return ofMapping.map(OfMapping::contentType).orElse(RestRequest.super.contentType());
 	}
 
 	public Object returnInvocation() throws Throwable {
@@ -181,11 +181,11 @@ class ByRestInvocation implements RequestByRest {
 		});
 	}
 
-	private Object onRestResponse(final ResponseByRest response) {
+	private Object onRestResponse(final RestResponse response) {
 		final var returnType = invoked.getReturnType();
 		final var httpResponse = response.httpResponse();
 
-		if (returnType.isAssignableFrom(ResponseByRest.class)) {
+		if (returnType.isAssignableFrom(RestResponse.class)) {
 			return response;
 		}
 

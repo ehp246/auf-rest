@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * 
@@ -13,5 +14,5 @@ public interface InvokedOn {
 
 	Method method();
 
-	Object[] args();
+	List<?> args();
 }

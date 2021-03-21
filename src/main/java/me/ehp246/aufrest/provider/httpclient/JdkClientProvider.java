@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,9 +36,9 @@ import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.ResponseByRest;
+import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
@@ -96,7 +97,7 @@ public class JdkClientProvider implements ClientFnProvider {
 
 			@SuppressWarnings("unchecked")
 			@Override
-			public ResponseByRest apply(final RequestByRest req) {
+			public RestResponse apply(final RestRequest req) {
 				final var authHeader = Optional
 						.ofNullable(Optional.ofNullable(req.authSupplier())
 								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
@@ -119,6 +120,7 @@ public class JdkClientProvider implements ClientFnProvider {
 					LOGGER.atTrace().log("Applying request filter {}", filter.getClass().getName());
 					httpRequest = filter.apply(httpRequest, req);
 				}
+				final var reqRef = new AtomicReference<>(httpRequest);
 
 				HttpResponse<Object> httpResponse;
 				try {
@@ -128,16 +130,21 @@ public class JdkClientProvider implements ClientFnProvider {
 					throw new RuntimeException(e);
 				}
 
-				ResponseByRest responseByRest = new ResponseByRest() {
+				RestResponse responseByRest = new RestResponse() {
 
 					@Override
-					public RequestByRest requestByRest() {
+					public RestRequest restRequest() {
 						return req;
 					}
 
 					@Override
 					public HttpResponse<Object> httpResponse() {
 						return httpResponse;
+					}
+
+					@Override
+					public HttpRequest httpRequest() {
+						return reqRef.get();
 					}
 
 				};
@@ -150,7 +157,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				return responseByRest;
 			}
 
-			private BodyHandler<?> bodyHandler(final RequestByRest request) {
+			private BodyHandler<?> bodyHandler(final RestRequest request) {
 				final var receiver = request.bodyReceiver();
 				final Class<?> type = receiver == null ? void.class : receiver.type();
 
@@ -181,7 +188,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				};
 			}
 
-			private BodyPublisher bodyPublisher(final RequestByRest req) {
+			private BodyPublisher bodyPublisher(final RestRequest req) {
 				if (req.body() == null) {
 					return BodyPublishers.noBody();
 				}
@@ -195,7 +202,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				return BodyPublishers.ofString(((TextBodyFn) writer).toText(req::body));
 			}
 
-			private HttpRequest.Builder newRequestBuilder(final RequestByRest req) {
+			private HttpRequest.Builder newRequestBuilder(final RestRequest req) {
 				final var builder = reqBuilderSupplier.get();
 
 				// Provider headers, context headers, request headers in ascending priorities.

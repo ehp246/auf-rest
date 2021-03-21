@@ -9,5 +9,5 @@ import java.net.http.HttpRequest;
  */
 @FunctionalInterface
 public interface RequestFilter {
-	HttpRequest apply(HttpRequest httpRequest, RequestByRest req);
+	HttpRequest apply(HttpRequest httpRequest, RestRequest req);
 }

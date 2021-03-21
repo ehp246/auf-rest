@@ -16,7 +16,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.mock.MockResponse;
 
@@ -26,7 +26,7 @@ import me.ehp246.aufrest.mock.MockResponse;
  */
 class ByRestFactoryTest {
 	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-	private final AtomicReference<RequestByRest> reqRef = new AtomicReference<>();
+	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
 	private final RestFn client = request -> {
 		reqRef.set(request);

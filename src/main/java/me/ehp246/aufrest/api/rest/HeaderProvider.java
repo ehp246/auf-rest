@@ -29,5 +29,5 @@ public interface HeaderProvider {
 	 * @param request the out-going request.
 	 * @return header names and values. <code>null</code> is acceptable.
 	 */
-	Map<String, List<String>> get(RequestByRest request);
+	Map<String, List<String>> get(RestRequest request);
 }

@@ -10,5 +10,5 @@ package me.ehp246.aufrest.api.rest;
  */
 @FunctionalInterface
 public interface RestFn {
-	ResponseByRest apply(RequestByRest request);
+	RestResponse apply(RestRequest request);
 }

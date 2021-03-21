@@ -54,8 +54,8 @@ public class ProxyInvoked<T> implements InvokedOn {
 	}
 
 	@Override
-	public Object[] args() {
-		return null;
+	public List<?> args() {
+		return args;
 	}
 
 	public Class<?> getReturnType() {
