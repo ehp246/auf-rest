@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.ReqByRest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.MockResponse;
 
@@ -21,7 +21,7 @@ import me.ehp246.aufrest.mock.MockResponse;
 @ExtendWith(MockitoExtension.class)
 class ContentTypeTest {
 	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-	private final AtomicReference<Request> reqRef = new AtomicReference<>();
+	private final AtomicReference<ReqByRest> reqRef = new AtomicReference<>();
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);

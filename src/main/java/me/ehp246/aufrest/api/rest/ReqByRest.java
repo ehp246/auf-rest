@@ -8,9 +8,9 @@ import java.util.function.Supplier;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.1
+ * @version 2.1.1
  */
-public interface Request extends Message {
+public interface ReqByRest extends Message {
 	String uri();
 
 	default String method() {

@@ -2,13 +2,13 @@ package me.ehp246.aufrest.mock;
 
 import java.util.UUID;
 
-import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.ReqByRest;
 
 /**
  * @author Lei Yang
  *
  */
-public class MockReq implements Request {
+public class MockReq implements ReqByRest {
 	public final String reqId = UUID.randomUUID().toString();
 
 	@Override

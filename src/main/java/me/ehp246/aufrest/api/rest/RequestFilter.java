@@ -8,5 +8,5 @@ import java.net.http.HttpRequest;
  * @version 2.1
  */
 public interface RequestFilter {
-	HttpRequest apply(HttpRequest httpRequest, Request request);
+	HttpRequest apply(HttpRequest httpRequest, ReqByRest request);
 }

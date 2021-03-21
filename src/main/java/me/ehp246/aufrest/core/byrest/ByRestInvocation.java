@@ -28,7 +28,7 @@ import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.ReqByRest;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -38,7 +38,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @since 1.0
  * @version 2.1
  */
-class ByRestInvocation implements Request {
+class ByRestInvocation implements ReqByRest {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
 			RequestParam.class, RequestHeader.class);
 
@@ -72,7 +72,7 @@ class ByRestInvocation implements Request {
 
 	@Override
 	public String accept() {
-		return ofMapping.map(OfMapping::accept).orElseGet(Request.super::accept);
+		return ofMapping.map(OfMapping::accept).orElseGet(ReqByRest.super::accept);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -158,7 +158,7 @@ class ByRestInvocation implements Request {
 
 	@Override
 	public String contentType() {
-		return ofMapping.map(OfMapping::contentType).orElse(Request.super.contentType());
+		return ofMapping.map(OfMapping::contentType).orElse(ReqByRest.super.contentType());
 	}
 
 	public Object returnInvocation() throws Throwable {

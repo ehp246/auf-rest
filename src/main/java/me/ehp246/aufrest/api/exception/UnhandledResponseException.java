@@ -2,7 +2,7 @@ package me.ehp246.aufrest.api.exception;
 
 import java.net.http.HttpResponse;
 
-import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.ReqByRest;
 
 /**
  * Thrown when the framework receives a HttpResponse that it dosn't know how to
@@ -20,10 +20,10 @@ import me.ehp246.aufrest.api.rest.Request;
 public class UnhandledResponseException extends RuntimeException {
 	private static final long serialVersionUID = 3813318541456042414L;
 
-	private final Request request;
+	private final ReqByRest request;
 	private final HttpResponse<?> response;
 
-	public UnhandledResponseException(final Request request, final HttpResponse<?> response) {
+	public UnhandledResponseException(final ReqByRest request, final HttpResponse<?> response) {
 		super();
 		this.request = request;
 		this.response = response;
@@ -41,7 +41,7 @@ public class UnhandledResponseException extends RuntimeException {
 		return this.httpResponse().body().toString();
 	}
 
-	public Request request() {
+	public ReqByRest request() {
 		return request;
 	}
 }

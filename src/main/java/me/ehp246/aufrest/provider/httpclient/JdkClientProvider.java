@@ -36,7 +36,7 @@ import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.ReqByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -91,7 +91,7 @@ public class JdkClientProvider implements ClientFnProvider {
 					.stream().collect(Collectors.toUnmodifiableSet());
 
 			@Override
-			public HttpResponse<?> apply(final Request request) {
+			public HttpResponse<?> apply(final ReqByRest request) {
 				final var authHeader = Optional.ofNullable(Optional.ofNullable(request.authSupplier())
 						.orElse(() -> authProvider.map(provider -> provider.get(request.uri())).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
@@ -125,7 +125,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				return httpResponse;
 			}
 
-			private BodyHandler<?> bodyHandler(final Request request) {
+			private BodyHandler<?> bodyHandler(final ReqByRest request) {
 				final var receiver = request.bodyReceiver();
 				final Class<?> type = receiver == null ? void.class : receiver.type();
 
@@ -156,7 +156,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				};
 			}
 
-			private BodyPublisher bodyPublisher(final Request req) {
+			private BodyPublisher bodyPublisher(final ReqByRest req) {
 				if (req.body() == null) {
 					return BodyPublishers.noBody();
 				}
@@ -170,7 +170,7 @@ public class JdkClientProvider implements ClientFnProvider {
 				return BodyPublishers.ofString(((TextBodyFn) writer).toText(req::body));
 			}
 
-			private HttpRequest.Builder newRequestBuilder(final Request req) {
+			private HttpRequest.Builder newRequestBuilder(final ReqByRest req) {
 				final var builder = reqBuilderSupplier.get();
 
 				// Provider headers, context headers, request headers in ascending priorities.
