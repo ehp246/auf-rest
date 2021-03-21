@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.provider.httpclient;
 
+import static org.mockito.Mockito.mock;
+
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -56,12 +58,16 @@ class MockClientBuilderSupplier {
 	}
 
 	static HttpClient.Builder builder(final AtomicReference<HttpRequest> req) {
+		return builder(req, new MockResponse<Object>());
+	}
+	
+	static HttpClient.Builder builder(final AtomicReference<HttpRequest> req, final HttpResponse<Object> mockResponse) {
 		final HttpClient client = Mockito.mock(HttpClient.class);
 
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
 				req.set(invocation.getArgument(0));
-				return new MockResponse<Object>();
+				return mockResponse;
 			});
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();

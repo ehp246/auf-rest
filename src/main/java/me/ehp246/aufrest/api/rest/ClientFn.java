@@ -12,5 +12,5 @@ import java.net.http.HttpResponse;
  */
 @FunctionalInterface
 public interface ClientFn {
-	HttpResponse<?> apply(Request request);
+	HttpResponse<?> apply(ReqByRest request);
 }

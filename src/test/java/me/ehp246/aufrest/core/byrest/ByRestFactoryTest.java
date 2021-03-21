@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.Request;
+import me.ehp246.aufrest.api.rest.ReqByRest;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -27,7 +27,7 @@ import me.ehp246.aufrest.mock.MockResponse;
  */
 class ByRestFactoryTest {
 	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-	private final AtomicReference<Request> reqRef = new AtomicReference<>();
+	private final AtomicReference<ReqByRest> reqRef = new AtomicReference<>();
 
 	private final ClientFn client = request -> {
 		reqRef.set(request);

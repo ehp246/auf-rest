@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
  *
  */
 public class RequestLogger implements RequestFilter {
-	private final Logger logger = LogManager.getLogger(RequestLogger.class);
+	private final static Logger LOGGER = LogManager.getLogger(RequestLogger.class);
 	private final Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
 		@Override
@@ -24,12 +24,12 @@ public class RequestLogger implements RequestFilter {
 
 		@Override
 		public void onNext(final ByteBuffer item) {
-			logger.atTrace().log(new String(item.array(), StandardCharsets.UTF_8));
+			LOGGER.atTrace().log(new String(item.array(), StandardCharsets.UTF_8));
 		}
 
 		@Override
 		public void onError(final Throwable throwable) {
-			logger.atError().log(throwable);
+			LOGGER.atError().log(throwable);
 		}
 
 		@Override
@@ -38,11 +38,11 @@ public class RequestLogger implements RequestFilter {
 	};
 
 	@Override
-	public HttpRequest apply(final HttpRequest httpRequest, final Request request) {
-		logger.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
-		logger.atDebug().log(httpRequest.headers().map());
+	public HttpRequest apply(final HttpRequest httpRequest, final ReqByRest request) {
+		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
+		LOGGER.atDebug().log(httpRequest.headers().map());
 
-		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> logger.atDebug().log("-"));
+		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atDebug().log("-"));
 
 		return httpRequest;
 	}

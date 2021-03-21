@@ -16,7 +16,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class ProxyInvoked<T> {
+import me.ehp246.aufrest.api.rest.ProxyByRest;
+
+public class ProxyInvoked<T> implements ProxyByRest {
 	private final T target;
 	private final Method method;
 	private final List<?> args;
@@ -33,11 +35,13 @@ public class ProxyInvoked<T> {
 		this.parameterAnnotations = this.method.getParameterAnnotations();
 	}
 
-	public T getTarget() {
+	@Override
+	public T target() {
 		return target;
 	}
 
-	public Method getMethod() {
+	@Override
+	public Method method() {
 		return method;
 	}
 
@@ -49,8 +53,9 @@ public class ProxyInvoked<T> {
 		return method.getDeclaringClass();
 	}
 
-	public List<?> getArgs() {
-		return args;
+	@Override
+	public Object[] args() {
+		return null;
 	}
 
 	public Class<?> getReturnType() {
