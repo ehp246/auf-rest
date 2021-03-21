@@ -17,8 +17,8 @@ import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.Jackson;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -39,7 +39,7 @@ class ReturnTypeTest {
 	private final AtomicReference<RequestByRest> reqRef = new AtomicReference<>();
 	private final RestFn client = request -> {
 		reqRef.set(request);
-		return new MockResponse<>();
+		return new MockResponse(request);
 	};
 	private final ByRestFactory factory = new ByRestFactory(cfg -> client, new MockEnvironment(),
 			new DefaultListableBeanFactory());

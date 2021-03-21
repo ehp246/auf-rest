@@ -26,10 +26,11 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.InvokedOn;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InvokedOn;
 import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.ResponseByRest;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -37,7 +38,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
 /**
  * @author Lei Yang
  * @since 1.0
- * @version 2.1.1
+ *
  */
 class ByRestInvocation implements RequestByRest {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
@@ -48,7 +49,7 @@ class ByRestInvocation implements RequestByRest {
 	private final Environment env;
 	private final Optional<OfMapping> ofMapping;
 	private final Optional<ByRest> byRest;
-	private Supplier<HttpResponse<?>> responseSupplier = null;
+	private Supplier<ResponseByRest> responseSupplier = null;
 
 	public ByRestInvocation(final ProxyInvoked<Object> invoked, final Environment env) {
 		super();
@@ -149,11 +150,8 @@ class ByRestInvocation implements RequestByRest {
 		return headers;
 	}
 
-	public ByRestInvocation setResponseSupplier(final Supplier<HttpResponse<?>> responseSupplier) throws Throwable {
-		// Short-circuiting the HTTP call if an argument from the invocation is a
-		// HttpResponse to facilitate testing mostly.
-		this.responseSupplier = invoked.findArgumentsOfType(HttpResponse.class).stream().findFirst()
-				.map(res -> (Supplier<HttpResponse<?>>) () -> res).orElse(responseSupplier);
+	public ByRestInvocation setResponseSupplier(final Supplier<ResponseByRest> responseSupplier) throws Throwable {
+		this.responseSupplier = responseSupplier;
 		return this;
 	}
 
@@ -163,28 +161,33 @@ class ByRestInvocation implements RequestByRest {
 	}
 
 	public Object returnInvocation() throws Throwable {
-		if (invoked.getReturnType().isAssignableFrom(CompletableFuture.class)) {
-			final var context = HeaderContext.map();
-			return CompletableFuture.supplyAsync(() -> {
-				HeaderContext.set(context);
-				try {
-					final var httpResponse = responseSupplier.get();
-					final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value,
-							() -> new Class<?>[] {});
-					if (reifying.length > 0 && reifying[0].isAssignableFrom(HttpResponse.class)) {
-						return httpResponse;
-					}
-					return httpResponse.body();
-				} finally {
-					HeaderContext.clear();
-				}
-			});
+		if (!invoked.getReturnType().isAssignableFrom(CompletableFuture.class)) {
+			return onRestResponse(responseSupplier.get());
 		}
-		return onHttpResponse(responseSupplier.get());
+
+		final var context = HeaderContext.map();
+		return CompletableFuture.supplyAsync(() -> {
+			HeaderContext.set(context);
+			try {
+				final var httpResponse = responseSupplier.get().httpResponse();
+				final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {});
+				if (reifying.length > 0 && reifying[0].isAssignableFrom(HttpResponse.class)) {
+					return httpResponse;
+				}
+				return httpResponse.body();
+			} finally {
+				HeaderContext.clear();
+			}
+		});
 	}
 
-	private Object onHttpResponse(final HttpResponse<?> httpResponse) {
+	private Object onRestResponse(final ResponseByRest response) {
 		final var returnType = invoked.getReturnType();
+		final var httpResponse = response.httpResponse();
+
+		if (returnType.isAssignableFrom(ResponseByRest.class)) {
+			return response;
+		}
 
 		// If the return type is HttpResponse, returns it as is without any processing
 		// regardless the status.

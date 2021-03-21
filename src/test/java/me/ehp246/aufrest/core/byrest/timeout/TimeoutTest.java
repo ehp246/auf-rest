@@ -24,7 +24,7 @@ class TimeoutTest {
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
-		return new MockResponse<>();
+		return new MockResponse(request);
 	}, env, beanFactory);
 
 	@Test

@@ -1,18 +1,15 @@
 package me.ehp246.aufrest.provider.httpclient;
 
-import static org.mockito.Mockito.mock;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.mock.MockResponse;
+import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang
@@ -21,7 +18,7 @@ import me.ehp246.aufrest.mock.MockResponse;
 class MockClientBuilderSupplier {
 	private int builderCount = 0;
 	private final Supplier<HttpResponse<?>> responseSupplier;
-	private HttpRequest req = null;
+	private HttpRequest sent = null;
 
 	MockClientBuilderSupplier() {
 		super();
@@ -36,15 +33,15 @@ class MockClientBuilderSupplier {
 	@SuppressWarnings("unchecked")
 	HttpClient.Builder builder() {
 		builderCount++;
-		req = null;
+		sent = null;
 
 		final HttpClient client = Mockito.mock(HttpClient.class);
 
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
-				req = invocation.getArgument(0);
+				sent = invocation.getArgument(0);
 				return (HttpResponse<Object>) Optional.ofNullable(responseSupplier).map(Supplier::get)
-						.orElseGet(MockResponse::new);
+						.orElseGet(MockHttpResponse::new);
 			});
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();
@@ -57,17 +54,13 @@ class MockClientBuilderSupplier {
 		return builder;
 	}
 
-	static HttpClient.Builder builder(final AtomicReference<HttpRequest> req) {
-		return builder(req, new MockResponse<Object>());
-	}
-	
-	static HttpClient.Builder builder(final AtomicReference<HttpRequest> req, final HttpResponse<Object> mockResponse) {
+
+	static HttpClient.Builder builder(HttpResponse<?> httpResponse) {
 		final HttpClient client = Mockito.mock(HttpClient.class);
 
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
-				req.set(invocation.getArgument(0));
-				return mockResponse;
+				return httpResponse;
 			});
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();
@@ -78,13 +71,17 @@ class MockClientBuilderSupplier {
 		Mockito.when(builder.build()).thenReturn(client);
 
 		return builder;
+	}
+
+	static Supplier<HttpClient.Builder> supplier(HttpResponse<?> httpResponse) {
+		return () -> builder(httpResponse);
 	}
 
 	int builderCount() {
 		return builderCount;
 	}
 
-	HttpRequest request() {
-		return req;
+	HttpRequest requestSent() {
+		return sent;
 	}
 }

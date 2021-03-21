@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.integration.local.filter;
 
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
+import me.ehp246.aufrest.api.rest.ResponseByRest;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.mock.Jackson;
 
@@ -44,8 +44,8 @@ class AppConfig {
 		return new ResponseFilter() {
 			
 			@Override
-			public HttpResponse<?> apply(HttpResponse<?> response, RequestByRest req) {
-				return response;
+			public ResponseByRest apply(ResponseByRest resp) {
+				return resp;
 			}
 		};
 	}

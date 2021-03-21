@@ -20,12 +20,12 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.mock.MockHttpResponse;
 import me.ehp246.aufrest.mock.MockReq;
-import me.ehp246.aufrest.mock.MockResponse;
 
 /**
  * @author Lei Yang
@@ -78,7 +78,7 @@ class JdkClientProviderTest {
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).then(invocation -> {
 				reqRef.set(invocation.getArgument(0));
-				return new MockResponse<>();
+				return new MockHttpResponse<>();
 			});
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();
@@ -378,7 +378,7 @@ class JdkClientProviderTest {
 		new JdkClientProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
 		}).apply(() -> "http://tonowhere");
 
-		Assertions.assertEquals(true, client.request().timeout().isEmpty(), "Should have no timeout on request");
+		Assertions.assertEquals(true, client.requestSent().timeout().isEmpty(), "Should have no timeout on request");
 	}
 
 	@Test
@@ -394,7 +394,7 @@ class JdkClientProviderTest {
 
 		}).apply(() -> "http://tonowhere");
 
-		Assertions.assertEquals(1, client.request().timeout().get().toDays());
+		Assertions.assertEquals(1, client.requestSent().timeout().get().toDays());
 	}
 
 	@Test
@@ -425,7 +425,7 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(60, client.request().timeout().get().toMinutes(),
+		Assertions.assertEquals(60, client.requestSent().timeout().get().toMinutes(),
 				"Should have take timeout on the request");
 
 		httpFn.apply(new RequestByRest() {
@@ -441,7 +441,7 @@ class JdkClientProviderTest {
 			}
 		});
 
-		Assertions.assertEquals(3, client.request().timeout().get().toMillis(),
+		Assertions.assertEquals(3, client.requestSent().timeout().get().toMillis(),
 				"Should have take timeout on the request");
 	}
 

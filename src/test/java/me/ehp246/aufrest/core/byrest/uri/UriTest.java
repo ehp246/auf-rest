@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -24,7 +24,7 @@ class UriTest {
 
 	private final RestFn client = request -> {
 		reqRef.set(request);
-		return new MockResponse<>();
+		return new MockResponse(request);
 	};
 
 	private final ByRestFactory factory = new ByRestFactory(clientCfg -> client,

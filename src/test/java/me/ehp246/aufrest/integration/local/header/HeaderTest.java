@@ -131,6 +131,7 @@ class HeaderTest {
 		final var ref = new AtomicReference<Map<String, List<String>>>();
 
 		final var returned = case001.getAsFuture().thenApply(headers -> {
+			// The context should be cleared when the invocation is finished.
 			ref.set(HeaderContext.map());
 			return headers;
 		}).get();

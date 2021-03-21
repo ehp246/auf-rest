@@ -15,10 +15,9 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestByRest;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -31,7 +30,7 @@ class ByRestFactoryTest {
 
 	private final RestFn client = request -> {
 		reqRef.set(request);
-		return new MockResponse<>();
+		return new MockResponse(request);
 	};
 
 	private final MockEnvironment env = new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")
@@ -288,34 +287,6 @@ class ByRestFactoryTest {
 		factory.newInstance(AuthTestCases.Case007.class).get();
 
 		Assertions.assertEquals("postman_bean2", reqRef.get().authSupplier().get());
-	}
-
-	@Test
-	void exception_001() {
-		final var factory = new ByRestFactory(cfg -> req -> null, env, beanFactory);
-		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
-
-		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
-				() -> newInstance.get(new MockResponse<String>(300, "")));
-
-		Assertions.assertEquals(300, thrown.statusCode());
-		Assertions.assertEquals(true, thrown.httpResponse() != null);
-		Assertions.assertEquals(true, thrown.request() != null);
-		Assertions.assertEquals("", thrown.bodyAsString());
-	}
-
-	@Test
-	void exception_002() {
-		final var factory = new ByRestFactory(cfg -> req -> null, env, beanFactory);
-		final var newInstance = factory.newInstance(ExceptionTestCases.Case001.class);
-
-		final var thrown = Assertions.assertThrows(UnhandledResponseException.class,
-				() -> newInstance.getWithThrows(new MockResponse<String>(400, "")));
-
-		Assertions.assertEquals(400, thrown.statusCode());
-		Assertions.assertEquals(true, thrown.httpResponse() != null);
-		Assertions.assertEquals(true, thrown.request() != null);
-		Assertions.assertEquals("", thrown.bodyAsString());
 	}
 
 	@Test

@@ -20,7 +20,7 @@ import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.mock.MockClientConfig;
 import me.ehp246.aufrest.mock.MockReq;
-import me.ehp246.aufrest.mock.MockResponse;
+import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang
@@ -35,7 +35,7 @@ class JdkClientProviderHeaderTest {
 		try {
 			Mockito.when(client.send(Mockito.any(), Mockito.any())).then(invocation -> {
 				reqRef.set(invocation.getArgument(0));
-				return new MockResponse<>();
+				return new MockHttpResponse<>();
 			});
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();

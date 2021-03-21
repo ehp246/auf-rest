@@ -31,14 +31,15 @@ import org.apache.logging.log4j.Logger;
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.ClientFnProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestByRest;
 import me.ehp246.aufrest.api.rest.RequestFilter;
+import me.ehp246.aufrest.api.rest.ResponseByRest;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -93,14 +94,16 @@ public class JdkClientProvider implements ClientFnProvider {
 			private final Set<BodyFn> bodyFns = Optional.ofNullable(clientConfig.bodyFns()).orElseGet(HashSet::new)
 					.stream().collect(Collectors.toUnmodifiableSet());
 
+			@SuppressWarnings("unchecked")
 			@Override
-			public HttpResponse<?> apply(final RequestByRest req) {
-				final var authHeader = Optional.ofNullable(Optional.ofNullable(req.authSupplier())
-						.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
+			public ResponseByRest apply(final RequestByRest req) {
+				final var authHeader = Optional
+						.ofNullable(Optional.ofNullable(req.authSupplier())
+								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
-				final var requestBuilder = newRequestBuilder(req)
-						.method(req.method().toUpperCase(), bodyPublisher(req)).uri(URI.create(req.uri()));
+				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
+						.uri(URI.create(req.uri()));
 
 				// Timeout
 				Optional.ofNullable(req.timeout() == null ? clientConfig.responseTimeout() : req.timeout())
@@ -117,20 +120,34 @@ public class JdkClientProvider implements ClientFnProvider {
 					httpRequest = filter.apply(httpRequest, req);
 				}
 
-				HttpResponse<?> httpResponse;
+				HttpResponse<Object> httpResponse;
 				try {
-					httpResponse = client.send(httpRequest, bodyHandler(req));
+					httpResponse = (HttpResponse<Object>) client.send(httpRequest, bodyHandler(req));
 				} catch (IOException | InterruptedException e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					throw new RuntimeException(e);
 				}
-				
+
+				ResponseByRest responseByRest = new ResponseByRest() {
+
+					@Override
+					public RequestByRest requestByRest() {
+						return req;
+					}
+
+					@Override
+					public HttpResponse<Object> httpResponse() {
+						return httpResponse;
+					}
+
+				};
+
 				for (final var filter : responseFilters) {
 					LOGGER.atTrace().log("Applying response filter {}", filter.getClass().getName());
-					httpResponse = filter.apply(httpResponse, req);
+					responseByRest = filter.apply(responseByRest);
 				}
 
-				return httpResponse;
+				return responseByRest;
 			}
 
 			private BodyHandler<?> bodyHandler(final RequestByRest request) {
