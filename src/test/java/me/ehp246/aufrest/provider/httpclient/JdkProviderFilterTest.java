@@ -21,7 +21,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  *
  */
 @ExtendWith(MockitoExtension.class)
-class JdkClientProviderFilterTest {
+class JdkProviderFilterTest {
 	@Test
 	void request_filtter_001() {
 		final var req = new RestRequest() {
