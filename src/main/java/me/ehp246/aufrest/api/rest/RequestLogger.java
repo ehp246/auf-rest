@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  * @author Lei Yang
  *
  */
-public class RequestLogger implements RequestFilter {
+public class RequestLogger implements RequestConsumer {
 	private final static Logger LOGGER = LogManager.getLogger(RequestLogger.class);
 	private final Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
@@ -38,13 +38,11 @@ public class RequestLogger implements RequestFilter {
 	};
 
 	@Override
-	public HttpRequest apply(final HttpRequest httpRequest, final RestRequest request) {
+	public void accept(final HttpRequest httpRequest, final RestRequest request) {
 		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
 		LOGGER.atDebug().log(httpRequest.headers().map());
 
 		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atDebug().log("-"));
-
-		return httpRequest;
 	}
 
 }
