@@ -1,6 +1,6 @@
 package me.ehp246.aufrest.integration.local.timeout;
 
-import java.net.http.HttpTimeoutException;
+import java.net.http.HttpConnectTimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,17 +13,15 @@ import org.springframework.test.context.TestPropertySource;
  *
  */
 @SpringBootTest(classes = AppConfig.class)
-@TestPropertySource(properties = { "me.ehp246.aufrest.connectTimeout=PT0.001S" })
+@TestPropertySource(properties = { "me.ehp246.aufrest.connectTimeout=PT0.01S" })
 class GlobalConnectionTimeoutTest {
 	@Autowired
 	private GlobalTestCase01 case001;
 
-	/**
-	 * The cause is not always <code>HttpConnectTimeoutException</code> for some reason.
-	 */
 	@Test
 	void test_001() {
-		Assertions.assertEquals(true, Assertions.assertThrows(Exception.class, case001::get)
-				.getCause() instanceof HttpTimeoutException);
+		final var e = Assertions.assertThrows(Exception.class, case001::get).getCause();
+
+		Assertions.assertEquals(HttpConnectTimeoutException.class, e.getClass());
 	}
 }

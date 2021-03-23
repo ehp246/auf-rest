@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.provider.httpclient;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -138,14 +137,15 @@ public class JdkRestFnProvider implements RestFnProvider {
 				HttpResponse<Object> httpResponse;
 				try {
 					httpResponse = (HttpResponse<Object>) client.send(httpRequest, bodyHandler(req));
-				} catch (IOException | InterruptedException e) {
+				} catch (Exception e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					// Applying consumers
 					exceptConsumers.stream().forEach(consumer -> {
 						LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
 						consumer.accept(e, req);	
 					});
-					
+
+					// Always wrap into a RuntimeException
 					throw new RuntimeException(e);
 				}
 
