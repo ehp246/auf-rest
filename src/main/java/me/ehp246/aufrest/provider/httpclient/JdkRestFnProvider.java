@@ -193,12 +193,8 @@ public class JdkRestFnProvider implements RestFnProvider {
 				}
 
 				return responseInfo -> {
-					LOGGER.atDebug().log("Status: {}", responseInfo.statusCode());
-					LOGGER.atTrace().log("Headers: {}", responseInfo.headers().map());
-
 					// Default to UTF-8 text
 					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-						LOGGER.atTrace().log("Body: {}", text);
 
 						if (responseInfo.statusCode() >= 300) {
 							return text;
