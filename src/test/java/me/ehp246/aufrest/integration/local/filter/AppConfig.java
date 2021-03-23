@@ -9,6 +9,7 @@ import org.springframework.core.annotation.Order;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.ByRestLogger;
 import me.ehp246.aufrest.api.rest.RequestFilter;
+import me.ehp246.aufrest.api.rest.RequestLogger;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
 import me.ehp246.aufrest.mock.Jackson;
 

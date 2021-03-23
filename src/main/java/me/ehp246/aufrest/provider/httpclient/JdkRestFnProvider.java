@@ -1,35 +1,7 @@
 package me.ehp246.aufrest.provider.httpclient;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpResponse.BodySubscribers;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import me.ehp246.aufrest.api.rest.AuthorizationProvider;
-import me.ehp246.aufrest.api.rest.BodyFn;
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 import me.ehp246.aufrest.api.rest.ExceptionConsumer;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
@@ -99,7 +71,6 @@ public class JdkRestFnProvider implements RestFnProvider {
 			private final Optional<HeaderProvider> headerProvider = Optional.ofNullable(clientConfig.headerProvider());
 			private final Set<BodyFn> bodyFns = Optional.ofNullable(clientConfig.bodyFns()).orElseGet(HashSet::new)
 					.stream().collect(Collectors.toUnmodifiableSet());
-
 
 			@SuppressWarnings("unchecked")
 			@Override
