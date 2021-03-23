@@ -56,7 +56,11 @@ class FilterTest {
 		Assertions.assertEquals(true, reqConsumer1.id() == 1);
 		Assertions.assertEquals(true, reqConsumer2.id() == 2);
 
+		Assertions.assertEquals(true, reqConsumer1.httpReq() != null);
+		Assertions.assertEquals(true, reqConsumer1.reqByRest() != null);
 		Assertions.assertEquals(true, reqConsumer1.httpReq() == reqConsumer2.httpReq());
+		Assertions.assertEquals(true, reqConsumer2.httpReq() != null);
+		Assertions.assertEquals(true, reqConsumer2.reqByRest() != null);
 		Assertions.assertEquals(true, reqConsumer1.reqByRest() == reqConsumer2.reqByRest());
 	}
 }

@@ -40,9 +40,9 @@ public class RequestLogger implements RequestConsumer {
 	@Override
 	public void accept(final HttpRequest httpRequest, final RestRequest request) {
 		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
-		LOGGER.atDebug().log(httpRequest.headers().map());
+		LOGGER.atTrace().log(httpRequest.headers().map());
 
-		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atDebug().log("-"));
+		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
 	}
 
 }
