@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.local.filter;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,9 +21,11 @@ class FilterTest {
 	private ReqFilter reqFilter;
 	@Autowired
 	private RespFilter respFilter;
+	@Autowired
+	private List<ReqConsumer> reqConsumers;
 
 	@Test
-	void test() {
+	void filter_001() {
 		final var now = Instant.now();
 
 		case001.post(now);
@@ -32,12 +35,32 @@ class FilterTest {
 	}
 
 	@Test
-	void test_002() {
+	void filter_002() {
 		final var now = Instant.now();
 
-		final var payload = case001.post(now);
+		final var ret = case001.post(now);
 
 		Assertions.assertEquals(true, respFilter.restRequest() == reqFilter.reqByRest());
-		Assertions.assertEquals(true, respFilter.httpResponse().body() == payload);
+		Assertions.assertEquals(true, respFilter.httpResponse().body() == ret);
+	}
+
+	@Test
+	void request_consumer_001() {
+		final var now = Instant.now();
+
+		case001.post(now);
+
+		final var reqConsumer1 = reqConsumers.get(0);
+		final var reqConsumer2 = reqConsumers.get(1);
+
+		Assertions.assertEquals(true, reqConsumer1.id() == 1);
+		Assertions.assertEquals(true, reqConsumer2.id() == 2);
+
+		Assertions.assertEquals(true, reqConsumer1.httpReq() != null);
+		Assertions.assertEquals(true, reqConsumer1.reqByRest() != null);
+		Assertions.assertEquals(true, reqConsumer1.httpReq() == reqConsumer2.httpReq());
+		Assertions.assertEquals(true, reqConsumer2.httpReq() != null);
+		Assertions.assertEquals(true, reqConsumer2.reqByRest() != null);
+		Assertions.assertEquals(true, reqConsumer1.reqByRest() == reqConsumer2.reqByRest());
 	}
 }

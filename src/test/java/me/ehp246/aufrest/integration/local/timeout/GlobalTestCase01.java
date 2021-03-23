@@ -6,7 +6,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * @author Lei Yang
  *
  */
-@ByRest("http://nowhere.com")
+@ByRest("https://github.com")
 interface GlobalTestCase01 {
 	void get();
 }

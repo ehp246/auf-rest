@@ -36,5 +36,17 @@ public interface ClientConfig {
 	
 	default List<ResponseFilter> responseFilters() {
 		return List.of();
+	}
+
+	default List<RequestConsumer> requestConsumers() {
+		return List.of();
+	}
+
+	default List<ResponseConsumer> responseConsumers() {
+		return List.of();
+	}
+
+	default List<ExceptionConsumer> exceptionConsumers() {
+		return List.of();
 	}	
 }

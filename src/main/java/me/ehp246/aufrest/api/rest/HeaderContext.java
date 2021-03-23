@@ -19,7 +19,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  * @since 2.0
  */
-public class HeaderContext {
+public final class HeaderContext {
 	private final static HeaderContext CONTEXT = new HeaderContext();
 
 	private final ThreadLocal<Map<String, List<String>>> threadHeaders = ThreadLocal.withInitial(HashMap::new);

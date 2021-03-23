@@ -1,20 +1,32 @@
+/**
+ * 
+ */
 package me.ehp246.aufrest.integration.local.filter;
 
 import java.net.http.HttpRequest;
 
-import org.springframework.stereotype.Component;
-
+import me.ehp246.aufrest.api.rest.RequestConsumer;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
-@Component
-class ReqFilter {
+/**
+ * @author Lei Yang
+ *
+ */
+class ReqConsumer implements RequestConsumer {
+	private final int id;
+
 	private HttpRequest httpReq;
 	private RestRequest req;
 
-	HttpRequest apply(HttpRequest httpRequest, RestRequest req) {
+	public ReqConsumer(int id) {
+		super();
+		this.id = id;
+	}
+
+	@Override
+	public void accept(HttpRequest httpRequest, RestRequest req) {
 		this.httpReq = httpRequest;
 		this.req = req;
-		return httpRequest;
 	}
 
 	RestRequest reqByRest() {
@@ -23,5 +35,9 @@ class ReqFilter {
 
 	HttpRequest httpReq() {
 		return this.httpReq;
+	}
+
+	int id() {
+		return this.id;
 	}
 }

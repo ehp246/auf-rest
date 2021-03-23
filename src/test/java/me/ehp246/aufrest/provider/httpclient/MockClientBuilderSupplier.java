@@ -19,15 +19,24 @@ class MockClientBuilderSupplier {
 	private int builderCount = 0;
 	private final Supplier<HttpResponse<?>> responseSupplier;
 	private HttpRequest sent = null;
+	private final Exception e;
 
 	MockClientBuilderSupplier() {
 		super();
 		this.responseSupplier = null;
+		this.e = null;
+	}
+
+	MockClientBuilderSupplier(Exception e) {
+		super();
+		this.responseSupplier = null;
+		this.e = e;
 	}
 
 	MockClientBuilderSupplier(final Supplier<HttpResponse<?>> responseSupplier) {
 		super();
 		this.responseSupplier = responseSupplier;
+		this.e = null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -38,11 +47,15 @@ class MockClientBuilderSupplier {
 		final HttpClient client = Mockito.mock(HttpClient.class);
 
 		try {
-			Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
-				sent = invocation.getArgument(0);
-				return (HttpResponse<Object>) Optional.ofNullable(responseSupplier).map(Supplier::get)
-						.orElseGet(MockHttpResponse::new);
-			});
+			if (this.e == null) {
+				Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
+					sent = invocation.getArgument(0);
+					return (HttpResponse<Object>) Optional.ofNullable(responseSupplier).map(Supplier::get)
+							.orElseGet(MockHttpResponse::new);
+				});
+			} else {
+				Mockito.when(client.send(Mockito.any(), Mockito.any())).thenThrow(e);
+			}
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException();
 		}
