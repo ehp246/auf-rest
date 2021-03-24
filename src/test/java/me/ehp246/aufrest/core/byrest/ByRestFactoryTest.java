@@ -16,8 +16,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockResponse;
 
 /**
@@ -65,7 +65,6 @@ class ByRestFactoryTest {
 
 		final var request = reqRef.get();
 
-		Assertions.assertEquals("https://postman-echo.com/get", request.uri());
 		Assertions.assertEquals("GET", request.method().toUpperCase());
 	}
 
@@ -77,7 +76,6 @@ class ByRestFactoryTest {
 
 		final var request = reqRef.get();
 
-		Assertions.assertEquals("https://postman-echo.com/get1", request.uri());
 		Assertions.assertEquals("GET", request.method().toUpperCase());
 	}
 
@@ -151,9 +149,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void method002() {
-		factory.newInstance(MethodTestCase001.class).query();
-
-		Assertions.assertThrows(Exception.class, reqRef.get()::method);
+		Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase001.class)::query);
 	}
 
 	@Test
@@ -186,9 +182,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void method008() {
-		factory.newInstance(MethodTestCase001.class).query();
-
-		Assertions.assertThrows(Exception.class, reqRef.get()::method);
+		Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase001.class)::query);
 	}
 
 	@Test
@@ -214,9 +208,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void method012() {
-		factory.newInstance(MethodTestCase001.class).query(1);
-
-		Assertions.assertThrows(RuntimeException.class, reqRef.get()::method);
+		Assertions.assertThrows(RuntimeException.class, () -> factory.newInstance(MethodTestCase001.class).query(1));
 	}
 
 	@Test

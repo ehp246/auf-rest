@@ -9,6 +9,6 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 public interface TestCase001 {
 	Instant post404(Instant now);
 
-	@OfMapping("instant")
+	@OfMapping("/instant")
 	Instant post(Instant now);
 }
