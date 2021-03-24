@@ -1,18 +1,13 @@
 package me.ehp246.aufrest.core.byrest;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,11 +19,13 @@ import org.springframework.core.env.Environment;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -37,7 +34,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public class ByRestFactory {
+public final class ByRestFactory {
 	private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
 	private final ListableBeanFactory beanFactory;
@@ -63,9 +60,10 @@ public class ByRestFactory {
 
 	@SuppressWarnings("unchecked")
 	public <T> T newInstance(final Class<T> byRestInterface) {
-		LOGGER.debug("Instantiating {}@ByRest", byRestInterface.getCanonicalName());
+		LOGGER.atDebug().log("Instantiating {}", byRestInterface.getCanonicalName());
 
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
+
 		final var timeout = byRest.map(ByRest::timeout).map(text -> env.resolveRequiredPlaceholders(text))
 				.filter(OneUtil::hasValue).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
@@ -94,71 +92,76 @@ public class ByRestFactory {
 			}
 		});
 
-		final var client = clientProvider.get(clientConfig);
+		final var restFn = clientProvider.get(clientConfig);
+		final var reqByRest = new ReqByRest((path) -> {
+			return env.resolveRequiredPlaceholders(byRest.map(ByRest::value).get() + path);
+		}, timeout, localAuthSupplier);
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
-				(InvocationHandler) (proxy, method, args) -> {
-					final var proxyInvoked = new ProxyInvoked<>(proxy, method, args);
-					final var returnTypes = bodyType(
-							Stream.concat(Arrays.stream(new Class<?>[] { proxyInvoked.getReturnType() }),
-									Arrays.stream(proxyInvoked.getMethodValueOf(Reifying.class, Reifying::value,
-											() -> new Class<?>[] {})))
-									.collect(Collectors.toList()));
+				new InvocationHandler() {
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						final var invoked = new ProxyInvoked<>(proxy, method, args);
+						final var req = reqByRest.from(invoked);
+						final var respSupplier = (Supplier<RestResponse>) () -> {
+							ThreadContext.put(AufRestConstants.REQUEST_ID, req.id());
+							try {
+								return restFn.apply(req);
+							} finally {
+								ThreadContext.remove(AufRestConstants.REQUEST_ID);
+							}
+						};
 
-					final var bodyReceiver = new BodyReceiver() {
-
-						@Override
-						public Class<?> type() {
-							return returnTypes.get(0);
+						if (invoked.isSync()) {
+							// Synchronous invocation. Let's do it now.
+							return parseAndReturn(invoked.getReturnType(), respSupplier.get());
 						}
 
-						@Override
-						public List<Class<?>> reifying() {
-							return returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size());
+						// Copy the header context.
+						final var context = HeaderContext.map();
+						return CompletableFuture.supplyAsync(() -> {
+							try {
+								// Set the context on the new thread.
+								HeaderContext.set(context);
+
+								final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value,
+										() -> new Class<?>[] {});
+								if (reifying.length == 0) {
+									throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
+								}
+								return parseAndReturn(reifying[0], respSupplier.get());
+							} finally {
+								// Clear the header context before exiting.
+								HeaderContext.clear();
+							}
+						});
+					}
+
+					private Object parseAndReturn(Class<?> returnType, RestResponse restResp) {
+						final var httpResponse = restResp.httpResponse();
+
+						if (returnType.isAssignableFrom(RestResponse.class)) {
+							return restResp;
 						}
 
-						@Override
-						public List<? extends Annotation> annotations() {
-							return proxyInvoked.getMethodDeclaredAnnotations();
-						}
-					};
-
-					final var request = new ByRestInvocation(proxyInvoked, env) {
-
-						@Override
-						public Duration timeout() {
-							return timeout;
+						// If the return type is HttpResponse, returns it as is without any processing
+						// regardless the status code.
+						if (returnType.isAssignableFrom(HttpResponse.class)) {
+							return httpResponse;
 						}
 
-						@Override
-						public Supplier<String> authSupplier() {
-							return localAuthSupplier.orElse(null);
+						if (httpResponse.statusCode() >= 300) {
+							throw new UnhandledResponseException(restResp.restRequest(), httpResponse);
 						}
 
-						@Override
-						public BodyReceiver bodyReceiver() {
-							return bodyReceiver;
+						// Discard the response.
+						if (returnType == Void.class || returnType == void.class) {
+							return null;
 						}
 
-					};
-
-					ThreadContext.put(AufRestConstants.REQUEST_ID, request.id());
-					final var returning = request.setResponseSupplier(() -> client.apply(request)).returnInvocation();
-					ThreadContext.remove(AufRestConstants.REQUEST_ID);
-					return returning;
+						return httpResponse.body();
+					}
 				});
 
-	}
-
-	private static List<Class<?>> bodyType(final List<Class<?>> types) {
-		if (types.size() == 0) {
-			throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
-		}
-
-		final var head = types.get(0);
-		if (head.isAssignableFrom(HttpResponse.class) || head.isAssignableFrom(CompletableFuture.class)) {
-			return bodyType(new ArrayList<>(types.subList(1, types.size())));
-		}
-		return types;
 	}
 }

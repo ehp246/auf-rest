@@ -12,13 +12,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import me.ehp246.aufrest.api.rest.InvokedOn;
 
-public class ProxyInvoked<T> implements InvokedOn {
+/**
+ * 
+ * @author Lei Yang
+ *
+ */
+public final class ProxyInvoked<T> implements InvokedOn {
 	private final T target;
 	private final Method method;
 	private final List<?> args;
@@ -66,6 +72,13 @@ public class ProxyInvoked<T> implements InvokedOn {
 		return this.method.getReturnType() != void.class;
 	}
 
+	public boolean isAsync() {
+		return getReturnType().isAssignableFrom(CompletableFuture.class);
+	}
+
+	public boolean isSync() {
+		return !isAsync();
+	}
 	/**
 	 * Void is considered a declared return.
 	 *

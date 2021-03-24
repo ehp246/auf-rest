@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -86,7 +86,7 @@ class UriTest {
 	void uri_005() {
 		case001.get001();
 
-		Assertions.assertEquals("https://postman-echo.com", reqRef.get().uri());
+		Assertions.assertEquals("https://postman-echo.com/", reqRef.get().uri());
 	}
 
 	@Test
