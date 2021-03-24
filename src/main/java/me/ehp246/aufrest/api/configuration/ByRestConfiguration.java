@@ -39,10 +39,9 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @author Lei Yang
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
- * @version 2.1.1
  */
 @Import(JdkRestFnProvider.class)
-public class ByRestConfiguration {
+public final class ByRestConfiguration {
 
 	public ClientConfig clientConfig(final String connectTimeout, final String requestTimeout) {
 		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)

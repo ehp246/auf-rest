@@ -93,9 +93,9 @@ public final class ByRestFactory {
 		});
 
 		final var restFn = clientProvider.get(clientConfig);
-		final var reqByRest = new ReqByRest((path) -> {
-			return env.resolveRequiredPlaceholders(byRest.map(ByRest::value).get() + path);
-		}, timeout, localAuthSupplier);
+		final var reqByRest = new ReqByRest(
+				(path) -> env.resolveRequiredPlaceholders(byRest.map(ByRest::value).get() + path), timeout,
+				localAuthSupplier);
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
 				new InvocationHandler() {
