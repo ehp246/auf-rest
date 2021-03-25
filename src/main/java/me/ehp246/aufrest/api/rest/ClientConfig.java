@@ -1,8 +1,9 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Defines global configuration points for HttpClient.
@@ -16,10 +17,6 @@ public interface ClientConfig {
 
 	default Duration responseTimeout() {
 		return null;
-	}
-
-	default Set<BodyFn> bodyFns() {
-		return Set.of();
 	}
 
 	default AuthorizationProvider authProvider() {
@@ -48,5 +45,13 @@ public interface ClientConfig {
 
 	default List<ExceptionConsumer> exceptionConsumers() {
 		return List.of();
-	}	
+	}
+
+	default BodyPublisherProvider bodyPublisherProvider() {
+		return req -> BodyPublishers.noBody();
+	}
+
+	default BodyHandlerProvider bodyHandlerProvider() {
+		return req -> BodyHandlers.discarding();
+	}
 }

@@ -34,7 +34,7 @@ public class JsonByJacksonTest {
 	void list_001() {
 		final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-		final List<Instant> back = (List<Instant>) jackson.fromText(jackson.toText(() -> from), () -> Instants.class);
+		final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from), () -> Instants.class);
 
 		back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
 	}
@@ -44,7 +44,7 @@ public class JsonByJacksonTest {
 	void list_002() {
 		final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-		final List<Instant> back = (List<Instant>) jackson.fromText(jackson.toText(() -> from),
+		final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
 				new BodyReceiver() {
 					@Override
 					public Class<List> type() {
@@ -66,7 +66,7 @@ public class JsonByJacksonTest {
 	void list_003() {
 		final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
-		final List<List<Instant>> back = (List<List<Instant>>) jackson.fromText(jackson.toText(() -> from),
+		final List<List<Instant>> back = (List<List<Instant>>) jackson.fromJson(jackson.toJson(from),
 				new BodyReceiver() {
 					@Override
 					public Class<List> type() {
@@ -93,7 +93,7 @@ public class JsonByJacksonTest {
 		final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
 				new Person(Instant.now(), "Eddard", "Starks"));
 
-		final List<Person> back = (List<Person>) jackson.fromText(jackson.toText(() -> from),
+		final List<Person> back = (List<Person>) jackson.fromJson(jackson.toJson(from),
 				new BodyReceiver() {
 					@Override
 					public Class<List> type() {

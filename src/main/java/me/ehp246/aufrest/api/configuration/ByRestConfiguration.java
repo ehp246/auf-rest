@@ -1,9 +1,12 @@
 package me.ehp246.aufrest.api.configuration;
 
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpResponse.BodySubscribers;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +16,8 @@ import org.springframework.context.annotation.Import;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
-import me.ehp246.aufrest.api.rest.BodyFn;
-import me.ehp246.aufrest.api.rest.BodyReceiver;
-import me.ehp246.aufrest.api.rest.BodySupplier;
+import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ExceptionConsumer;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
@@ -24,7 +26,6 @@ import me.ehp246.aufrest.api.rest.RequestConsumer;
 import me.ehp246.aufrest.api.rest.RequestFilter;
 import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.ResponseFilter;
-import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
@@ -70,10 +71,11 @@ public final class ByRestConfiguration {
 	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
 			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
 			@Autowired(required = false) final AuthorizationProvider authProvider,
-			@Autowired(required = false) final HeaderProvider headerProvider, final Set<BodyFn> bodyFns,
+			@Autowired(required = false) final HeaderProvider headerProvider,
 			final List<RequestFilter> requestFilters, final List<ResponseFilter> responseFilters,
 			final List<RequestConsumer> requestConsumers, final List<ResponseConsumer> responseConsumers,
-			final List<ExceptionConsumer> exceptionConsumers) {
+			final List<ExceptionConsumer> exceptionConsumers, final BodyPublisherProvider pubProvider,
+			final BodyHandlerProvider bodyHandlerProvider) {
 
 		final ClientConfig base = clientConfig(connectTimeout, requestTimeout);
 
@@ -87,11 +89,6 @@ public final class ByRestConfiguration {
 			@Override
 			public Duration responseTimeout() {
 				return base.responseTimeout();
-			}
-
-			@Override
-			public Set<BodyFn> bodyFns() {
-				return bodyFns;
 			}
 
 			@Override
@@ -129,32 +126,67 @@ public final class ByRestConfiguration {
 				return exceptionConsumers == null ? List.of() : exceptionConsumers;
 			}
 
+			@Override
+			public BodyPublisherProvider bodyPublisherProvider() {
+				return pubProvider;
+			}
+
+			@Override
+			public BodyHandlerProvider bodyHandlerProvider() {
+				return bodyHandlerProvider;
+			}
+
 		};
 	}
 
 	@Bean
-	public TextBodyFn jacksonFn(final ObjectMapper objectMapper) {
+	public JsonByJackson jacksonFn(final ObjectMapper objectMapper) {
 		return new JsonByJackson(objectMapper);
 	}
 
 	@Bean
-	public TextBodyFn plainTextFn() {
-		return new TextBodyFn() {
-
-			@Override
-			public boolean accept(final String contentType) {
-				return contentType.toLowerCase().startsWith(HttpUtils.TEXT_PLAIN);
+	public BodyPublisherProvider pubProvider(final JsonByJackson jacksonFn) {
+		return req -> {
+			if (req.body() == null) {
+				return BodyPublishers.noBody();
+			}
+			if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
+				return BodyPublishers.ofString(req.body().toString());
 			}
 
-			@Override
-			public String toText(final BodySupplier supplier) {
-				return supplier.get().toString();
-			}
-
-			@Override
-			public Object fromText(final String body, final BodyReceiver receiver) {
-				return body.toString();
-			}
+			// Default to JSON.
+			return BodyPublishers.ofString(jacksonFn.toJson(req.body()));
 		};
 	}
+
+	@Bean
+	public BodyHandlerProvider bodyHandlerProvider(final JsonByJackson jacksonFn) {
+		return req -> {
+			final var receiver = req.bodyReceiver();
+			final Class<?> type = receiver == null ? void.class : receiver.type();
+
+			if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
+				return BodyHandlers.discarding();
+			}
+
+			return responseInfo -> {
+				// Default to UTF-8 text
+				return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+	
+					if (responseInfo.statusCode() >= 300) {
+						return text;
+					}
+	
+					final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).get().toLowerCase();
+
+					if (contentType.toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
+						return text;
+					}
+	
+					return jacksonFn.fromJson(text, receiver);
+				});
+			};
+		};
+	}
+
 }

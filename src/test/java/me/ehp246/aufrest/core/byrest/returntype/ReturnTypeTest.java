@@ -4,7 +4,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
@@ -15,14 +14,11 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.BodyFn;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
-import me.ehp246.aufrest.mock.Jackson;
 import me.ehp246.aufrest.mock.MockResponse;
-import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
 /**
  * @author Lei Yang
@@ -30,11 +26,6 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  */
 class ReturnTypeTest {
 	final ClientConfig clientConfig = new ClientConfig() {
-
-		@Override
-		public Set<BodyFn> bodyFns() {
-			return Set.of(new JsonByJackson(Jackson.OBJECT_MAPPER));
-		}
 	};
 	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 	private final RestFn client = request -> {
