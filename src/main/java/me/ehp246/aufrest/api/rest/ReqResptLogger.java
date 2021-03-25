@@ -53,9 +53,9 @@ public class ReqResptLogger implements RestConsumer {
 	public void preSend(final HttpRequest httpRequest, final RestRequest request) {
 		logRequest(request);
 		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
-		LOGGER.atTrace().log(httpRequest.headers().map());
+		LOGGER.atDebug().log(httpRequest.headers().map());
 
-		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
+		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atDebug().log("-"));
 	}
 
 	@Override
@@ -64,8 +64,8 @@ public class ReqResptLogger implements RestConsumer {
 		LOGGER.atDebug().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
 				+ httpResponse.statusCode());
 
-		LOGGER.atTrace().log(httpResponse.headers().map());
-		LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
+		LOGGER.atDebug().log(httpResponse.headers().map());
+		LOGGER.atDebug().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
 	}
 
 	private void logRequest(final RestRequest request) {

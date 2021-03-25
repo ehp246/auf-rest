@@ -144,20 +144,18 @@ public final class ByRestConfiguration {
 			}
 
 			return responseInfo -> {
+				// The server might not set the header. Treat it as text?
+				final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
+						.toLowerCase();
 				// Default to UTF-8 text
 				return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-	
 					if (responseInfo.statusCode() >= 300) {
 						return text;
 					}
-	
-					final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).get().toLowerCase();
-
-					if (contentType.toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
-						return text;
+					if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
+						return jacksonFn.fromJson(text, receiver);
 					}
-	
-					return jacksonFn.fromJson(text, receiver);
+					return text;
 				});
 			};
 		};
