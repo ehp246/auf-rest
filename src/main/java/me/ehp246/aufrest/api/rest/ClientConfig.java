@@ -1,8 +1,9 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Defines global configuration points for HttpClient.
@@ -18,10 +19,6 @@ public interface ClientConfig {
 		return null;
 	}
 
-	default Set<BodyFn> bodyFns() {
-		return Set.of();
-	}
-
 	default AuthorizationProvider authProvider() {
 		return null;
 	}
@@ -30,23 +27,15 @@ public interface ClientConfig {
 		return null;
 	}
 
-	default List<RequestFilter> requestFilters() {
+	default List<RestConsumer> restConsumers() {
 		return List.of();
 	}
 	
-	default List<ResponseFilter> responseFilters() {
-		return List.of();
+	default BodyPublisherProvider bodyPublisherProvider() {
+		return req -> BodyPublishers.noBody();
 	}
 
-	default List<RequestConsumer> requestConsumers() {
-		return List.of();
+	default BodyHandlerProvider bodyHandlerProvider() {
+		return req -> BodyHandlers.discarding();
 	}
-
-	default List<ResponseConsumer> responseConsumers() {
-		return List.of();
-	}
-
-	default List<ExceptionConsumer> exceptionConsumers() {
-		return List.of();
-	}	
 }

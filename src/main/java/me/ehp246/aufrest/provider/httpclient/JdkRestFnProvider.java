@@ -3,17 +3,10 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpResponse.BodySubscribers;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,21 +21,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import me.ehp246.aufrest.api.rest.AuthorizationProvider;
-import me.ehp246.aufrest.api.rest.BodyFn;
+import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ExceptionConsumer;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestConsumer;
-import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.ResponseConsumer;
-import me.ehp246.aufrest.api.rest.ResponseFilter;
+import me.ehp246.aufrest.api.rest.RestConsumer;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponse;
-import me.ehp246.aufrest.api.rest.TextBodyFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -84,21 +73,13 @@ public class JdkRestFnProvider implements RestFnProvider {
 
 		return new RestFn() {
 			private final HttpClient client = clientBuilder.build();
-			private final List<RequestFilter> reqFilters = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.requestFilters()).orElseGet(ArrayList::new));
-			private final List<ResponseFilter> respFilters = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.responseFilters()).orElseGet(ArrayList::new));
-			private final List<RequestConsumer> reqConsumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.requestConsumers()).orElseGet(ArrayList::new));
-			private final List<ResponseConsumer> respConsumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.responseConsumers()).orElseGet(ArrayList::new));
-			private final List<ExceptionConsumer> exceptConsumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.exceptionConsumers()).orElseGet(ArrayList::new));
+			private final List<RestConsumer> consumers = Collections
+					.unmodifiableList(Optional.ofNullable(clientConfig.restConsumers()).orElseGet(ArrayList::new));
 			private final Optional<AuthorizationProvider> authProvider = Optional
 					.ofNullable(clientConfig.authProvider());
 			private final Optional<HeaderProvider> headerProvider = Optional.ofNullable(clientConfig.headerProvider());
-			private final Set<BodyFn> bodyFns = Optional.ofNullable(clientConfig.bodyFns()).orElseGet(HashSet::new)
-					.stream().collect(Collectors.toUnmodifiableSet());
+			private final BodyPublisherProvider bodyPublisherProvider = clientConfig.bodyPublisherProvider();
+			private final BodyHandlerProvider bodyHandlerProvider = clientConfig.bodyHandlerProvider();
 
 
 			@SuppressWarnings("unchecked")
@@ -109,7 +90,8 @@ public class JdkRestFnProvider implements RestFnProvider {
 								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
-				final var requestBuilder = newRequestBuilder(req).method(req.method().toUpperCase(), bodyPublisher(req))
+				final var requestBuilder = newRequestBuilder(req)
+						.method(req.method().toUpperCase(), bodyPublisherProvider.get(req))
 						.uri(URI.create(req.uri()));
 
 				// Timeout
@@ -121,48 +103,25 @@ public class JdkRestFnProvider implements RestFnProvider {
 						.ifPresent(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
 				// Applying filters
-				var httpRequest = requestBuilder.build();
-				for (final var filter : reqFilters) {
-					LOGGER.atDebug().log("Applying {}", filter.getClass().getName());
-					httpRequest = filter.apply(httpRequest, req);
-				}
-				final var reqRef = new HttpRequest[] { httpRequest };
+				final var httpRequest = requestBuilder.build();
 
 				// Applying request consumers
-				reqConsumers.stream().forEach(consumer -> {
-					LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
-					consumer.accept(reqRef[0], req);
-				});
+				consumers.stream().forEach(consumer -> consumer.preSend(httpRequest, req));
 
-				HttpResponse<Object> httpResponse;
+				final HttpResponse<Object> httpResponse;
 				try {
-					httpResponse = (HttpResponse<Object>) client.send(httpRequest, bodyHandler(req));
+					httpResponse = (HttpResponse<Object>) client.send(httpRequest, bodyHandlerProvider.get(req));
 				} catch (Exception e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					// Applying consumers
-					exceptConsumers.stream().forEach(consumer -> {
-						LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
-						consumer.accept(e, req);	
-					});
+					consumers.stream().forEach(consumer -> consumer.onException(e, httpRequest, req));
 
 					// Always wrap into a RuntimeException
 					throw new RuntimeException(e);
 				}
 
-				// Applying response filters
-				for (final var filter : respFilters) {
-					LOGGER.atDebug().log("Applying {}", filter.getClass().getName());
-
-					httpResponse = (HttpResponse<Object>) filter.apply(httpResponse, req);
-				}
-				final var resRef = new HttpResponse[] { httpResponse };
-
 				// Applying response consumers
-				respConsumers.stream().forEach(consumer -> {
-					LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
-
-					consumer.accept(resRef[0], req);
-				});
+				consumers.stream().forEach(consumer -> consumer.postSend(httpResponse, req));
 
 				return new RestResponse() {
 
@@ -173,56 +132,15 @@ public class JdkRestFnProvider implements RestFnProvider {
 
 					@Override
 					public HttpResponse<Object> httpResponse() {
-						return resRef[0];
+						return httpResponse;
 					}
 
 					@Override
 					public HttpRequest httpRequest() {
-						return reqRef[0];
+						return httpRequest;
 					}
 
 				};
-			}
-
-			private BodyHandler<?> bodyHandler(final RestRequest request) {
-				final var receiver = request.bodyReceiver();
-				final Class<?> type = receiver == null ? void.class : receiver.type();
-
-				if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
-					return BodyHandlers.discarding();
-				}
-
-				return responseInfo -> {
-					// Default to UTF-8 text
-					return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-
-						if (responseInfo.statusCode() >= 300) {
-							return text;
-						}
-
-						final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).get()
-								.toLowerCase();
-
-						final var reader = bodyFns.stream().filter(bodyFn -> bodyFn.accept(contentType)).findAny()
-								.get();
-
-						return ((TextBodyFn) reader).fromText(text, receiver);
-					});
-				};
-			}
-
-			private BodyPublisher bodyPublisher(final RestRequest req) {
-				if (req.body() == null) {
-					return BodyPublishers.noBody();
-				}
-
-				final var writer = bodyFns.stream().filter(bodyFn -> bodyFn.accept((req.contentType().toLowerCase())))
-						.findAny().get();
-				if (writer == null || !(writer instanceof TextBodyFn)) {
-					throw new RuntimeException("No content producer for " + req.contentType());
-				}
-
-				return BodyPublishers.ofString(((TextBodyFn) writer).toText(req::body));
 			}
 
 			private HttpRequest.Builder newRequestBuilder(final RestRequest req) {

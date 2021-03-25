@@ -4,17 +4,18 @@ import java.net.http.HttpRequest;
 
 import org.springframework.stereotype.Component;
 
+import me.ehp246.aufrest.api.rest.RestConsumer;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 @Component
-class ReqFilter {
+class ReqFilter implements RestConsumer {
 	private HttpRequest httpReq;
 	private RestRequest req;
 
-	HttpRequest apply(HttpRequest httpRequest, RestRequest req) {
+	@Override
+	public void preSend(HttpRequest httpRequest, RestRequest req) {
 		this.httpReq = httpRequest;
 		this.req = req;
-		return httpRequest;
 	}
 
 	RestRequest reqByRest() {

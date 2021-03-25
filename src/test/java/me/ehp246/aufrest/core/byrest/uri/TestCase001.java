@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  * @author Lei Yang
  *
  */
-@ByRest("${echo.base}")
+@ByRest("${echo.base}/")
 interface TestCase001 {
 	@OfMapping
 	void get001();

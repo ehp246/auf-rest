@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-class FilterTest {
+class ConsumerTest {
 	@Autowired
 	private TestCase001 case001;
 	@Autowired
@@ -57,10 +57,10 @@ class FilterTest {
 		Assertions.assertEquals(true, reqConsumer2.id() == 2);
 
 		Assertions.assertEquals(true, reqConsumer1.httpReq() != null);
-		Assertions.assertEquals(true, reqConsumer1.reqByRest() != null);
+		Assertions.assertEquals(true, reqConsumer1.reqByReq() != null);
 		Assertions.assertEquals(true, reqConsumer1.httpReq() == reqConsumer2.httpReq());
 		Assertions.assertEquals(true, reqConsumer2.httpReq() != null);
-		Assertions.assertEquals(true, reqConsumer2.reqByRest() != null);
-		Assertions.assertEquals(true, reqConsumer1.reqByRest() == reqConsumer2.reqByRest());
+		Assertions.assertEquals(true, reqConsumer2.reqByReq() != null);
+		Assertions.assertEquals(true, reqConsumer1.reqByReq() == reqConsumer2.reqByReq());
 	}
 }

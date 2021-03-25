@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.ByRestLogger;
-import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.ResponseFilter;
+import me.ehp246.aufrest.api.rest.ReqResptLogger;
 import me.ehp246.aufrest.mock.Jackson;
 
 /**
@@ -18,18 +16,8 @@ import me.ehp246.aufrest.mock.Jackson;
  */
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 @EnableByRest
-@Import({ Jackson.class, ByRestLogger.class })
+@Import({ Jackson.class, ReqResptLogger.class })
 class AppConfig {
-	@Bean
-	RequestFilter requestFilter(final ReqFilter reqFilter) {
-		return reqFilter::apply;
-	}
-	
-	@Bean
-	ResponseFilter responseFilter(final RespFilter respFilter) {
-		return respFilter::apply;
-	}
-
 	@Bean
 	@Order(2)
 	ReqConsumer reqConsumer01() {
