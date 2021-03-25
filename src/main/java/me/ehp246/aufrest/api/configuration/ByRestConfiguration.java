@@ -19,13 +19,9 @@ import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ExceptionConsumer;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestConsumer;
-import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.ResponseConsumer;
-import me.ehp246.aufrest.api.rest.ResponseFilter;
+import me.ehp246.aufrest.api.rest.RestConsumer;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
@@ -72,9 +68,7 @@ public final class ByRestConfiguration {
 			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
 			@Autowired(required = false) final AuthorizationProvider authProvider,
 			@Autowired(required = false) final HeaderProvider headerProvider,
-			final List<RequestFilter> requestFilters, final List<ResponseFilter> responseFilters,
-			final List<RequestConsumer> requestConsumers, final List<ResponseConsumer> responseConsumers,
-			final List<ExceptionConsumer> exceptionConsumers, final BodyPublisherProvider pubProvider,
+			final List<RestConsumer> exceptionConsumers, final BodyPublisherProvider pubProvider,
 			final BodyHandlerProvider bodyHandlerProvider) {
 
 		final ClientConfig base = clientConfig(connectTimeout, requestTimeout);
@@ -102,27 +96,7 @@ public final class ByRestConfiguration {
 			}
 
 			@Override
-			public List<RequestFilter> requestFilters() {
-				return requestFilters == null ? List.of() : requestFilters;
-			}
-
-			@Override
-			public List<ResponseFilter> responseFilters() {
-				return responseFilters == null ? List.of() : responseFilters;
-			}
-
-			@Override
-			public List<RequestConsumer> requestConsumers() {
-				return requestConsumers == null ? List.of() : requestConsumers;
-			}
-
-			@Override
-			public List<ResponseConsumer> responseConsumers() {
-				return responseConsumers == null ? List.of() : responseConsumers;
-			}
-
-			@Override
-			public List<ExceptionConsumer> exceptionConsumers() {
+			public List<RestConsumer> restConsumers() {
 				return exceptionConsumers == null ? List.of() : exceptionConsumers;
 			}
 

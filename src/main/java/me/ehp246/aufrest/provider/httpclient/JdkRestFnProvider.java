@@ -24,14 +24,10 @@ import me.ehp246.aufrest.api.rest.AuthorizationProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.ExceptionConsumer;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestConsumer;
-import me.ehp246.aufrest.api.rest.RequestFilter;
-import me.ehp246.aufrest.api.rest.ResponseConsumer;
-import me.ehp246.aufrest.api.rest.ResponseFilter;
+import me.ehp246.aufrest.api.rest.RestConsumer;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -77,16 +73,8 @@ public class JdkRestFnProvider implements RestFnProvider {
 
 		return new RestFn() {
 			private final HttpClient client = clientBuilder.build();
-			private final List<RequestFilter> reqFilters = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.requestFilters()).orElseGet(ArrayList::new));
-			private final List<ResponseFilter> respFilters = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.responseFilters()).orElseGet(ArrayList::new));
-			private final List<RequestConsumer> reqConsumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.requestConsumers()).orElseGet(ArrayList::new));
-			private final List<ResponseConsumer> respConsumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.responseConsumers()).orElseGet(ArrayList::new));
-			private final List<ExceptionConsumer> exceptConsumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.exceptionConsumers()).orElseGet(ArrayList::new));
+			private final List<RestConsumer> consumers = Collections
+					.unmodifiableList(Optional.ofNullable(clientConfig.restConsumers()).orElseGet(ArrayList::new));
 			private final Optional<AuthorizationProvider> authProvider = Optional
 					.ofNullable(clientConfig.authProvider());
 			private final Optional<HeaderProvider> headerProvider = Optional.ofNullable(clientConfig.headerProvider());
@@ -115,48 +103,25 @@ public class JdkRestFnProvider implements RestFnProvider {
 						.ifPresent(header -> requestBuilder.header(HttpUtils.AUTHORIZATION, header));
 
 				// Applying filters
-				var httpRequest = requestBuilder.build();
-				for (final var filter : reqFilters) {
-					LOGGER.atDebug().log("Applying {}", filter.getClass().getName());
-					httpRequest = filter.apply(httpRequest, req);
-				}
-				final var reqRef = new HttpRequest[] { httpRequest };
+				final var httpRequest = requestBuilder.build();
 
 				// Applying request consumers
-				reqConsumers.stream().forEach(consumer -> {
-					LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
-					consumer.accept(reqRef[0], req);
-				});
+				consumers.stream().forEach(consumer -> consumer.preSend(httpRequest, req));
 
-				HttpResponse<Object> httpResponse;
+				final HttpResponse<Object> httpResponse;
 				try {
 					httpResponse = (HttpResponse<Object>) client.send(httpRequest, bodyHandlerProvider.get(req));
 				} catch (Exception e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					// Applying consumers
-					exceptConsumers.stream().forEach(consumer -> {
-						LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
-						consumer.accept(e, req);	
-					});
+					consumers.stream().forEach(consumer -> consumer.onException(e, httpRequest, req));
 
 					// Always wrap into a RuntimeException
 					throw new RuntimeException(e);
 				}
 
-				// Applying response filters
-				for (final var filter : respFilters) {
-					LOGGER.atDebug().log("Applying {}", filter.getClass().getName());
-
-					httpResponse = (HttpResponse<Object>) filter.apply(httpResponse, req);
-				}
-				final var resRef = new HttpResponse[] { httpResponse };
-
 				// Applying response consumers
-				respConsumers.stream().forEach(consumer -> {
-					LOGGER.atDebug().log("Applying {}", consumer.getClass().getName());
-
-					consumer.accept(resRef[0], req);
-				});
+				consumers.stream().forEach(consumer -> consumer.postSend(httpResponse, req));
 
 				return new RestResponse() {
 
@@ -167,12 +132,12 @@ public class JdkRestFnProvider implements RestFnProvider {
 
 					@Override
 					public HttpResponse<Object> httpResponse() {
-						return resRef[0];
+						return httpResponse;
 					}
 
 					@Override
 					public HttpRequest httpRequest() {
-						return reqRef[0];
+						return httpRequest;
 					}
 
 				};

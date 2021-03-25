@@ -27,26 +27,10 @@ public interface ClientConfig {
 		return null;
 	}
 
-	default List<RequestFilter> requestFilters() {
+	default List<RestConsumer> restConsumers() {
 		return List.of();
 	}
 	
-	default List<ResponseFilter> responseFilters() {
-		return List.of();
-	}
-
-	default List<RequestConsumer> requestConsumers() {
-		return List.of();
-	}
-
-	default List<ResponseConsumer> responseConsumers() {
-		return List.of();
-	}
-
-	default List<ExceptionConsumer> exceptionConsumers() {
-		return List.of();
-	}
-
 	default BodyPublisherProvider bodyPublisherProvider() {
 		return req -> BodyPublishers.noBody();
 	}

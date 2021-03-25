@@ -18,8 +18,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public class ByRestLogger implements RequestConsumer, ResponseConsumer {
-	private final static Logger LOGGER = LogManager.getLogger(ByRestLogger.class);
+public class ReqResptLogger implements RestConsumer {
+	private final static Logger LOGGER = LogManager.getLogger(ReqResptLogger.class);
 	private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
 		@Override
@@ -44,13 +44,13 @@ public class ByRestLogger implements RequestConsumer, ResponseConsumer {
 
 	private final ObjectMapper objectMapper;
 
-	public ByRestLogger(ObjectMapper objectMapper) {
+	public ReqResptLogger(ObjectMapper objectMapper) {
 		super();
 		this.objectMapper = objectMapper;
 	}
 
 	@Override
-	public void accept(final HttpRequest httpRequest, final RestRequest request) {
+	public void preSend(final HttpRequest httpRequest, final RestRequest request) {
 		logRequest(request);
 		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
 		LOGGER.atTrace().log(httpRequest.headers().map());
@@ -59,7 +59,7 @@ public class ByRestLogger implements RequestConsumer, ResponseConsumer {
 	}
 
 	@Override
-	public void accept(HttpResponse<?> httpResponse, RestRequest req) {
+	public void postSend(HttpResponse<?> httpResponse, RestRequest req) {
 		logRequest(req);
 		LOGGER.atDebug().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
 				+ httpResponse.statusCode());
