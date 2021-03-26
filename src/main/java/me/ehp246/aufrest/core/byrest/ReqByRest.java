@@ -46,12 +46,18 @@ final class ReqByRest {
 	private final Function<String, String> uriResolver;
 	private final Duration timeout;
 	private final Optional<Supplier<String>> localAuthSupplier;
+	private final String contentType;
+	private final String accept;
 
-	ReqByRest(Function<String, String> base, Duration timeout, Optional<Supplier<String>> localAuthSupplier) {
+	ReqByRest(final Function<String, String> base, final Duration timeout,
+			final Optional<Supplier<String>> localAuthSupplier,
+			final String contentType, final String accept) {
 		super();
 		this.uriResolver = base;
 		this.timeout = timeout;
 		this.localAuthSupplier = localAuthSupplier;
+		this.contentType = contentType;
+		this.accept = accept;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -89,7 +95,9 @@ final class ReqByRest {
 			return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
 		}).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
-		final var accept = ofMapping.map(OfMapping::accept).orElse(HttpUtils.APPLICATION_JSON);
+		final var accept = ofMapping.map(OfMapping::accept).orElse(this.accept);
+
+		final var contentType = ofMapping.map(OfMapping::contentType).orElse(this.contentType);
 
 		final var payload = invoked.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
@@ -126,8 +134,6 @@ final class ReqByRest {
 						return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
 					}
 				});
-
-		final var contentType = ofMapping.map(OfMapping::contentType).orElse(HttpUtils.APPLICATION_JSON);
 
 		final var returnTypes = bodyType(Stream
 				.concat(Arrays.stream(new Class<?>[] { invoked.getReturnType() }), Arrays.stream(
