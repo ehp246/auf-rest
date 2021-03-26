@@ -10,13 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
-import me.ehp246.aufrest.api.rest.ReqResptLogger;
 
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class, ReqResptLogger.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class AuthTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;

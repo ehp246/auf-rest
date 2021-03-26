@@ -21,6 +21,7 @@ import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestConsumer;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
@@ -161,4 +162,8 @@ public final class ByRestConfiguration {
 		};
 	}
 
+	@Bean
+	RestLogger reqResptLogger(final ObjectMapper objectMapper) {
+		return new RestLogger(objectMapper);
+	}
 }
