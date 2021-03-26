@@ -10,12 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.api.rest.ReqResptLogger;
 
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class, ReqResptLogger.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class AuthTest {
 	@Autowired
 	private AutowireCapableBeanFactory factory;
@@ -50,12 +51,36 @@ class AuthTest {
 
 		Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
 				"Should not work because of the wrong authentication type");
+		
+		/**
+		 * Should work now.
+		 */
+		newInstance.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
 	}
 
 	@Test
 	void basic_auth_004() {
-		final var newInstance = factory.getBean(TestCases.BasicCase004.class);
+		final var bean = factory.getBean(TestCases.BasicCase004.class);
 
-		newInstance.get();
+		bean.get();
+
+		Assertions.assertThrows(UnhandledResponseException.class, () -> bean.get("123"),
+				"Should not work because of the wrong header");
+
+		/**
+		 * Should work now.
+		 */
+		bean.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+	}
+
+	@Test
+	void auth_header_001() {
+		Assertions.assertThrows(UnhandledResponseException.class,
+				() -> factory.getBean(TestCases.BasicCase001.class).get(""));
+	}
+
+	@Test
+	void auth_header_002() {
+		factory.getBean(TestCases.BasicCase001.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
 	}
 }

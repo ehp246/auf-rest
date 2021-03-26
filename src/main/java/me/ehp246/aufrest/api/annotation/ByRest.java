@@ -3,7 +3,6 @@ package me.ehp246.aufrest.api.annotation;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.time.Duration;
@@ -25,7 +24,6 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-@Documented
 public @interface ByRest {
 
 	/**
@@ -125,19 +123,7 @@ public @interface ByRest {
 			 * header as-is without any additional processing. This is mainly to provide a
 			 * static direct access to the header.
 			 */
-			ASIS,
-			/**
-			 * Indicates the endpoint requires for Authorization a value to be supplied by a
-			 * Spring bean of the type {@link java.util.function.Supplier Supplier}. For
-			 * this type, the value element is the bean name.
-			 *
-			 * <p>
-			 * For each out-going request, the framework looks up for the bean of the name
-			 * and type, retrieves the value object from the supplier, calls
-			 * <code>Object::toString</code> on the value object, then sets Authorization
-			 * header to the returned string as-is.
-			 */
-			BEAN
+			ASIS
 		}
 	}
 

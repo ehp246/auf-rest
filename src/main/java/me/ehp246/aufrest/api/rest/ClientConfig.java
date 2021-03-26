@@ -19,7 +19,7 @@ public interface ClientConfig {
 		return null;
 	}
 
-	default AuthorizationProvider authProvider() {
+	default AuthProvider authProvider() {
 		return null;
 	}
 

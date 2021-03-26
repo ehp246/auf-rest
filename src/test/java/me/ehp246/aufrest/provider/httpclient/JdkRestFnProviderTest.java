@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.AuthorizationProvider;
+import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -50,7 +50,7 @@ class JdkRestFnProviderTest {
 			CALLS_REAL_METHODS);
 
 	private final ClientConfig clientConfig = new ClientConfig() {
-		private final AuthorizationProvider authProvider = new AuthorizationProvider() {
+		private final AuthProvider authProvider = new AuthProvider() {
 			private int count = 0;
 
 			@Override
@@ -67,7 +67,7 @@ class JdkRestFnProviderTest {
 		};
 
 		@Override
-		public AuthorizationProvider authProvider() {
+		public AuthProvider authProvider() {
 			return authProvider;
 		}
 

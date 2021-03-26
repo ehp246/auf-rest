@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -32,8 +31,7 @@ class ReturnTypeTest {
 		reqRef.set(request);
 		return new MockResponse(request);
 	};
-	private final ByRestFactory factory = new ByRestFactory(cfg -> client, new MockEnvironment(),
-			new DefaultListableBeanFactory());
+	private final ByRestFactory factory = new ByRestFactory(cfg -> client, new MockEnvironment());
 
 	private final ReturnTypeTestCase001 case001 = factory.newInstance(ReturnTypeTestCase001.class);
 

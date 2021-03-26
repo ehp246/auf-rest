@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
@@ -41,7 +42,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 final class ReqByRest {
 	private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
-			RequestParam.class, RequestHeader.class);
+			RequestParam.class, RequestHeader.class, AuthHeader.class);
 
 	private final Function<String, String> uriResolver;
 	private final Duration timeout;
@@ -158,7 +159,9 @@ final class ReqByRest {
 			}
 		};
 
-		final var authSupplier = localAuthSupplier.orElse(null);
+		final var authSupplier = invoked.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
+				.map(arg -> (Supplier<String>) () -> OneUtil.nullIfBlank(arg.getArgument()))
+				.orElse(localAuthSupplier.orElse(null));
 
 		final var body = payload.size() >= 1 ? payload.get(0) : null;
 

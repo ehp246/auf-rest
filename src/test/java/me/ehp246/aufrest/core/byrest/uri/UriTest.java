@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -28,8 +27,7 @@ class UriTest {
 	};
 
 	private final ByRestFactory factory = new ByRestFactory(clientCfg -> client,
-			new MockEnvironment().withProperty("echo.base", "https://postman-echo.com"),
-			new DefaultListableBeanFactory());
+			new MockEnvironment().withProperty("echo.base", "https://postman-echo.com"));
 
 	final TestCase001 case001 = factory.newInstance(TestCase001.class);
 

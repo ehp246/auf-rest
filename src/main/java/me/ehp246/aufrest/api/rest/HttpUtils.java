@@ -29,7 +29,7 @@ public class HttpUtils {
 	public final static String BEARER = "Bearer";
 	public final static String BASIC = "Basic";
 
-	public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION);
+	public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, REQUEST_ID);
 
 	// Media types
 	public static final String APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";

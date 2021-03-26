@@ -15,9 +15,21 @@ import java.util.stream.Stream;
  * @author Lei Yang
  *
  */
-public class OneUtil {
+public final class OneUtil {
 	private OneUtil() {
 		super();
+	}
+
+	public static String toString(final Object value) {
+		return value != null ? value.toString() : null;
+	}
+
+	public static String nullIfBlank(final Object value) {
+		return nullIfBlank(toString(value));
+	}
+
+	public static String nullIfBlank(final String value) {
+		return value != null && !value.isBlank() ? value : null;
 	}
 
 	public static boolean hasValue(final String value) {

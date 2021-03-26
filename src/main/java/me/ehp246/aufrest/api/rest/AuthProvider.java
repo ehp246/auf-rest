@@ -19,11 +19,9 @@ package me.ehp246.aufrest.api.rest;
  *
  *
  * @author Lei Yang
- * @since 1.0
- * @version 2.0
  */
 @FunctionalInterface
-public interface AuthorizationProvider {
+public interface AuthProvider {
 	/**
 	 *
 	 * @param uri the target resolved URL of the out-going request
