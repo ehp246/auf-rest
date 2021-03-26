@@ -3,7 +3,6 @@ package me.ehp246.aufrest.api.annotation;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.time.Duration;
@@ -25,7 +24,6 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-@Documented
 public @interface ByRest {
 
 	/**
