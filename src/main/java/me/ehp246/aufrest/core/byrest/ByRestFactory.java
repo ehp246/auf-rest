@@ -75,17 +75,6 @@ public final class ByRestFactory {
 				return env.resolveRequiredPlaceholders(auth.value())::toString;
 			case BASIC:
 				return new BasicAuth(env.resolveRequiredPlaceholders(auth.value()))::value;
-			case BEAN:
-				return new Supplier<String>() {
-					// Look up bean once.
-					private final Supplier<?> bean = beanFactory.getBean(auth.value(), Supplier.class);
-
-					@Override
-					public String get() {
-						// Get should be called once for each invocation.
-						return bean.get().toString();
-					}
-				};
 			case BEARER:
 				return new BearerToken(env.resolveRequiredPlaceholders(auth.value()))::value;
 			default:

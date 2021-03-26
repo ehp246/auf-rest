@@ -266,22 +266,6 @@ class ByRestFactoryTest {
 	}
 
 	@Test
-	void auth_bean_001() {
-		factory.newInstance(AuthTestCases.Case006.class).get();
-
-		Assertions.assertEquals("postman_bean0", reqRef.get().authSupplier().get());
-
-		Assertions.assertEquals("postman_bean1", reqRef.get().authSupplier().get());
-	}
-
-	@Test
-	void auth_bean_002() {
-		factory.newInstance(AuthTestCases.Case007.class).get();
-
-		Assertions.assertEquals("postman_bean2", reqRef.get().authSupplier().get());
-	}
-
-	@Test
 	void header_001() {
 		final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
 		newInstance.get("1234");

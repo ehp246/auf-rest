@@ -125,19 +125,7 @@ public @interface ByRest {
 			 * header as-is without any additional processing. This is mainly to provide a
 			 * static direct access to the header.
 			 */
-			ASIS,
-			/**
-			 * Indicates the endpoint requires for Authorization a value to be supplied by a
-			 * Spring bean of the type {@link java.util.function.Supplier Supplier}. For
-			 * this type, the value element is the bean name.
-			 *
-			 * <p>
-			 * For each out-going request, the framework looks up for the bean of the name
-			 * and type, retrieves the value object from the supplier, calls
-			 * <code>Object::toString</code> on the value object, then sets Authorization
-			 * header to the returned string as-is.
-			 */
-			BEAN
+			ASIS
 		}
 	}
 

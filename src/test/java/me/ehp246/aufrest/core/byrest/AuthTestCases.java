@@ -33,14 +33,4 @@ interface AuthTestCases {
 	interface Case005 {
 		void get();
 	}
-
-	@ByRest(value = "", auth = @Auth(value = "PostmanBasicAuthSupplier", type = Type.BEAN))
-	interface Case006 {
-		void get();
-	}
-
-	@ByRest(value = "", auth = @Auth(value = "Postman2BasicAuthSupplier", type = Type.BEAN))
-	interface Case007 {
-		void get();
-	}
 }
