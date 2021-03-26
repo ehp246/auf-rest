@@ -455,4 +455,76 @@ class ByRestFactoryTest {
 		Assertions.assertEquals(1, headers.get("x-correl-id").size(), "should filter out nulls");
 		Assertions.assertEquals(1, headers.get("accept-language").size());
 	}
+
+	@Test
+	void contentType_001() {
+		final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
+				
+		newInstance.get1();
+
+		var req = reqRef.get();
+
+		Assertions.assertEquals("i-type", req.contentType());
+		Assertions.assertEquals("i-accept", req.accept());
+	}
+
+	@Test
+	void contentType_002() {
+		final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
+
+		newInstance.get2();
+
+		var req = reqRef.get();
+
+		Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.contentType());
+		Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.accept());
+	}
+
+	@Test
+	void contentType_003() {
+		final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
+
+		newInstance.get3();
+
+		var req = reqRef.get();
+
+		Assertions.assertEquals("m-type", req.contentType());
+		Assertions.assertEquals("m-accept", req.accept());
+	}
+
+	@Test
+	void contentType_004() {
+		final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
+
+		newInstance.get1();
+
+		var req = reqRef.get();
+
+		Assertions.assertEquals("i-type", req.contentType());
+		Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.accept());
+	}
+
+	@Test
+	void contentType_005() {
+		final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
+
+		newInstance.get2();
+
+		var req = reqRef.get();
+
+		Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.contentType());
+		Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.accept());
+	}
+
+	@Test
+	void contentType_006() {
+		final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
+
+		newInstance.get3();
+
+		var req = reqRef.get();
+
+		Assertions.assertEquals("m-type", req.contentType());
+		Assertions.assertEquals("m-accept", req.accept());
+	}
 }

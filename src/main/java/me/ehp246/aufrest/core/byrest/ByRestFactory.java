@@ -62,13 +62,14 @@ public final class ByRestFactory {
 	public <T> T newInstance(final Class<T> byRestInterface) {
 		LOGGER.atDebug().log("Instantiating {}", byRestInterface.getCanonicalName());
 
-		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class));
+		// Annotation required.
+		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
 
-		final var timeout = byRest.map(ByRest::timeout).map(text -> env.resolveRequiredPlaceholders(text))
+		final var timeout = Optional.of(env.resolveRequiredPlaceholders(byRest.timeout()))
 				.filter(OneUtil::hasValue).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
-		final Optional<Supplier<String>> localAuthSupplier = byRest.map(ByRest::auth).map(auth -> {
+		final Optional<Supplier<String>> localAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
 			switch (auth.type()) {
 			case ASIS:
 				return env.resolveRequiredPlaceholders(auth.value())::toString;
@@ -94,8 +95,8 @@ public final class ByRestFactory {
 
 		final var restFn = clientProvider.get(clientConfig);
 		final var reqByRest = new ReqByRest(
-				path -> env.resolveRequiredPlaceholders(byRest.map(ByRest::value).get() + path), timeout,
-				localAuthSupplier);
+				path -> env.resolveRequiredPlaceholders(byRest.value() + path), timeout,
+				localAuthSupplier, byRest.contentType(), byRest.accept());
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
 				new InvocationHandler() {

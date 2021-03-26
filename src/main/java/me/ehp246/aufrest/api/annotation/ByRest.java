@@ -8,6 +8,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.time.Duration;
 
+import me.ehp246.aufrest.api.rest.HttpUtils;
+
 /**
  * Indicates that the annotated interface should be scanned by the framework as
  * a proxy of a REST endpoint.
@@ -47,6 +49,16 @@ public @interface ByRest {
 	 * @see me.ehp246.aufrest.api.configuration.AufRestConstants
 	 */
 	String timeout() default "";
+
+	/**
+	 * Defines the content type and appropriate serialization provider.
+	 */
+	String contentType() default HttpUtils.APPLICATION_JSON;
+
+	/**
+	 * Defines the Accept header. Usually derived by the return type of the method.
+	 */
+	String accept() default HttpUtils.APPLICATION_JSON;
 
 	/**
 	 * Defines the Authorization type and value required by the endpoint.
