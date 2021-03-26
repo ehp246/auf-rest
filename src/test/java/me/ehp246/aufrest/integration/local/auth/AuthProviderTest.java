@@ -38,14 +38,27 @@ class AuthProviderTest {
 		 * allows only one call;
 		 */
 		Assertions.assertThrows(UnhandledResponseException.class, case001::get);
+
+		/**
+		 * Should work with the right header.
+		 */
+		case001.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+
+		/**
+		 * Should not work with the wrong header.
+		 */
+		Assertions.assertThrows(UnhandledResponseException.class, () -> case001.get(""));
 	}
 
 	@Test
 	void basic_auth_002() {
 		final var case002 = factory.getBean(TestCases.BasicCase002.class);
 
+		/**
+		 * Should work on the first call.
+		 */
 		case002.get();
-
+		
 		/**
 		 * Should work on the second call since the global provider is by-passed.
 		 */

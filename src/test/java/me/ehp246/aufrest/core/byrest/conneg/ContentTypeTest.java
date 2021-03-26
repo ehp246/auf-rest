@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -21,13 +20,12 @@ import me.ehp246.aufrest.mock.MockResponse;
  */
 @ExtendWith(MockitoExtension.class)
 class ContentTypeTest {
-	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
 		return new MockResponse(request, new MockHttpResponse<Object>());
-	}, new MockEnvironment(), beanFactory);
+	}, new MockEnvironment());
 
 	@BeforeEach
 	void beforeEach() {

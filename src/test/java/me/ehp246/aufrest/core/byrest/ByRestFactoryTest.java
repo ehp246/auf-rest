@@ -5,12 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,7 +23,6 @@ import me.ehp246.aufrest.mock.MockResponse;
  *
  */
 class ByRestFactoryTest {
-	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
 	private final RestFn client = request -> {
@@ -37,20 +34,7 @@ class ByRestFactoryTest {
 			.withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
 			.withProperty("postman.username", "postman").withProperty("postman.password", "password");
 
-	private final ByRestFactory factory = new ByRestFactory(cfg -> client, env, beanFactory);
-
-	ByRestFactoryTest() {
-		super();
-		beanFactory.registerSingleton("PostmanBasicAuthSupplier", new Supplier<String>() {
-			private int counter = 0;
-
-			@Override
-			public String get() {
-				return "postman_bean" + counter++;
-			}
-		});
-		beanFactory.registerSingleton("Postman2BasicAuthSupplier", (Supplier<String>) () -> "postman_bean2");
-	}
+	private final ByRestFactory factory = new ByRestFactory(cfg -> client, env);
 
 	@BeforeEach
 	void beforeEach() {
@@ -220,7 +204,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_none_001() {
-		final var factory = new ByRestFactory(cfg -> client, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> client, env);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -229,7 +213,7 @@ class ByRestFactoryTest {
 
 	@Test
 	void auth_global_001() {
-		final var factory = new ByRestFactory(cfg -> client, env, beanFactory);
+		final var factory = new ByRestFactory(cfg -> client, env);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -263,6 +247,38 @@ class ByRestFactoryTest {
 		factory.newInstance(AuthTestCases.Case004.class).get();
 
 		Assertions.assertEquals("CustomKey custom.header.123", reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void auth_header_001() {
+		final var value = UUID.randomUUID().toString();
+		factory.newInstance(AuthTestCases.Case001.class).get(value);
+
+		Assertions.assertEquals(value, reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void auth_header_002() {
+		factory.newInstance(AuthTestCases.Case001.class).get(null);
+
+		Assertions.assertEquals(true, reqRef.get().authSupplier() != null, "Should be a non-null supplier");
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "Should return null value for the header");
+	}
+
+	@Test
+	void auth_header_003() {
+		factory.newInstance(AuthTestCases.Case001.class).get("");
+
+		Assertions.assertEquals(true, reqRef.get().authSupplier() != null, "Should be a non-null supplier");
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "Should return null value for the header");
+	}
+
+	@Test
+	void auth_header_004() {
+		factory.newInstance(AuthTestCases.Case001.class).get("   	");
+
+		Assertions.assertEquals(true, reqRef.get().authSupplier() != null, "Should be a non-null supplier");
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "Should return null value for the header");
 	}
 
 	@Test

@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -37,25 +36,21 @@ import me.ehp246.aufrest.core.util.OneUtil;
 public final class ByRestFactory {
 	private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
-	private final ListableBeanFactory beanFactory;
 	private final Environment env;
 	private final RestFnProvider clientProvider;
 	private final ClientConfig clientConfig;
 
 	@Autowired
-	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig, final Environment env,
-			final ListableBeanFactory beanFactory) {
+	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig, final Environment env) {
 		super();
 		this.env = env;
 		this.clientProvider = clientProvider;
 		this.clientConfig = clientConfig;
-		this.beanFactory = beanFactory;
 	}
 
-	public ByRestFactory(final RestFnProvider clientProvider, final Environment env,
-			final ListableBeanFactory beanFactory) {
+	public ByRestFactory(final RestFnProvider clientProvider, final Environment env) {
 		this(clientProvider, new ClientConfig() {
-		}, env, beanFactory);
+		}, env);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -65,8 +60,8 @@ public final class ByRestFactory {
 		// Annotation required.
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
 
-		final var timeout = Optional.of(env.resolveRequiredPlaceholders(byRest.timeout()))
-				.filter(OneUtil::hasValue).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+		final var timeout = Optional.of(env.resolveRequiredPlaceholders(byRest.timeout())).filter(OneUtil::hasValue)
+				.map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
 		final Optional<Supplier<String>> localAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
@@ -83,8 +78,7 @@ public final class ByRestFactory {
 		});
 
 		final var restFn = clientProvider.get(clientConfig);
-		final var reqByRest = new ReqByRest(
-				path -> env.resolveRequiredPlaceholders(byRest.value() + path), timeout,
+		final var reqByRest = new ReqByRest(path -> env.resolveRequiredPlaceholders(byRest.value() + path), timeout,
 				localAuthSupplier, byRest.contentType(), byRest.accept());
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Import;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.AuthorizationProvider;
+import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -66,7 +66,7 @@ public final class ByRestConfiguration {
 	@Bean
 	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
 			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
-			@Autowired(required = false) final AuthorizationProvider authProvider,
+			@Autowired(required = false) final AuthProvider authProvider,
 			@Autowired(required = false) final HeaderProvider headerProvider,
 			final List<RestConsumer> exceptionConsumers, final BodyPublisherProvider pubProvider,
 			final BodyHandlerProvider bodyHandlerProvider) {
@@ -86,7 +86,7 @@ public final class ByRestConfiguration {
 			}
 
 			@Override
-			public AuthorizationProvider authProvider() {
+			public AuthProvider authProvider() {
 				return authProvider;
 			}
 

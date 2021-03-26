@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import me.ehp246.aufrest.api.rest.AuthorizationProvider;
+import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -75,7 +75,7 @@ public class JdkRestFnProvider implements RestFnProvider {
 			private final HttpClient client = clientBuilder.build();
 			private final List<RestConsumer> consumers = Collections
 					.unmodifiableList(Optional.ofNullable(clientConfig.restConsumers()).orElseGet(ArrayList::new));
-			private final Optional<AuthorizationProvider> authProvider = Optional
+			private final Optional<AuthProvider> authProvider = Optional
 					.ofNullable(clientConfig.authProvider());
 			private final Optional<HeaderProvider> headerProvider = Optional.ofNullable(clientConfig.headerProvider());
 			private final BodyPublisherProvider bodyPublisherProvider = clientConfig.bodyPublisherProvider();

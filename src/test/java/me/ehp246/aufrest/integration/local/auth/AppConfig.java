@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.AuthorizationProvider;
+import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.mock.Jackson;
 
@@ -27,7 +27,7 @@ class AppConfig {
 
 	@Bean
 	@Profile("authProvider")
-	public AuthorizationProvider authProvider() {
+	public AuthProvider authProvider() {
 		final var countRef = new AtomicReference<Integer>(0);
 		final var value = new BasicAuth("basicuser", "password").value();
 		return uri -> {
