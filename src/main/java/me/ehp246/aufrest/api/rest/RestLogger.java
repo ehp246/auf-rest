@@ -18,8 +18,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public class ReqResptLogger implements RestConsumer {
-	private final static Logger LOGGER = LogManager.getLogger(ReqResptLogger.class);
+public class RestLogger implements RestConsumer {
+	private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
 	private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
 		@Override
@@ -44,7 +44,7 @@ public class ReqResptLogger implements RestConsumer {
 
 	private final ObjectMapper objectMapper;
 
-	public ReqResptLogger(ObjectMapper objectMapper) {
+	public RestLogger(ObjectMapper objectMapper) {
 		super();
 		this.objectMapper = objectMapper;
 	}
@@ -52,23 +52,23 @@ public class ReqResptLogger implements RestConsumer {
 	@Override
 	public void preSend(final HttpRequest httpRequest, final RestRequest request) {
 		logRequest(request);
-		LOGGER.atDebug().log(httpRequest.method() + " " + httpRequest.uri());
-		LOGGER.atDebug().log(httpRequest.headers().map());
+		LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
+		LOGGER.atTrace().log(httpRequest.headers().map());
 
-		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atDebug().log("-"));
+		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
 	}
 
 	@Override
 	public void postSend(HttpResponse<?> httpResponse, RestRequest req) {
 		logRequest(req);
-		LOGGER.atDebug().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
+		LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
 				+ httpResponse.statusCode());
 
-		LOGGER.atDebug().log(httpResponse.headers().map());
-		LOGGER.atDebug().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
+		LOGGER.atTrace().log(httpResponse.headers().map());
+		LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
 	}
 
 	private void logRequest(final RestRequest request) {
-		LOGGER.atDebug().log(RestRequest.class.getSimpleName() + " id: {}", request.id());
+		LOGGER.atTrace().log(RestRequest.class.getSimpleName() + " id: {}", request.id());
 	}
 }
