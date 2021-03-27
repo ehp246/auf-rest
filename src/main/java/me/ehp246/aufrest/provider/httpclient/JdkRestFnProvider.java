@@ -106,7 +106,7 @@ public class JdkRestFnProvider implements RestFnProvider {
 				final var httpRequest = requestBuilder.build();
 
 				// Applying request consumers
-				observers.stream().forEach(consumer -> consumer.preSend(httpRequest, req));
+				observers.stream().forEach(obs -> obs.preSend(httpRequest, req));
 
 				final HttpResponse<Object> httpResponse;
 				try {
@@ -114,14 +114,14 @@ public class JdkRestFnProvider implements RestFnProvider {
 				} catch (Exception e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					// Applying consumers
-					observers.stream().forEach(consumer -> consumer.onException(e, httpRequest, req));
+					observers.stream().forEach(obs -> obs.onException(e, httpRequest, req));
 
 					// Always wrap into a RuntimeException
 					throw new RuntimeException(e);
 				}
 
 				// Applying response consumers
-				observers.stream().forEach(consumer -> consumer.postSend(httpResponse, req));
+				observers.stream().forEach(obs -> obs.postSend(httpResponse, req));
 
 				return new RestResponse() {
 
