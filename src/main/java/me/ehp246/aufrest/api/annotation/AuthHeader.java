@@ -16,8 +16,7 @@ import java.lang.annotation.Target;
  * The annotation has the highest priority on Authorization header. It
  * overwrites all other sources.
  * <p>
- * AufRest does not validate the value. Blank string will be accepted as-is with
- * no further processing.
+ * AufRest does not validate the value. Blank string will be accepted.
  * <p>
  * <code>null</code> is accepted as no Authorization.
  * 

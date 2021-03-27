@@ -3,7 +3,6 @@
  */
 package me.ehp246.aufrest.core.byrest;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
@@ -30,7 +29,7 @@ public class ByRestFactoryAuthTest {
 
 	private final MockEnvironment env = new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")
 			.withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
-			.withProperty("postman.username", "postman").withProperty("postman.password", "password");
+			.withProperty("postman.username", "postman1").withProperty("postman.password", "password1");
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
@@ -40,39 +39,79 @@ public class ByRestFactoryAuthTest {
 	}
 
 	@Test
-	void auth_none_001() {
+	void default_001() {
 		final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
 		factory.newInstance(AuthTestCases.Case001.class).get();
 
-		Assertions.assertEquals(null, reqRef.get().authSupplier());
+		Assertions.assertEquals(null, reqRef.get().authSupplier(),
+				"Should have no supplier leaving it to the global provider");
 	}
 
 	@Test
-	void auth_global_001() {
+	void default_002() {
 		final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
-		factory.newInstance(AuthTestCases.Case001.class).get();
+		factory.newInstance(AuthTestCases.Case001.class).get("");
 
-		Assertions.assertEquals(null, reqRef.get().authSupplier(), "Should be un-aware the global provider");
+		Assertions.assertEquals("", reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_basic_001() {
+	void default_003() {
+		final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+
+		factory.newInstance(AuthTestCases.Case001.class).get(" ");
+
+		Assertions.assertEquals(" ", reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void default_004() {
+		final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+
+		factory.newInstance(AuthTestCases.Case001.class).get(null);
+
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void basic_001() {
 		factory.newInstance(AuthTestCases.Case002.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authSupplier().get());
+		Assertions.assertEquals("Basic cG9zdG1hbjpwYXNzd29yZA==", reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_basic_002() {
+	void basic_002() {
 		factory.newInstance(AuthTestCases.Case005.class).get();
 
-		Assertions.assertEquals(HttpUtils.basicAuth("postman", "password"), reqRef.get().authSupplier().get());
+		Assertions.assertEquals("Basic cG9zdG1hbjE6cGFzc3dvcmQx", reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_003() {
+	void basic_003() {
+		factory.newInstance(AuthTestCases.Case005.class).get("");
+
+		Assertions.assertEquals("", reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void basic_004() {
+		factory.newInstance(AuthTestCases.Case005.class).get("  ");
+
+		Assertions.assertEquals("  ", reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void basic_005() {
+		factory.newInstance(AuthTestCases.Case005.class).get(null);
+
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void case003_001() {
 		factory.newInstance(AuthTestCases.Case003.class).get();
 
 		Assertions.assertEquals(HttpUtils.bearerToken("ec3fb099-7fa3-477b-82ce-05547babad95"),
@@ -80,42 +119,58 @@ public class ByRestFactoryAuthTest {
 	}
 
 	@Test
-	void auth_custom_001() {
+	void case003_002() {
+		factory.newInstance(AuthTestCases.Case003.class).get(null);
+
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void case003_003() {
+		factory.newInstance(AuthTestCases.Case003.class).get("");
+
+		Assertions.assertEquals("", reqRef.get().authSupplier().get());
+	}
+
+	@Test
+	void case004_001() {
 		factory.newInstance(AuthTestCases.Case004.class).get();
 
 		Assertions.assertEquals("CustomKey custom.header.123", reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_header_001() {
-		final var value = UUID.randomUUID().toString();
-		factory.newInstance(AuthTestCases.Case001.class).get(value);
+	void case004_002() {
+		factory.newInstance(AuthTestCases.Case004.class).get("234");
 
-		Assertions.assertEquals(value, reqRef.get().authSupplier().get());
+		Assertions.assertEquals("234", reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_header_002() {
-		factory.newInstance(AuthTestCases.Case001.class).get(null);
+	void case010_001() {
+		factory.newInstance(AuthTestCases.Case010.class).get();
 
-		Assertions.assertEquals(true, reqRef.get().authSupplier() != null, "Should be a non-null supplier");
-		Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "Should return null value for the header");
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_header_003() {
-		factory.newInstance(AuthTestCases.Case001.class).get("");
+	void case010_002() {
+		factory.newInstance(AuthTestCases.Case010.class).get(null);
 
-		Assertions.assertEquals(true, reqRef.get().authSupplier() != null, "Should be a non-null supplier");
-		Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "Should return null value for the header");
+		Assertions.assertEquals(null, reqRef.get().authSupplier().get());
 	}
 
 	@Test
-	void auth_header_004() {
-		factory.newInstance(AuthTestCases.Case001.class).get("   	");
+	void case010_003() {
+		factory.newInstance(AuthTestCases.Case010.class).get("null");
 
-		Assertions.assertEquals(true, reqRef.get().authSupplier() != null, "Should be a non-null supplier");
-		Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "Should return null value for the header");
+		Assertions.assertEquals("null", reqRef.get().authSupplier().get());
 	}
 
+	@Test
+	void case_exception() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(AuthTestCases.Case007.class));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(AuthTestCases.Case008.class));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(AuthTestCases.Case009.class));
+	}
 }

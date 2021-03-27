@@ -68,7 +68,7 @@ public @interface ByRest {
 	 *
 	 * @see Auth
 	 */
-	Auth auth() default @Auth(args = "", scheme = Auth.Scheme.DEFAULT);
+	Auth auth() default @Auth(args = {}, scheme = Auth.Scheme.DEFAULT);
 
 	/**
 	 * Defines the Authorization types supported.
@@ -88,7 +88,7 @@ public @interface ByRest {
 		 * In most cases, the framework does not validate any values provided by
 		 * application. They are used as-is.
 		 */
-		String[] args() default "";
+		String[] args() default {};
 
 		/**
 		 * Indicates to the framework how to construct the value of Authorization header

@@ -160,7 +160,7 @@ final class ReqByRest {
 		};
 
 		final var authSupplier = invoked.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
-				.map(arg -> (Supplier<String>) () -> OneUtil.nullIfBlank(arg.getArgument()))
+				.map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
 				.orElse(localAuthSupplier.orElse(null));
 
 		final var body = payload.size() >= 1 ? payload.get(0) : null;
