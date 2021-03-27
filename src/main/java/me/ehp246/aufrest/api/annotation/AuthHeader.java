@@ -16,11 +16,10 @@ import java.lang.annotation.Target;
  * The annotation has the highest priority on Authorization header. It
  * overwrites all other sources.
  * <p>
- * If the argument is <code>null</code> or its toString value is
- * <cod>null</code> or blank, Authorization will not be set. It effectively
- * turns off Authorization for the invocation.
+ * AufRest does not validate the value. Blank string will be accepted as-is with
+ * no further processing.
  * <p>
- * Non-null and non-blank String will be set as-is with no further processing.
+ * <code>null</code> is accepted as no Authorization.
  * 
  * @author Lei Yang
  *

@@ -7,6 +7,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -36,49 +37,80 @@ import me.ehp246.aufrest.core.util.OneUtil;
 public final class ByRestFactory {
 	private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
-	private final Environment env;
+	private final Function<String, String> propResolver;
 	private final RestFnProvider clientProvider;
 	private final ClientConfig clientConfig;
 
 	@Autowired
-	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig, final Environment env) {
+	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig,
+			final Environment env) {
+		this(clientProvider, clientConfig, env::resolveRequiredPlaceholders);
+	}
+
+	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig,
+			final Function<String, String> propResolver) {
 		super();
-		this.env = env;
+		this.propResolver = propResolver;
 		this.clientProvider = clientProvider;
 		this.clientConfig = clientConfig;
 	}
 
-	public ByRestFactory(final RestFnProvider clientProvider, final Environment env) {
+	public ByRestFactory(final RestFnProvider clientProvider, final Function<String, String> propResolver) {
 		this(clientProvider, new ClientConfig() {
-		}, env);
+		}, propResolver);
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T newInstance(final Class<T> byRestInterface) {
-		LOGGER.atDebug().log("Instantiating {}", byRestInterface.getCanonicalName());
+		final var interfaceName = byRestInterface.getCanonicalName();
+
+		LOGGER.atDebug().log("Instantiating @ByRest {}", interfaceName);
 
 		// Annotation required.
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
 
-		final var timeout = Optional.of(env.resolveRequiredPlaceholders(byRest.timeout())).filter(OneUtil::hasValue)
+		final var timeout = Optional.of(propResolver.apply(byRest.timeout())).filter(OneUtil::hasValue)
 				.map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
+		
 		final Optional<Supplier<String>> localAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
-			switch (auth.type()) {
-			case ASIS:
-				return env.resolveRequiredPlaceholders(auth.value())::toString;
+			switch (auth.scheme()) {
+			case SIMPLE:
+				if (auth.args().length < 1) {
+					throw new IllegalArgumentException(
+							"Missing required arguments for " + auth.scheme().name()
+									+ " on "
+							+ interfaceName);
+				}
+				return propResolver.apply(auth.args()[0])::toString;
 			case BASIC:
-				return new BasicAuth(env.resolveRequiredPlaceholders(auth.value()))::value;
+				if (auth.args().length < 2) {
+					throw new IllegalArgumentException(
+							"Missing required arguments for " + auth.scheme().name()
+									+ " on "
+							+ interfaceName);
+				}
+				return new BasicAuth(propResolver.apply(auth.args()[0]),
+						propResolver.apply(auth.args()[1]))::value;
 			case BEARER:
-				return new BearerToken(env.resolveRequiredPlaceholders(auth.value()))::value;
+				if (auth.args().length < 1) {
+					throw new IllegalArgumentException(
+							"Missing required arguments for " + auth.scheme().name()
+									+ " on "
+							+ interfaceName);
+				}
+				return new BearerToken(propResolver.apply(auth.args()[0]))::value;
+			case NONE:
+				return () -> null;
 			default:
 				return null;
 			}
 		});
 
 		final var restFn = clientProvider.get(clientConfig);
-		final var reqByRest = new ReqByRest(path -> env.resolveRequiredPlaceholders(byRest.value() + path), timeout,
+
+		final var reqByRest = new ReqByRest(path -> propResolver.apply(byRest.value() + path), timeout,
 				localAuthSupplier, byRest.contentType(), byRest.accept());
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },

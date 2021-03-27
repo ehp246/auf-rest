@@ -31,7 +31,8 @@ class ReturnTypeTest {
 		reqRef.set(request);
 		return new MockResponse(request);
 	};
-	private final ByRestFactory factory = new ByRestFactory(cfg -> client, new MockEnvironment());
+	private final ByRestFactory factory = new ByRestFactory(cfg -> client,
+			new MockEnvironment()::resolveRequiredPlaceholders);
 
 	private final ReturnTypeTestCase001 case001 = factory.newInstance(ReturnTypeTestCase001.class);
 

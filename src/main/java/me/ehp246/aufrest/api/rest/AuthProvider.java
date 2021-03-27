@@ -5,7 +5,7 @@ package me.ehp246.aufrest.api.rest;
  * default Authorization header value provider for the
  * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces that have
  * authorization type of
- * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Type DEFAULT}.
+ * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Scheme DEFAULT}.
  *
  * <p>
  * The framework calls the bean passing in resolved target URL to retrieve the

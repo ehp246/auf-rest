@@ -27,7 +27,7 @@ class UriTest {
 	};
 
 	private final ByRestFactory factory = new ByRestFactory(clientCfg -> client,
-			new MockEnvironment().withProperty("echo.base", "https://postman-echo.com"));
+			new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")::resolveRequiredPlaceholders);
 
 	final TestCase001 case001 = factory.newInstance(TestCase001.class);
 

@@ -38,8 +38,8 @@ public interface RestRequest {
 	 * return <code>null</code>. In which case, Authorization header will not be
 	 * set.
 	 * <p>
-	 * If <code>null</code> is returned, i.e., there is no Supplier, Authorization
-	 * will be set by the global AuthorizationProvider if there is one.
+	 * If <code>null</code> is returned, i.e., there is no supplier, Authorization
+	 * will be set by the global Authorization Provider if there is one.
 	 * <p>
 	 * 
 	 *
