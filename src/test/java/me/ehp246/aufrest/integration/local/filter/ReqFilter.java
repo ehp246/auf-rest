@@ -4,11 +4,11 @@ import java.net.http.HttpRequest;
 
 import org.springframework.stereotype.Component;
 
-import me.ehp246.aufrest.api.rest.RestConsumer;
+import me.ehp246.aufrest.api.rest.RestObserver;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 @Component
-class ReqFilter implements RestConsumer {
+class ReqFilter implements RestObserver {
 	private HttpRequest httpReq;
 	private RestRequest req;
 

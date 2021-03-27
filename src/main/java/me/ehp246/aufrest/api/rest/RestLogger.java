@@ -18,7 +18,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public class RestLogger implements RestConsumer {
+public class RestLogger implements RestObserver {
 	private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
 	private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 

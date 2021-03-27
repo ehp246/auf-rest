@@ -7,14 +7,12 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.Reifying;
@@ -26,6 +24,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestResponse;
+import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -37,27 +36,22 @@ import me.ehp246.aufrest.core.util.OneUtil;
 public final class ByRestFactory {
 	private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
-	private final Function<String, String> propResolver;
+	private final PlaceholderResolver phResolver;
 	private final RestFnProvider clientProvider;
 	private final ClientConfig clientConfig;
 
 	@Autowired
 	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig,
-			final Environment env) {
-		this(clientProvider, clientConfig, env::resolveRequiredPlaceholders);
-	}
-
-	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig,
-			final Function<String, String> propResolver) {
+			final PlaceholderResolver phResolver) {
 		super();
-		this.propResolver = propResolver;
+		this.phResolver = phResolver;
 		this.clientProvider = clientProvider;
 		this.clientConfig = clientConfig;
 	}
 
-	public ByRestFactory(final RestFnProvider clientProvider, final Function<String, String> propResolver) {
+	public ByRestFactory(final RestFnProvider clientProvider, final PlaceholderResolver phResolver) {
 		this(clientProvider, new ClientConfig() {
-		}, propResolver);
+		}, phResolver);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -69,7 +63,7 @@ public final class ByRestFactory {
 		// Annotation required.
 		final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
 
-		final var timeout = Optional.of(propResolver.apply(byRest.timeout())).filter(OneUtil::hasValue)
+		final var timeout = Optional.of(phResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
 				.map(text -> OneUtil.orThrow(() -> Duration.parse(text),
 						e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
 				.orElse(null);
@@ -83,7 +77,7 @@ public final class ByRestFactory {
 									+ " on "
 							+ interfaceName);
 				}
-				return propResolver.apply(auth.args()[0])::toString;
+				return phResolver.resolve(auth.args()[0])::toString;
 			case BASIC:
 				if (auth.args().length < 2) {
 					throw new IllegalArgumentException(
@@ -91,8 +85,8 @@ public final class ByRestFactory {
 									+ " on "
 							+ interfaceName);
 				}
-				return new BasicAuth(propResolver.apply(auth.args()[0]),
-						propResolver.apply(auth.args()[1]))::value;
+				return new BasicAuth(phResolver.resolve(auth.args()[0]),
+						phResolver.resolve(auth.args()[1]))::value;
 			case BEARER:
 				if (auth.args().length < 1) {
 					throw new IllegalArgumentException(
@@ -100,7 +94,7 @@ public final class ByRestFactory {
 									+ " on "
 							+ interfaceName);
 				}
-				return new BearerToken(propResolver.apply(auth.args()[0]))::value;
+				return new BearerToken(phResolver.resolve(auth.args()[0]))::value;
 			case NONE:
 				return () -> null;
 			default:
@@ -110,7 +104,7 @@ public final class ByRestFactory {
 
 		final var restFn = clientProvider.get(clientConfig);
 
-		final var reqByRest = new ReqByRest(path -> propResolver.apply(byRest.value() + path), timeout,
+		final var reqByRest = new ReqByRest(path -> phResolver.resolve(byRest.value() + path), timeout,
 				localAuthSupplier, byRest.contentType(), byRest.accept());
 
 		return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },

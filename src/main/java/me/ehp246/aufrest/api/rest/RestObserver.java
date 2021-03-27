@@ -1,6 +1,3 @@
-/**
- * 
- */
 package me.ehp246.aufrest.api.rest;
 
 import java.net.http.HttpRequest;
@@ -16,7 +13,7 @@ import org.springframework.core.annotation.Order;
  * 
  * @author Lei Yang
  */
-public interface RestConsumer {
+public interface RestObserver {
 	/**
 	 * AufRest invokes this method just before the request is sent.
 	 * 

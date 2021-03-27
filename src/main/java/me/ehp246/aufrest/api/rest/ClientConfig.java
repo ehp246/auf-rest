@@ -27,7 +27,7 @@ public interface ClientConfig {
 		return null;
 	}
 
-	default List<RestConsumer> restConsumers() {
+	default List<RestObserver> restObservers() {
 		return List.of();
 	}
 	

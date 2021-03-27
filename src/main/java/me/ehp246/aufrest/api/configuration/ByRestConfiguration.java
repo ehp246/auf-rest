@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,7 +23,8 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.RestConsumer;
+import me.ehp246.aufrest.api.rest.RestObserver;
+import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
@@ -69,7 +71,7 @@ public final class ByRestConfiguration {
 			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
 			@Autowired(required = false) final AuthProvider authProvider,
 			@Autowired(required = false) final HeaderProvider headerProvider,
-			final List<RestConsumer> exceptionConsumers, final BodyPublisherProvider pubProvider,
+			final List<RestObserver> restObservers, final BodyPublisherProvider pubProvider,
 			final BodyHandlerProvider bodyHandlerProvider) {
 
 		final ClientConfig base = clientConfig(connectTimeout, requestTimeout);
@@ -97,8 +99,8 @@ public final class ByRestConfiguration {
 			}
 
 			@Override
-			public List<RestConsumer> restConsumers() {
-				return exceptionConsumers == null ? List.of() : exceptionConsumers;
+			public List<RestObserver> restObservers() {
+				return restObservers == null ? List.of() : restObservers;
 			}
 
 			@Override
@@ -165,5 +167,10 @@ public final class ByRestConfiguration {
 	@Bean
 	RestLogger reqResptLogger(final ObjectMapper objectMapper) {
 		return new RestLogger(objectMapper);
+	}
+
+	@Bean
+	public PlaceholderResolver placeholderResolver(final Environment env) {
+		return env::resolveRequiredPlaceholders;
 	}
 }

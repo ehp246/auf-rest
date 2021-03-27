@@ -17,7 +17,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import me.ehp246.aufrest.api.rest.InvokedOn;
+import me.ehp246.aufrest.api.spi.InvokedOn;
 
 /**
  * 
