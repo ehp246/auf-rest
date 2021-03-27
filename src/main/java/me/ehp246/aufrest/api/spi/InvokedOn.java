@@ -10,6 +10,8 @@ import java.util.List;
  *
  */
 public interface InvokedOn {
+	Class<?> declaredType();
+
 	Object target();
 
 	Method method();

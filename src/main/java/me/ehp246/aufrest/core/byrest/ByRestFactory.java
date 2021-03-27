@@ -111,7 +111,7 @@ public final class ByRestFactory {
 				new InvocationHandler() {
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-						final var invoked = new ProxyInvoked<>(proxy, method, args);
+						final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
 						final var req = reqByRest.from(invoked);
 						final var respSupplier = (Supplier<RestResponse>) () -> {
 							ThreadContext.put(AufRestConstants.REQUEST_ID, req.id());

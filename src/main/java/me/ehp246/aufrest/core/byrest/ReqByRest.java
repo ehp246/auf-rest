@@ -62,7 +62,7 @@ final class ReqByRest {
 	}
 
 	@SuppressWarnings("unchecked")
-	RestRequest from(ProxyInvoked<?> invoked) {
+	RestRequest from(ProxyInvoked invoked) {
 		final var ofMapping = invoked.findOnMethod(OfMapping.class);
 
 		final var pathParams = invoked.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
