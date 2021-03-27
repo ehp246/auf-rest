@@ -1,8 +1,5 @@
 package me.ehp246.aufrest.api.rest;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -11,7 +8,7 @@ import java.util.Set;
  * @author Lei Yang
  * @since 1.0
  */
-public class HttpUtils {
+public final class HttpUtils {
 	// Methods
 	public final static String GET = "GET";
 	public final static String POST = "POST";
@@ -36,21 +33,6 @@ public class HttpUtils {
 	public static final String APPLICATION_JSON = "application/json";
 	public static final String APPLICATION_XML = "application/xml";
 	public static final String TEXT_PLAIN = "text/plain";
-
-	public static String bearerToken(final String token) {
-		return BEARER + " " + Objects.requireNonNull(token);
-	}
-
-	public static String basicAuth(final String username, final String password) {
-		return basicAuth(Objects.requireNonNull(username) + ":" + Objects.requireNonNull(password));
-	}
-
-	public static String basicAuth(final String value) {
-		if (value == null || value.indexOf(":") < 1) {
-			throw new IllegalArgumentException("Invalid value for Basic Auth header");
-		}
-		return BASIC + " " + Base64.getEncoder().encodeToString((value).getBytes(StandardCharsets.UTF_8));
-	}
 
 	private HttpUtils() {
 		super();

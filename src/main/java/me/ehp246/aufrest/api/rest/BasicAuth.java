@@ -15,21 +15,6 @@ public class BasicAuth {
 	private final String value;
 
 	/**
-	 * Expects the parameter in the format of "${username}:${password}".
-	 *
-	 * @param usernameAndPassword
-	 */
-	public BasicAuth(final String usernameAndPassword) {
-		super();
-
-		if (usernameAndPassword == null || !usernameAndPassword.contains(":")) {
-			throw new IllegalArgumentException();
-		}
-
-		value = "Basic " + Base64.getEncoder().encodeToString((usernameAndPassword).getBytes(StandardCharsets.UTF_8));
-	}
-
-	/**
 	 * @param username Required.
 	 * @param password Required.
 	 * @throws IllegalArgumentException

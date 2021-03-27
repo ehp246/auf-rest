@@ -51,7 +51,6 @@ public class RestLogger implements RestObserver {
 
 	@Override
 	public void preSend(final HttpRequest httpRequest, final RestRequest request) {
-		logRequest(request);
 		LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
 		LOGGER.atTrace().log(httpRequest.headers().map());
 
@@ -60,15 +59,10 @@ public class RestLogger implements RestObserver {
 
 	@Override
 	public void postSend(HttpResponse<?> httpResponse, RestRequest req) {
-		logRequest(req);
 		LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
 				+ httpResponse.statusCode());
 
 		LOGGER.atTrace().log(httpResponse.headers().map());
 		LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
-	}
-
-	private void logRequest(final RestRequest request) {
-		LOGGER.atTrace().log(RestRequest.class.getSimpleName() + " id: {}", request.id());
 	}
 }

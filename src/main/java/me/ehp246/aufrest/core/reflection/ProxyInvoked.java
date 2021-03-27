@@ -30,10 +30,6 @@ public final class ProxyInvoked<T> implements InvokedOn {
 	private final List<?> args;
 	private final Annotation[][] parameterAnnotations;
 
-	public ProxyInvoked(final T target, final Method method) {
-		this(target, method, null);
-	}
-
 	public ProxyInvoked(final T target, final Method method, final Object[] args) {
 		this.target = target;
 		this.method = Objects.requireNonNull(method);
@@ -217,18 +213,5 @@ public final class ProxyInvoked<T> implements InvokedOn {
 
 	public String getMethodName() {
 		return method.getName();
-	}
-
-	public String getMethodNameCapped() {
-		final var type = this.method.getName();
-		return type.substring(0, 1).toUpperCase() + type.substring(1);
-	}
-
-	public String getSimpleClassName() {
-		return target.getClass().getSimpleName();
-	}
-
-	public String getSimpleDeclaringClassName() {
-		return getDeclaringClass().getSimpleName();
 	}
 }

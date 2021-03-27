@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockResponse;
@@ -114,7 +113,7 @@ public class ByRestFactoryAuthTest {
 	void case003_001() {
 		factory.newInstance(AuthTestCases.Case003.class).get();
 
-		Assertions.assertEquals(HttpUtils.bearerToken("ec3fb099-7fa3-477b-82ce-05547babad95"),
+		Assertions.assertEquals("Bearer ec3fb099-7fa3-477b-82ce-05547babad95",
 				reqRef.get().authSupplier().get());
 	}
 
