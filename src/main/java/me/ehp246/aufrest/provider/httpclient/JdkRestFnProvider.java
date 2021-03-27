@@ -27,9 +27,9 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestObserver;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestObserver;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -87,7 +87,7 @@ public class JdkRestFnProvider implements RestFnProvider {
 			public RestResponse apply(final RestRequest req) {
 				final var authHeader = Optional
 						.ofNullable(Optional.ofNullable(req.authSupplier())
-								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
+								.orElse(() -> authProvider.map(provider -> provider.get(req)).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
 				final var requestBuilder = newRequestBuilder(req)
