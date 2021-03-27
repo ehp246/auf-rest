@@ -22,8 +22,8 @@ import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 import me.ehp246.aufrest.mock.MockReq;
 
@@ -54,7 +54,8 @@ class JdkRestFnProviderTest {
 			private int count = 0;
 
 			@Override
-			public String get(final String uri) {
+			public String get(final RestRequest req) {
+				final var uri = req.uri();
 				if (uri.toString().contains("bearer")) {
 					return BEARER;
 				} else if (uri.toString().contains("basic")) {

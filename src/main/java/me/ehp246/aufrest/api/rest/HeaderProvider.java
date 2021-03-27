@@ -20,14 +20,14 @@ import java.util.Map;
  *
  *
  * @author Lei Yang
- * @since 2.0
+ * 
  */
 @FunctionalInterface
 public interface HeaderProvider {
 	/**
 	 *
-	 * @param request the out-going request.
+	 * @param req the out-going request.
 	 * @return header names and values. <code>null</code> is acceptable.
 	 */
-	Map<String, List<String>> get(RestRequest request);
+	Map<String, List<String>> get(RestRequest req);
 }

@@ -27,9 +27,9 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestConsumer;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestObserver;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -73,8 +73,8 @@ public class JdkRestFnProvider implements RestFnProvider {
 
 		return new RestFn() {
 			private final HttpClient client = clientBuilder.build();
-			private final List<RestConsumer> consumers = Collections
-					.unmodifiableList(Optional.ofNullable(clientConfig.restConsumers()).orElseGet(ArrayList::new));
+			private final List<RestObserver> observers = Collections
+					.unmodifiableList(Optional.ofNullable(clientConfig.restObservers()).orElseGet(ArrayList::new));
 			private final Optional<AuthProvider> authProvider = Optional
 					.ofNullable(clientConfig.authProvider());
 			private final Optional<HeaderProvider> headerProvider = Optional.ofNullable(clientConfig.headerProvider());
@@ -87,7 +87,7 @@ public class JdkRestFnProvider implements RestFnProvider {
 			public RestResponse apply(final RestRequest req) {
 				final var authHeader = Optional
 						.ofNullable(Optional.ofNullable(req.authSupplier())
-								.orElse(() -> authProvider.map(provider -> provider.get(req.uri())).orElse(null)).get())
+								.orElse(() -> authProvider.map(provider -> provider.get(req)).orElse(null)).get())
 						.filter(value -> value != null && !value.isBlank()).orElse(null);
 
 				final var requestBuilder = newRequestBuilder(req)
@@ -106,7 +106,7 @@ public class JdkRestFnProvider implements RestFnProvider {
 				final var httpRequest = requestBuilder.build();
 
 				// Applying request consumers
-				consumers.stream().forEach(consumer -> consumer.preSend(httpRequest, req));
+				observers.stream().forEach(obs -> obs.preSend(httpRequest, req));
 
 				final HttpResponse<Object> httpResponse;
 				try {
@@ -114,14 +114,14 @@ public class JdkRestFnProvider implements RestFnProvider {
 				} catch (Exception e) {
 					LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 					// Applying consumers
-					consumers.stream().forEach(consumer -> consumer.onException(e, httpRequest, req));
+					observers.stream().forEach(obs -> obs.onException(e, httpRequest, req));
 
 					// Always wrap into a RuntimeException
 					throw new RuntimeException(e);
 				}
 
 				// Applying response consumers
-				consumers.stream().forEach(consumer -> consumer.postSend(httpResponse, req));
+				observers.stream().forEach(obs -> obs.postSend(httpResponse, req));
 
 				return new RestResponse() {
 

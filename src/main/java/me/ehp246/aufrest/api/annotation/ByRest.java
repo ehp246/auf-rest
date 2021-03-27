@@ -19,7 +19,6 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.0
  * @see EnableByRest
  */
 @Retention(RUNTIME)
@@ -62,68 +61,87 @@ public @interface ByRest {
 	 * Defines the Authorization type and value required by the endpoint.
 	 *
 	 * <p>
-	 * Note the default <code>Auth.Type</code> for the element is
-	 * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Type DEFAULT}. It is
+	 * Note the default <code>Auth.scheme</code> for the element is
+	 * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Scheme DEFAULT}. It is
 	 * different from an explicitly defined value which is set to
-	 * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Type BEARER}.
+	 * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Scheme BEARER}.
 	 *
 	 * @see Auth
 	 */
-	Auth auth() default @Auth(value = "", type = Auth.Type.DEFAULT);
+	Auth auth() default @Auth(args = {}, scheme = Auth.Scheme.DEFAULT);
 
 	/**
 	 * Defines the Authorization types supported.
 	 */
 	@interface Auth {
 		/**
-		 * Defines the value for the Authorization header. See {@link Type Type} for how
-		 * the value is interpreted.
-		 */
-		String value() default "";
-
-		/**
 		 * Defines the type of the Authorization required by the endpoint.
 		 */
-		Type type() default Type.BEARER;
+		Scheme scheme() default Scheme.BEARER;
 
 		/**
-		 * Indicates to the framework how to retrieve the value of Authorization header
-		 * for the endpoint.
+		 * Defines the argument or arguments to construct Authorization header. See
+		 * {@link Scheme Scheme} for how the provided values are used.
+		 * <p>
+		 * Spring property placeholder is supported.
+		 * <p>
+		 * In most cases, the framework does not validate any values provided by
+		 * application. They are used as-is.
 		 */
-		enum Type {
+		String[] args() default {};
+
+		/**
+		 * Indicates to the framework how to construct the value of Authorization header
+		 * for the endpoint with given scheme and arguments.
+		 */
+		enum Scheme {
 			/**
 			 * Indicates the value of Authorization header for the endpoint is to be
 			 * provided by the optional global
-			 * {@link me.ehp246.aufrest.api.rest.AuthorizationProvider
-			 * AuthorizationProvider} bean. For this type, the value element is ignored.
-			 *
+			 * {@link me.ehp246.aufrest.api.rest.AuthProvider AuthProvider} bean. For this
+			 * type, the args element is ignored.
 			 * <p>
 			 * The global bean is not defined by default. Additionally it could return
 			 * <code>null</code> for the URI. In which case, the requests from the proxy
 			 * interface will have no Authorization header.
 			 *
-			 * @see me.ehp246.aufrest.api.rest.AuthorizationProvider
+			 * @see me.ehp246.aufrest.api.rest.AuthProvider
 			 */
 			DEFAULT,
 			/**
-			 * Indicates the endpoint requires HTTP basic authentication. For this type, the
-			 * value element should be of the format of
-			 * <code>"${username}:${password}"</code>. I.e., a simple concatenation of
-			 * username, ":", and password with no additional encoding. The framework will
-			 * encode the value according to the specification.
+			 * Indicates the endpoint requires HTTP basic authentication. For this scheme,
+			 * the args element should specify the two components of user name and password
+			 * in the format of <code>{"${username}", "${password}"}</code>. I.e., the first
+			 * value is the username, the second the password.
+			 * <p>
+			 * Either component can be blank.
 			 */
 			BASIC,
 			/**
-			 * Indicates the endpoint requires Bearer token authorization. For this type,
-			 * the value should be simple token string without any prefix.
+			 * Indicates the endpoint requires Bearer token authorization. For this scheme,
+			 * the args should be a single string that is the token without any prefix.
+			 * <p>
+			 * Blank string is accepted as-is. The framework does not validate the value.
+			 * <p>
+			 * Additional values are ignored.
+			 * 
 			 */
 			BEARER,
 			/**
 			 * Indicates to the framework that the value should be set to the Authorization
 			 * header as-is without any additional processing. This is mainly to provide a
 			 * static direct access to the header.
+			 * <p>
+			 * Requires a single value. Only the first is accepted. Additional values are
+			 * ignored.
+			 * 
 			 */
-			ASIS
+			SIMPLE,
+
+			/**
+			 * Indicates explicitly that Authorization should not be set.
+			 */
+			NONE
 		}
 	}
 

@@ -17,24 +17,22 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import me.ehp246.aufrest.api.rest.InvokedOn;
+import me.ehp246.aufrest.api.spi.InvokedOn;
 
 /**
  * 
  * @author Lei Yang
  *
  */
-public final class ProxyInvoked<T> implements InvokedOn {
-	private final T target;
+public final class ProxyInvoked implements InvokedOn {
+	private final Class<?> declaredType;
+	private final Object target;
 	private final Method method;
 	private final List<?> args;
 	private final Annotation[][] parameterAnnotations;
 
-	public ProxyInvoked(final T target, final Method method) {
-		this(target, method, null);
-	}
-
-	public ProxyInvoked(final T target, final Method method, final Object[] args) {
+	public ProxyInvoked(final Class<?> declaredType, final Object target, final Method method, final Object[] args) {
+		this.declaredType = declaredType;
 		this.target = target;
 		this.method = Objects.requireNonNull(method);
 		this.args = Collections.unmodifiableList(args == null ? new ArrayList<Object>() : Arrays.asList(args));
@@ -42,7 +40,12 @@ public final class ProxyInvoked<T> implements InvokedOn {
 	}
 
 	@Override
-	public T target() {
+	public Class<?> declaredType() {
+		return this.declaredType;
+	}
+
+	@Override
+	public Object target() {
 		return target;
 	}
 
@@ -217,18 +220,5 @@ public final class ProxyInvoked<T> implements InvokedOn {
 
 	public String getMethodName() {
 		return method.getName();
-	}
-
-	public String getMethodNameCapped() {
-		final var type = this.method.getName();
-		return type.substring(0, 1).toUpperCase() + type.substring(1);
-	}
-
-	public String getSimpleClassName() {
-		return target.getClass().getSimpleName();
-	}
-
-	public String getSimpleDeclaringClassName() {
-		return getDeclaringClass().getSimpleName();
 	}
 }

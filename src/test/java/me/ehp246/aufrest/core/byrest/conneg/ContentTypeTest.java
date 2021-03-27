@@ -25,7 +25,7 @@ class ContentTypeTest {
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
 		return new MockResponse(request, new MockHttpResponse<Object>());
-	}, new MockEnvironment());
+	}, new MockEnvironment()::resolveRequiredPlaceholders);
 
 	@BeforeEach
 	void beforeEach() {

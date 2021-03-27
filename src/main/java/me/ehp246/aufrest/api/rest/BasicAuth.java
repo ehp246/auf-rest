@@ -6,7 +6,7 @@ import java.util.Base64;
 /**
  * A simple Basic Auth header implementation.
  * <p>
- * The class does not allow empty/blank username and/or password.
+ * The class does not allow <code>null</code> username and/or password.
  *
  * @author Lei Yang
  * @since 2.0
@@ -15,33 +15,18 @@ public class BasicAuth {
 	private final String value;
 
 	/**
-	 * Expects the parameter in the format of "${username}:${password}".
-	 *
-	 * @param usernameAndPassword
-	 */
-	public BasicAuth(final String usernameAndPassword) {
-		super();
-
-		if (usernameAndPassword == null || !usernameAndPassword.contains(":")) {
-			throw new IllegalArgumentException();
-		}
-
-		value = "Basic " + Base64.getEncoder().encodeToString((usernameAndPassword).getBytes(StandardCharsets.UTF_8));
-	}
-
-	/**
-	 * @param username Required. No <code>null</code>, empty, or blank.
-	 * @param password Required. No <code>null</code>, empty, or blank.
+	 * @param username Required.
+	 * @param password Required.
 	 * @throws IllegalArgumentException
 	 */
 	public BasicAuth(final String username, final String password) {
 		super();
 
-		if (username == null || username.isBlank()) {
-			throw new IllegalArgumentException();
+		if (username == null) {
+			throw new NullPointerException("username");
 		}
-		if (password == null || password.isBlank()) {
-			throw new IllegalArgumentException();
+		if (password == null) {
+			throw new NullPointerException("password");
 		}
 
 		value = "Basic "

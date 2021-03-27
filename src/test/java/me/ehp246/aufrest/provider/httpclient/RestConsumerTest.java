@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestConsumer;
+import me.ehp246.aufrest.api.rest.RestObserver;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -32,8 +32,8 @@ public class RestConsumerTest {
 
 		final var config = new ClientConfig() {
 			@Override
-			public List<RestConsumer> restConsumers() {
-				return List.of(new RestConsumer() {
+			public List<RestObserver> restObservers() {
+				return List.of(new RestObserver() {
 
 					@Override
 					public void preSend(HttpRequest httpRequest, RestRequest req) {
@@ -41,7 +41,7 @@ public class RestConsumerTest {
 						map.put("2", req);
 					}
 
-				}, new RestConsumer() {
+				}, new RestObserver() {
 
 					@Override
 					public void preSend(HttpRequest httpRequest, RestRequest req) {

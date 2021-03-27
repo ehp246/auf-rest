@@ -18,7 +18,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public class RestLogger implements RestConsumer {
+public final class RestLogger implements RestObserver {
 	private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
 	private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
@@ -51,7 +51,6 @@ public class RestLogger implements RestConsumer {
 
 	@Override
 	public void preSend(final HttpRequest httpRequest, final RestRequest request) {
-		logRequest(request);
 		LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
 		LOGGER.atTrace().log(httpRequest.headers().map());
 
@@ -60,15 +59,10 @@ public class RestLogger implements RestConsumer {
 
 	@Override
 	public void postSend(HttpResponse<?> httpResponse, RestRequest req) {
-		logRequest(req);
 		LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
 				+ httpResponse.statusCode());
 
 		LOGGER.atTrace().log(httpResponse.headers().map());
 		LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
-	}
-
-	private void logRequest(final RestRequest request) {
-		LOGGER.atTrace().log(RestRequest.class.getSimpleName() + " id: {}", request.id());
 	}
 }

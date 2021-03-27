@@ -30,8 +30,8 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.InvokedOn;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.InvokedOn;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -62,7 +62,7 @@ final class ReqByRest {
 	}
 
 	@SuppressWarnings("unchecked")
-	RestRequest from(ProxyInvoked<?> invoked) {
+	RestRequest from(ProxyInvoked invoked) {
 		final var ofMapping = invoked.findOnMethod(OfMapping.class);
 
 		final var pathParams = invoked.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
@@ -160,7 +160,7 @@ final class ReqByRest {
 		};
 
 		final var authSupplier = invoked.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
-				.map(arg -> (Supplier<String>) () -> OneUtil.nullIfBlank(arg.getArgument()))
+				.map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
 				.orElse(localAuthSupplier.orElse(null));
 
 		final var body = payload.size() >= 1 ? payload.get(0) : null;

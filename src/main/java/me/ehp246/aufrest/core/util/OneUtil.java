@@ -21,7 +21,7 @@ public final class OneUtil {
 	}
 
 	public static String toString(final Object value) {
-		return value != null ? value.toString() : null;
+		return value == null ? null : value.toString();
 	}
 
 	public static String nullIfBlank(final Object value) {

@@ -30,9 +30,9 @@ class AppConfig {
 	public AuthProvider authProvider() {
 		final var countRef = new AtomicReference<Integer>(0);
 		final var value = new BasicAuth("basicuser", "password").value();
-		return uri -> {
+		return req -> {
 			// Only allow one call.
-			if (uri.contains("/auth/basic") && countRef.get() == 0) {
+			if (req.uri().contains("/auth/basic") && countRef.get() == 0) {
 				countRef.getAndUpdate(i -> i + 1);
 				return value;
 			}

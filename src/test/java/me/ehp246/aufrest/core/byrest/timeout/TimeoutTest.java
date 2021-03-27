@@ -23,7 +23,7 @@ class TimeoutTest {
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
 		return new MockResponse(request);
-	}, env);
+	}, env::resolveRequiredPlaceholders);
 
 	@Test
 	void timeout_001() {
