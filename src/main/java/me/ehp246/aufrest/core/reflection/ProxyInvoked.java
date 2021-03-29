@@ -30,6 +30,7 @@ public final class ProxyInvoked implements InvokedOn {
 	private final Method method;
 	private final List<?> args;
 	private final Annotation[][] parameterAnnotations;
+	private final List<Class<?>> threws;
 
 	public ProxyInvoked(final Class<?> declaredType, final Object target, final Method method, final Object[] args) {
 		this.declaredType = declaredType;
@@ -37,6 +38,7 @@ public final class ProxyInvoked implements InvokedOn {
 		this.method = Objects.requireNonNull(method);
 		this.args = Collections.unmodifiableList(args == null ? new ArrayList<Object>() : Arrays.asList(args));
 		this.parameterAnnotations = this.method.getParameterAnnotations();
+		this.threws = List.of(this.method.getExceptionTypes());
 	}
 
 	@Override
@@ -88,7 +90,11 @@ public final class ProxyInvoked implements InvokedOn {
 	 * @return
 	 */
 	public List<Class<?>> getThrows() {
-		return List.of(this.method.getExceptionTypes());
+		return threws;
+	}
+
+	public boolean canThrow(Class<?> t) {
+		return this.threws.contains(t);
 	}
 
 	public List<?> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations) {

@@ -25,6 +25,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
+import me.ehp246.aufrest.core.reflection.Invocable;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -113,18 +114,18 @@ public final class ByRestFactory {
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 						final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
 						final var req = reqByRest.from(invoked);
-						final var respSupplier = (Supplier<RestResponse>) () -> {
+						final var respSupplier = new Invocable<>(() -> {
 							ThreadContext.put(AufRestConstants.REQUEST_ID, req.id());
 							try {
 								return restFn.apply(req);
 							} finally {
 								ThreadContext.remove(AufRestConstants.REQUEST_ID);
 							}
-						};
+						});
 
 						if (invoked.isSync()) {
 							// Synchronous invocation. Let's do it now.
-							return parseAndReturn(invoked.getReturnType(), respSupplier.get());
+							return resolveReturn(invoked, respSupplier);
 						}
 
 						// Copy the header context.
@@ -139,7 +140,9 @@ public final class ByRestFactory {
 								if (reifying.length == 0) {
 									throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
 								}
-								return parseAndReturn(reifying[0], respSupplier.get());
+								return resolveReturn(invoked, respSupplier);
+							} catch (Throwable e) {
+								return null;
 							} finally {
 								// Clear the header context before exiting.
 								HeaderContext.clear();
@@ -147,11 +150,20 @@ public final class ByRestFactory {
 						});
 					}
 
-					private Object parseAndReturn(Class<?> returnType, RestResponse restResp) {
-						final var httpResponse = restResp.httpResponse();
+					private Object resolveReturn(ProxyInvoked invoked, Invocable<RestResponse> invocable)
+							throws Throwable {
+						invocable.invoke();
+
+						if (invocable.hasThrew() && invoked.canThrow(invocable.threw().getClass())) {
+							throw invocable.threw();
+						}
+
+						final var returnType = invoked.getReturnType();
+						final var restResponse = invocable.returned();
+						final var httpResponse = restResponse.httpResponse();
 
 						if (returnType.isAssignableFrom(RestResponse.class)) {
-							return restResp;
+							return invocable;
 						}
 
 						// If the return type is HttpResponse, returns it as is without any processing
@@ -161,7 +173,7 @@ public final class ByRestFactory {
 						}
 
 						if (httpResponse.statusCode() >= 300) {
-							throw new UnhandledResponseException(restResp.restRequest(), httpResponse);
+							throw new UnhandledResponseException(restResponse.restRequest(), httpResponse);
 						}
 
 						// Discard the response.
