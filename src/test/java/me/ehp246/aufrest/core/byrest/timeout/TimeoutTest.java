@@ -1,14 +1,15 @@
 package me.ehp246.aufrest.core.byrest.timeout;
 
+import java.net.http.HttpResponse;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
-import me.ehp246.aufrest.mock.MockResponse;
 
 /**
  * @author Lei Yang
@@ -22,7 +23,7 @@ class TimeoutTest {
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
-		return new MockResponse(request);
+		return Mockito.mock(HttpResponse.class);
 	}, env::resolveRequiredPlaceholders);
 
 	@Test

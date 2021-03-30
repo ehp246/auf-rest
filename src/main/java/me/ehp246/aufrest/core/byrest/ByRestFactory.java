@@ -19,8 +19,8 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestFnProvider;
-import me.ehp246.aufrest.api.rest.RestResponse;
+import me.ehp246.aufrest.api.rest.HttpFnProvider;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.reflection.InvocationOutcome;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
@@ -35,19 +35,19 @@ public final class ByRestFactory {
 	private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
 	private final PlaceholderResolver phResolver;
-	private final RestFnProvider clientProvider;
+	private final HttpFnProvider clientProvider;
 	private final ClientConfig clientConfig;
 
 	@Autowired
-	public ByRestFactory(final RestFnProvider clientProvider, final ClientConfig clientConfig,
-			final PlaceholderResolver phResolver) {
+	public ByRestFactory(final HttpFnProvider clientProvider,
+			final ClientConfig clientConfig, final PlaceholderResolver phResolver) {
 		super();
 		this.phResolver = phResolver;
 		this.clientProvider = clientProvider;
 		this.clientConfig = clientConfig;
 	}
 
-	public ByRestFactory(final RestFnProvider clientProvider, final PlaceholderResolver phResolver) {
+	public ByRestFactory(final HttpFnProvider clientProvider, final PlaceholderResolver phResolver) {
 		this(clientProvider, new ClientConfig() {
 		}, phResolver);
 	}
@@ -100,7 +100,7 @@ public final class ByRestFactory {
 			}
 		});
 
-		final var restFn = clientProvider.get(clientConfig);
+		final var httpFn = clientProvider.get(clientConfig);
 
 		final var reqByRest = new ReqByRest(path -> phResolver.resolve(byRest.value() + path), timeout,
 				localAuthSupplier, byRest.contentType(), byRest.accept());
@@ -111,29 +111,24 @@ public final class ByRestFactory {
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 						final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
 						final var req = reqByRest.from(invoked);
-						final var respSupplier = (Supplier<RestResponse>) () -> {
+						final var respSupplier = (Supplier<HttpResponse<?>>) () -> {
 							ThreadContext.put(AufRestConstants.REQUEST_ID, req.id());
 							try {
-								return restFn.apply(req);
+								return httpFn.apply(req);
 							} finally {
 								ThreadContext.remove(AufRestConstants.REQUEST_ID);
 							}
 						};
 
-						return resolveReturn(invoked, respSupplier);
+						return resolveReturn(req, invoked, respSupplier);
 					}
 
-					private Object resolveReturn(ProxyInvoked invoked, Supplier<RestResponse> call)
+					private Object resolveReturn(RestRequest req, ProxyInvoked invoked, Supplier<HttpResponse<?>> call)
 							throws Throwable {
-						final var restResponse = (RestResponse) InvocationOutcome.invoke(call)
+						final var httpResponse = (HttpResponse<?>) InvocationOutcome.invoke(call)
 								.accept(invoked.getThrows());
 
 						final var returnType = invoked.getReturnType();
-						final var httpResponse = restResponse.httpResponse();
-
-						if (returnType.isAssignableFrom(RestResponse.class)) {
-							return restResponse;
-						}
 
 						// If the return type is HttpResponse, returns it as is without any processing
 						// regardless the status code.
@@ -142,7 +137,7 @@ public final class ByRestFactory {
 						}
 
 						if (httpResponse.statusCode() >= 300) {
-							throw new UnhandledResponseException(restResponse.restRequest(), httpResponse);
+							throw new UnhandledResponseException(req, httpResponse);
 						}
 
 						// Discard the response.

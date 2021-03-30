@@ -5,10 +5,8 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -16,15 +14,13 @@ import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.RestObserver;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
+import me.ehp246.aufrest.core.byrest.DefaultRequestBuilder;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
@@ -40,72 +36,21 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import(JdkRestFnProvider.class)
+@Import({ JdkRestFnProvider.class, DefaultRequestBuilder.class })
 public final class ByRestConfiguration {
-
-	public ClientConfig clientConfig(final String connectTimeout, final String requestTimeout) {
+	@Bean
+	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
+			final BodyHandlerProvider bodyHandlerProvider) {
 		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
 				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
 				.orElse(null);
 
-		final var responseTimeout = Optional.ofNullable(requestTimeout).filter(OneUtil::hasValue)
-				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
-						e -> new IllegalArgumentException("Invalid Response Timeout: " + value)))
-				.orElse(null);
 		return new ClientConfig() {
+
 			@Override
 			public Duration connectTimeout() {
 				return connTimeout;
-			}
-
-			@Override
-			public Duration responseTimeout() {
-				return responseTimeout;
-			}
-		};
-	}
-
-	@Bean
-	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
-			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout,
-			@Autowired(required = false) final AuthProvider authProvider,
-			@Autowired(required = false) final HeaderProvider headerProvider,
-			final List<RestObserver> restObservers, final BodyPublisherProvider pubProvider,
-			final BodyHandlerProvider bodyHandlerProvider) {
-
-		final ClientConfig base = clientConfig(connectTimeout, requestTimeout);
-
-		return new ClientConfig() {
-
-			@Override
-			public Duration connectTimeout() {
-				return base.connectTimeout();
-			}
-
-			@Override
-			public Duration responseTimeout() {
-				return base.responseTimeout();
-			}
-
-			@Override
-			public AuthProvider authProvider() {
-				return authProvider;
-			}
-
-			@Override
-			public HeaderProvider headerProvider() {
-				return headerProvider;
-			}
-
-			@Override
-			public List<RestObserver> restObservers() {
-				return restObservers == null ? List.of() : restObservers;
-			}
-
-			@Override
-			public BodyPublisherProvider bodyPublisherProvider() {
-				return pubProvider;
 			}
 
 			@Override
@@ -122,7 +67,7 @@ public final class ByRestConfiguration {
 	}
 
 	@Bean
-	public BodyPublisherProvider pubProvider(final JsonByJackson jacksonFn) {
+	public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
 		return req -> {
 			if (req.body() == null) {
 				return BodyPublishers.noBody();

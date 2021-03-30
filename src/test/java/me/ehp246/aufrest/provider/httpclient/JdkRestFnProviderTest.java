@@ -18,11 +18,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.api.rest.HttpFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 import me.ehp246.aufrest.mock.MockReq;
@@ -38,40 +37,13 @@ class JdkRestFnProviderTest {
 
 	private final AtomicReference<HttpRequest> reqRef = new AtomicReference<>();
 	private final AtomicReference<Integer> clientBuilderCallCountRef = new AtomicReference<>(0);
-	private final AtomicReference<Integer> requestBuilderCallCountRef = new AtomicReference<>(0);
 	private final AtomicReference<Duration> connectTimeoutRef = new AtomicReference<>();
 
-	private final List<AtomicReference<?>> refs = List.of(reqRef, clientBuilderCallCountRef, connectTimeoutRef,
-			requestBuilderCallCountRef);
+	private final List<AtomicReference<?>> refs = List.of(clientBuilderCallCountRef, connectTimeoutRef);
 
 	private final HttpClient client = Mockito.mock(HttpClient.class);
 
-	private final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
-			CALLS_REAL_METHODS);
-
 	private final ClientConfig clientConfig = new ClientConfig() {
-		private final AuthProvider authProvider = new AuthProvider() {
-			private int count = 0;
-
-			@Override
-			public String get(final RestRequest req) {
-				final var uri = req.uri();
-				if (uri.toString().contains("bearer")) {
-					return BEARER;
-				} else if (uri.toString().contains("basic")) {
-					return BASIC;
-				} else if (uri.toString().contains("count")) {
-					return ++count + "";
-				}
-				return null;
-			}
-		};
-
-		@Override
-		public AuthProvider authProvider() {
-			return authProvider;
-		}
-
 	};
 
 	private final JdkRestFnProvider clientProvider = new JdkRestFnProvider(() -> {
@@ -91,9 +63,9 @@ class JdkRestFnProviderTest {
 			return builder;
 		});
 		return builder;
-	}, reqBuilderSupplier);
+	});
 
-	private final RestFn clientFn = clientProvider.get(clientConfig);
+	private final HttpFn clientFn = clientProvider.get(clientConfig);
 
 	@BeforeEach
 	void beforeEach() {
@@ -108,7 +80,7 @@ class JdkRestFnProviderTest {
 	@Test
 	void client_builder_001() {
 		final var client = new MockClientBuilderSupplier();
-		final var clientProvider = new JdkRestFnProvider(client::builder, HttpRequest::newBuilder);
+		final var clientProvider = new JdkRestFnProvider(client::builder);
 		final var count = (int) (Math.random() * 20);
 
 		IntStream.range(0, count).forEach(i -> clientProvider.get(clientConfig));
@@ -123,7 +95,7 @@ class JdkRestFnProviderTest {
 		final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
 				CALLS_REAL_METHODS);
 
-		final var clientProvider = new JdkRestFnProvider(client::builder, reqBuilderSupplier);
+		final var clientProvider = new JdkRestFnProvider(client::builder);
 		final var httpFn = clientProvider.get(clientConfig);
 
 		final int count = (int) (Math.random() * 20);
@@ -344,7 +316,7 @@ class JdkRestFnProviderTest {
 			return mockBuilder;
 		});
 
-		new JdkRestFnProvider(() -> mockBuilder, HttpRequest::newBuilder).get(clientConfig);
+		new JdkRestFnProvider(() -> mockBuilder).get(clientConfig);
 
 		Assertions.assertEquals(null, ref.get());
 	}
@@ -360,7 +332,7 @@ class JdkRestFnProviderTest {
 			return mockBuilder;
 		});
 
-		new JdkRestFnProvider(() -> mockBuilder, HttpRequest::newBuilder).get(new ClientConfig() {
+		new JdkRestFnProvider(() -> mockBuilder).get(new ClientConfig() {
 
 			@Override
 			public Duration connectTimeout() {
@@ -376,7 +348,7 @@ class JdkRestFnProviderTest {
 	void timeout_global_reponse_001() {
 		final var client = new MockClientBuilderSupplier();
 
-		new JdkRestFnProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
+		new JdkRestFnProvider(client::builder).get(new ClientConfig() {
 		}).apply(() -> "http://tonowhere");
 
 		Assertions.assertEquals(true, client.requestSent().timeout().isEmpty(), "Should have no timeout on request");
@@ -386,12 +358,7 @@ class JdkRestFnProviderTest {
 	void timeout_global_reponse_002() {
 		final var client = new MockClientBuilderSupplier();
 
-		new JdkRestFnProvider(client::builder, HttpRequest::newBuilder).get(new ClientConfig() {
-
-			@Override
-			public Duration responseTimeout() {
-				return Duration.ofDays(1);
-			}
+		new JdkRestFnProvider(client::builder).get(new ClientConfig() {
 
 		}).apply(() -> "http://tonowhere");
 
@@ -402,15 +369,9 @@ class JdkRestFnProviderTest {
 	void timeout_per_request_001() {
 		final var client = new MockClientBuilderSupplier();
 
-		final var clientProvider = new JdkRestFnProvider(client::builder, HttpRequest::newBuilder);
+		final var clientProvider = new JdkRestFnProvider(client::builder);
 
 		final var httpFn = clientProvider.get(new ClientConfig() {
-
-			@Override
-			public Duration responseTimeout() {
-				return Duration.ofDays(2);
-			}
-
 		});
 
 		httpFn.apply(new RestRequest() {

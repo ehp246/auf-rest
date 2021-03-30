@@ -11,10 +11,9 @@ class ByRestConfigurationTest {
 
 	@Test
 	void test_001() {
-		final var clientConfig = new ByRestConfiguration().clientConfig("", "");
+		final var clientConfig = new ByRestConfiguration().clientConfig("", req -> null);
 
 		Assertions.assertEquals(null, clientConfig.connectTimeout());
-		Assertions.assertEquals(null, clientConfig.responseTimeout());
 	}
 
 	@Test
@@ -22,7 +21,6 @@ class ByRestConfigurationTest {
 		final var clientConfig = new ByRestConfiguration().clientConfig(null, null);
 
 		Assertions.assertEquals(null, clientConfig.connectTimeout());
-		Assertions.assertEquals(null, clientConfig.responseTimeout());
 	}
 
 	@Test
@@ -34,14 +32,13 @@ class ByRestConfigurationTest {
 	@Test
 	void test_004() {
 		Assertions.assertThrows(IllegalArgumentException.class,
-				() -> new ByRestConfiguration().clientConfig(null, "1"));
+				() -> new ByRestConfiguration().clientConfig(null, null));
 	}
 
 	@Test
 	void test_005() {
-		final var clientConfig = new ByRestConfiguration().clientConfig("PT1S", "PT0.01S");
+		final var clientConfig = new ByRestConfiguration().clientConfig("PT1S", null);
 
 		Assertions.assertEquals(1000, clientConfig.connectTimeout().toMillis());
-		Assertions.assertEquals(10, clientConfig.responseTimeout().toMillis());
 	}
 }

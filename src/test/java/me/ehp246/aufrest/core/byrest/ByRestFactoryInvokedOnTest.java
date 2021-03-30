@@ -1,12 +1,14 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.net.http.HttpResponse;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.HttpFn;
 import me.ehp246.aufrest.api.spi.InvokedOn;
-import me.ehp246.aufrest.mock.MockResponse;
 
 /**
  * @author Lei Yang
@@ -15,9 +17,9 @@ import me.ehp246.aufrest.mock.MockResponse;
 class ByRestFactoryInvokedOnTest {
 	private final InvokedOn[] ref = new InvokedOn[] { null };
 
-	private final RestFn client = request -> {
+	private final HttpFn client = request -> {
 		ref[0] = request.invokedOn();
-		return new MockResponse(request);
+		return Mockito.mock(HttpResponse.class);
 	};
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> client, s -> s);
