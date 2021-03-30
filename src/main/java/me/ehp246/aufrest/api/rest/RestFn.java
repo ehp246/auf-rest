@@ -10,6 +10,6 @@ import java.net.http.HttpResponse;
  * 
  */
 @FunctionalInterface
-public interface HttpFn {
+public interface RestFn {
 	HttpResponse<?> apply(RestRequest request);
 }

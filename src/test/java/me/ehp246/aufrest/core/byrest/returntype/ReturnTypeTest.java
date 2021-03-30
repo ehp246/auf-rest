@@ -16,7 +16,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 
@@ -28,7 +28,7 @@ class ReturnTypeTest {
 	final ClientConfig clientConfig = new ClientConfig() {
 	};
 	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-	private final HttpFn client = request -> {
+	private final RestFn client = request -> {
 		reqRef.set(request);
 		return Mockito.mock(HttpResponse.class);
 	};

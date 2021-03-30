@@ -11,38 +11,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HttpFn;
-import me.ehp246.aufrest.api.rest.HttpFnProvider;
+import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestObserver;
 
 /**
- * For each call to return a HTTP client, the provider should ask the
- * client-builder supplier for a new builder. For each HTTP request, the
- * provider should ask the request-builder supplier for a new builder. The
- * provider should not cache/re-use any builders.
+ * For each call for a HTTP client, the provider should ask the client-builder
+ * supplier for a new builder. For each HTTP request, the provider should ask
+ * the request-builder supplier for a new builder. The provider should not
+ * cache/re-use any builders.
  *
  * @author Lei Yang
  */
-public final class JdkRestFnProvider implements HttpFnProvider {
-	private final static Logger LOGGER = LogManager.getLogger(JdkRestFnProvider.class);
+public final class DefaultRestFnProvider implements RestFnProvider {
+	private final static Logger LOGGER = LogManager.getLogger(DefaultRestFnProvider.class);
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final RequestBuilder restToHttp;
 	private final List<RestObserver> observers;
 
-	public JdkRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
+	public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
 		this(clientBuilderSupplier, req -> null, null);
 	}
 
 	@Autowired
-	public JdkRestFnProvider(final RequestBuilder restToHttp, final List<RestObserver> observers) {
+	public DefaultRestFnProvider(final RequestBuilder restToHttp, final List<RestObserver> observers) {
 		this.clientBuilderSupplier = HttpClient::newBuilder;
 		this.restToHttp = restToHttp;
 		this.observers = observers == null ? List.of() : observers;
 	}
 
-	public JdkRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier, final RequestBuilder restToHttp,
+	public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier, final RequestBuilder restToHttp,
 			final List<RestObserver> observers) {
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.restToHttp = restToHttp;
@@ -51,7 +51,7 @@ public final class JdkRestFnProvider implements HttpFnProvider {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public HttpFn get(final ClientConfig clientConfig) {
+	public RestFn get(final ClientConfig clientConfig) {
 		final var clientBuilder = clientBuilderSupplier.get();
 		if (clientConfig.connectTimeout() != null) {
 			clientBuilder.connectTimeout(clientConfig.connectTimeout());

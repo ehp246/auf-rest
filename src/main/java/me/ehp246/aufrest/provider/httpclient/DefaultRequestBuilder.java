@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.core.byrest;
+package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.URI;
 import java.net.http.HttpRequest;

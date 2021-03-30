@@ -20,9 +20,9 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
-import me.ehp246.aufrest.core.byrest.DefaultRequestBuilder;
 import me.ehp246.aufrest.core.util.OneUtil;
-import me.ehp246.aufrest.provider.httpclient.JdkRestFnProvider;
+import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
+import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
 /**
@@ -36,7 +36,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ JdkRestFnProvider.class, DefaultRequestBuilder.class })
+@Import({ DefaultRestFnProvider.class, DefaultRequestBuilder.class })
 public final class ByRestConfiguration {
 	@Bean
 	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
@@ -110,7 +110,7 @@ public final class ByRestConfiguration {
 	}
 
 	@Bean
-	RestLogger reqResptLogger(final ObjectMapper objectMapper) {
+	RestLogger restLogger(final ObjectMapper objectMapper) {
 		return new RestLogger(objectMapper);
 	}
 

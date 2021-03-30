@@ -15,7 +15,7 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
@@ -26,7 +26,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 class ByRestFactoryTest {
 	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-	private final HttpFn client = request -> {
+	private final RestFn client = request -> {
 		reqRef.set(request);
 		return Mockito.mock(HttpResponse.class);
 	};

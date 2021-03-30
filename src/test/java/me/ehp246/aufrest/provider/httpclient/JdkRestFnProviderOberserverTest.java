@@ -55,12 +55,12 @@ public class JdkRestFnProviderOberserverTest {
 			}
 		});
 
-		new JdkRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig() {
+		new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig() {
 		}).apply(req);
 
 		Exception ex = null;
 		try {
-			new JdkRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder, obs)
+			new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder, obs)
 					.get(new ClientConfig() {
 			}).apply(req);
 		} catch (Exception e) {

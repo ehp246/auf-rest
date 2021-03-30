@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.spi.InvokedOn;
 
 /**
@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.spi.InvokedOn;
 class ByRestFactoryInvokedOnTest {
 	private final InvokedOn[] ref = new InvokedOn[] { null };
 
-	private final HttpFn client = request -> {
+	private final RestFn client = request -> {
 		ref[0] = request.invokedOn();
 		return Mockito.mock(HttpResponse.class);
 	};
