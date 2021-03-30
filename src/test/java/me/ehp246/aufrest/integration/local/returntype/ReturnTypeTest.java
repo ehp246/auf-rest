@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,6 +63,7 @@ class ReturnTypeTest {
 		body.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
 	}
 
+	@Disabled
 	@Test
 	void test_003() throws Exception {
 		final var count = (int) (Math.random() * 10);
@@ -133,6 +135,7 @@ class ReturnTypeTest {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Disabled
 	@Test
 	void test_008() throws Exception {
 		final var count = (int) (Math.random() * 10);
@@ -176,6 +179,7 @@ class ReturnTypeTest {
 	}
 
 	@Test
+	@Disabled
 	void test_012() throws Exception {
 		final var future = case001.get010();
 
@@ -183,6 +187,7 @@ class ReturnTypeTest {
 		Assertions.assertEquals(true, future.get() instanceof Person);
 	}
 
+	@Disabled
 	@Test
 	void test_013() throws Exception {
 		final var future = case001.get009();

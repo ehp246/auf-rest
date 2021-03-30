@@ -63,6 +63,7 @@ class ReturnTypeTest {
 		Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get005);
 	}
 
+	@Disabled
 	@Test
 	void receiver_001() throws Exception {
 		case001.get003().get();

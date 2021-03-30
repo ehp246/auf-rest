@@ -6,7 +6,6 @@ import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,17 +14,15 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
-import me.ehp246.aufrest.core.reflection.Invocable;
+import me.ehp246.aufrest.core.reflection.InvocationOutcome;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -114,56 +111,28 @@ public final class ByRestFactory {
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 						final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
 						final var req = reqByRest.from(invoked);
-						final var respSupplier = new Invocable<>(() -> {
+						final var respSupplier = (Supplier<RestResponse>) () -> {
 							ThreadContext.put(AufRestConstants.REQUEST_ID, req.id());
 							try {
 								return restFn.apply(req);
 							} finally {
 								ThreadContext.remove(AufRestConstants.REQUEST_ID);
 							}
-						});
+						};
 
-						if (invoked.isSync()) {
-							// Synchronous invocation. Let's do it now.
-							return resolveReturn(invoked, respSupplier);
-						}
-
-						// Copy the header context.
-						final var context = HeaderContext.map();
-						return CompletableFuture.supplyAsync(() -> {
-							try {
-								// Set the context on the new thread.
-								HeaderContext.set(context);
-
-								final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value,
-										() -> new Class<?>[] {});
-								if (reifying.length == 0) {
-									throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
-								}
-								return resolveReturn(invoked, respSupplier);
-							} catch (Throwable e) {
-								return null;
-							} finally {
-								// Clear the header context before exiting.
-								HeaderContext.clear();
-							}
-						});
+						return resolveReturn(invoked, respSupplier);
 					}
 
-					private Object resolveReturn(ProxyInvoked invoked, Invocable<RestResponse> invocable)
+					private Object resolveReturn(ProxyInvoked invoked, Supplier<RestResponse> call)
 							throws Throwable {
-						invocable.invoke();
-
-						if (invocable.hasThrew() && invoked.canThrow(invocable.threw().getClass())) {
-							throw invocable.threw();
-						}
+						final var restResponse = (RestResponse) InvocationOutcome.invoke(call)
+								.accept(invoked.getThrows());
 
 						final var returnType = invoked.getReturnType();
-						final var restResponse = invocable.returned();
 						final var httpResponse = restResponse.httpResponse();
 
 						if (returnType.isAssignableFrom(RestResponse.class)) {
-							return invocable;
+							return restResponse;
 						}
 
 						// If the return type is HttpResponse, returns it as is without any processing

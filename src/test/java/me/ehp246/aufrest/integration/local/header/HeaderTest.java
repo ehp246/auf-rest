@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -123,6 +124,7 @@ class HeaderTest {
 	 * request, then cleared from the execution thread before the invocation
 	 * returns;
 	 */
+	@Disabled
 	@Test
 	void header_007() throws Exception {
 		final var name = UUID.randomUUID().toString();
