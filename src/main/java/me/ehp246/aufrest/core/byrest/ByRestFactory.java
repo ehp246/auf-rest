@@ -6,7 +6,6 @@ import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,16 +14,15 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestResponse;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
+import me.ehp246.aufrest.core.reflection.InvocationOutcome;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -122,36 +120,19 @@ public final class ByRestFactory {
 							}
 						};
 
-						if (invoked.isSync()) {
-							// Synchronous invocation. Let's do it now.
-							return parseAndReturn(invoked.getReturnType(), respSupplier.get());
-						}
-
-						// Copy the header context.
-						final var context = HeaderContext.map();
-						return CompletableFuture.supplyAsync(() -> {
-							try {
-								// Set the context on the new thread.
-								HeaderContext.set(context);
-
-								final var reifying = invoked.getMethodValueOf(Reifying.class, Reifying::value,
-										() -> new Class<?>[] {});
-								if (reifying.length == 0) {
-									throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
-								}
-								return parseAndReturn(reifying[0], respSupplier.get());
-							} finally {
-								// Clear the header context before exiting.
-								HeaderContext.clear();
-							}
-						});
+						return resolveReturn(invoked, respSupplier);
 					}
 
-					private Object parseAndReturn(Class<?> returnType, RestResponse restResp) {
-						final var httpResponse = restResp.httpResponse();
+					private Object resolveReturn(ProxyInvoked invoked, Supplier<RestResponse> call)
+							throws Throwable {
+						final var restResponse = (RestResponse) InvocationOutcome.invoke(call)
+								.accept(invoked.getThrows());
+
+						final var returnType = invoked.getReturnType();
+						final var httpResponse = restResponse.httpResponse();
 
 						if (returnType.isAssignableFrom(RestResponse.class)) {
-							return restResp;
+							return restResponse;
 						}
 
 						// If the return type is HttpResponse, returns it as is without any processing
@@ -161,7 +142,7 @@ public final class ByRestFactory {
 						}
 
 						if (httpResponse.statusCode() >= 300) {
-							throw new UnhandledResponseException(restResp.restRequest(), httpResponse);
+							throw new UnhandledResponseException(restResponse.restRequest(), httpResponse);
 						}
 
 						// Discard the response.
