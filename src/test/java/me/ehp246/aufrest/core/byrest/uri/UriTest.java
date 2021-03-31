@@ -1,18 +1,19 @@
 package me.ehp246.aufrest.core.byrest.uri;
 
+import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
-import me.ehp246.aufrest.mock.MockResponse;
 
 /**
  * @author Lei Yang
@@ -23,7 +24,7 @@ class UriTest {
 
 	private final RestFn client = request -> {
 		reqRef.set(request);
-		return new MockResponse(request);
+		return Mockito.mock(HttpResponse.class);
 	};
 
 	private final ByRestFactory factory = new ByRestFactory(clientCfg -> client,

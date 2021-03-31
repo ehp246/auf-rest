@@ -17,7 +17,6 @@ import me.ehp246.aufrest.api.spi.InvokedOn;
 public interface RestRequest {
 	String uri();
 
-
 	default String method() {
 		return "GET";
 	}

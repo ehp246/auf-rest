@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,14 +10,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.mock.MockResponse;
 
 /**
  * @author Lei Yang
@@ -27,7 +28,7 @@ class ByRestFactoryTest {
 
 	private final RestFn client = request -> {
 		reqRef.set(request);
-		return new MockResponse(request);
+		return Mockito.mock(HttpResponse.class);
 	};
 
 	private final MockEnvironment env = new MockEnvironment().withProperty("echo.base", "https://postman-echo.com")

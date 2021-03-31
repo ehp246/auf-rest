@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  * @author Lei Yang
  *
  */
-class MockRequestBuilderSupplier implements Supplier<HttpRequest.Builder> {
+public class MockRequestBuilderSupplier implements Supplier<HttpRequest.Builder> {
 
 	@Override
 	public Builder get() {

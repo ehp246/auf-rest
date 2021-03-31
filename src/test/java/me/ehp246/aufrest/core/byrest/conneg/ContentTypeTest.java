@@ -12,7 +12,6 @@ import org.springframework.mock.env.MockEnvironment;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.MockHttpResponse;
-import me.ehp246.aufrest.mock.MockResponse;
 
 /**
  * @author Lei Yang
@@ -24,7 +23,7 @@ class ContentTypeTest {
 
 	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
 		reqRef.set(request);
-		return new MockResponse(request, new MockHttpResponse<Object>());
+		return new MockHttpResponse<Object>();
 	}, new MockEnvironment()::resolveRequiredPlaceholders);
 
 	@BeforeEach

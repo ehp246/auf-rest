@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
  *
  */
 @RunWith(JUnitPlatform.class)
-@SelectPackages({ "me.ehp246.aufrest" })
-class AllTests {
+@SelectPackages({ "me.ehp246.aufrest.integration" })
+class AllIntegrationTests {
 
 }
