@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.api.configuration;
 
+import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
@@ -7,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -14,10 +16,13 @@ import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -36,10 +41,11 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, DefaultRequestBuilder.class })
+@Import({ DefaultRestFnProvider.class })
 public final class ByRestConfiguration {
 	@Bean
 	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
+			@Autowired(required = false)
 			final BodyHandlerProvider bodyHandlerProvider) {
 		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
 				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
@@ -53,9 +59,14 @@ public final class ByRestConfiguration {
 				return connTimeout;
 			}
 
+			/**
+			 * Default to discarding.
+			 */
 			@Override
 			public BodyHandlerProvider bodyHandlerProvider() {
-				return bodyHandlerProvider;
+				return bodyHandlerProvider != null ? bodyHandlerProvider
+						: req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(),
+								body -> null);
 			}
 
 		};
@@ -117,5 +128,14 @@ public final class ByRestConfiguration {
 	@Bean
 	public PlaceholderResolver placeholderResolver(final Environment env) {
 		return env::resolveRequiredPlaceholders;
+	}
+
+	@Bean
+	RequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
+			@Autowired(required = false) final AuthProvider authProvider,
+			@Autowired(required = false) final BodyPublisherProvider bodyPublisherProvider,
+			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
+		return new DefaultRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, bodyPublisherProvider,
+				requestTimeout);
 	}
 }

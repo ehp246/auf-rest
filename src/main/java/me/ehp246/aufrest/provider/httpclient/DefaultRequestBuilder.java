@@ -2,6 +2,8 @@ package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpRequest.Builder;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +18,6 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
@@ -36,25 +36,21 @@ import me.ehp246.aufrest.core.util.OneUtil;
 public final class DefaultRequestBuilder implements RequestBuilder {
 	private final static Logger LOGGER = LogManager.getLogger(DefaultRequestBuilder.class);
 
-	private final Supplier<HttpRequest.Builder> reqBuilderSupplier = HttpRequest::newBuilder;
+	private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
 	private final BodyPublisherProvider bodyPublisherProvider;
 	private final Optional<HeaderProvider> headerProvider;
 	private final Optional<AuthProvider> authProvider;
 	private final Duration responseTimeout;
 
-	public DefaultRequestBuilder(@Autowired(required = false) final HeaderProvider headerProvider) {
-		this(headerProvider, null, req -> null, null);
-	}
-
-	@Autowired
-	public DefaultRequestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
-			@Autowired(required = false) final AuthProvider authProvider,
-			final BodyPublisherProvider bodyPublisherProvider,
-			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
+	public DefaultRequestBuilder(final Supplier<HttpRequest.Builder> reqBuilderSupplier,
+			final HeaderProvider headerProvider, final AuthProvider authProvider,
+			final BodyPublisherProvider bodyPublisherProvider, final String requestTimeout) {
 		super();
+		this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
 		this.headerProvider = Optional.ofNullable(headerProvider);
 		this.authProvider = Optional.ofNullable(authProvider);
-		this.bodyPublisherProvider = bodyPublisherProvider;
+		this.bodyPublisherProvider = bodyPublisherProvider == null ? req -> BodyPublishers.noBody()
+				: bodyPublisherProvider;
 		this.responseTimeout = Optional.ofNullable(requestTimeout).filter(OneUtil::hasValue)
 				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
 						e -> new IllegalArgumentException(AufRestConstants.RESPONSE_TIMEOUT + ": " + value)))
@@ -66,12 +62,25 @@ public final class DefaultRequestBuilder implements RequestBuilder {
 		final var builder = reqBuilderSupplier.get();
 
 		// Provider headers, context headers, request headers in ascending priorities.
-		fillAppHeaders(builder, Stream
+		Optional.ofNullable(Stream
 				.of(new HashMap<String, List<String>>(
 						headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),
 						Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
 				.map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
-						Map.Entry::getValue, (left, right) -> right)));
+						Map.Entry::getValue, (left, right) -> right)))
+				.map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
+					final var key = entry.getKey().toLowerCase();
+					final var values = entry.getValue();
+					if (HttpUtils.RESERVED_HEADERS.contains(key)) {
+						LOGGER.atWarn().log("Ignoring header {}: {}", key, values);
+						return;
+					}
+					if (values == null || values.isEmpty()) {
+						return;
+					}
+					entry.getValue().stream().filter(OneUtil::hasValue)
+							.forEach(value -> builder.header(key, value));
+				});
 
 		/**
 		 * Required headers. Null and blank not allowed.
@@ -107,8 +116,9 @@ public final class DefaultRequestBuilder implements RequestBuilder {
 	 *
 	 * @param builder
 	 * @param headers
+	 * @return
 	 */
-	private static void fillAppHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
+	private static Builder fillAppHeaders(final HttpRequest.Builder builder, final Map<String, List<String>> headers) {
 		Optional.ofNullable(headers).map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
 			final var key = entry.getKey().toLowerCase(Locale.US);
 			final var values = entry.getValue();
@@ -122,5 +132,6 @@ public final class DefaultRequestBuilder implements RequestBuilder {
 			entry.getValue().stream().filter(value -> value != null && !value.isBlank())
 					.forEach(value -> builder.header(key, value));
 		});
+		return builder;
 	}
 }

@@ -28,7 +28,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 	private final static Logger LOGGER = LogManager.getLogger(DefaultRestFnProvider.class);
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
-	private final RequestBuilder restToHttp;
+	private final RequestBuilder reqBuilder;
 	private final List<RestObserver> observers;
 
 	public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
@@ -36,16 +36,16 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 	}
 
 	@Autowired
-	public DefaultRestFnProvider(final RequestBuilder restToHttp, final List<RestObserver> observers) {
+	public DefaultRestFnProvider(final RequestBuilder reqBuilder, final List<RestObserver> observers) {
 		this.clientBuilderSupplier = HttpClient::newBuilder;
-		this.restToHttp = restToHttp;
+		this.reqBuilder = reqBuilder;
 		this.observers = observers == null ? List.of() : observers;
 	}
 
 	public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier, final RequestBuilder restToHttp,
 			final List<RestObserver> observers) {
 		this.clientBuilderSupplier = clientBuilderSupplier;
-		this.restToHttp = restToHttp;
+		this.reqBuilder = restToHttp;
 		this.observers = observers == null ? List.of() : observers;
 	}
 
@@ -61,7 +61,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 		final BodyHandlerProvider bodyHandlerProvider = clientConfig.bodyHandlerProvider();
 
 		return req -> {
-			final var httpReq = restToHttp.apply(req);
+			final var httpReq = reqBuilder.apply(req);
 
 			observers.stream().forEach(obs -> obs.preSend(httpReq, req));
 

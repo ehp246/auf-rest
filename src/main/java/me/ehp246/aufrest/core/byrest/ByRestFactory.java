@@ -14,11 +14,11 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
@@ -112,11 +112,11 @@ public final class ByRestFactory {
 						final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
 						final var req = reqByRest.from(invoked);
 						final var respSupplier = (Supplier<HttpResponse<?>>) () -> {
-							ThreadContext.put(AufRestConstants.REQUEST_ID, req.id());
+							ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
 							try {
 								return httpFn.apply(req);
 							} finally {
-								ThreadContext.remove(AufRestConstants.REQUEST_ID);
+								ThreadContext.remove(HttpUtils.REQUEST_ID);
 							}
 						};
 

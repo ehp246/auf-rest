@@ -24,15 +24,8 @@ class ByRestConfigurationTest {
 	}
 
 	@Test
-	void test_003() {
-		Assertions.assertThrows(IllegalArgumentException.class,
-				() -> new ByRestConfiguration().clientConfig("1", null));
-	}
-
-	@Test
 	void test_004() {
-		Assertions.assertThrows(IllegalArgumentException.class,
-				() -> new ByRestConfiguration().clientConfig(null, null));
+		Assertions.assertDoesNotThrow(() -> new ByRestConfiguration().clientConfig(null, null));
 	}
 
 	@Test

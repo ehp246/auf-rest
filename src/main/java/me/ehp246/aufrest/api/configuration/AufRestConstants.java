@@ -4,10 +4,9 @@ package me.ehp246.aufrest.api.configuration;
  * Defines the constants supported by the framework.
  *
  * @author Lei Yang
- * @since 1.0
- * @version 2.0
+ * 
  */
-public class AufRestConstants {
+public final class AufRestConstants {
 	/**
 	 * The property name to configure the connection timeout duration for HttpClient
 	 * globally.
@@ -34,8 +33,6 @@ public class AufRestConstants {
 	 *      Durations</a>
 	 */
 	public static final String RESPONSE_TIMEOUT = "me.ehp246.aufrest.responseTimeout";
-
-	public static final String REQUEST_ID = "Aufrest-Request-Id";
 
 	private AufRestConstants() {
 		super();

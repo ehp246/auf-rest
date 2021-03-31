@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
@@ -28,6 +29,10 @@ class DefaultRequestBuilderHeaderTest {
 		HeaderContext.clear();
 	}
 
+	DefaultRequestBuilder builder(HeaderProvider provider) {
+		return new DefaultRequestBuilder(null, provider, null, null, null);
+	}
+
 	@Test
 	void headers_001() {
 		final var name = UUID.randomUUID().toString();
@@ -43,9 +48,8 @@ class DefaultRequestBuilderHeaderTest {
 
 		};
 
-		new DefaultRequestBuilder(r -> Map.of(name, List.of(UUID.randomUUID().toString()))).apply(req);
-
-		final var headers = reqRef.get().headers().map().get(name);
+		final var headers = builder(r -> Map.of(name, List.of(UUID.randomUUID().toString()))).apply(req).headers().map()
+				.get(name);
 
 		Assertions.assertEquals(1, headers.size());
 		Assertions.assertEquals(req.reqId, headers.get(0), "should be overwritten by Request");
@@ -66,9 +70,8 @@ class DefaultRequestBuilderHeaderTest {
 
 		};
 
-		new DefaultRequestBuilder(r -> Map.of(name, List.of(UUID.randomUUID().toString()))).apply(req);
-
-		final var headers = reqRef.get().headers().map();
+		final var headers = builder(r -> Map.of(name, List.of(UUID.randomUUID().toString()))).apply(req).headers()
+				.map();
 
 		Assertions.assertEquals(req.reqId, headers.get(req.reqId).get(0), "Request should be merged");
 		Assertions.assertEquals(1, headers.get(name).size(), "Provider should overwrite Context");
@@ -80,9 +83,8 @@ class DefaultRequestBuilderHeaderTest {
 	void header_provider_001() {
 		final var value = UUID.randomUUID().toString();
 
-		new DefaultRequestBuilder(r -> Map.of("header-provider", List.of(value))).apply(new MockReq());
-
-		final var headers = reqRef.get().headers().map();
+		final var headers = builder(r -> Map.of("header-provider", List.of(value))).apply(new MockReq()).headers()
+				.map();
 
 		Assertions.assertEquals(value, headers.get("header-provider").get(0));
 	}
@@ -90,8 +92,6 @@ class DefaultRequestBuilderHeaderTest {
 	@Test
 	void header_provider_002() {
 		final var name = UUID.randomUUID().toString();
-
-		final var clientFn = new DefaultRequestBuilder(r -> Map.of(name, List.of(UUID.randomUUID().toString())));
 
 		final var req = new MockReq() {
 
@@ -102,9 +102,8 @@ class DefaultRequestBuilderHeaderTest {
 
 		};
 
-		clientFn.apply(req);
-
-		final var headers = reqRef.get().headers().map().get(name);
+		final var headers = builder(r -> Map.of(name, List.of(UUID.randomUUID().toString()))).apply(req).headers().map()
+				.get(name);
 
 		Assertions.assertEquals(1, headers.size());
 		Assertions.assertEquals(req.reqId, headers.get(0), "should be overwritten by Request");
@@ -115,13 +114,10 @@ class DefaultRequestBuilderHeaderTest {
 		final var name = UUID.randomUUID().toString();
 		final var value = UUID.randomUUID().toString();
 
-		final var clientFn = new DefaultRequestBuilder(r -> Map.of(name, List.of(UUID.randomUUID().toString())));
-
 		HeaderContext.set(name, value);
 
-		clientFn.apply(new MockReq());
-
-		final var headers = reqRef.get().headers().map().get(name);
+		final var headers = builder(r -> Map.of(name, List.of(UUID.randomUUID().toString()))).apply(new MockReq())
+				.headers().map().get(name);
 
 		Assertions.assertEquals(1, headers.size());
 		Assertions.assertEquals(value, headers.get(0), "should be overwritten by Context");
@@ -132,7 +128,7 @@ class DefaultRequestBuilderHeaderTest {
 		final var mockReq = new MockReq();
 		final var reqRef = new AtomicReference<RestRequest>();
 
-		new DefaultRequestBuilder(r -> {
+		builder(r -> {
 			reqRef.set(r);
 			return null;
 		}).apply(mockReq);
@@ -146,16 +142,17 @@ class DefaultRequestBuilderHeaderTest {
 
 		HeaderContext.add(name.toLowerCase(), "2");
 
-		new DefaultRequestBuilder(req -> Map.of(name.toLowerCase(), List.of("3"))).apply(new MockReq() {
+		final var headers = builder(req -> Map.of(name.toLowerCase(), List.of("3")))
+				.apply(new MockReq() {
 
-			@Override
-			public Map<String, List<String>> headers() {
-				return Map.of("filter-Them", List.of("1"));
-			}
+					@Override
+					public Map<String, List<String>> headers() {
+						return Map.of("filter-Them", List.of("1"));
+					}
 
-		});
+				}).headers();
 
-		Assertions.assertEquals("1", reqRef.get().headers().allValues(name).get(0));
+		Assertions.assertEquals("1", headers.allValues(name).get(0));
 	}
 
 	@Test
@@ -164,9 +161,9 @@ class DefaultRequestBuilderHeaderTest {
 
 		HeaderContext.add(name, "2");
 
-		new DefaultRequestBuilder(req -> Map.of(name.toLowerCase(), List.of("3"))).apply(new MockReq());
+		final var headers = builder(req -> Map.of(name.toLowerCase(), List.of("3"))).apply(new MockReq()).headers();
 
-		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
+		Assertions.assertEquals("2", headers.allValues(name).get(0));
 	}
 
 	@Test
@@ -175,9 +172,9 @@ class DefaultRequestBuilderHeaderTest {
 
 		HeaderContext.add(name, "2");
 
-		new DefaultRequestBuilder(req -> Map.of("merge-these", List.of("1", "2"))).apply(new MockReq());
+		final var headers = builder(req -> Map.of("merge-these", List.of("1", "2"))).apply(new MockReq()).headers();
 
-		Assertions.assertEquals("2", reqRef.get().headers().allValues(name).get(0));
-		Assertions.assertEquals(2, reqRef.get().headers().allValues("merge-these").size());
+		Assertions.assertEquals("2", headers.allValues(name).get(0));
+		Assertions.assertEquals(2, headers.allValues("merge-these").size());
 	}
 }
