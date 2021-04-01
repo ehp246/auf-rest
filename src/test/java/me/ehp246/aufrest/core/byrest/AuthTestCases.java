@@ -19,7 +19,7 @@ interface AuthTestCases {
 		void get(@AuthHeader String auth);
 	}
 
-	@ByRest(value = "", auth = @Auth(args = { "postman", "password" }, scheme = Scheme.BASIC))
+	@ByRest(value = "", auth = @Auth(value = { "postman", "password" }, scheme = Scheme.BASIC))
 	interface Case002 {
 		void get();
 
@@ -27,7 +27,7 @@ interface AuthTestCases {
 		void get(@AuthHeader String auth);
 	}
 
-	@ByRest(value = "", auth = @Auth(args = "${api.bearer.token}"))
+	@ByRest(value = "", auth = @Auth(value = "${api.bearer.token}"))
 	interface Case003 {
 		void get();
 
@@ -35,7 +35,7 @@ interface AuthTestCases {
 		void get(@AuthHeader String auth);
 	}
 
-	@ByRest(value = "", auth = @Auth(args = "CustomKey custom.header.123", scheme = Scheme.SIMPLE))
+	@ByRest(value = "", auth = @Auth(value = "CustomKey custom.header.123", scheme = Scheme.SIMPLE))
 	interface Case004 {
 		void get();
 
@@ -43,7 +43,7 @@ interface AuthTestCases {
 		void get(@AuthHeader String auth);
 	}
 
-	@ByRest(value = "", auth = @Auth(args = { "${postman.username}", "${postman.password}" }, scheme = Scheme.BASIC))
+	@ByRest(value = "", auth = @Auth(value = { "${postman.username}", "${postman.password}" }, scheme = Scheme.BASIC))
 	interface Case005 {
 		void get();
 

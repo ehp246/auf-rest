@@ -68,7 +68,7 @@ public @interface ByRest {
 	 *
 	 * @see Auth
 	 */
-	Auth auth() default @Auth(args = {}, scheme = Auth.Scheme.DEFAULT);
+	Auth auth() default @Auth(value = {}, scheme = Auth.Scheme.DEFAULT);
 
 	/**
 	 * Defines the Authorization types supported.
@@ -88,7 +88,7 @@ public @interface ByRest {
 		 * In most cases, the framework does not validate any values provided by
 		 * application. They are used as-is.
 		 */
-		String[] args() default {};
+		String[] value() default {};
 
 		/**
 		 * Indicates to the framework how to construct the value of Authorization header
@@ -99,7 +99,7 @@ public @interface ByRest {
 			 * Indicates the value of Authorization header for the endpoint is to be
 			 * provided by the optional global
 			 * {@link me.ehp246.aufrest.api.rest.AuthProvider AuthProvider} bean. For this
-			 * type, the args element is ignored.
+			 * type, the value element is ignored.
 			 * <p>
 			 * The global bean is not defined by default. Additionally it could return
 			 * <code>null</code> for the URI. In which case, the requests from the proxy
@@ -110,7 +110,7 @@ public @interface ByRest {
 			DEFAULT,
 			/**
 			 * Indicates the endpoint requires HTTP basic authentication. For this scheme,
-			 * the args element should specify the two components of user name and password
+			 * the value element should specify the two components of user name and password
 			 * in the format of <code>{"${username}", "${password}"}</code>. I.e., the first
 			 * value is the username, the second the password.
 			 * <p>
@@ -119,7 +119,7 @@ public @interface ByRest {
 			BASIC,
 			/**
 			 * Indicates the endpoint requires Bearer token authorization. For this scheme,
-			 * the args should be a single string that is the token without any prefix.
+			 * the value should be a single string that is the token without any prefix.
 			 * <p>
 			 * Blank string is accepted as-is. The framework does not validate the value.
 			 * <p>
