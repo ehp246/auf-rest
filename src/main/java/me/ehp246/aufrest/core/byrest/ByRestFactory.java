@@ -69,30 +69,30 @@ public final class ByRestFactory {
 		final Optional<Supplier<String>> localAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
 			switch (auth.scheme()) {
 			case SIMPLE:
-				if (auth.args().length < 1) {
+				if (auth.value().length < 1) {
 					throw new IllegalArgumentException(
 							"Missing required arguments for " + auth.scheme().name()
 									+ " on "
 							+ interfaceName);
 				}
-				return phResolver.resolve(auth.args()[0])::toString;
+				return phResolver.resolve(auth.value()[0])::toString;
 			case BASIC:
-				if (auth.args().length < 2) {
+				if (auth.value().length < 2) {
 					throw new IllegalArgumentException(
 							"Missing required arguments for " + auth.scheme().name()
 									+ " on "
 							+ interfaceName);
 				}
-				return new BasicAuth(phResolver.resolve(auth.args()[0]),
-						phResolver.resolve(auth.args()[1]))::value;
+				return new BasicAuth(phResolver.resolve(auth.value()[0]),
+						phResolver.resolve(auth.value()[1]))::value;
 			case BEARER:
-				if (auth.args().length < 1) {
+				if (auth.value().length < 1) {
 					throw new IllegalArgumentException(
 							"Missing required arguments for " + auth.scheme().name()
 									+ " on "
 							+ interfaceName);
 				}
-				return new BearerToken(phResolver.resolve(auth.args()[0]))::value;
+				return new BearerToken(phResolver.resolve(auth.value()[0]))::value;
 			case NONE:
 				return () -> null;
 			default:

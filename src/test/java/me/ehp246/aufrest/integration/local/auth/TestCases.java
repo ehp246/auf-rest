@@ -23,7 +23,7 @@ interface TestCases {
 		HttpResponse<Void> getAsResponse();
 	}
 
-	@ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(args = { "basicuser",
+	@ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "basicuser",
 			"password" }, scheme = Scheme.BASIC))
 	interface BasicCase002 {
 		void get();
@@ -31,14 +31,14 @@ interface TestCases {
 		void get(@AuthHeader String basic);
 	}
 
-	@ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(args = "basicuser:password", scheme = Scheme.BEARER))
+	@ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = "basicuser:password", scheme = Scheme.BEARER))
 	interface BasicCase003 {
 		void get();
 
 		void get(@AuthHeader String basic);
 	}
 
-	@ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(args = "Basic YmFzaWN1c2VyOnBhc3N3b3Jk", scheme = Scheme.SIMPLE))
+	@ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = "Basic YmFzaWN1c2VyOnBhc3N3b3Jk", scheme = Scheme.SIMPLE))
 	interface BasicCase004 {
 		void get();
 
