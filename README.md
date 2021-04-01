@@ -49,7 +49,7 @@ By this point, you have implemented a GET request that
 <br>
 The following are a few more examples.
 
-**POST with an object for JSON body**
+**POST a JSON body from an object**
 ```
 @ByRest("${postman.echo.base}/post")
 public interface PostProxy {
