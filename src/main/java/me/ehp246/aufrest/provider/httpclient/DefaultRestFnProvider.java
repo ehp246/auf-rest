@@ -10,11 +10,11 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
-import me.ehp246.aufrest.api.rest.RequestBuilder;
-import me.ehp246.aufrest.api.rest.RestObserver;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
@@ -29,24 +29,24 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
 	private final Supplier<HttpClient.Builder> clientBuilderSupplier;
 	private final RequestBuilder reqBuilder;
-	private final List<RestObserver> observers;
+	private final List<ByRestListener> listeners;
 
 	public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
 		this(clientBuilderSupplier, req -> null, null);
 	}
 
 	@Autowired
-	public DefaultRestFnProvider(final RequestBuilder reqBuilder, final List<RestObserver> observers) {
+	public DefaultRestFnProvider(final RequestBuilder reqBuilder, final List<ByRestListener> listeners) {
 		this.clientBuilderSupplier = HttpClient::newBuilder;
 		this.reqBuilder = reqBuilder;
-		this.observers = observers == null ? List.of() : observers;
+		this.listeners = listeners == null ? List.of() : listeners;
 	}
 
 	public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier, final RequestBuilder restToHttp,
-			final List<RestObserver> observers) {
+			final List<ByRestListener> listeners) {
 		this.clientBuilderSupplier = clientBuilderSupplier;
 		this.reqBuilder = restToHttp;
-		this.observers = observers == null ? List.of() : observers;
+		this.listeners = listeners == null ? List.of() : listeners;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -63,7 +63,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 		return req -> {
 			final var httpReq = reqBuilder.apply(req);
 
-			observers.stream().forEach(obs -> obs.preSend(httpReq, req));
+			listeners.stream().forEach(obs -> obs.onRequest(httpReq, req));
 
 			final HttpResponse<Object> httpResponse;
 			// Try/catch on send only.
@@ -72,12 +72,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 			} catch (Exception e) {
 				LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 
-				observers.stream().forEach(obs -> obs.onException(e, httpReq, req));
+				listeners.stream().forEach(obs -> obs.onException(e, httpReq, req));
 
 				throw new RuntimeException(e);
 			}
 
-			observers.stream().forEach(obs -> obs.postSend(httpResponse, req));
+			listeners.stream().forEach(obs -> obs.onResponse(httpResponse, req));
 
 			return httpResponse;
 		};

@@ -4,16 +4,16 @@ import java.net.http.HttpRequest;
 
 import org.springframework.stereotype.Component;
 
-import me.ehp246.aufrest.api.rest.RestObserver;
+import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 @Component
-class ReqFilter implements RestObserver {
+class ReqFilter implements ByRestListener {
 	private HttpRequest httpReq;
 	private RestRequest req;
 
 	@Override
-	public void preSend(HttpRequest httpRequest, RestRequest req) {
+	public void onRequest(HttpRequest httpRequest, RestRequest req) {
 		this.httpReq = httpRequest;
 		this.req = req;
 	}

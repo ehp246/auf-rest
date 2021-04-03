@@ -16,7 +16,7 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
-import me.ehp246.aufrest.api.rest.RestObserver;
+import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
@@ -128,18 +128,18 @@ class DefaultRestFnProviderTest {
 		final var orig = new RuntimeException("This is a test");
 		final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
-		final var obs = List.of(new RestObserver() {
+		final var obs = List.of(new ByRestListener() {
 
 			@Override
-			public void preSend(HttpRequest httpRequest, RestRequest req) {
+			public void onRequest(HttpRequest httpRequest, RestRequest req) {
 				map.put("1", httpRequest);
 				map.put("2", req);
 			}
 
-		}, new RestObserver() {
+		}, new ByRestListener() {
 
 			@Override
-			public void preSend(HttpRequest httpRequest, RestRequest req) {
+			public void onRequest(HttpRequest httpRequest, RestRequest req) {
 				map.put("3", httpRequest);
 				map.put("4", req);
 			}
