@@ -6,14 +6,14 @@ package me.ehp246.aufrest.integration.local.filter;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import me.ehp246.aufrest.api.rest.RestObserver;
+import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * @author Lei Yang
  *
  */
-class ReqConsumer implements RestObserver {
+class ReqConsumer implements ByRestListener {
 	private final int id;
 
 	private HttpRequest httpReq;
@@ -39,13 +39,13 @@ class ReqConsumer implements RestObserver {
 	}
 
 	@Override
-	public void preSend(HttpRequest httpRequest, RestRequest req) {
+	public void onRequest(HttpRequest httpRequest, RestRequest req) {
 		this.httpReq = httpRequest;
 		this.reqReq = req;
 	}
 
 	@Override
-	public void postSend(HttpResponse<?> httpResponse, RestRequest req) {
+	public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
 		this.httpResponse = httpResponse;
 		this.reqResp = req;
 	}

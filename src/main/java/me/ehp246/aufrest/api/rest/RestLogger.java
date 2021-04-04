@@ -18,7 +18,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public final class RestLogger implements RestObserver {
+public final class RestLogger implements ByRestListener {
 	private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
 	private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
@@ -50,7 +50,7 @@ public final class RestLogger implements RestObserver {
 	}
 
 	@Override
-	public void preSend(final HttpRequest httpRequest, final RestRequest request) {
+	public void onRequest(final HttpRequest httpRequest, final RestRequest request) {
 		LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
 		LOGGER.atTrace().log(httpRequest.headers().map());
 
@@ -58,7 +58,7 @@ public final class RestLogger implements RestObserver {
 	}
 
 	@Override
-	public void postSend(HttpResponse<?> httpResponse, RestRequest req) {
+	public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
 		LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
 				+ httpResponse.statusCode());
 

@@ -13,14 +13,14 @@ import org.springframework.core.annotation.Order;
  * 
  * @author Lei Yang
  */
-public interface RestObserver {
+public interface ByRestListener {
 	/**
 	 * AufRest invokes this method just before the request is sent.
 	 * 
 	 * @param httpRequest the HTTP request to be sent
 	 * @param req         the {@link RestRequest} that initiated the HTTP request
 	 */
-	default void preSend(HttpRequest httpRequest, RestRequest req) {
+	default void onRequest(HttpRequest httpRequest, RestRequest req) {
 	}
 
 	/**
@@ -32,7 +32,7 @@ public interface RestObserver {
 	 * @param httpResponse the HTTP response received
 	 * @param req          the {@link RestRequest} that initiated the HTTP call
 	 */
-	default void postSend(HttpResponse<?> httpResponse, RestRequest req) {
+	default void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
 	}
 
 	/**
