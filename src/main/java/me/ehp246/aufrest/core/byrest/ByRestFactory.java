@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -109,6 +111,23 @@ public final class ByRestFactory {
 				new InvocationHandler() {
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						if (method.getName().equals("toString")) {
+							return this.toString();
+						}
+						if (method.getName().equals("hashCode")) {
+							return this.hashCode();
+						}
+						if (method.getName().equals("equals")) {
+							return proxy == args[0];
+						}
+						if (method.isDefault()) {
+							return MethodHandles.privateLookupIn(byRestInterface, MethodHandles.lookup())
+									.findSpecial(byRestInterface, method.getName(),
+											MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+											byRestInterface)
+									.bindTo(proxy).invokeWithArguments(args);
+						}
+
 						final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
 						final var req = reqByRest.from(invoked);
 						final var respSupplier = (Supplier<HttpResponse<?>>) () -> {
