@@ -32,4 +32,8 @@ interface GetCase001 {
 
 	@OfMapping
 	void get(Integer i);
+
+	default int getInc(int i) {
+		return ++i;
+	}
 }

@@ -4,6 +4,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -15,8 +16,8 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -40,6 +41,18 @@ class ByRestFactoryTest {
 	@BeforeEach
 	void beforeEach() {
 		reqRef.set(null);
+	}
+
+	@Test
+	void defaults_001() {
+		final var newInstance = factory.newInstance(GetCase001.class);
+
+		Assertions.assertEquals(true, newInstance.hashCode() == newInstance.hashCode());
+		Assertions.assertEquals(true, newInstance.equals(List.of(newInstance).get(0)));
+		Assertions.assertEquals(true, Set.of(newInstance).contains(newInstance));
+		Assertions.assertEquals(true, newInstance instanceof GetCase001);
+		Assertions.assertEquals(true, !newInstance.toString().isBlank());
+		Assertions.assertEquals(1, newInstance.getInc(0));
 	}
 
 	@Test
