@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ByRestListener;
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -51,7 +51,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public RestFn get(final ClientConfig clientConfig) {
+	public RestFn get(final RestClientConfig clientConfig) {
 		final var clientBuilder = clientBuilderSupplier.get();
 		if (clientConfig.connectTimeout() != null) {
 			clientBuilder.connectTimeout(clientConfig.connectTimeout());

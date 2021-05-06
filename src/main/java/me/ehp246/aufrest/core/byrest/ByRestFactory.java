@@ -19,7 +19,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -38,11 +38,11 @@ public final class ByRestFactory {
 
 	private final PlaceholderResolver phResolver;
 	private final RestFnProvider clientProvider;
-	private final ClientConfig clientConfig;
+	private final RestClientConfig clientConfig;
 
 	@Autowired
 	public ByRestFactory(final RestFnProvider clientProvider,
-			final ClientConfig clientConfig, final PlaceholderResolver phResolver) {
+			final RestClientConfig clientConfig, final PlaceholderResolver phResolver) {
 		super();
 		this.phResolver = phResolver;
 		this.clientProvider = clientProvider;
@@ -50,7 +50,7 @@ public final class ByRestFactory {
 	}
 
 	public ByRestFactory(final RestFnProvider clientProvider, final PlaceholderResolver phResolver) {
-		this(clientProvider, new ClientConfig() {
+		this(clientProvider, new RestClientConfig() {
 		}, phResolver);
 	}
 

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -66,7 +66,7 @@ class DefaultRestFnProviderTest {
 		final var clientProvider = new DefaultRestFnProvider(client::builder);
 		final var count = (int) (Math.random() * 20);
 
-		IntStream.range(0, count).forEach(i -> clientProvider.get(new ClientConfig() {
+		IntStream.range(0, count).forEach(i -> clientProvider.get(new RestClientConfig() {
 		}));
 
 		Assertions.assertEquals(count, client.builderCount(), "Should ask for a new builder for each client");
@@ -82,7 +82,7 @@ class DefaultRestFnProviderTest {
 			return mockBuilder;
 		});
 
-		new DefaultRestFnProvider(() -> mockBuilder).get(new ClientConfig() {
+		new DefaultRestFnProvider(() -> mockBuilder).get(new RestClientConfig() {
 		});
 
 		Assertions.assertEquals(null, ref.get());
@@ -99,7 +99,7 @@ class DefaultRestFnProviderTest {
 			return mockBuilder;
 		});
 
-		new DefaultRestFnProvider(() -> mockBuilder).get(new ClientConfig() {
+		new DefaultRestFnProvider(() -> mockBuilder).get(new RestClientConfig() {
 
 			@Override
 			public Duration connectTimeout() {
@@ -150,13 +150,13 @@ class DefaultRestFnProviderTest {
 			}
 		});
 
-		new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig() {
+		new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new RestClientConfig() {
 		}).apply(req);
 
 		Exception ex = null;
 		try {
 			new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder, obs)
-					.get(new ClientConfig() {
+					.get(new RestClientConfig() {
 					}).apply(req);
 		} catch (Exception e) {
 			ex = e;

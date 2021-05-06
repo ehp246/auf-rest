@@ -8,7 +8,7 @@ import java.time.Duration;
  *
  * @author Lei Yang
  */
-public interface ClientConfig {
+public interface RestClientConfig {
 	default Duration connectTimeout() {
 		return null;
 	}
