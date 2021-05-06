@@ -19,10 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -43,8 +43,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  */
 @Import({ DefaultRestFnProvider.class })
 public final class ByRestConfiguration {
-	@Bean
-	public ClientConfig clientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
+    @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
+	public RestClientConfig restClientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
 			@Autowired(required = false)
 			final BodyHandlerProvider bodyHandlerProvider) {
 		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
@@ -52,7 +52,7 @@ public final class ByRestConfiguration {
 						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
 				.orElse(null);
 
-		return new ClientConfig() {
+		return new RestClientConfig() {
 
 			@Override
 			public Duration connectTimeout() {
@@ -72,12 +72,12 @@ public final class ByRestConfiguration {
 		};
 	}
 
-	@Bean
+    @Bean("ff1e0d94-2413-4d4c-8822-411641137fdd")
 	public JsonByJackson jacksonFn(final ObjectMapper objectMapper) {
 		return new JsonByJackson(objectMapper);
 	}
 
-	@Bean
+    @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
 	public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
 		return req -> {
 			if (req.body() == null) {
@@ -92,7 +92,7 @@ public final class ByRestConfiguration {
 		};
 	}
 
-	@Bean
+    @Bean("c1af17fc-0e88-4d4a-a5ce-648aea1adb17")
 	public BodyHandlerProvider bodyHandlerProvider(final JsonByJackson jacksonFn) {
 		return req -> {
 			final var receiver = req.bodyReceiver();
@@ -120,17 +120,17 @@ public final class ByRestConfiguration {
 		};
 	}
 
-	@Bean
+    @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
 	RestLogger restLogger(final ObjectMapper objectMapper) {
 		return new RestLogger(objectMapper);
 	}
 
-	@Bean
+    @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
 	public PlaceholderResolver placeholderResolver(final Environment env) {
 		return env::resolveRequiredPlaceholders;
 	}
 
-	@Bean
+    @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
 	RequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
 			@Autowired(required = false) final AuthProvider authProvider,
 			@Autowired(required = false) final BodyPublisherProvider bodyPublisherProvider,
