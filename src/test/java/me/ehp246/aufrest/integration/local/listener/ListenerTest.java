@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.filter;
+package me.ehp246.aufrest.integration.local.listener;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,38 +14,14 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-class ConsumerTest {
+class ListenerTest {
     @Autowired
     private TestCase001 case001;
     @Autowired
-    private ReqFilter reqFilter;
-    @Autowired
-    private RespFilter respFilter;
-    @Autowired
-    private List<ReqConsumer> reqConsumers;
+    private List<Listener> reqConsumers;
 
     @Test
-    void filter_001() {
-        final var now = Instant.now();
-
-        case001.post(now);
-
-        Assertions.assertEquals(true, reqFilter.reqByRest().invokedOn().target() == case001);
-        Assertions.assertEquals(true, reqFilter.reqByRest().invokedOn().args().get(0) == now);
-    }
-
-    @Test
-    void filter_002() {
-        final var now = Instant.now();
-
-        final var ret = case001.post(now);
-
-        Assertions.assertEquals(true, respFilter.restRequest() == reqFilter.reqByRest());
-        Assertions.assertEquals(true, respFilter.httpResponse().body() == ret);
-    }
-
-    @Test
-    void request_consumer_001() {
+    void listener_001() {
         final var now = Instant.now();
 
         case001.post(now);

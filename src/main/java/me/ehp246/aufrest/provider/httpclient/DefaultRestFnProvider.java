@@ -3,6 +3,7 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -40,7 +41,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     public DefaultRestFnProvider(final RequestBuilder reqBuilder, final List<ByRestListener> listeners) {
         this.clientBuilderSupplier = HttpClient::newBuilder;
         this.reqBuilder = reqBuilder;
-        this.listeners = listeners == null ? List.of() : listeners;
+        this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
     }
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,

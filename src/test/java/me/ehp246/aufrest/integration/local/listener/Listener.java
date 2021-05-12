@@ -1,7 +1,7 @@
 /**
  * 
  */
-package me.ehp246.aufrest.integration.local.filter;
+package me.ehp246.aufrest.integration.local.listener;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-class ReqConsumer implements ByRestListener {
+class Listener implements ByRestListener {
     private final int id;
 
     private HttpRequest httpReq;
@@ -21,7 +21,7 @@ class ReqConsumer implements ByRestListener {
     private RestRequest reqReq;
     private RestRequest reqResp;
 
-    public ReqConsumer(int id) {
+    public Listener(int id) {
         super();
         this.id = id;
     }

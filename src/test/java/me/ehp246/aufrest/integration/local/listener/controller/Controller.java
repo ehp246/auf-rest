@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.filter.controller;
+package me.ehp246.aufrest.integration.local.listener.controller;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
