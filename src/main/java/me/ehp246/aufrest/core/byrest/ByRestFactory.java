@@ -138,7 +138,7 @@ public final class ByRestFactory {
                     private Object resolveReturn(RestRequest req, ProxyInvoked invoked, Supplier<HttpResponse<?>> call)
                             throws Throwable {
                         final var httpResponse = (HttpResponse<?>) InvocationOutcome.invoke(call)
-                                .accept(invoked.getThrows());
+                                .orElseThrow(invoked.getThrows());
 
                         final var returnType = invoked.getReturnType();
 

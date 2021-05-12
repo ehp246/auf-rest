@@ -39,16 +39,14 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
     @Autowired
     public DefaultRestFnProvider(final RequestBuilder reqBuilder, final List<ByRestListener> listeners) {
-        this.clientBuilderSupplier = HttpClient::newBuilder;
-        this.reqBuilder = reqBuilder;
-        this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
+        this(HttpClient::newBuilder, reqBuilder, listeners);
     }
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
             final RequestBuilder restToHttp, final List<ByRestListener> listeners) {
         this.clientBuilderSupplier = clientBuilderSupplier;
         this.reqBuilder = restToHttp;
-        this.listeners = listeners == null ? List.of() : listeners;
+        this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
     }
 
     @SuppressWarnings("unchecked")

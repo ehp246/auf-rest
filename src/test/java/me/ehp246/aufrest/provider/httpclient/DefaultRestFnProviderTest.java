@@ -10,51 +10,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.RestClientConfig;
-import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.ByRestListener;
+import me.ehp246.aufrest.api.rest.RequestBuilder;
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang
  *
  */
 class DefaultRestFnProviderTest {
-    private final AtomicReference<Integer> clientBuilderCallCountRef = new AtomicReference<>(0);
-    private final AtomicReference<Duration> connectTimeoutRef = new AtomicReference<>();
-
-    private final List<AtomicReference<?>> refs = List.of(clientBuilderCallCountRef, connectTimeoutRef);
-
-    private final DefaultRestFnProvider clientProvider = new DefaultRestFnProvider(() -> {
-        clientBuilderCallCountRef.getAndUpdate(i -> i == null ? 1 : ++i);
-        final HttpClient client = Mockito.mock(HttpClient.class);
-
-        try {
-            Mockito.when(client.send(Mockito.any(), Mockito.any())).then(invocation -> {
-                return new MockHttpResponse<>();
-            });
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException();
-        }
-        final var builder = Mockito.mock(HttpClient.Builder.class);
-        Mockito.when(builder.build()).thenReturn(client);
-        Mockito.when(builder.connectTimeout(Mockito.any())).then(invocation -> {
-            connectTimeoutRef.set(invocation.getArgument(0));
-            return builder;
-        });
-        return builder;
-    });
-
-    @BeforeEach
-    void beforeEach() {
-        refs.stream().forEach(ref -> ref.set(null));
-    }
-
     /**
      * For each get call on the client provider, the provider should ask
      * client-builder supplier for a new builder. It should not re-use
@@ -112,20 +80,13 @@ class DefaultRestFnProviderTest {
     }
 
     @Test
-    void consumer_001() {
+    void listener_001() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
         final RequestBuilder reqBuilder = req -> mockedReq;
 
-        final var req = new RestRequest() {
-
-            @Override
-            public String uri() {
-                return "http://nowhere";
-            }
-        };
+        final var req = (RestRequest) () -> "http://nowhere";
 
         final var map = new HashMap<>();
-        final var orig = new RuntimeException("This is a test");
         final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
         final var obs = List.of(new ByRestListener() {
@@ -143,30 +104,97 @@ class DefaultRestFnProviderTest {
                 map.put("3", httpRequest);
                 map.put("4", req);
             }
-
-            @Override
-            public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
-                map.put("5", exception);
-            }
         });
 
         new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new RestClientConfig() {
         }).apply(req);
 
+        Assertions.assertEquals(true, map.get("1") == mockedReq);
+        Assertions.assertEquals(true, map.get("1") == map.get("3"));
+        Assertions.assertEquals(true, map.get("2") == map.get("4"));
+    }
+
+    @Test
+    void listener_002() {
+        final var mockedReq = Mockito.mock(HttpRequest.class);
+        final RequestBuilder reqBuilder = req -> mockedReq;
+
+        final var req = (RestRequest) () -> "http://nowhere";
+
+        final var map = new HashMap<>();
+        final var orig = new RuntimeException("This is a test");
+
         Exception ex = null;
         try {
-            new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder, obs)
+            new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder, List.of(new ByRestListener() {
+
+                @Override
+                public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+                    map.put("5", exception);
+                }
+            }))
                     .get(new RestClientConfig() {
                     }).apply(req);
         } catch (Exception e) {
             ex = e;
         }
 
-        Assertions.assertEquals(true, map.get("1") == mockedReq);
-        Assertions.assertEquals(true, map.get("1") == map.get("3"));
-        Assertions.assertEquals(true, map.get("2") == map.get("4"));
+        Assertions.assertEquals(true, map.get("5") == null, "should have no wrap");
+        Assertions.assertEquals(true, ex == orig);
+    }
 
-        Assertions.assertEquals(true, map.get("5") == orig);
+    @Test
+    void listener_003() {
+        final var mockedReq = Mockito.mock(HttpRequest.class);
+        final RequestBuilder reqBuilder = req -> mockedReq;
+
+        final var req = (RestRequest) () -> "http://nowhere";
+
+        final var map = new HashMap<>();
+        final var orig = new IOException("This is a test");
+
+        Exception ex = null;
+        try {
+            new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder,
+                    List.of(new ByRestListener() {
+
+                        @Override
+                        public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+                            map.put("5", exception);
+                        }
+                    })).get(new RestClientConfig() {
+                    }).apply(req);
+        } catch (Exception e) {
+            ex = e;
+        }
+
+        Assertions.assertEquals(true, map.get("5") == orig, "should just be caught by Fn");
         Assertions.assertEquals(true, ex.getCause() == orig);
+    }
+
+    @Test
+    void listener_004() {
+        final var mockedReq = Mockito.mock(HttpRequest.class);
+        final RequestBuilder reqBuilder = req -> mockedReq;
+
+        final var req = (RestRequest) () -> "http://nowhere";
+        final var orig = new IllegalArgumentException("This is a test");
+
+        Exception ex = null;
+        try {
+            new DefaultRestFnProvider(new MockClientBuilderSupplier()::builder, reqBuilder,
+                    List.of(new ByRestListener() {
+
+                        @Override
+                        public void onRequest(HttpRequest httpRequest, RestRequest req) {
+                            throw orig;
+                        }
+                    })).get(new RestClientConfig() {
+                    }).apply(req);
+        } catch (Exception e) {
+            ex = e;
+        }
+
+        Assertions.assertEquals(true, ex == orig, "should have no wrap");
     }
 }

@@ -11,7 +11,8 @@ import java.util.function.Supplier;
  */
 public interface InvocationOutcome {
     /**
-     * The object that is either returned or thrown by the invocation.
+     * The object that is either returned or thrown by the invocation. Could be null
+     * or void.
      * 
      * @return
      */
@@ -27,7 +28,14 @@ public interface InvocationOutcome {
         return false;
     }
 
-    default Object accept(final List<Class<?>> types) throws Throwable {
+    /**
+     * Returns the received as the value or dispatch an exception.
+     * 
+     * @param canThrow
+     * @return
+     * @throws Throwable
+     */
+    default Object orElseThrow(final List<Class<?>> canThrow) throws Throwable {
         final var received = this.received();
         if (!this.hasThrown()) {
             return received;
@@ -38,10 +46,10 @@ public interface InvocationOutcome {
             throw (Throwable) received;
         }
         // Checked and declared.
-        if (types != null && types.contains(received.getClass())) {
+        if (canThrow != null && canThrow.stream().filter(c -> c.isAssignableFrom(received.getClass())).count() > 0) {
             throw (Throwable) received;
         }
-        // Unknown Throwable.
+        // Wrap in a RuntimeExxception.
         throw new RuntimeException((Throwable) received);
     }
 

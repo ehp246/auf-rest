@@ -19,29 +19,19 @@ class InvocationOutcomeTest {
         final var o = InvocationOutcome.invoke((Supplier<?>) () -> 1);
         Assertions.assertEquals(1, o.received());
         Assertions.assertEquals(false, o.hasThrown());
-        Assertions.assertDoesNotThrow(() -> o.accept(null));
+        Assertions.assertDoesNotThrow(() -> o.orElseThrow(null));
     }
 
     @Test
     void exception_002() {
-        final var e = new RuntimeException();
+        final var e = new IllegalArgumentException();
         final var o = InvocationOutcome.invoke((Supplier<?>) () -> {
             throw e;
         });
         Assertions.assertEquals(true, o.hasThrown());
-        Assertions.assertEquals(null, o.received(), "Should have no cause");
-        Assertions.assertThrows(NullPointerException.class, () -> o.accept(null));
-    }
-
-    @Test
-    void exception_003() {
-        final var e = new NullPointerException();
-        final var o = InvocationOutcome.invoke((Supplier<?>) () -> {
-            throw new RuntimeException(e);
-        });
-        Assertions.assertEquals(true, o.hasThrown());
-        Assertions.assertEquals(e, o.received(), "Should have cause");
-        Assertions.assertThrows(NullPointerException.class, () -> o.accept(null));
+        Assertions.assertEquals(e, o.received(), "Should propogate");
+        Assertions.assertThrows(e.getClass(), () -> o.orElseThrow(null));
+        Assertions.assertThrows(e.getClass(), () -> o.orElseThrow(List.of()));
     }
 
     @Test
@@ -52,7 +42,7 @@ class InvocationOutcomeTest {
         }, null);
         Assertions.assertEquals(true, o.hasThrown());
         Assertions.assertEquals(e, o.received(), "Should have cause");
-        Assertions.assertThrows(RuntimeException.class, () -> o.accept(null));
+        Assertions.assertThrows(RuntimeException.class, () -> o.orElseThrow(null));
     }
 
     @Test
@@ -63,7 +53,7 @@ class InvocationOutcomeTest {
         }, ex -> ex.getCause());
         Assertions.assertEquals(true, o.hasThrown());
         Assertions.assertEquals(null, o.received());
-        Assertions.assertThrows(NullPointerException.class, () -> o.accept(null));
+        Assertions.assertThrows(RuntimeException.class, () -> o.orElseThrow(null));
     }
 
     @Test
@@ -74,6 +64,6 @@ class InvocationOutcomeTest {
         });
         Assertions.assertEquals(true, o.hasThrown());
         Assertions.assertEquals(e, o.received(), "Should have cause");
-        Assertions.assertThrows(IOException.class, () -> o.accept(List.of(IOException.class)));
+        Assertions.assertThrows(IOException.class, () -> o.orElseThrow(List.of(IOException.class)));
     }
 }
