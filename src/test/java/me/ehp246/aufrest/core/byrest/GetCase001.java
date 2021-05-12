@@ -9,31 +9,31 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  */
 @ByRest("${echo.base}/")
 interface GetCase001 {
-	/**
-	 * Should be getting from the type.
-	 *
-	 * @param str
-	 * @return
-	 */
-	@OfMapping("get")
-	void get();
+    /**
+     * Should be getting from the type.
+     *
+     * @param str
+     * @return
+     */
+    @OfMapping("get")
+    void get();
 
-	/**
-	 * Should be getting from the method.
-	 *
-	 * @param param1
-	 * @param value1
-	 * @param param2
-	 * @param value2
-	 * @return
-	 */
-	@OfMapping("get1")
-	void get(String str);
+    /**
+     * Should be getting from the method.
+     *
+     * @param param1
+     * @param value1
+     * @param param2
+     * @param value2
+     * @return
+     */
+    @OfMapping("get1")
+    void get(String str);
 
-	@OfMapping
-	void get(Integer i);
+    @OfMapping
+    void get(Integer i);
 
-	default int getInc(int i) {
-		return ++i;
-	}
+    default int getInc(int i) {
+        return ++i;
+    }
 }

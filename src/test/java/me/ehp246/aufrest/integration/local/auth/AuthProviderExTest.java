@@ -1,22 +1,29 @@
-package me.ehp246.aufrest.integration.local.path;
+package me.ehp246.aufrest.integration.local.auth;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Lei Yang
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-class PathTest {
+@ActiveProfiles("authProviderEx")
+class AuthProviderExTest {
     @Autowired
-    private TestCase001 case001;
+    private AppConfig appConfig;
+
+    @Autowired
+    private TestCases.DefaultCase001 case001;
 
     @Test
     void test_001() {
-        Assertions.assertEquals("/path", case001.get());
+        final var ex = Assertions.assertThrows(NullPointerException.class, case001::get);
+
+        Assertions.assertEquals(appConfig.ex, ex, "should propogate here");
     }
 }

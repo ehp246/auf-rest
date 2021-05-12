@@ -12,11 +12,11 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("")
 interface ExceptionTestCase001 {
-	void delete();
+    void delete();
 
-	void get() throws IOException;
+    void get() throws IOException;
 
-	void put() throws HttpTimeoutException;
+    void put() throws HttpTimeoutException;
 
-	void post() throws HttpConnectTimeoutException;
+    void post() throws HttpConnectTimeoutException;
 }

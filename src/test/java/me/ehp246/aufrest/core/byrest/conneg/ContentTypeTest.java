@@ -19,39 +19,39 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  */
 @ExtendWith(MockitoExtension.class)
 class ContentTypeTest {
-	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
+    private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
-		reqRef.set(request);
-		return new MockHttpResponse<Object>();
-	}, new MockEnvironment()::resolveRequiredPlaceholders);
+    private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
+        reqRef.set(request);
+        return new MockHttpResponse<Object>();
+    }, new MockEnvironment()::resolveRequiredPlaceholders);
 
-	@BeforeEach
-	void beforeEach() {
-		reqRef.set(null);
-	}
+    @BeforeEach
+    void beforeEach() {
+        reqRef.set(null);
+    }
 
-	@Test
-	void test001() {
-		factory.newInstance(TestCase001.class).get();
+    @Test
+    void test001() {
+        factory.newInstance(TestCase001.class).get();
 
-		Assertions.assertEquals("application/json", reqRef.get().accept());
-		Assertions.assertEquals("application/json", reqRef.get().contentType());
-	}
+        Assertions.assertEquals("application/json", reqRef.get().accept());
+        Assertions.assertEquals("application/json", reqRef.get().contentType());
+    }
 
-	@Test
-	void test002() {
-		factory.newInstance(TestCase001.class).put();
+    @Test
+    void test002() {
+        factory.newInstance(TestCase001.class).put();
 
-		Assertions.assertEquals("text/plain", reqRef.get().accept());
-		Assertions.assertEquals("text/plain", reqRef.get().contentType());
-	}
+        Assertions.assertEquals("text/plain", reqRef.get().accept());
+        Assertions.assertEquals("text/plain", reqRef.get().contentType());
+    }
 
-	@Test
-	void test003() {
-		factory.newInstance(TestCase001.class).post();
+    @Test
+    void test003() {
+        factory.newInstance(TestCase001.class).post();
 
-		Assertions.assertEquals("i accept", reqRef.get().accept());
-		Assertions.assertEquals("i produce", reqRef.get().contentType());
-	}
+        Assertions.assertEquals("i accept", reqRef.get().accept());
+        Assertions.assertEquals("i produce", reqRef.get().contentType());
+    }
 }

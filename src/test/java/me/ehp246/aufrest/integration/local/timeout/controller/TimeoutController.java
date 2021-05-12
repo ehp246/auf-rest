@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/timeout", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 class TimeoutController {
 
-	@GetMapping
-	Instant getInstant(@RequestParam(value = "sleep", required = false) final String duration) throws Exception {
-		if (duration != null) {
-			Thread.sleep(Duration.parse(duration).toMillis());
-		}
+    @GetMapping
+    Instant getInstant(@RequestParam(value = "sleep", required = false) final String duration) throws Exception {
+        if (duration != null) {
+            Thread.sleep(Duration.parse(duration).toMillis());
+        }
 
-		return Instant.now();
-	}
+        return Instant.now();
+    }
 }

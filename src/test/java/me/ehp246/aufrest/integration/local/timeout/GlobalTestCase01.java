@@ -8,5 +8,5 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("https://github.com")
 interface GlobalTestCase01 {
-	void get();
+    void get();
 }

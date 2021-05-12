@@ -9,17 +9,17 @@ package me.ehp246.aufrest.api.rest;
  * @since 2.0
  */
 public class BearerToken {
-	private final String value;
+    private final String value;
 
-	public BearerToken(final String token) {
-		if (token == null || token.isBlank()) {
-			throw new IllegalArgumentException();
-		}
-		value = "Bearer " + token;
-	}
+    public BearerToken(final String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException();
+        }
+        value = "Bearer " + token;
+    }
 
-	public String value() {
-		return value;
-	}
+    public String value() {
+        return value;
+    }
 
 }

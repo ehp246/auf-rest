@@ -10,9 +10,9 @@ import java.util.function.Supplier;
  */
 public class MockRequestBuilderSupplier implements Supplier<HttpRequest.Builder> {
 
-	@Override
-	public Builder get() {
-		return HttpRequest.newBuilder();
-	}
+    @Override
+    public Builder get() {
+        return HttpRequest.newBuilder();
+    }
 
 }

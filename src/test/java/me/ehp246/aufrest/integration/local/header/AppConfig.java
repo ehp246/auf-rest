@@ -21,12 +21,12 @@ import me.ehp246.aufrest.mock.Jackson;
 @EnableByRest
 @Import(Jackson.class)
 class AppConfig {
-	public static final List<String> NAMES = List.of("provider-header-0", "provider-header-1");
-	public static final List<String> VALUES = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString(),
-			UUID.randomUUID().toString());
+    public static final List<String> NAMES = List.of("provider-header-0", "provider-header-1");
+    public static final List<String> VALUES = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString(),
+            UUID.randomUUID().toString());
 
-	@Bean
-	public HeaderProvider headerProvider() {
-		return req -> Map.of(NAMES.get(0), List.of(VALUES.get(0)), NAMES.get(1), List.of(VALUES.get(1), VALUES.get(2)));
-	}
+    @Bean
+    public HeaderProvider headerProvider() {
+        return req -> Map.of(NAMES.get(0), List.of(VALUES.get(0)), NAMES.get(1), List.of(VALUES.get(1), VALUES.get(2)));
+    }
 }

@@ -18,31 +18,31 @@ import me.ehp246.aufrest.api.annotation.Reifying;
 @SuppressWarnings("rawtypes")
 @ByRest("")
 interface ReturnTypeTestCase001 {
-	CompletableFuture get001();
+    CompletableFuture get001();
 
-	@Reifying(HttpResponse.class)
-	CompletableFuture<HttpResponse> get002();
+    @Reifying(HttpResponse.class)
+    CompletableFuture<HttpResponse> get002();
 
-	@Reifying({ HttpResponse.class, List.class, Instant.class })
-	CompletableFuture<HttpResponse<List<Instant>>> get003();
+    @Reifying({ HttpResponse.class, List.class, Instant.class })
+    CompletableFuture<HttpResponse<List<Instant>>> get003();
 
-	// Should throw
-	HttpResponse get004();
+    // Should throw
+    HttpResponse get004();
 
-	// Should throw
-	HttpResponse<EchoResponseBody> get005();
+    // Should throw
+    HttpResponse<EchoResponseBody> get005();
 
-	List<Instant> get006(ParameterizedTypeReference<List<Instant>> typeRef);
+    List<Instant> get006(ParameterizedTypeReference<List<Instant>> typeRef);
 
-	interface EchoResponseBody {
-		Map<String, String> getArgs();
+    interface EchoResponseBody {
+        Map<String, String> getArgs();
 
-		Map<String, String> getHeaders();
+        Map<String, String> getHeaders();
 
-		String getUrl();
+        String getUrl();
 
-		String getData();
+        String getData();
 
-		String getJson();
-	}
+        String getJson();
+    }
 }

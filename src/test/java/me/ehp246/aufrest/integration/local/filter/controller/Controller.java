@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/filter", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 class Controller {
-	@PostMapping("instant")
-	Instant postInstant(@RequestBody final Instant instant) {
-		return instant.minus(10, ChronoUnit.MINUTES);
-	}
+    @PostMapping("instant")
+    Instant postInstant(@RequestBody final Instant instant) {
+        return instant.minus(10, ChronoUnit.MINUTES);
+    }
 }

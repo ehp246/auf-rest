@@ -14,39 +14,39 @@ import org.springframework.core.annotation.Order;
  * @author Lei Yang
  */
 public interface ByRestListener {
-	/**
-	 * AufRest invokes this method just before the request is sent.
-	 * 
-	 * @param httpRequest the HTTP request to be sent
-	 * @param req         the {@link RestRequest} that initiated the HTTP request
-	 */
-	default void onRequest(HttpRequest httpRequest, RestRequest req) {
-	}
+    /**
+     * AufRest invokes this method just before the request is sent.
+     * 
+     * @param httpRequest the HTTP request to be sent
+     * @param req         the {@link RestRequest} that initiated the HTTP request
+     */
+    default void onRequest(HttpRequest httpRequest, RestRequest req) {
+    }
 
-	/**
-	 * AufRest invokes this method when and only when a HTTP response is received.
-	 * The response is passed in regardless the status code.
-	 * <p>
-	 * The method will not be invoked if there is an exception and no response.
-	 * 
-	 * @param httpResponse the HTTP response received
-	 * @param req          the {@link RestRequest} that initiated the HTTP call
-	 */
-	default void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
-	}
+    /**
+     * AufRest invokes this method when and only when a HTTP response is received.
+     * The response is passed in regardless the status code.
+     * <p>
+     * The method will not be invoked if there is an exception and no response.
+     * 
+     * @param httpResponse the HTTP response received
+     * @param req          the {@link RestRequest} that initiated the HTTP call
+     */
+    default void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
+    }
 
-	/**
-	 * AufRest invokes this method when and only when an Exception is raised while
-	 * sending the request. The consumers are invoked right before the exception is
-	 * thrown up the call stack. Consumers cann't stop the propagation.
-	 * <p>
-	 * The method will not be invoked if there is no exception and a response is
-	 * received regardless the status code.
-	 * 
-	 * @param exception
-	 * @param httpRequest
-	 * @param req
-	 */
-	default void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
-	}
+    /**
+     * AufRest invokes this method when and only when an Exception is raised while
+     * sending the request. The consumers are invoked right before the exception is
+     * thrown up the call stack. Consumers cann't stop the propagation.
+     * <p>
+     * The method will not be invoked if there is no exception and a response is
+     * received regardless the status code.
+     * 
+     * @param exception
+     * @param httpRequest
+     * @param req
+     */
+    default void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+    }
 }

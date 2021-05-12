@@ -10,33 +10,33 @@ import org.junit.jupiter.api.Test;
  *
  */
 class ByRestFactoryExceptionTest {
-	@Test
-	void ioexception_001() {
-		final var e = new IOException();
-		final var factory = new ByRestFactory(cfg -> {
-			return req -> {
-				throw new RuntimeException(e);
-			};
-		}, s -> s);
+    @Test
+    void ioexception_001() {
+        final var e = new IOException();
+        final var factory = new ByRestFactory(cfg -> {
+            return req -> {
+                throw new RuntimeException(e);
+            };
+        }, s -> s);
 
-		final var threw = Assertions.assertThrows(RuntimeException.class,
-				factory.newInstance(ExceptionTestCase001.class)::delete);
+        final var threw = Assertions.assertThrows(RuntimeException.class,
+                factory.newInstance(ExceptionTestCase001.class)::delete);
 
-		Assertions.assertEquals(true, threw.getCause() == e);
-	}
+        Assertions.assertEquals(true, threw.getCause() == e);
+    }
 
-	@Test
-	void ioexception_002() {
-		final var e = new IOException();
-		final var factory = new ByRestFactory(cfg -> {
-			return req -> {
-				throw new RuntimeException(e);
-			};
-		}, s -> s);
+    @Test
+    void ioexception_002() {
+        final var e = new IOException();
+        final var factory = new ByRestFactory(cfg -> {
+            return req -> {
+                throw new RuntimeException(e);
+            };
+        }, s -> s);
 
-		final var threw = Assertions.assertThrows(IOException.class,
-				factory.newInstance(ExceptionTestCase001.class)::get);
+        final var threw = Assertions.assertThrows(IOException.class,
+                factory.newInstance(ExceptionTestCase001.class)::get);
 
-		Assertions.assertEquals(true, threw == e);
-	}
+        Assertions.assertEquals(true, threw == e);
+    }
 }

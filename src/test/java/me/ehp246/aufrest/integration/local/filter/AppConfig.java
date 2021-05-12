@@ -18,15 +18,15 @@ import me.ehp246.aufrest.mock.Jackson;
 @EnableByRest
 @Import({ Jackson.class, RestLogger.class })
 class AppConfig {
-	@Bean
-	@Order(2)
-	ReqConsumer reqConsumer01() {
-		return new ReqConsumer(2);
-	}
+    @Bean
+    @Order(2)
+    ReqConsumer reqConsumer01() {
+        return new ReqConsumer(2);
+    }
 
-	@Bean
-	@Order(1)
-	ReqConsumer reqConsumer02() {
-		return new ReqConsumer(1);
-	}
+    @Bean
+    @Order(1)
+    ReqConsumer reqConsumer02() {
+        return new ReqConsumer(1);
+    }
 }

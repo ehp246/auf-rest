@@ -9,20 +9,20 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 
 @Component
 class RespFilter implements ByRestListener {
-	private RestRequest req;
-	private HttpResponse<?> resp;
+    private RestRequest req;
+    private HttpResponse<?> resp;
 
-	@Override
-	public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
-		this.req = req;
-		this.resp = httpResponse;
-	}
+    @Override
+    public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
+        this.req = req;
+        this.resp = httpResponse;
+    }
 
-	HttpResponse<?> httpResponse() {
-		return resp;
-	}
+    HttpResponse<?> httpResponse() {
+        return resp;
+    }
 
-	RestRequest restRequest() {
-		return this.req;
-	}
+    RestRequest restRequest() {
+        return this.req;
+    }
 }

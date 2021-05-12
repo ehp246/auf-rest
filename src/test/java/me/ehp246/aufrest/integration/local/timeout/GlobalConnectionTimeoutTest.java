@@ -15,13 +15,13 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(classes = AppConfig.class)
 @TestPropertySource(properties = { "me.ehp246.aufrest.connectTimeout=PT0.01S" })
 class GlobalConnectionTimeoutTest {
-	@Autowired
-	private GlobalTestCase01 case001;
+    @Autowired
+    private GlobalTestCase01 case001;
 
-	@Test
-	void test_001() {
-		final var e = Assertions.assertThrows(Exception.class, case001::get).getCause();
+    @Test
+    void test_001() {
+        final var e = Assertions.assertThrows(Exception.class, case001::get).getCause();
 
-		Assertions.assertEquals(HttpConnectTimeoutException.class, e.getClass());
-	}
+        Assertions.assertEquals(HttpConnectTimeoutException.class, e.getClass());
+    }
 }

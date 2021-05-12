@@ -8,5 +8,5 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest(value = "", timeout = "pt0.01s")
 interface TestCase007 {
-	void get();
+    void get();
 }

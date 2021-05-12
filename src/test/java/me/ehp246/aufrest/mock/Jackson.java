@@ -15,13 +15,13 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
  *
  */
 public class Jackson {
-	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
-			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule())
-			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
-			.registerModule(new ParameterNamesModule());
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
+            .registerModule(new ParameterNamesModule());
 
-	@Bean
-	public ObjectMapper objectMapper() {
-		return OBJECT_MAPPER;
-	}
+    @Bean
+    public ObjectMapper objectMapper() {
+        return OBJECT_MAPPER;
+    }
 }

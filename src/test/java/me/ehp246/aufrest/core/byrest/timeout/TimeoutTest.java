@@ -16,56 +16,56 @@ import me.ehp246.aufrest.core.byrest.ByRestFactory;
  *
  */
 class TimeoutTest {
-	private final MockEnvironment env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
-			.withProperty("api.timeout.illegal", "5");
+    private final MockEnvironment env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
+            .withProperty("api.timeout.illegal", "5");
 
-	private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
+    private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-	private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
-		reqRef.set(request);
-		return Mockito.mock(HttpResponse.class);
-	}, env::resolveRequiredPlaceholders);
+    private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
+        reqRef.set(request);
+        return Mockito.mock(HttpResponse.class);
+    }, env::resolveRequiredPlaceholders);
 
-	@Test
-	void timeout_001() {
-		factory.newInstance(TestCase001.class).get();
+    @Test
+    void timeout_001() {
+        factory.newInstance(TestCase001.class).get();
 
-		Assertions.assertEquals(null, reqRef.get().timeout());
-	}
+        Assertions.assertEquals(null, reqRef.get().timeout());
+    }
 
-	@Test
-	void timeout_002() {
-		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase002.class));
-	}
+    @Test
+    void timeout_002() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase002.class));
+    }
 
-	@Test
-	void timeout_003() {
-		factory.newInstance(TestCase003.class).get();
+    @Test
+    void timeout_003() {
+        factory.newInstance(TestCase003.class).get();
 
-		Assertions.assertEquals(11021, reqRef.get().timeout().toMillis());
-	}
+        Assertions.assertEquals(11021, reqRef.get().timeout().toMillis());
+    }
 
-	@Test
-	void timeout_004() {
-		factory.newInstance(TestCase004.class).get();
+    @Test
+    void timeout_004() {
+        factory.newInstance(TestCase004.class).get();
 
-		Assertions.assertEquals(5, reqRef.get().timeout().toSeconds());
-	}
+        Assertions.assertEquals(5, reqRef.get().timeout().toSeconds());
+    }
 
-	@Test
-	void timeout_005() {
-		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase005.class));
-	}
+    @Test
+    void timeout_005() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase005.class));
+    }
 
-	@Test
-	void timeout_006() {
-		Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase006.class));
-	}
+    @Test
+    void timeout_006() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase006.class));
+    }
 
-	@Test
-	void timeout_007() {
-		factory.newInstance(TestCase007.class).get();
+    @Test
+    void timeout_007() {
+        factory.newInstance(TestCase007.class).get();
 
-		Assertions.assertEquals(10, reqRef.get().timeout().toMillis());
-	}
+        Assertions.assertEquals(10, reqRef.get().timeout().toMillis());
+    }
 }

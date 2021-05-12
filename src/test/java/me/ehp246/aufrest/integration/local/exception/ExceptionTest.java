@@ -1,7 +1,5 @@
-package me.ehp246.aufrest.integration.local.path;
+package me.ehp246.aufrest.integration.local.exception;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -11,12 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-class PathTest {
+class ExceptionTest {
     @Autowired
-    private TestCase001 case001;
+    private TestCases case1;
 
-    @Test
-    void test_001() {
-        Assertions.assertEquals("/path", case001.get());
-    }
 }

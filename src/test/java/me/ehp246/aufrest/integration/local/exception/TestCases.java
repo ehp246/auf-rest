@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.core.byrest;
+package me.ehp246.aufrest.integration.local.exception;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 
@@ -7,8 +7,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest("")
-interface InvokedOnTestCase001 {
+interface TestCases {
     void get();
-
-    void get(int i);
 }

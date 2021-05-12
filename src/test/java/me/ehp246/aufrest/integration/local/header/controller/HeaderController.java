@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/header", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 class HeaderController {
-	@GetMapping
-	public Map<String, List<String>> get(@RequestHeader final HttpHeaders headers) {
-		return headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-	}
+    @GetMapping
+    public Map<String, List<String>> get(@RequestHeader final HttpHeaders headers) {
+        return headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
 }

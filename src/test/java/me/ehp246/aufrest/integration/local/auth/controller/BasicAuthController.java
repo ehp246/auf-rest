@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/auth/basic", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 class BasicAuthController {
-	@GetMapping
-	void get() {
-	}
+    @GetMapping
+    void get() {
+    }
 }

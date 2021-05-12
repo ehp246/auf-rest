@@ -9,11 +9,11 @@ import java.time.Duration;
  * @author Lei Yang
  */
 public interface RestClientConfig {
-	default Duration connectTimeout() {
-		return null;
-	}
+    default Duration connectTimeout() {
+        return null;
+    }
 
-	default BodyHandlerProvider bodyHandlerProvider() {
-		return req -> BodyHandlers.discarding();
-	}
+    default BodyHandlerProvider bodyHandlerProvider() {
+        return req -> BodyHandlers.discarding();
+    }
 }

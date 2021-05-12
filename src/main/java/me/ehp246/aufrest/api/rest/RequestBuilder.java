@@ -11,5 +11,5 @@ import java.net.http.HttpRequest;
  */
 @FunctionalInterface
 public interface RequestBuilder {
-	HttpRequest apply(RestRequest req);
+    HttpRequest apply(RestRequest req);
 }

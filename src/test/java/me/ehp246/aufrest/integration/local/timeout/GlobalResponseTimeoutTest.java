@@ -16,14 +16,14 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "me.ehp246.aufrest.responseTimeout=PT0.01S" })
 class GlobalResponseTimeoutTest {
-	@Autowired
-	private TestCase001 case001;
+    @Autowired
+    private TestCase001 case001;
 
-	@Test
-	void test_001() {
-		final var cause = Assertions.assertThrows(Exception.class, case001::get).getCause();
+    @Test
+    void test_001() {
+        final var cause = Assertions.assertThrows(Exception.class, case001::get).getCause();
 
-		Assertions.assertEquals(true, cause instanceof HttpTimeoutException);
-	}
+        Assertions.assertEquals(true, cause instanceof HttpTimeoutException);
+    }
 
 }

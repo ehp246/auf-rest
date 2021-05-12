@@ -4,15 +4,15 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
 public interface AnnotatedArgument<T extends Annotation> {
-	T getAnnotation();
+    T getAnnotation();
 
-	/**
-	 *
-	 *
-	 * @return argument object of the annotated parameter. Could be
-	 *         <code>null</code>
-	 */
-	Object getArgument();
+    /**
+     *
+     *
+     * @return argument object of the annotated parameter. Could be
+     *         <code>null</code>
+     */
+    Object getArgument();
 
-	Parameter getParameter();
+    Parameter getParameter();
 }

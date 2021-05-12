@@ -13,43 +13,43 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 
 public class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
-	private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
+    private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
 
-	@Override
-	public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
+    @Override
+    public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
 
-		LOGGER.debug("Scanning for {}", ByRest.class.getCanonicalName());
+        LOGGER.debug("Scanning for {}", ByRest.class.getCanonicalName());
 
-		new ByRestScanner(EnableByRest.class, ByRest.class, metadata).perform().forEach(beanDefinition -> {
-			registry.registerBeanDefinition(beanDefinition.getBeanClassName(),
-					this.getProxyBeanDefinition(beanDefinition));
-		});
-	}
+        new ByRestScanner(EnableByRest.class, ByRest.class, metadata).perform().forEach(beanDefinition -> {
+            registry.registerBeanDefinition(beanDefinition.getBeanClassName(),
+                    this.getProxyBeanDefinition(beanDefinition));
+        });
+    }
 
-	private BeanDefinition getProxyBeanDefinition(final BeanDefinition beanDefinition) {
-		Class<?> clazz = null;
-		try {
-			clazz = Class.forName(beanDefinition.getBeanClassName());
-		} catch (final ClassNotFoundException ignored) {
-			// Class scanning started this. Should not happen.
-			throw new RuntimeException("Class scanning started this. Should not happen.");
-		}
+    private BeanDefinition getProxyBeanDefinition(final BeanDefinition beanDefinition) {
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName(beanDefinition.getBeanClassName());
+        } catch (final ClassNotFoundException ignored) {
+            // Class scanning started this. Should not happen.
+            throw new RuntimeException("Class scanning started this. Should not happen.");
+        }
 
-		LOGGER.trace("Defining {}", beanDefinition.getBeanClassName());
+        LOGGER.trace("Defining {}", beanDefinition.getBeanClassName());
 
-		final var proxyBeanDefinition = new GenericBeanDefinition();
-		proxyBeanDefinition.setBeanClass(clazz);
+        final var proxyBeanDefinition = new GenericBeanDefinition();
+        proxyBeanDefinition.setBeanClass(clazz);
 
-		final var args = new ConstructorArgumentValues();
-		args.addGenericArgumentValue(clazz);
+        final var args = new ConstructorArgumentValues();
+        args.addGenericArgumentValue(clazz);
 
-		proxyBeanDefinition.setConstructorArgumentValues(args);
+        proxyBeanDefinition.setConstructorArgumentValues(args);
 
-		proxyBeanDefinition.setFactoryBeanName(ByRestFactory.class.getName());
+        proxyBeanDefinition.setFactoryBeanName(ByRestFactory.class.getName());
 
-		proxyBeanDefinition.setFactoryMethodName("newInstance");
+        proxyBeanDefinition.setFactoryMethodName("newInstance");
 
-		return proxyBeanDefinition;
-	}
+        return proxyBeanDefinition;
+    }
 
 }

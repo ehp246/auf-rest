@@ -9,6 +9,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("http://localhost:${local.server.port}/path")
 interface TestCase001 {
-	@AsIs
-	String get();
+    @AsIs
+    String get();
 }

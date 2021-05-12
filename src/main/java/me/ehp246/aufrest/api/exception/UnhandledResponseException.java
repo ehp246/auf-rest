@@ -18,30 +18,30 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  *
  */
 public class UnhandledResponseException extends RuntimeException {
-	private static final long serialVersionUID = 3813318541456042414L;
+    private static final long serialVersionUID = 3813318541456042414L;
 
-	private final RestRequest request;
-	private final HttpResponse<?> response;
+    private final RestRequest request;
+    private final HttpResponse<?> response;
 
-	public UnhandledResponseException(final RestRequest request, final HttpResponse<?> response) {
-		super();
-		this.request = request;
-		this.response = response;
-	}
+    public UnhandledResponseException(final RestRequest request, final HttpResponse<?> response) {
+        super();
+        this.request = request;
+        this.response = response;
+    }
 
-	public HttpResponse<?> httpResponse() {
-		return this.response;
-	}
+    public HttpResponse<?> httpResponse() {
+        return this.response;
+    }
 
-	public int statusCode() {
-		return this.httpResponse().statusCode();
-	}
+    public int statusCode() {
+        return this.httpResponse().statusCode();
+    }
 
-	public String bodyAsString() {
-		return this.httpResponse().body().toString();
-	}
+    public String bodyAsString() {
+        return this.httpResponse().body().toString();
+    }
 
-	public RestRequest request() {
-		return request;
-	}
+    public RestRequest request() {
+        return request;
+    }
 }
