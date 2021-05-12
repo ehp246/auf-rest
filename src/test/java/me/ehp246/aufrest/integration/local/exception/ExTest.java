@@ -32,4 +32,12 @@ class ExTest {
 
         Assertions.assertEquals(500, ex.statusCode());
     }
+
+    @Test
+    void test_003() {
+        final var ex = Assertions.assertThrows(BadRequestException.class,
+                () -> case001.get("Basic YmFzaWN1c2VyOnBhc3N3b3"));
+
+        Assertions.assertEquals(401, ex.statusCode());
+    }
 }

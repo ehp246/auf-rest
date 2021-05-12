@@ -15,7 +15,7 @@ import me.ehp246.aufrest.api.exception.ServerFailureException;
 interface TestCase001 {
     void get() throws BadRequestException;
 
-    void get(@AuthHeader String auth) throws ServerFailureException;
+    void get(@AuthHeader String auth) throws BadRequestException, ServerFailureException;
 
     void post() throws IOException, InterruptedException;
 }
