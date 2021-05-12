@@ -16,6 +16,8 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.exception.BadRequestException;
+import me.ehp246.aufrest.api.exception.ServerFailureException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
@@ -132,28 +134,35 @@ public final class ByRestFactory {
                             }
                         };
 
-                        return resolveReturn(req, invoked, respSupplier);
+                        return callAndResolve(req, invoked, respSupplier);
                     }
 
-                    private Object resolveReturn(RestRequest req, ProxyInvoked invoked, Supplier<HttpResponse<?>> call)
+                    private Object callAndResolve(RestRequest req, ProxyInvoked invoked, Supplier<HttpResponse<?>> call)
                             throws Throwable {
                         final var httpResponse = (HttpResponse<?>) InvocationOutcome.invoke(call)
                                 .orElseThrow(invoked.getThrows());
 
-                        final var returnType = invoked.getReturnType();
-
                         // If the return type is HttpResponse, returns it as is without any processing
                         // regardless the status code.
-                        if (returnType.isAssignableFrom(HttpResponse.class)) {
+                        if (invoked.canReturn(HttpResponse.class)) {
                             return httpResponse;
                         }
 
                         if (httpResponse.statusCode() >= 300) {
+                            if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerFailureException.class)) {
+                                throw new ServerFailureException(req, httpResponse);
+                            }
+
+                            if (httpResponse.statusCode() >= 400 && httpResponse.statusCode() < 500
+                                    && invoked.canThrow(BadRequestException.class)) {
+                                throw new BadRequestException(req, httpResponse);
+                            }
+
                             throw new UnhandledResponseException(req, httpResponse);
                         }
 
                         // Discard the response.
-                        if (returnType == Void.class || returnType == void.class) {
+                        if (!invoked.hasReturn()) {
                             return null;
                         }
 

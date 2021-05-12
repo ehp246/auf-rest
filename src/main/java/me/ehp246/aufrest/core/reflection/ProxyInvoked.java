@@ -73,8 +73,8 @@ public final class ProxyInvoked implements InvokedOn {
         return this.method.getReturnType();
     }
 
-    public boolean isReturnDeclared() {
-        return this.method.getReturnType() != void.class;
+    public boolean hasReturn() {
+        return this.method.getReturnType() != void.class && this.method.getReturnType() != Void.class;
     }
 
     public boolean isAsync() {
@@ -94,8 +94,12 @@ public final class ProxyInvoked implements InvokedOn {
         return threws;
     }
 
-    public boolean canThrow(Class<?> t) {
-        return this.threws.contains(t);
+    public boolean canThrow(Class<?> type) {
+        return this.threws.contains(type);
+    }
+
+    public boolean canReturn(Class<?> type) {
+        return this.method.getReturnType().isAssignableFrom(type);
     }
 
     public List<?> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations) {
