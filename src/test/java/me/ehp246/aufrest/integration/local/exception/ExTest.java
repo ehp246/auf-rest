@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 
 /**
  * @author Lei Yang
@@ -20,7 +21,7 @@ class ExTest {
 
     @Test
     void test_001() {
-        final var ex = Assertions.assertThrows(ClientErrorException.class, case001::get);
+        final var ex = Assertions.assertThrows(UnhandledResponseException.class, case001::get);
 
         Assertions.assertEquals(401, ex.statusCode());
     }

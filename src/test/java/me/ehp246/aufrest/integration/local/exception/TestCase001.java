@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorException;
  */
 @ByRest("http://localhost:${local.server.port}/auth/basic")
 interface TestCase001 {
-    void get() throws ClientErrorException;
+    void get();
 
     void get(@AuthHeader String auth) throws ClientErrorException, ServerErrorException;
 
