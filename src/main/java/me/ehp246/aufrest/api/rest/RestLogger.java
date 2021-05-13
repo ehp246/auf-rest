@@ -19,50 +19,50 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 public final class RestLogger implements ByRestListener {
-	private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
-	private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
+    private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
+    private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
-		@Override
-		public void onSubscribe(final Subscription subscription) {
-			subscription.request(1);
-		}
+        @Override
+        public void onSubscribe(final Subscription subscription) {
+            subscription.request(1);
+        }
 
-		@Override
-		public void onNext(final ByteBuffer item) {
-			LOGGER.atTrace().log(new String(item.array(), StandardCharsets.UTF_8));
-		}
+        @Override
+        public void onNext(final ByteBuffer item) {
+            LOGGER.atTrace().log(new String(item.array(), StandardCharsets.UTF_8));
+        }
 
-		@Override
-		public void onError(final Throwable throwable) {
-			LOGGER.atError().log(throwable);
-		}
+        @Override
+        public void onError(final Throwable throwable) {
+            LOGGER.atError().log(throwable);
+        }
 
-		@Override
-		public void onComplete() {
-		}
-	};
+        @Override
+        public void onComplete() {
+        }
+    };
 
-	private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-	public RestLogger(ObjectMapper objectMapper) {
-		super();
-		this.objectMapper = objectMapper;
-	}
+    public RestLogger(ObjectMapper objectMapper) {
+        super();
+        this.objectMapper = objectMapper;
+    }
 
-	@Override
-	public void onRequest(final HttpRequest httpRequest, final RestRequest request) {
-		LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
-		LOGGER.atTrace().log(httpRequest.headers().map());
+    @Override
+    public void onRequest(final HttpRequest httpRequest, final RestRequest request) {
+        LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
+        LOGGER.atTrace().log(httpRequest.headers().map());
 
-		httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
-	}
+        httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
+    }
 
-	@Override
-	public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
-		LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
-				+ httpResponse.statusCode());
+    @Override
+    public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
+        LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
+                + httpResponse.statusCode());
 
-		LOGGER.atTrace().log(httpResponse.headers().map());
-		LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
-	}
+        LOGGER.atTrace().log(httpResponse.headers().map());
+        LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
+    }
 }

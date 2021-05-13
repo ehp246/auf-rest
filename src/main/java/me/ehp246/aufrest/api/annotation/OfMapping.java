@@ -24,33 +24,33 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 @Retention(RUNTIME)
 @Target({ METHOD })
 public @interface OfMapping {
-	/**
-	 * Defines additional path to append to the URL specified by
-	 * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} on the interface.
-	 *
-	 * <p>
-	 * Spring property place-holders are supported. Simple string concatenation to
-	 * construct the final URL.
-	 */
-	String value() default "";
+    /**
+     * Defines additional path to append to the URL specified by
+     * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} on the interface.
+     *
+     * <p>
+     * Spring property place-holders are supported. Simple string concatenation to
+     * construct the final URL.
+     */
+    String value() default "";
 
-	/**
-	 * Defines HTTP method for the request.
-	 * <p>
-	 * Empty string indicates to derive HTTP method from interface method prefix.
-	 * <p>
-	 * Specified string is changed to upper case before sent. There is no validation
-	 * on the specified value.
-	 */
-	String method() default "";
+    /**
+     * Defines HTTP method for the request.
+     * <p>
+     * Empty string indicates to derive HTTP method from interface method prefix.
+     * <p>
+     * Specified string is changed to upper case before sent. There is no validation
+     * on the specified value.
+     */
+    String method() default "";
 
-	/**
-	 * Defines the content type and appropriate serialization provider.
-	 */
-	String contentType() default HttpUtils.APPLICATION_JSON;
+    /**
+     * Defines the content type and appropriate serialization provider.
+     */
+    String contentType() default HttpUtils.APPLICATION_JSON;
 
-	/**
-	 * Defines the Accept header. Usually derived by the return type of the method.
-	 */
-	String accept() default HttpUtils.APPLICATION_JSON;
+    /**
+     * Defines the Accept header. Usually derived by the return type of the method.
+     */
+    String accept() default HttpUtils.APPLICATION_JSON;
 }

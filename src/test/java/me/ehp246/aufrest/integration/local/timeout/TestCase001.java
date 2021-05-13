@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest(value = "http://localhost:${local.server.port}/timeout", timeout = "${api.request.timeout:}")
 interface TestCase001 {
-	void get();
+    void get();
 
-	void get(@RequestParam("sleep") String sleep);
+    void get(@RequestParam("sleep") String sleep);
 }

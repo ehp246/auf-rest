@@ -8,5 +8,5 @@ package me.ehp246.aufrest.api.rest;
  */
 @FunctionalInterface
 public interface RestFnProvider {
-	RestFn get(RestClientConfig clientConfig);
+    RestFn get(RestClientConfig clientConfig);
 }

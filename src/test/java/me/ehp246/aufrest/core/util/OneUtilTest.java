@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test;
  */
 class OneUtilTest {
 
-	@Test
-	void test() {
-		Assertions.assertEquals(false, OneUtil.hasValue(null));
-		Assertions.assertEquals(false, OneUtil.hasValue(""));
-		Assertions.assertEquals(false, OneUtil.hasValue("   "));
-		Assertions.assertEquals(false, OneUtil.hasValue("\r\n"));
-	}
+    @Test
+    void test() {
+        Assertions.assertEquals(false, OneUtil.hasValue(null));
+        Assertions.assertEquals(false, OneUtil.hasValue(""));
+        Assertions.assertEquals(false, OneUtil.hasValue("   "));
+        Assertions.assertEquals(false, OneUtil.hasValue("\r\n"));
+    }
 
 }

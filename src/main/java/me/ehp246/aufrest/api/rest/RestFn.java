@@ -11,5 +11,5 @@ import java.net.http.HttpResponse;
  */
 @FunctionalInterface
 public interface RestFn {
-	HttpResponse<?> apply(RestRequest request);
+    HttpResponse<?> apply(RestRequest request);
 }

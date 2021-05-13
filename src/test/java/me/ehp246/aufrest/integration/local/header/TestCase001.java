@@ -16,14 +16,14 @@ import me.ehp246.aufrest.integration.model.Headers;
  */
 @ByRest("http://localhost:${local.server.port}/header")
 interface TestCase001 {
-	Headers get();
+    Headers get();
 
-	@Reifying(Headers.class)
-	CompletableFuture<Headers> getAsFuture();
+    @Reifying(Headers.class)
+    CompletableFuture<Headers> getAsFuture();
 
-	Headers get(@RequestHeader("x-req-id") String value);
+    Headers get(@RequestHeader("x-req-id") String value);
 
-	Headers get(@RequestHeader Map<String, List<String>> headers);
+    Headers get(@RequestHeader Map<String, List<String>> headers);
 
-	Headers getWithMap2(@RequestHeader Map<String, String> headers);
+    Headers getWithMap2(@RequestHeader Map<String, String> headers);
 }

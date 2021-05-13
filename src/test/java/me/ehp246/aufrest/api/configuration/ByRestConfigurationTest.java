@@ -9,29 +9,29 @@ import org.junit.jupiter.api.Test;
  */
 class ByRestConfigurationTest {
 
-	@Test
-	void test_001() {
-		final var clientConfig = new ByRestConfiguration().restClientConfig("", req -> null);
+    @Test
+    void test_001() {
+        final var clientConfig = new ByRestConfiguration().restClientConfig("", req -> null);
 
-		Assertions.assertEquals(null, clientConfig.connectTimeout());
-	}
+        Assertions.assertEquals(null, clientConfig.connectTimeout());
+    }
 
-	@Test
-	void test_002() {
-		final var clientConfig = new ByRestConfiguration().restClientConfig(null, null);
+    @Test
+    void test_002() {
+        final var clientConfig = new ByRestConfiguration().restClientConfig(null, null);
 
-		Assertions.assertEquals(null, clientConfig.connectTimeout());
-	}
+        Assertions.assertEquals(null, clientConfig.connectTimeout());
+    }
 
-	@Test
-	void test_004() {
-		Assertions.assertDoesNotThrow(() -> new ByRestConfiguration().restClientConfig(null, null));
-	}
+    @Test
+    void test_004() {
+        Assertions.assertDoesNotThrow(() -> new ByRestConfiguration().restClientConfig(null, null));
+    }
 
-	@Test
-	void test_005() {
-		final var clientConfig = new ByRestConfiguration().restClientConfig("PT1S", null);
+    @Test
+    void test_005() {
+        final var clientConfig = new ByRestConfiguration().restClientConfig("PT1S", null);
 
-		Assertions.assertEquals(1000, clientConfig.connectTimeout().toMillis());
-	}
+        Assertions.assertEquals(1000, clientConfig.connectTimeout().toMillis());
+    }
 }

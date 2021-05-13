@@ -3,13 +3,13 @@ package me.ehp246.aufrest.core.byrest;
 import java.util.Map;
 
 interface EchoResponseBody {
-	Map<String, String> getArgs();
+    Map<String, String> getArgs();
 
-	Map<String, String> getHeaders();
+    Map<String, String> getHeaders();
 
-	String getUrl();
+    String getUrl();
 
-	String getData();
+    String getData();
 
-	String getJson();
+    String getJson();
 }

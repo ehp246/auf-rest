@@ -8,5 +8,5 @@ import java.net.http.HttpResponse.BodyHandler;
  */
 @FunctionalInterface
 public interface BodyHandlerProvider {
-	BodyHandler<?> get(RestRequest req);
+    BodyHandler<?> get(RestRequest req);
 }

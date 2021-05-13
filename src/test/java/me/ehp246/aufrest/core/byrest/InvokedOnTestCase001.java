@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("")
 interface InvokedOnTestCase001 {
-	void get();
+    void get();
 
-	void get(int i);
+    void get(int i);
 }

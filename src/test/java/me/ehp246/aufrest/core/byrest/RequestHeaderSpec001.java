@@ -25,41 +25,41 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  */
 @ByRest("")
 interface RequestHeaderSpec001 {
-	void get(@RequestHeader("x-correl-id") String correlId);
+    void get(@RequestHeader("x-correl-id") String correlId);
 
-	/**
-	 * Should be ignored.
-	 *
-	 * @param correlId
-	 */
-	void getBlank(@RequestHeader("") String correlId);
+    /**
+     * Should be ignored.
+     *
+     * @param correlId
+     */
+    void getBlank(@RequestHeader("") String correlId);
 
-	/**
-	 * Object::toString
-	 *
-	 * @param correlId
-	 */
-	void get(@RequestHeader("x-uuid") UUID correlId);
+    /**
+     * Object::toString
+     *
+     * @param correlId
+     */
+    void get(@RequestHeader("x-uuid") UUID correlId);
 
-	/**
-	 * Same Header repeated are concatenated
-	 *
-	 * @param correlId1
-	 * @param correlId2
-	 */
-	void getRepeated(@RequestHeader("x-correl-id") String correlId1, @RequestHeader("x-correl-id") String correlId2);
+    /**
+     * Same Header repeated are concatenated
+     *
+     * @param correlId1
+     * @param correlId2
+     */
+    void getRepeated(@RequestHeader("x-correl-id") String correlId1, @RequestHeader("x-correl-id") String correlId2);
 
-	void getMultiple(@RequestHeader("x-span-id") String spanId, @RequestHeader("x-trace-id") String traceId);
+    void getMultiple(@RequestHeader("x-span-id") String spanId, @RequestHeader("x-trace-id") String traceId);
 
-	void get(@RequestHeader("accept-language") List<String> accepted);
+    void get(@RequestHeader("accept-language") List<String> accepted);
 
-	void get(@RequestHeader Map<String, String> headers);
+    void get(@RequestHeader Map<String, String> headers);
 
-	void get(@RequestHeader Map<String, String> headers, @RequestHeader("x-correl-id") String correlId);
+    void get(@RequestHeader Map<String, String> headers, @RequestHeader("x-correl-id") String correlId);
 
-	void get(@RequestHeader MultiValueMap<String, String> headers);
+    void get(@RequestHeader MultiValueMap<String, String> headers);
 
-	void getMapOfList(@RequestHeader Map<String, List<String>> headers);
+    void getMapOfList(@RequestHeader Map<String, List<String>> headers);
 
-	void getListOfList(@RequestHeader("accept-language") List<List<String>> accepted);
+    void getListOfList(@RequestHeader("accept-language") List<List<String>> accepted);
 }

@@ -44,98 +44,97 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 @Import({ DefaultRestFnProvider.class })
 public final class ByRestConfiguration {
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
-	public RestClientConfig restClientConfig(@Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
-			@Autowired(required = false)
-			final BodyHandlerProvider bodyHandlerProvider) {
-		final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
-				.map(value -> OneUtil.orThrow(() -> Duration.parse(value),
-						e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
-				.orElse(null);
+    public RestClientConfig restClientConfig(
+            @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
+            @Autowired(required = false) final BodyHandlerProvider bodyHandlerProvider) {
+        final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
+                .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
+                        e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
+                .orElse(null);
 
-		return new RestClientConfig() {
+        return new RestClientConfig() {
 
-			@Override
-			public Duration connectTimeout() {
-				return connTimeout;
-			}
+            @Override
+            public Duration connectTimeout() {
+                return connTimeout;
+            }
 
-			/**
-			 * Default to discarding.
-			 */
-			@Override
-			public BodyHandlerProvider bodyHandlerProvider() {
-				return bodyHandlerProvider != null ? bodyHandlerProvider
-						: req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(),
-								body -> null);
-			}
+            /**
+             * Default to discarding.
+             */
+            @Override
+            public BodyHandlerProvider bodyHandlerProvider() {
+                return bodyHandlerProvider != null ? bodyHandlerProvider
+                        : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null);
+            }
 
-		};
-	}
+        };
+    }
 
     @Bean("ff1e0d94-2413-4d4c-8822-411641137fdd")
-	public JsonByJackson jacksonFn(final ObjectMapper objectMapper) {
-		return new JsonByJackson(objectMapper);
-	}
+    public JsonByJackson jacksonFn(final ObjectMapper objectMapper) {
+        return new JsonByJackson(objectMapper);
+    }
 
     @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
-	public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
-		return req -> {
-			if (req.body() == null) {
-				return BodyPublishers.noBody();
-			}
-			if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
-				return BodyPublishers.ofString(req.body().toString());
-			}
+    public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
+        return req -> {
+            if (req.body() == null) {
+                return BodyPublishers.noBody();
+            }
+            if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
+                return BodyPublishers.ofString(req.body().toString());
+            }
 
-			// Default to JSON.
-			return BodyPublishers.ofString(jacksonFn.toJson(req.body()));
-		};
-	}
+            // Default to JSON.
+            return BodyPublishers.ofString(jacksonFn.toJson(req.body()));
+        };
+    }
 
     @Bean("c1af17fc-0e88-4d4a-a5ce-648aea1adb17")
-	public BodyHandlerProvider bodyHandlerProvider(final JsonByJackson jacksonFn) {
-		return req -> {
-			final var receiver = req.bodyReceiver();
-			final Class<?> type = receiver == null ? void.class : receiver.type();
+    public BodyHandlerProvider bodyHandlerProvider(final JsonByJackson jacksonFn) {
+        return req -> {
+            final var receiver = req.bodyReceiver();
+            final Class<?> type = receiver == null ? void.class : receiver.type();
 
-			if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
-				return BodyHandlers.discarding();
-			}
+            if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
+                return BodyHandlers.discarding();
+            }
 
-			return responseInfo -> {
-				// The server might not set the header. Treat it as text?
-				final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
-						.toLowerCase();
-				// Default to UTF-8 text
-				return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-					if (responseInfo.statusCode() >= 300) {
-						return text;
-					}
-					if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-						return jacksonFn.fromJson(text, receiver);
-					}
-					return text;
-				});
-			};
-		};
-	}
+            return responseInfo -> {
+                // The server might not set the header. Treat it as text?
+                final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
+                        .toLowerCase();
+                // Default to UTF-8 text
+                return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                    if (responseInfo.statusCode() >= 300) {
+                        return text;
+                    }
+                    if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
+                        return jacksonFn.fromJson(text, receiver);
+                    }
+                    return text;
+                });
+            };
+        };
+    }
 
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
-	RestLogger restLogger(final ObjectMapper objectMapper) {
-		return new RestLogger(objectMapper);
-	}
+    RestLogger restLogger(final ObjectMapper objectMapper) {
+        return new RestLogger(objectMapper);
+    }
 
     @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
-	public PlaceholderResolver placeholderResolver(final Environment env) {
-		return env::resolveRequiredPlaceholders;
-	}
+    public PlaceholderResolver placeholderResolver(final Environment env) {
+        return env::resolveRequiredPlaceholders;
+    }
 
     @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
-	RequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
-			@Autowired(required = false) final AuthProvider authProvider,
-			@Autowired(required = false) final BodyPublisherProvider bodyPublisherProvider,
-			@Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
-		return new DefaultRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, bodyPublisherProvider,
-				requestTimeout);
-	}
+    RequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
+            @Autowired(required = false) final AuthProvider authProvider,
+            @Autowired(required = false) final BodyPublisherProvider bodyPublisherProvider,
+            @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
+        return new DefaultRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, bodyPublisherProvider,
+                requestTimeout);
+    }
 }

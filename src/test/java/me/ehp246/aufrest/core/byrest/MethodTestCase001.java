@@ -10,28 +10,28 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @ByRest("")
 interface MethodTestCase001 {
-	void get();
+    void get();
 
-	void getBySomething();
+    void getBySomething();
 
-	void query(int i);
+    void query(int i);
 
-	@OfMapping
-	void query();
+    @OfMapping
+    void query();
 
-	void post();
+    void post();
 
-	void postByName();
+    void postByName();
 
-	@OfMapping(method = HttpUtils.POST)
-	void create();
+    @OfMapping(method = HttpUtils.POST)
+    void create();
 
-	void delete();
+    void delete();
 
-	@OfMapping(method = HttpUtils.DELETE)
-	void remove();
+    @OfMapping(method = HttpUtils.DELETE)
+    void remove();
 
-	void put();
+    void put();
 
-	void patch();
+    void patch();
 }

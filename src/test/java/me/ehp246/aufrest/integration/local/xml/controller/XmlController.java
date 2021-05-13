@@ -21,34 +21,34 @@ import me.ehp246.aufrest.integration.model.Person;
 @RequestMapping(value = "/xml", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE)
 class XmlController {
 
-	@GetMapping("instants")
-	List<Instant> getInstants(@RequestParam("count") final int count) {
-		return IntStream.range(0, count).mapToObj(i -> Instant.now()).collect(Collectors.toList());
-	}
+    @GetMapping("instants")
+    List<Instant> getInstants(@RequestParam("count") final int count) {
+        return IntStream.range(0, count).mapToObj(i -> Instant.now()).collect(Collectors.toList());
+    }
 
-	@GetMapping("instant")
-	Instant getInstant() {
-		return Instant.now();
-	}
+    @GetMapping("instant")
+    Instant getInstant() {
+        return Instant.now();
+    }
 
-	@GetMapping("person")
-	Person getPerson(@RequestParam(value = "name", required = false) final String name) {
-		return new Person() {
+    @GetMapping("person")
+    Person getPerson(@RequestParam(value = "name", required = false) final String name) {
+        return new Person() {
 
-			@Override
-			public String getName() {
-				return name;
-			}
+            @Override
+            public String getName() {
+                return name;
+            }
 
-			@Override
-			public Instant getDob() {
-				return Instant.now();
-			}
-		};
-	}
+            @Override
+            public Instant getDob() {
+                return Instant.now();
+            }
+        };
+    }
 
-	@GetMapping("persons")
-	List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
-		return IntStream.range(0, count).mapToObj(i -> (Person) Instant::now).collect(Collectors.toList());
-	}
+    @GetMapping("persons")
+    List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
+        return IntStream.range(0, count).mapToObj(i -> (Person) Instant::now).collect(Collectors.toList());
+    }
 }

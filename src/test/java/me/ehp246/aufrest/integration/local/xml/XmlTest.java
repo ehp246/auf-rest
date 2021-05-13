@@ -20,30 +20,30 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 @Disabled
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class XmlTest {
-	@Autowired
-	private TestCase001 case001;
+    @Autowired
+    private TestCase001 case001;
 
-	@Test
-	void test_001() {
-		final var count = (int) (Math.random() * 10);
-		List<Instant> instants;
-		try {
-			instants = case001.get001(count);
-		} catch (final Exception e) {
-			throw e;
-		}
+    @Test
+    void test_001() {
+        final var count = (int) (Math.random() * 10);
+        List<Instant> instants;
+        try {
+            instants = case001.get001(count);
+        } catch (final Exception e) {
+            throw e;
+        }
 
-		Assertions.assertEquals(count, instants.size());
+        Assertions.assertEquals(count, instants.size());
 
-		instants.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
-	}
+        instants.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
+    }
 
-	@Test
-	void test_008() {
-		try {
-			case001.get008();
-		} catch (final Exception e) {
-			throw e;
-		}
-	}
+    @Test
+    void test_008() {
+        try {
+            case001.get008();
+        } catch (final Exception e) {
+            throw e;
+        }
+    }
 }

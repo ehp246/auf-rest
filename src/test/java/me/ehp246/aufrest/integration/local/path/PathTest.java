@@ -12,11 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class PathTest {
-	@Autowired
-	private TestCase001 case001;
+    @Autowired
+    private TestCase001 case001;
 
-	@Test
-	void test_001() {
-		Assertions.assertEquals("/path", case001.get());
-	}
+    @Test
+    void test_001() {
+        Assertions.assertEquals("/path", case001.get());
+    }
 }

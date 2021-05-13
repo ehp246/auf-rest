@@ -10,11 +10,11 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @ByRest("")
 interface TestCase001 {
-	void get();
+    void get();
 
-	@OfMapping(contentType = HttpUtils.TEXT_PLAIN, accept = HttpUtils.TEXT_PLAIN)
-	void put();
+    @OfMapping(contentType = HttpUtils.TEXT_PLAIN, accept = HttpUtils.TEXT_PLAIN)
+    void put();
 
-	@OfMapping(contentType = "i produce", accept = "i accept")
-	void post();
+    @OfMapping(contentType = "i produce", accept = "i accept")
+    void post();
 }

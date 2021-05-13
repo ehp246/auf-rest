@@ -11,14 +11,14 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  */
 @EnableWebSecurity
 class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-	@Override
-	protected void configure(final HttpSecurity http) throws Exception {
-		http.authorizeRequests(authorizeRequests -> authorizeRequests.antMatchers("/auth/**").authenticated())
-				.httpBasic();
-	}
+    @Override
+    protected void configure(final HttpSecurity http) throws Exception {
+        http.authorizeRequests(authorizeRequests -> authorizeRequests.antMatchers("/auth/**").authenticated())
+                .httpBasic();
+    }
 
-	@Override
-	protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-		auth.inMemoryAuthentication().withUser("basicuser").password("{noop}password").roles("USER");
-	}
+    @Override
+    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
+        auth.inMemoryAuthentication().withUser("basicuser").password("{noop}password").roles("USER");
+    }
 }

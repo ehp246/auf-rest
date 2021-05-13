@@ -26,12 +26,12 @@ import java.net.http.HttpRequest;
  */
 @FunctionalInterface
 public interface AuthProvider {
-	/**
-	 *
-	 * @param req the out-going request
-	 * 
-	 * @return the header value. <code>null</code> indicates the header should not
-	 *         be set.
-	 */
-	String get(RestRequest req);
+    /**
+     *
+     * @param req the out-going request
+     * 
+     * @return the header value. <code>null</code> indicates the header should not
+     *         be set.
+     */
+    String get(RestRequest req);
 }

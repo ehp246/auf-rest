@@ -6,5 +6,5 @@ package me.ehp246.aufrest.api.spi;
  */
 @FunctionalInterface
 public interface PlaceholderResolver {
-	String resolve(String placeholder);
+    String resolve(String placeholder);
 }

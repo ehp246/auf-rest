@@ -26,10 +26,10 @@ import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
 @Target(TYPE)
 @Import({ ByRestRegistrar.class, ByRestConfiguration.class, ByRestFactory.class })
 public @interface EnableByRest {
-	/**
-	 * Specifies the packages to scan for annotated
-	 * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces. The
-	 * package of each class specified will be scanned.
-	 */
-	Class<?>[] scan() default {};
+    /**
+     * Specifies the packages to scan for annotated
+     * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces. The
+     * package of each class specified will be scanned.
+     */
+    Class<?>[] scan() default {};
 }

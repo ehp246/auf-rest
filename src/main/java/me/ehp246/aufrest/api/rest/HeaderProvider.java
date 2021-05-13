@@ -24,10 +24,10 @@ import java.util.Map;
  */
 @FunctionalInterface
 public interface HeaderProvider {
-	/**
-	 *
-	 * @param req the out-going request.
-	 * @return header names and values. <code>null</code> is acceptable.
-	 */
-	Map<String, List<String>> get(RestRequest req);
+    /**
+     *
+     * @param req the out-going request.
+     * @return header names and values. <code>null</code> is acceptable.
+     */
+    Map<String, List<String>> get(RestRequest req);
 }

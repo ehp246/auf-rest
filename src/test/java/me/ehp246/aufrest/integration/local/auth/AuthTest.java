@@ -17,69 +17,69 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class AuthTest {
-	@Autowired
-	private AutowireCapableBeanFactory factory;
+    @Autowired
+    private AutowireCapableBeanFactory factory;
 
-	@BeforeAll
-	static void clear() {
-		HeaderContext.clear();
-	}
+    @BeforeAll
+    static void clear() {
+        HeaderContext.clear();
+    }
 
-	@Test
-	void basic_auth_001() {
-		Assertions.assertThrows(UnhandledResponseException.class,
-				() -> factory.getBean(TestCases.BasicCase001.class).get());
-	}
+    @Test
+    void basic_auth_001() {
+        Assertions.assertThrows(UnhandledResponseException.class,
+                () -> factory.getBean(TestCases.DefaultCase001.class).get());
+    }
 
-	@Test
-	void basic_auth_002() {
-		final var newInstance = factory.getBean(TestCases.BasicCase001.class);
-		/*
-		 * If the return type is HttpResponse, the invocation should not throw as long
-		 * as a response is received and can be returned.
-		 */
-		final var response = Assertions.assertDoesNotThrow(newInstance::getAsResponse,
-				"Should return a valid response instead of throwing");
+    @Test
+    void basic_auth_002() {
+        final var newInstance = factory.getBean(TestCases.DefaultCase001.class);
+        /*
+         * If the return type is HttpResponse, the invocation should not throw as long
+         * as a response is received and can be returned.
+         */
+        final var response = Assertions.assertDoesNotThrow(newInstance::getAsResponse,
+                "Should return a valid response instead of throwing");
 
-		Assertions.assertEquals(401, response.statusCode(), "Should have correct status code");
-	}
+        Assertions.assertEquals(401, response.statusCode(), "Should have correct status code");
+    }
 
-	@Test
-	void basic_auth_003() {
-		final var newInstance = factory.getBean(TestCases.BasicCase003.class);
+    @Test
+    void basic_auth_003() {
+        final var newInstance = factory.getBean(TestCases.BearerCase003.class);
 
-		Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
-				"Should not work because of the wrong authentication type");
-		
-		/**
-		 * Should work now.
-		 */
-		newInstance.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-	}
+        Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
+                "Should not work because of the wrong authentication type");
 
-	@Test
-	void basic_auth_004() {
-		final var bean = factory.getBean(TestCases.BasicCase004.class);
+        /**
+         * Should work now.
+         */
+        newInstance.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+    }
 
-		bean.get();
+    @Test
+    void basic_auth_004() {
+        final var bean = factory.getBean(TestCases.SimpleCase004.class);
 
-		Assertions.assertThrows(UnhandledResponseException.class, () -> bean.get("123"),
-				"Should not work because of the wrong header");
+        bean.get();
 
-		/**
-		 * Should work now.
-		 */
-		bean.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-	}
+        Assertions.assertThrows(UnhandledResponseException.class, () -> bean.get("123"),
+                "Should not work because of the wrong header");
 
-	@Test
-	void auth_header_001() {
-		Assertions.assertThrows(UnhandledResponseException.class,
-				() -> factory.getBean(TestCases.BasicCase001.class).get(""));
-	}
+        /**
+         * Should work now.
+         */
+        bean.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+    }
 
-	@Test
-	void auth_header_002() {
-		factory.getBean(TestCases.BasicCase001.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-	}
+    @Test
+    void auth_header_001() {
+        Assertions.assertThrows(UnhandledResponseException.class,
+                () -> factory.getBean(TestCases.DefaultCase001.class).get(""));
+    }
+
+    @Test
+    void auth_header_002() {
+        factory.getBean(TestCases.DefaultCase001.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+    }
 }

@@ -11,31 +11,31 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  *
  */
 interface ContentTypeTestCases {
-	@ByRest(value = "", contentType = "i-type", accept = "i-accept")
-	interface Case001 {
-		// Should go with the interface
-		void get1();
+    @ByRest(value = "", contentType = "i-type", accept = "i-accept")
+    interface Case001 {
+        // Should go with the interface
+        void get1();
 
-		// Should go with the method
-		@OfMapping
-		void get2();
+        // Should go with the method
+        @OfMapping
+        void get2();
 
-		// Should go with the method
-		@OfMapping(contentType = "m-type", accept = "m-accept")
-		void get3();
-	}
+        // Should go with the method
+        @OfMapping(contentType = "m-type", accept = "m-accept")
+        void get3();
+    }
 
-	@ByRest(value = "", contentType = "i-type")
-	interface Case002 {
-		// Should go with the interface
-		void get1();
+    @ByRest(value = "", contentType = "i-type")
+    interface Case002 {
+        // Should go with the interface
+        void get1();
 
-		// Should go with the method
-		@OfMapping
-		void get2();
+        // Should go with the method
+        @OfMapping
+        void get2();
 
-		// Should go with the method
-		@OfMapping(contentType = "m-type", accept = "m-accept")
-		void get3();
-	}
+        // Should go with the method
+        @OfMapping(contentType = "m-type", accept = "m-accept")
+        void get3();
+    }
 }
