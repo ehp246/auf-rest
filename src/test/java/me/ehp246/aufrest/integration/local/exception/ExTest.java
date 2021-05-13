@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 
@@ -40,5 +41,13 @@ class ExTest {
                 () -> case001.get("Basic YmFzaWN1c2VyOnBhc3N3b3"));
 
         Assertions.assertEquals(401, ex.statusCode());
+    }
+
+    @Test
+    void test_004() {
+        final var ex = Assertions.assertThrows(RedirectionException.class,
+                () -> case001.getMoved("Basic YmFzaWN1c2VyOnBhc3N3b3Jk"));
+
+        Assertions.assertEquals(301, ex.statusCode());
     }
 }

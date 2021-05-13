@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
@@ -148,14 +149,17 @@ public final class ByRestFactory {
                             return httpResponse;
                         }
 
-                        if (httpResponse.statusCode() >= 300) {
-                            if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerErrorException.class)) {
-                                throw new ServerErrorException(req, httpResponse);
-                            }
+                        if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerErrorException.class)) {
+                            throw new ServerErrorException(req, httpResponse);
+                        }
 
-                            if (httpResponse.statusCode() >= 400 && httpResponse.statusCode() < 500
-                                    && invoked.canThrow(ClientErrorException.class)) {
-                                throw new ClientErrorException(req, httpResponse);
+                        if (httpResponse.statusCode() >= 400 && invoked.canThrow(ClientErrorException.class)) {
+                            throw new ClientErrorException(req, httpResponse);
+                        }
+
+                        if (httpResponse.statusCode() >= 300) {
+                            if (invoked.canThrow(RedirectionException.class)) {
+                                throw new RedirectionException(req, httpResponse);
                             }
 
                             throw new UnhandledResponseException(req, httpResponse);
