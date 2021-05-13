@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -461,5 +463,56 @@ class ByRestFactoryTest {
 
         Assertions.assertEquals("m-type", req.contentType());
         Assertions.assertEquals("m-accept", req.accept());
+    }
+
+    @Test
+    void exception_001() {
+        final var checked = new IOException();
+        final var restFnException = new RestFnException(checked);
+        final var newInstance = new ByRestFactory(config -> req -> {
+            throw restFnException;
+        }, s -> s).newInstance(ExCase001.class);
+
+        final var thrown = Assertions.assertThrows(RestFnException.class, newInstance::get);
+
+        Assertions.assertEquals(restFnException, thrown);
+    }
+
+    @Test
+    void exception_002() {
+        final var checked = new IOException();
+        final var restFnException = new RestFnException(checked);
+        final var newInstance = new ByRestFactory(config -> req -> {
+            throw restFnException;
+        }, s -> s).newInstance(ExCase001.class);
+
+        final var thrown = Assertions.assertThrows(IOException.class, newInstance::delete);
+
+        Assertions.assertEquals(checked, thrown);
+    }
+
+    @Test
+    void exception_003() {
+        final var checked = new InterruptedException();
+        final var restFnException = new RestFnException(checked);
+        final var newInstance = new ByRestFactory(config -> req -> {
+            throw restFnException;
+        }, s -> s).newInstance(ExCase001.class);
+
+        final var thrown = Assertions.assertThrows(InterruptedException.class, newInstance::delete);
+
+        Assertions.assertEquals(checked, thrown);
+    }
+
+    @Test
+    void exception_004() {
+        final var toBeThrown = new RuntimeException();
+        final var newInstance = new ByRestFactory(config -> req -> {
+            throw toBeThrown;
+        }, s -> s).newInstance(ExCase001.class);
+
+        final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
+
+        Assertions.assertEquals(toBeThrown, thrown);
     }
 }

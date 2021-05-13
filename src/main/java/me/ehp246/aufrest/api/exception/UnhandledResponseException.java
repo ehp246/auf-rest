@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @since 1.0
  *
  */
-public class UnhandledResponseException extends RuntimeException {
+public final class UnhandledResponseException extends RuntimeException {
     private static final long serialVersionUID = 3813318541456042414L;
 
     private final RestRequest request;

@@ -1,15 +1,15 @@
-package me.ehp246.aufrest.core.reflection;
+package me.ehp246.aufrest.core.byrest;
 
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
 import java.util.function.Supplier;
+
+import me.ehp246.aufrest.api.exception.RestFnException;
 
 /**
  * @author Lei Yang
  *
  */
-public interface InvocationOutcome {
+interface RestFnOutcome {
     /**
      * The object that is either returned or thrown by the invocation. Could be null
      * or void.
@@ -29,7 +29,9 @@ public interface InvocationOutcome {
     }
 
     /**
-     * Returns the received as the value or dispatch an exception.
+     * Returns the received as the value or dispatch an exception. It is assumed if
+     * the received is an exception it must be either a RuntimeException or a
+     * wrapped checked exception.
      * 
      * @param canThrow
      * @return
@@ -42,42 +44,30 @@ public interface InvocationOutcome {
         }
 
         // Dispatch the exception.
-        if (received instanceof RuntimeException) {
+        if (received instanceof RuntimeException && !(received instanceof RestFnException)) {
             throw (Throwable) received;
         }
+        // Assuming here.
+        final var restFnEx = (RestFnException) received;
         // Checked and declared.
-        if (canThrow != null && canThrow.stream().filter(c -> c.isAssignableFrom(received.getClass())).count() > 0) {
-            throw (Throwable) received;
+        if (canThrow != null
+                && canThrow.stream().filter(c -> c.isAssignableFrom(restFnEx.getCause().getClass())).count() > 0) {
+            throw restFnEx.getCause();
         }
-        // Wrap in a RuntimeExxception.
-        throw new RuntimeException((Throwable) received);
+        // Re-throw
+        throw restFnEx;
     }
 
-    public static InvocationOutcome invoke(final Supplier<?> supplier) {
-        return invoke(supplier::get, null);
-    }
-
-    public static InvocationOutcome invoke(final Callable<?> callable) {
-        return invoke(callable, null);
-    }
-
-    /**
-     * 
-     * @param callable
-     * @param map
-     * @return
-     */
-    public static InvocationOutcome invoke(final Callable<?> callable, final Function<Throwable, Throwable> map) {
+    static RestFnOutcome invoke(final Supplier<?> supplier) {
         try {
             // Call it now. Don't wait.
-            final var returned = callable.call();
+            final var returned = supplier.get();
             return () -> returned;
         } catch (Exception e) {
-            final var mapped = map == null ? e : map.apply(e);
-            return new InvocationOutcome() {
+            return new RestFnOutcome() {
                 @Override
                 public Object received() {
-                    return mapped;
+                    return e;
                 }
 
                 @Override

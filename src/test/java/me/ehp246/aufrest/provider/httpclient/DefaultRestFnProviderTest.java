@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
@@ -126,14 +127,14 @@ class DefaultRestFnProviderTest {
 
         Exception ex = null;
         try {
-            new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder, List.of(new ByRestListener() {
+            new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder,
+                    List.of(new ByRestListener() {
 
-                @Override
-                public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
-                    map.put("5", exception);
-                }
-            }))
-                    .get(new RestClientConfig() {
+                        @Override
+                        public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+                            map.put("5", exception);
+                        }
+                    })).get(new RestClientConfig() {
                     }).apply(req);
         } catch (Exception e) {
             ex = e;
@@ -196,5 +197,29 @@ class DefaultRestFnProviderTest {
         }
 
         Assertions.assertEquals(true, ex == orig, "should have no wrap");
+    }
+
+    @Test
+    void exception_001() {
+        final var toBeThrown = new IOException();
+
+        final var ex = Assertions.assertThrows(RestFnException.class, () ->
+            new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
+                    req -> Mockito.mock(HttpRequest.class), null).get(new RestClientConfig() {
+                }).apply(() -> "http://nowhere"));
+
+        Assertions.assertEquals(true, ex.getCause() == toBeThrown);
+    }
+
+    @Test
+    void exception_002() {
+        final var toBeThrown = new InterruptedException();
+
+        final var ex = Assertions.assertThrows(RestFnException.class,
+                () -> new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
+                        req -> Mockito.mock(HttpRequest.class), null).get(new RestClientConfig() {
+                        }).apply(() -> "http://nowhere"));
+
+        Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }
 }

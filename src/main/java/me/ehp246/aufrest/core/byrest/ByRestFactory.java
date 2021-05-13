@@ -27,7 +27,6 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
-import me.ehp246.aufrest.core.reflection.InvocationOutcome;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -126,22 +125,22 @@ public final class ByRestFactory {
 
                         final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
                         final var req = reqByRest.from(invoked);
-                        final var respSupplier = (Supplier<HttpResponse<?>>) () -> {
-                            ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
-                            try {
-                                return httpFn.apply(req);
-                            } finally {
-                                ThreadContext.remove(HttpUtils.REQUEST_ID);
-                            }
-                        };
+                        final var outcome = RestFnOutcome
+                                .invoke(() -> {
+                                    ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
+                                    try {
+                                        return httpFn.apply(req);
+                                    } finally {
+                                        ThreadContext.remove(HttpUtils.REQUEST_ID);
+                                    }
+                                });
 
-                        return callAndResolve(req, invoked, respSupplier);
+                        return resolveReturn(req, invoked, outcome);
                     }
 
-                    private Object callAndResolve(RestRequest req, ProxyInvoked invoked, Supplier<HttpResponse<?>> call)
+                    private Object resolveReturn(RestRequest req, ProxyInvoked invoked, RestFnOutcome outcome)
                             throws Throwable {
-                        final var httpResponse = (HttpResponse<?>) InvocationOutcome.invoke(call)
-                                .orElseThrow(invoked.getThrows());
+                        final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(invoked.getThrows());
 
                         // If the return type is HttpResponse, returns it as is without any processing
                         // regardless the status code.

@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ByRestListener;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
@@ -74,7 +75,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
                 listeners.stream().forEach(obs -> obs.onException(e, httpReq, req));
 
-                throw new RuntimeException(e);
+                throw new RestFnException(e);
             }
 
             listeners.stream().forEach(obs -> obs.onResponse(httpResponse, req));

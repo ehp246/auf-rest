@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-public class ServerErrorException extends Exception {
+public final class ServerErrorException extends Exception {
     private static final long serialVersionUID = -3503724512415848631L;
 
     private final RestRequest request;

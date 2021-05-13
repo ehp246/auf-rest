@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-public class ClientErrorException extends Exception {
+public final class ClientErrorException extends Exception {
     private static final long serialVersionUID = 3539564874094568554L;
     private final RestRequest request;
     private final HttpResponse<?> response;

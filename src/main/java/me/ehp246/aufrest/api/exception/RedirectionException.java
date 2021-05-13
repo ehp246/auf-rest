@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-public class RedirectionException extends Exception {
+public final class RedirectionException extends Exception {
     private static final long serialVersionUID = -397837195245058784L;
 
     private final RestRequest request;
