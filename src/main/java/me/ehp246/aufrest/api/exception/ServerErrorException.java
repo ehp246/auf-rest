@@ -8,14 +8,15 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-public class BadRequestException extends Exception {
-    private static final long serialVersionUID = 3539564874094568554L;
+public class ServerErrorException extends Exception {
+    private static final long serialVersionUID = -3503724512415848631L;
+
     private final RestRequest request;
     private final HttpResponse<?> response;
 
-    public BadRequestException(final RestRequest request, final HttpResponse<?> response) {
+    public ServerErrorException(final RestRequest request, final HttpResponse<?> response) {
         super();
-        if (response.statusCode() < 400 || response.statusCode() >= 500) {
+        if (response.statusCode() < 500) {
             throw new IllegalArgumentException();
         }
 

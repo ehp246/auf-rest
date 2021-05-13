@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import me.ehp246.aufrest.api.exception.BadRequestException;
-import me.ehp246.aufrest.api.exception.ServerFailureException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.ServerErrorException;
 
 /**
  * @author Lei Yang
@@ -20,14 +20,14 @@ class ExTest {
 
     @Test
     void test_001() {
-        final var ex = Assertions.assertThrows(BadRequestException.class, case001::get);
+        final var ex = Assertions.assertThrows(ClientErrorException.class, case001::get);
 
         Assertions.assertEquals(401, ex.statusCode());
     }
 
     @Test
     void test_002() {
-        final var ex = Assertions.assertThrows(ServerFailureException.class,
+        final var ex = Assertions.assertThrows(ServerErrorException.class,
                 () -> case001.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk"));
 
         Assertions.assertEquals(500, ex.statusCode());
@@ -35,7 +35,7 @@ class ExTest {
 
     @Test
     void test_003() {
-        final var ex = Assertions.assertThrows(BadRequestException.class,
+        final var ex = Assertions.assertThrows(ClientErrorException.class,
                 () -> case001.get("Basic YmFzaWN1c2VyOnBhc3N3b3"));
 
         Assertions.assertEquals(401, ex.statusCode());

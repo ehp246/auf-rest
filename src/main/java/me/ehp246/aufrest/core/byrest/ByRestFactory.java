@@ -16,8 +16,8 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.exception.BadRequestException;
-import me.ehp246.aufrest.api.exception.ServerFailureException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
@@ -149,13 +149,13 @@ public final class ByRestFactory {
                         }
 
                         if (httpResponse.statusCode() >= 300) {
-                            if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerFailureException.class)) {
-                                throw new ServerFailureException(req, httpResponse);
+                            if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerErrorException.class)) {
+                                throw new ServerErrorException(req, httpResponse);
                             }
 
                             if (httpResponse.statusCode() >= 400 && httpResponse.statusCode() < 500
-                                    && invoked.canThrow(BadRequestException.class)) {
-                                throw new BadRequestException(req, httpResponse);
+                                    && invoked.canThrow(ClientErrorException.class)) {
+                                throw new ClientErrorException(req, httpResponse);
                             }
 
                             throw new UnhandledResponseException(req, httpResponse);
