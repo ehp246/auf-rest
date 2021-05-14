@@ -30,9 +30,8 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.Invocation;
-import me.ehp246.aufrest.api.rest.InvocationAuthProviderMap;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -50,11 +49,11 @@ final class ReqByRest {
     private final Optional<Supplier<String>> proxyAuthSupplier;
     private final String contentType;
     private final String accept;
-    private final InvocationAuthProviderMap methodAuthProviderMap;
+    private final InvocationAuthProviderResolver methodAuthProviderMap;
 
     ReqByRest(final Function<String, String> base, final Duration timeout,
             final Optional<Supplier<String>> proxyAuthSupplier, final String contentType, final String accept,
-            final InvocationAuthProviderMap methodAuthProviderMap) {
+            final InvocationAuthProviderResolver methodAuthProviderMap) {
         super();
         this.uriResolver = base;
         this.timeout = timeout;
@@ -211,11 +210,6 @@ final class ReqByRest {
             @Override
             public BodyReceiver bodyReceiver() {
                 return bodyReceiver;
-            }
-
-            @Override
-            public Invocation invokedOn() {
-                return invoked;
             }
 
             @Override

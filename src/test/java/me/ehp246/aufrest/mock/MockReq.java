@@ -2,7 +2,6 @@ package me.ehp246.aufrest.mock;
 
 import java.util.UUID;
 
-import me.ehp246.aufrest.api.rest.Invocation;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -15,11 +14,6 @@ public class MockReq implements RestRequest {
     @Override
     public String uri() {
         return "http://nowhere.com";
-    }
-
-    @Override
-    public Invocation invokedOn() {
-        return null;
     }
 
 }

@@ -23,11 +23,11 @@ import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
-import me.ehp246.aufrest.api.rest.InvocationAuthProviderMap;
-import me.ehp246.aufrest.api.rest.PlaceholderResolver;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestLogger;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
+import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
@@ -142,7 +142,7 @@ public final class ByRestConfiguration {
     }
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
-    public InvocationAuthProviderMap methodAuthProviderMap(final BeanFactory env) {
+    public InvocationAuthProviderResolver methodAuthProviderMap(final BeanFactory env) {
         return name -> env.getBean(name, InvocationAuthProvider.class);
     }
 }

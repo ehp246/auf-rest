@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.rest;
+package me.ehp246.aufrest.api.spi;
 
 /**
  * @author Lei Yang

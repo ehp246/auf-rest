@@ -23,11 +23,11 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.InvocationAuthProviderMap;
-import me.ehp246.aufrest.api.rest.PlaceholderResolver;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
+import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -42,11 +42,11 @@ public final class ByRestFactory {
     private final PlaceholderResolver phResolver;
     private final RestFnProvider clientProvider;
     private final RestClientConfig clientConfig;
-    private final InvocationAuthProviderMap methodAuthProviderMap;
+    private final InvocationAuthProviderResolver methodAuthProviderMap;
 
     @Autowired
     public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
-            final PlaceholderResolver phResolver, final InvocationAuthProviderMap methodAuthProviderMap) {
+            final PlaceholderResolver phResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
         super();
         this.phResolver = phResolver;
         this.clientProvider = clientProvider;
