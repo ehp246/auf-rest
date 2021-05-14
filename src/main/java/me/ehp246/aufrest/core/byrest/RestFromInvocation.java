@@ -31,40 +31,43 @@ import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.InvokedOn;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
-import me.ehp246.aufrest.core.reflection.ProxyInvoked;
+import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-final class ReqByRest {
+final class RestFromInvocation {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
 
     private final Function<String, String> uriResolver;
     private final Duration timeout;
-    private final Optional<Supplier<String>> localAuthSupplier;
+    private final Optional<Supplier<String>> proxyAuthSupplier;
     private final String contentType;
     private final String accept;
+    private final InvocationAuthProviderResolver methodAuthProviderMap;
 
-    ReqByRest(final Function<String, String> base, final Duration timeout,
-            final Optional<Supplier<String>> localAuthSupplier, final String contentType, final String accept) {
+    RestFromInvocation(final Function<String, String> uriResolver, final InvocationAuthProviderResolver methodAuthProviderMap,
+            final Duration timeout, final Optional<Supplier<String>> proxyAuthSupplier, final String contentType,
+            final String accept) {
         super();
-        this.uriResolver = base;
+        this.uriResolver = uriResolver;
         this.timeout = timeout;
-        this.localAuthSupplier = localAuthSupplier;
+        this.proxyAuthSupplier = proxyAuthSupplier;
         this.contentType = contentType;
         this.accept = accept;
+        this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
     @SuppressWarnings("unchecked")
-    RestRequest from(ProxyInvoked invoked) {
-        final var ofMapping = invoked.findOnMethod(OfMapping.class);
+    RestRequest get(ProxyInvocation invocation) {
+        final var ofMapping = invocation.findOnMethod(OfMapping.class);
 
-        final var pathParams = invoked.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
+        final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
         final var unnamedPathMap = pathParams.get("");
 
         if (unnamedPathMap != null && unnamedPathMap instanceof Map) {
@@ -72,7 +75,7 @@ final class ReqByRest {
                     .forEach(entry -> pathParams.putIfAbsent(entry.getKey(), entry.getValue()));
         }
 
-        final var queryParams = invoked.mapAnnotatedArguments(RequestParam.class, RequestParam::value);
+        final var queryParams = invocation.mapAnnotatedArguments(RequestParam.class, RequestParam::value);
         final var unnamedQueryMap = queryParams.get("");
 
         if (unnamedQueryMap != null && unnamedQueryMap instanceof Map) {
@@ -91,7 +94,7 @@ final class ReqByRest {
                 .buildAndExpand(pathParams).toUriString();
 
         final String method = ofMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
-            final var invokedMethodName = invoked.getMethodName().toUpperCase();
+            final var invokedMethodName = invocation.getMethodName().toUpperCase();
             return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
@@ -99,11 +102,11 @@ final class ReqByRest {
 
         final var contentType = ofMapping.map(OfMapping::contentType).orElse(this.contentType);
 
-        final var payload = invoked.filterPayloadArgs(PARAMETER_ANNOTATIONS);
+        final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
         final var headers = new HashMap<String, List<String>>();
 
-        invoked.streamOfAnnotatedArguments(RequestHeader.class)
+        invocation.streamOfAnnotatedArguments(RequestHeader.class)
                 .forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
                     @Override
                     public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
@@ -136,9 +139,9 @@ final class ReqByRest {
                 });
 
         final var returnTypes = bodyType(Stream
-                .concat(Arrays.stream(new Class<?>[] { invoked.getReturnType() }),
+                .concat(Arrays.stream(new Class<?>[] { invocation.getReturnType() }),
                         Arrays.stream(
-                                invoked.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
+                                invocation.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
                 .collect(Collectors.toList()));
 
         final var bodyReceiver = new BodyReceiver() {
@@ -155,13 +158,15 @@ final class ReqByRest {
 
             @Override
             public List<? extends Annotation> annotations() {
-                return invoked.getMethodDeclaredAnnotations();
+                return invocation.getMethodDeclaredAnnotations();
             }
         };
 
-        final var authSupplier = invoked.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
+        final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
-                .orElse(localAuthSupplier.orElse(null));
+                .orElse(ofMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
+                        .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
+                        .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
 
@@ -205,11 +210,6 @@ final class ReqByRest {
             @Override
             public BodyReceiver bodyReceiver() {
                 return bodyReceiver;
-            }
-
-            @Override
-            public InvokedOn invokedOn() {
-                return invoked;
             }
 
             @Override

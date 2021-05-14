@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +22,11 @@ import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestLogger;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
@@ -120,7 +123,7 @@ public final class ByRestConfiguration {
     }
 
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
-    RestLogger restLogger(final ObjectMapper objectMapper) {
+    public RestLogger restLogger(final ObjectMapper objectMapper) {
         return new RestLogger(objectMapper);
     }
 
@@ -130,11 +133,16 @@ public final class ByRestConfiguration {
     }
 
     @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
-    RequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
+    public RequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
             @Autowired(required = false) final AuthProvider authProvider,
             @Autowired(required = false) final BodyPublisherProvider bodyPublisherProvider,
             @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
         return new DefaultRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, bodyPublisherProvider,
                 requestTimeout);
+    }
+
+    @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
+    public InvocationAuthProviderResolver methodAuthProviderMap(final BeanFactory env) {
+        return name -> env.getBean(name, InvocationAuthProvider.class);
     }
 }

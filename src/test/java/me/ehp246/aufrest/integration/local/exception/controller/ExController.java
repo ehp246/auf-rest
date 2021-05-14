@@ -2,6 +2,7 @@ package me.ehp246.aufrest.integration.local.exception.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -22,5 +23,10 @@ class ExController {
     @GetMapping("/moved")
     @ResponseStatus(HttpStatus.MOVED_PERMANENTLY)
     void getMoved() {
+    }
+
+    @GetMapping("/600")
+    ResponseEntity<?> get600() {
+        return ResponseEntity.status(600).build();
     }
 }

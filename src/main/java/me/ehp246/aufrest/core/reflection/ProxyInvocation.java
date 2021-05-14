@@ -17,14 +17,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import me.ehp246.aufrest.api.spi.InvokedOn;
+import me.ehp246.aufrest.api.spi.Invocation;
 
 /**
  * 
  * @author Lei Yang
  *
  */
-public final class ProxyInvoked implements InvokedOn {
+public final class ProxyInvocation implements Invocation {
     private final Class<?> declaredType;
     private final Object target;
     private final Method method;
@@ -32,7 +32,7 @@ public final class ProxyInvoked implements InvokedOn {
     private final Annotation[][] parameterAnnotations;
     private final List<Class<?>> threws;
 
-    public ProxyInvoked(final Class<?> declaredType, final Object target, final Method method, final Object[] args) {
+    public ProxyInvocation(final Class<?> declaredType, final Object target, final Method method, final Object[] args) {
         this.declaredType = declaredType;
         this.target = target;
         this.method = Objects.requireNonNull(method);
