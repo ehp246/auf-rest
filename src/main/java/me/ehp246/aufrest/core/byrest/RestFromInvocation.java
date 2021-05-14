@@ -40,7 +40,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class ReqByRest {
+final class RestFromInvocation {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
 
@@ -51,11 +51,11 @@ final class ReqByRest {
     private final String accept;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
 
-    ReqByRest(final Function<String, String> base, final Duration timeout,
-            final Optional<Supplier<String>> proxyAuthSupplier, final String contentType, final String accept,
-            final InvocationAuthProviderResolver methodAuthProviderMap) {
+    RestFromInvocation(final Function<String, String> uriResolver, final InvocationAuthProviderResolver methodAuthProviderMap,
+            final Duration timeout, final Optional<Supplier<String>> proxyAuthSupplier, final String contentType,
+            final String accept) {
         super();
-        this.uriResolver = base;
+        this.uriResolver = uriResolver;
         this.timeout = timeout;
         this.proxyAuthSupplier = proxyAuthSupplier;
         this.contentType = contentType;
@@ -64,7 +64,7 @@ final class ReqByRest {
     }
 
     @SuppressWarnings("unchecked")
-    RestRequest from(ProxyInvoked invoked) {
+    RestRequest get(ProxyInvoked invoked) {
         final var ofMapping = invoked.findOnMethod(OfMapping.class);
 
         final var pathParams = invoked.mapAnnotatedArguments(PathVariable.class, PathVariable::value);

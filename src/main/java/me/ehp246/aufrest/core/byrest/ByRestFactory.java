@@ -2,8 +2,6 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
 import java.time.Duration;
@@ -25,7 +23,6 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
@@ -102,82 +99,73 @@ public final class ByRestFactory {
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final var reqByRest = new ReqByRest(path -> phResolver.resolve(byRest.value() + path), timeout,
-                proxyAuthSupplier, byRest.contentType(), byRest.accept(), methodAuthProviderMap);
+        final var restFromInvocation = new RestFromInvocation(path -> phResolver.resolve(byRest.value() + path), methodAuthProviderMap,
+                timeout, proxyAuthSupplier, byRest.contentType(), byRest.accept());
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
-                new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        if (method.getName().equals("toString")) {
-                            return this.toString();
-                        }
-                        if (method.getName().equals("hashCode")) {
-                            return this.hashCode();
-                        }
-                        if (method.getName().equals("equals")) {
-                            return proxy == args[0];
-                        }
-                        if (method.isDefault()) {
-                            return MethodHandles.privateLookupIn(byRestInterface, MethodHandles.lookup())
-                                    .findSpecial(byRestInterface, method.getName(),
-                                            MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
-                                            byRestInterface)
-                                    .bindTo(proxy).invokeWithArguments(args);
-                        }
-
-                        final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
-                        final var req = reqByRest.from(invoked);
-                        final var outcome = RestFnOutcome
-                                .invoke(() -> {
-                                    ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
-                                    try {
-                                        return httpFn.apply(req);
-                                    } finally {
-                                        ThreadContext.remove(HttpUtils.REQUEST_ID);
-                                    }
-                                });
-
-                        return resolveReturn(req, invoked, outcome);
+                (proxy, method, args) -> {
+                    if (method.getName().equals("toString")) {
+                        return this.toString();
+                    }
+                    if (method.getName().equals("hashCode")) {
+                        return this.hashCode();
+                    }
+                    if (method.getName().equals("equals")) {
+                        return proxy == args[0];
+                    }
+                    if (method.isDefault()) {
+                        return MethodHandles.privateLookupIn(byRestInterface, MethodHandles.lookup())
+                                .findSpecial(byRestInterface, method.getName(),
+                                        MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+                                        byRestInterface)
+                                .bindTo(proxy).invokeWithArguments(args);
                     }
 
-                    private Object resolveReturn(RestRequest req, ProxyInvoked invoked, RestFnOutcome outcome)
-                            throws Throwable {
-                        final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(invoked.getThrows());
-
-                        // If the return type is HttpResponse, returns it as is without any processing
-                        // regardless the status code.
-                        if (invoked.canReturn(HttpResponse.class)) {
-                            return httpResponse;
+                    final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
+                    final var req = restFromInvocation.get(invoked);
+                    final var outcome = RestFnOutcome.invoke(() -> {
+                        ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
+                        try {
+                            return httpFn.apply(req);
+                        } finally {
+                            ThreadContext.remove(HttpUtils.REQUEST_ID);
                         }
+                    });
 
-                        if (httpResponse.statusCode() >= 600) {
-                            throw new UnhandledResponseException(req, httpResponse);
-                        }
+                    final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(invoked.getThrows());
 
-                        if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerErrorResponseException.class)) {
-                            throw new ServerErrorResponseException(req, httpResponse);
-                        }
-
-                        if (httpResponse.statusCode() >= 400 && invoked.canThrow(ClientErrorResponseException.class)) {
-                            throw new ClientErrorResponseException(req, httpResponse);
-                        }
-
-                        if (httpResponse.statusCode() >= 300) {
-                            if (invoked.canThrow(RedirectionResponseException.class)) {
-                                throw new RedirectionResponseException(req, httpResponse);
-                            }
-
-                            throw new UnhandledResponseException(req, httpResponse);
-                        }
-
-                        // Discard the response.
-                        if (!invoked.hasReturn()) {
-                            return null;
-                        }
-
-                        return httpResponse.body();
+                    // If the return type is HttpResponse, returns it as is without any processing
+                    // regardless the status code.
+                    if (invoked.canReturn(HttpResponse.class)) {
+                        return httpResponse;
                     }
+
+                    if (httpResponse.statusCode() >= 600) {
+                        throw new UnhandledResponseException(req, httpResponse);
+                    }
+
+                    if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerErrorResponseException.class)) {
+                        throw new ServerErrorResponseException(req, httpResponse);
+                    }
+
+                    if (httpResponse.statusCode() >= 400 && invoked.canThrow(ClientErrorResponseException.class)) {
+                        throw new ClientErrorResponseException(req, httpResponse);
+                    }
+
+                    if (httpResponse.statusCode() >= 300) {
+                        if (invoked.canThrow(RedirectionResponseException.class)) {
+                            throw new RedirectionResponseException(req, httpResponse);
+                        }
+
+                        throw new UnhandledResponseException(req, httpResponse);
+                    }
+
+                    // Discard the response.
+                    if (!invoked.hasReturn()) {
+                        return null;
+                    }
+
+                    return httpResponse.body();
                 });
 
     }
