@@ -1,4 +1,4 @@
-# Auf REST
+# AufREST
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest)
 
