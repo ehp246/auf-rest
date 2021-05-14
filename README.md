@@ -3,7 +3,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest)
 
 ## Introduction
-The framework is aimed at Spring-based applications that need to implement a REST client to some other services/applications. It offers an annotation-driven, declarative implementation approach similar to what Spring Data Repository offers. It abstracts away most underline HTTP/REST concerns by offering a set of annotations and conventions with which the developers declare their intentions at a higher, application level via plain Java interfaces. They don't need to dictate in an imperative way every detail on how a HTTP client should be created, requests sent, responses processed, and exceptions handled. The framework takes care of these chores for the developers so they can focus on application logic. The framework can reduce the code base of an application significantly by replacing commonly-seen HttpClient/RestTemplate-based helper/util classes. These Template and Util classes are largely repetitive, difficult to test, error prone. Because of the interface-centered implementation approach, the framework makes implementing unit tests much easier. There is little need for heavy yet brittle mocking.
+AufREST is aimed at Spring-based applications that need to implement a REST client of other services/applications. It offers an annotation-driven and declarative implementation approach similar to what Spring Data Repository offers. It abstracts away most underline HTTP/REST concerns by offering a set of annotations and conventions with which the developers declare their intentions at an application level via plain Java interfaces. They don't need to dictate in an imperative way every detail on how a HTTP client should be created, requests sent, responses processed, and exceptions handled. The framework takes care of these chores for the developers so they can focus on application logic. The library can reduce the code base of an application significantly by removing commonly-seen HttpClient/RestTemplate-based helper/util classes that are largely repetitive to implement, difficult to test and error prone. Because of the declarative approach based on plain Java interfaces, the library also makes implementing unit tests much easier. It removes the need for heavy and brittle mocking.
 
 ## Quick Start
 
@@ -42,9 +42,9 @@ public class ProxyService {
 }
 ```
 By this point, you have implemented a GET request that
-* has the URL configured by a Spring property
+* has the URL defined by a Spring property
 * takes no parameter
-* returns the response body de-serialized as a Java object
+* returns the response body as a de-serialized Java object
 
 <br>
 The following are a few more examples.
@@ -83,10 +83,10 @@ public interface PutProxy {
 	NewBorn newBorn);
 }
 ```
-For detailed documents, please see project's Wiki.
+For detailed documents, please see the project's Wiki.
 
 ## Dependency
-Auf REST is developed and tested on top of these:
+AufREST is developed and tested on top of these:
 * JDK 11
 * Log4j 2
 * Jackson
@@ -95,11 +95,11 @@ Auf REST is developed and tested on top of these:
 
 It requires the following to run:
 * JDK 11
-* Log4j 2: api
+* Log4j 2
 * Jackson: core and databind
 * Spring: beans, context and web
 
-It does not require Spring Boot. It should work on Spring 4 but it's not been tested.
+It should work on Spring 4 but it's not been tested.
 
 ## Release
 The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
