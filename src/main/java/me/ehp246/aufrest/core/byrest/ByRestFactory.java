@@ -26,6 +26,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -41,19 +42,21 @@ public final class ByRestFactory {
     private final PlaceholderResolver phResolver;
     private final RestFnProvider clientProvider;
     private final RestClientConfig clientConfig;
+    private final InvocationAuthProviderResolver methodAuthProviderMap;
 
     @Autowired
     public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
-            final PlaceholderResolver phResolver) {
+            final PlaceholderResolver phResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
         super();
         this.phResolver = phResolver;
         this.clientProvider = clientProvider;
         this.clientConfig = clientConfig;
+        this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
     public ByRestFactory(final RestFnProvider clientProvider, final PlaceholderResolver phResolver) {
         this(clientProvider, new RestClientConfig() {
-        }, phResolver);
+        }, phResolver, name -> null);
     }
 
     @SuppressWarnings("unchecked")
@@ -70,7 +73,7 @@ public final class ByRestFactory {
                         e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
                 .orElse(null);
 
-        final Optional<Supplier<String>> localAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
+        final Optional<Supplier<String>> proxyAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
             switch (auth.scheme()) {
             case SIMPLE:
                 if (auth.value().length < 1) {
@@ -100,7 +103,7 @@ public final class ByRestFactory {
         final var httpFn = clientProvider.get(clientConfig);
 
         final var reqByRest = new ReqByRest(path -> phResolver.resolve(byRest.value() + path), timeout,
-                localAuthSupplier, byRest.contentType(), byRest.accept());
+                proxyAuthSupplier, byRest.contentType(), byRest.accept(), methodAuthProviderMap);
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {

@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Profile;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
+import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
+import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.mock.Jackson;
 
 /**
@@ -43,5 +45,10 @@ class AppConfig {
         return req -> {
             throw ex;
         };
+    }
+
+    @Bean("passThrough")
+    public InvocationAuthProvider passThrough() {
+        return (invokedOn) -> OneUtil.toString(invokedOn.args().get(0));
     }
 }

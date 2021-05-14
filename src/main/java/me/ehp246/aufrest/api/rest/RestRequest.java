@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.spi.InvokedOn;
-
 /**
  * The abstraction of a REST request that expects a response.
  *
@@ -58,17 +55,6 @@ public interface RestRequest {
     }
 
     default BodyReceiver bodyReceiver() {
-        return null;
-    }
-
-    /**
-     * Specifies the target proxy object that the request is generated from. Most
-     * often the target is a {@link ByRest}-annotated interface. Could be
-     * <code>null</code>.
-     * 
-     * @return
-     */
-    default InvokedOn invokedOn() {
         return null;
     }
 
