@@ -33,7 +33,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
-import me.ehp246.aufrest.core.reflection.ProxyInvoked;
+import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -64,10 +64,10 @@ final class RestFromInvocation {
     }
 
     @SuppressWarnings("unchecked")
-    RestRequest get(ProxyInvoked invoked) {
-        final var ofMapping = invoked.findOnMethod(OfMapping.class);
+    RestRequest get(ProxyInvocation invocation) {
+        final var ofMapping = invocation.findOnMethod(OfMapping.class);
 
-        final var pathParams = invoked.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
+        final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
         final var unnamedPathMap = pathParams.get("");
 
         if (unnamedPathMap != null && unnamedPathMap instanceof Map) {
@@ -75,7 +75,7 @@ final class RestFromInvocation {
                     .forEach(entry -> pathParams.putIfAbsent(entry.getKey(), entry.getValue()));
         }
 
-        final var queryParams = invoked.mapAnnotatedArguments(RequestParam.class, RequestParam::value);
+        final var queryParams = invocation.mapAnnotatedArguments(RequestParam.class, RequestParam::value);
         final var unnamedQueryMap = queryParams.get("");
 
         if (unnamedQueryMap != null && unnamedQueryMap instanceof Map) {
@@ -94,7 +94,7 @@ final class RestFromInvocation {
                 .buildAndExpand(pathParams).toUriString();
 
         final String method = ofMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
-            final var invokedMethodName = invoked.getMethodName().toUpperCase();
+            final var invokedMethodName = invocation.getMethodName().toUpperCase();
             return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
@@ -102,11 +102,11 @@ final class RestFromInvocation {
 
         final var contentType = ofMapping.map(OfMapping::contentType).orElse(this.contentType);
 
-        final var payload = invoked.filterPayloadArgs(PARAMETER_ANNOTATIONS);
+        final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
         final var headers = new HashMap<String, List<String>>();
 
-        invoked.streamOfAnnotatedArguments(RequestHeader.class)
+        invocation.streamOfAnnotatedArguments(RequestHeader.class)
                 .forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
                     @Override
                     public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
@@ -139,9 +139,9 @@ final class RestFromInvocation {
                 });
 
         final var returnTypes = bodyType(Stream
-                .concat(Arrays.stream(new Class<?>[] { invoked.getReturnType() }),
+                .concat(Arrays.stream(new Class<?>[] { invocation.getReturnType() }),
                         Arrays.stream(
-                                invoked.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
+                                invocation.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
                 .collect(Collectors.toList()));
 
         final var bodyReceiver = new BodyReceiver() {
@@ -158,14 +158,14 @@ final class RestFromInvocation {
 
             @Override
             public List<? extends Annotation> annotations() {
-                return invoked.getMethodDeclaredAnnotations();
+                return invocation.getMethodDeclaredAnnotations();
             }
         };
 
-        final var authSupplier = invoked.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
+        final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
                 .orElse(ofMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
-                        .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invoked))
+                        .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
                         .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;

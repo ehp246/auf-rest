@@ -25,7 +25,7 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PlaceholderResolver;
-import me.ehp246.aufrest.core.reflection.ProxyInvoked;
+import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -121,7 +121,7 @@ public final class ByRestFactory {
                                 .bindTo(proxy).invokeWithArguments(args);
                     }
 
-                    final var invoked = new ProxyInvoked(byRestInterface, proxy, method, args);
+                    final var invoked = new ProxyInvocation(byRestInterface, proxy, method, args);
                     final var req = restFromInvocation.get(invoked);
                     final var outcome = RestFnOutcome.invoke(() -> {
                         ThreadContext.put(HttpUtils.REQUEST_ID, req.id());

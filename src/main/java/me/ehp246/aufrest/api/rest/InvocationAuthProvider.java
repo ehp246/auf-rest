@@ -8,5 +8,5 @@ import me.ehp246.aufrest.api.spi.Invocation;
  */
 @FunctionalInterface
 public interface InvocationAuthProvider {
-    String get(Invocation invokedOn);
+    String get(Invocation invocation);
 }
