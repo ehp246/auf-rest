@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -27,7 +26,7 @@ import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
-import me.ehp246.aufrest.api.spi.PlaceholderResolver;
+import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
@@ -128,8 +127,8 @@ public final class ByRestConfiguration {
     }
 
     @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
-    public PlaceholderResolver placeholderResolver(final Environment env) {
-        return env::resolveRequiredPlaceholders;
+    public PropertyResolver propertyResolver(final org.springframework.core.env.PropertyResolver springResolver) {
+        return springResolver::resolveRequiredPlaceholders;
     }
 
     @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")

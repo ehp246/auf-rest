@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
-import me.ehp246.aufrest.api.spi.PlaceholderResolver;
+import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -36,22 +36,22 @@ import me.ehp246.aufrest.core.util.OneUtil;
 public final class ByRestFactory {
     private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
-    private final PlaceholderResolver phResolver;
+    private final PropertyResolver propertyResolver;
     private final RestFnProvider clientProvider;
     private final RestClientConfig clientConfig;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
 
     @Autowired
     public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
-            final PlaceholderResolver phResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
+            final PropertyResolver phResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
         super();
-        this.phResolver = phResolver;
+        this.propertyResolver = phResolver;
         this.clientProvider = clientProvider;
         this.clientConfig = clientConfig;
         this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
-    public ByRestFactory(final RestFnProvider clientProvider, final PlaceholderResolver phResolver) {
+    public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver phResolver) {
         this(clientProvider, new RestClientConfig() {
         }, phResolver, name -> null);
     }
@@ -65,7 +65,7 @@ public final class ByRestFactory {
         // Annotation required.
         final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
 
-        final var timeout = Optional.of(phResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
+        final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
                 .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
                         e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
                 .orElse(null);
@@ -77,19 +77,19 @@ public final class ByRestFactory {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return phResolver.resolve(auth.value()[0])::toString;
+                return propertyResolver.resolve(auth.value()[0])::toString;
             case BASIC:
                 if (auth.value().length < 2) {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return new BasicAuth(phResolver.resolve(auth.value()[0]), phResolver.resolve(auth.value()[1]))::value;
+                return new BasicAuth(propertyResolver.resolve(auth.value()[0]), propertyResolver.resolve(auth.value()[1]))::value;
             case BEARER:
                 if (auth.value().length < 1) {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return new BearerToken(phResolver.resolve(auth.value()[0]))::value;
+                return new BearerToken(propertyResolver.resolve(auth.value()[0]))::value;
             case NONE:
                 return () -> null;
             default:
@@ -99,7 +99,7 @@ public final class ByRestFactory {
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final var restFromInvocation = new RestFromInvocation(path -> phResolver.resolve(byRest.value() + path), methodAuthProviderMap,
+        final var restFromInvocation = new RestFromInvocation(path -> propertyResolver.resolve(byRest.value() + path), methodAuthProviderMap,
                 timeout, proxyAuthSupplier, byRest.contentType(), byRest.accept());
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
