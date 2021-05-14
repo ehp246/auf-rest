@@ -9,7 +9,7 @@ Auf REST is aimed at Spring-based applications that need to implement a REST cli
 
 **Add [Maven dependency](https://mvnrepository.com/artifact/me.ehp246/auf-rest).**
 
-**Enable the framework using `@EnableByRest`.**
+**Enable the library using `@EnableByRest`.**
 
 ```
 @EnableByRest
