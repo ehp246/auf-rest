@@ -2,8 +2,8 @@ package me.ehp246.aufrest.mock;
 
 import java.util.UUID;
 
+import me.ehp246.aufrest.api.rest.Invocation;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.InvokedOn;
 
 /**
  * @author Lei Yang
@@ -18,7 +18,7 @@ public class MockReq implements RestRequest {
     }
 
     @Override
-    public InvokedOn invokedOn() {
+    public Invocation invokedOn() {
         return null;
     }
 

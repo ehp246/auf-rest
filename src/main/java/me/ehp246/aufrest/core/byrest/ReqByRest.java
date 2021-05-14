@@ -30,8 +30,9 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.Invocation;
+import me.ehp246.aufrest.api.rest.InvocationAuthProviderMap;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.InvokedOn;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvoked;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -46,18 +47,21 @@ final class ReqByRest {
 
     private final Function<String, String> uriResolver;
     private final Duration timeout;
-    private final Optional<Supplier<String>> localAuthSupplier;
+    private final Optional<Supplier<String>> proxyAuthSupplier;
     private final String contentType;
     private final String accept;
+    private final InvocationAuthProviderMap methodAuthProviderMap;
 
     ReqByRest(final Function<String, String> base, final Duration timeout,
-            final Optional<Supplier<String>> localAuthSupplier, final String contentType, final String accept) {
+            final Optional<Supplier<String>> proxyAuthSupplier, final String contentType, final String accept,
+            final InvocationAuthProviderMap methodAuthProviderMap) {
         super();
         this.uriResolver = base;
         this.timeout = timeout;
-        this.localAuthSupplier = localAuthSupplier;
+        this.proxyAuthSupplier = proxyAuthSupplier;
         this.contentType = contentType;
         this.accept = accept;
+        this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
     @SuppressWarnings("unchecked")
@@ -161,7 +165,9 @@ final class ReqByRest {
 
         final var authSupplier = invoked.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
-                .orElse(localAuthSupplier.orElse(null));
+                .orElse(ofMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
+                        .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invoked))
+                        .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
 
@@ -208,7 +214,7 @@ final class ReqByRest {
             }
 
             @Override
-            public InvokedOn invokedOn() {
+            public Invocation invokedOn() {
                 return invoked;
             }
 

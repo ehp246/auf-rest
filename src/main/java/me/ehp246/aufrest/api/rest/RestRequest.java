@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.spi.InvokedOn;
 
 /**
  * The abstraction of a REST request that expects a response.
@@ -68,7 +67,7 @@ public interface RestRequest {
      * 
      * @return
      */
-    default InvokedOn invokedOn() {
+    default Invocation invokedOn() {
         return null;
     }
 

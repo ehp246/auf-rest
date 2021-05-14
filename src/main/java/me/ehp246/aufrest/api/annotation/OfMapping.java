@@ -6,7 +6,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 
 /**
  * Instructs the framework on how to construct HTTP requests from method
@@ -18,7 +21,6 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  *
  * @author Lei Yang
  * @since 1.0
- * @version 2.1
  * @see ByRest
  */
 @Retention(RUNTIME)
@@ -53,4 +55,17 @@ public @interface OfMapping {
      * Defines the Accept header. Usually derived by the return type of the method.
      */
     String accept() default HttpUtils.APPLICATION_JSON;
+
+    /**
+     * Defines the name of a Spring bean of {@link InvocationAuthProvider} type that
+     * would provide the Authorization header for the invocations on the method.
+     * <p>
+     * Empty string indicates there is no bean for the method.
+     * <p>
+     * If no bean of the name and the type can be found,
+     * {@link NoSuchBeanDefinitionException} will be thrown at invocation.
+     * 
+     * @return a bean name
+     */
+    String authProvider() default "";
 }

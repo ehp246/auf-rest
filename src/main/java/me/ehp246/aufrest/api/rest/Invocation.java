@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.spi;
+package me.ehp246.aufrest.api.rest;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
  * @since 2.2
  *
  */
-public interface InvokedOn {
+public interface Invocation {
     Class<?> declaredType();
 
     Object target();
