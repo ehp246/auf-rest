@@ -43,9 +43,9 @@ public final class ByRestFactory {
 
     @Autowired
     public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
-            final PropertyResolver phResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
+            final PropertyResolver propertyResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
         super();
-        this.propertyResolver = phResolver;
+        this.propertyResolver = propertyResolver;
         this.clientProvider = clientProvider;
         this.clientConfig = clientConfig;
         this.methodAuthProviderMap = methodAuthProviderMap;
