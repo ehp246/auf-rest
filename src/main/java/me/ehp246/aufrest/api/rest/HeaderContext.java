@@ -141,7 +141,7 @@ public final class HeaderContext {
             return;
         }
 
-        set(name, value);
+        HeaderContext.set(name, value);
     }
 
     /**
