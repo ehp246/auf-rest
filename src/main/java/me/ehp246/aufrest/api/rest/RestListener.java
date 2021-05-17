@@ -9,13 +9,15 @@ import org.springframework.core.annotation.Order;
  * Defines a Spring bean that can receive request/response events. Multiple
  * beans are supported and to be invoked in {@link Order}.
  * <p>
- * AufRest does not suppress any exception on the beans.
+ * Auf REST does not suppress any exception on the beans.
  * 
  * @author Lei Yang
  */
-public interface ByRestListener {
+public interface RestListener {
     /**
-     * AufRest invokes this method just before the request is sent.
+     * Invoked just before the request is sent.
+     * <p>
+     * The default implementation does nothing.
      * 
      * @param httpRequest the HTTP request to be sent
      * @param req         the {@link RestRequest} that initiated the HTTP request
@@ -24,10 +26,12 @@ public interface ByRestListener {
     }
 
     /**
-     * AufRest invokes this method when and only when a HTTP response is received.
-     * The response is passed in regardless the status code.
+     * Invoked when and only when a HTTP response is received. The status code
+     * doesn't matter.
      * <p>
-     * The method will not be invoked if there is an exception and no response.
+     * Only applies when there is a response.
+     * <p>
+     * The default implementation does nothing.
      * 
      * @param httpResponse the HTTP response received
      * @param req          the {@link RestRequest} that initiated the HTTP call
@@ -36,12 +40,13 @@ public interface ByRestListener {
     }
 
     /**
-     * AufRest invokes this method when and only when an Exception is raised while
-     * sending the request. The consumers are invoked right before the exception is
-     * thrown up the call stack. Consumers cann't stop the propagation.
+     * Invoked when and only when a checked exception is raised while sending the
+     * request. The listeners are invoked right before the exception is thrown up
+     * the call stack.
      * <p>
-     * The method will not be invoked if there is no exception and a response is
-     * received regardless the status code.
+     * Only applies when there is a exception.
+     * <p>
+     * The default implementation does nothing.
      * 
      * @param exception
      * @param httpRequest

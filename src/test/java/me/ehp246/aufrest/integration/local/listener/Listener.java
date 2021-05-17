@@ -6,14 +6,14 @@ package me.ehp246.aufrest.integration.local.listener;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import me.ehp246.aufrest.api.rest.ByRestListener;
+import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * @author Lei Yang
  *
  */
-class Listener implements ByRestListener {
+class Listener implements RestListener {
     private final int id;
 
     private HttpRequest httpReq;
