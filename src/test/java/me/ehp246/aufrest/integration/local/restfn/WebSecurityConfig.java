@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        http.authorizeRequests(authorizeRequests -> authorizeRequests.antMatchers("/auth/**").authenticated())
+        http.authorizeRequests(authorizeRequests -> authorizeRequests.antMatchers("/restfn/**").authenticated())
                 .httpBasic();
     }
 
