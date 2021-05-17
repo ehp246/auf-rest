@@ -161,6 +161,25 @@ class HeaderContextTest {
     }
 
     @Test
+    void set_004() {
+        HeaderContext.setIfPresent("traceparent", null);
+
+        Assertions.assertEquals(0, HeaderContext.map().size());
+
+        HeaderContext.setIfPresent("traceparent", "");
+
+        Assertions.assertEquals(0, HeaderContext.map().size());
+
+        HeaderContext.setIfPresent("traceparent", " ");
+
+        Assertions.assertEquals(0, HeaderContext.map().size());
+
+        HeaderContext.setIfPresent("traceparent", "1");
+
+        Assertions.assertEquals(1, HeaderContext.map().size());
+    }
+
+    @Test
     void remove_001() {
         // Should we care?
         Assertions.assertDoesNotThrow(() -> HeaderContext.remove(null));
