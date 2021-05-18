@@ -3,6 +3,7 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -13,11 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestListener;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
@@ -69,7 +70,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             final HttpResponse<Object> httpResponse;
             // Try/catch on send only.
             try {
-                httpResponse = (HttpResponse<Object>) client.send(httpReq, bodyHandlerProvider.get(req));
+                httpResponse = client.send(httpReq,
+                        (BodyHandler<Object>) (req.bodyHandler() == null ? bodyHandlerProvider.get(req)
+                                : req.bodyHandler()));
             } catch (IOException | InterruptedException e) {
                 LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 
