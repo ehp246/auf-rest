@@ -24,7 +24,7 @@ class ClientApplication {
 **Declare an interface using `@ByRest`.**
 
 ```
-@ByRest("${api.base}/get")
+@ByRest("${api.base}")
 public interface GetProxy {
     EchoResponseBody get();
 }
@@ -51,7 +51,7 @@ The following are a few more examples.
 
 **POST a JSON body from an object**
 ```
-@ByRest("${api.base}/post")
+@ByRest("${api.base}")
 public interface PostProxy {
     EchoResponseBody post(NewBorn newBorn);
 }
@@ -59,7 +59,7 @@ public interface PostProxy {
 
 **PATCH with query parameters**
 ```
-@ByRest("${api.base}/patch")
+@ByRest("${api.base}")
 public interface PatchProxy {
     EchoResponseBody patch(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName);
@@ -67,7 +67,7 @@ public interface PatchProxy {
 ```
 **DELETE**
 ```
-@ByRest("${api.base}/delete")
+@ByRest("${api.base}")
 public interface DeleteProxy {
     EchoResponseBody delete(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName);
@@ -76,7 +76,7 @@ public interface DeleteProxy {
 
 **PUT**
 ```
-@ByRest("${api.base}/put")
+@ByRest("${api.base}")
 public interface PutProxy {
     EchoResponseBody put(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName,
