@@ -14,9 +14,9 @@ Auf REST is aimed at Spring-based applications that need to implement a REST cli
 ```
 @EnableByRest
 @SpringBootApplication
-class PostmanApplication {
+class ClientApplication {
     public static void main(final String[] args) {
-        SpringApplication.run(PostmanApplication.class, args);
+        SpringApplication.run(ClientApplication.class, args);
     }
 }
 ```
@@ -24,7 +24,7 @@ class PostmanApplication {
 **Declare an interface using `@ByRest`.**
 
 ```
-@ByRest("${postman.echo.base}/get")
+@ByRest("${api.base}/get")
 public interface GetProxy {
     EchoResponseBody get();
 }
@@ -51,7 +51,7 @@ The following are a few more examples.
 
 **POST a JSON body from an object**
 ```
-@ByRest("${postman.echo.base}/post")
+@ByRest("${api.base}/post")
 public interface PostProxy {
     EchoResponseBody post(NewBorn newBorn);
 }
@@ -59,7 +59,7 @@ public interface PostProxy {
 
 **PATCH with query parameters**
 ```
-@ByRest("${postman.echo.base}/patch")
+@ByRest("${api.base}/patch")
 public interface PatchProxy {
     EchoResponseBody patch(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName);
@@ -67,7 +67,7 @@ public interface PatchProxy {
 ```
 **DELETE**
 ```
-@ByRest("${postman.echo.base}/delete")
+@ByRest("${api.base}/delete")
 public interface DeleteProxy {
     EchoResponseBody delete(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName);
@@ -76,7 +76,7 @@ public interface DeleteProxy {
 
 **PUT**
 ```
-@ByRest("${postman.echo.base}/put")
+@ByRest("${api.base}/put")
 public interface PutProxy {
     EchoResponseBody put(@RequestParam("firstName") String firstName, 
         @RequestParam("lastName") String lastName,
