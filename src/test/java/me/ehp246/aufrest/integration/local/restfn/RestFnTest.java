@@ -64,7 +64,7 @@ class RestFnTest {
 
             @Override
             public String uri() {
-                return "http://localhost:" + port + "/restfn/now";
+                return "http://localhost:" + port + "/restfn/path/1";
             }
 
             @Override
