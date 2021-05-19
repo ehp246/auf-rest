@@ -83,7 +83,8 @@ public final class ByRestConfiguration {
     @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
     public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
         return req -> {
-            if (req.body() == null) {
+            // No content type, no content.
+            if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();
             }
             if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {

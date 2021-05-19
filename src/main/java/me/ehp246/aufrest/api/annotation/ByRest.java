@@ -49,8 +49,14 @@ public @interface ByRest {
 
     /**
      * Defines the content type and appropriate serialization provider.
+     * <p>
+     * The default, empty string, indicates to the framework to infer the
+     * serialization strategy by the request body type.
+     * <p>
+     * For all un-recognized types, the contentType is set to application/json and
+     * body is serialized as JSON.
      */
-    String contentType() default HttpUtils.APPLICATION_JSON;
+    String contentType() default "";
 
     /**
      * Defines the Accept header. Usually derived by the return type of the method.
