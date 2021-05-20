@@ -18,7 +18,7 @@ import me.ehp246.aufrest.integration.model.Person;
  *
  */
 @SuppressWarnings("rawtypes")
-@ByRest("http://localhost:${local.server.port}/returntype/")
+@ByRest("http://localhost:${local.server.port}/json/")
 interface TestCase001 {
     // Body types
 

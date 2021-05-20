@@ -20,8 +20,8 @@ import me.ehp246.aufrest.integration.model.Person;
  *
  */
 @RestController
-@RequestMapping(value = "/returntype", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-class ReturnTypeController {
+@RequestMapping(value = "/json", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+class JsonController {
 
     @GetMapping("instants")
     List<Instant> getInstants(@RequestParam("count") final int count) {
@@ -61,12 +61,18 @@ class ReturnTypeController {
     }
 
     @PostMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE, consumes = "text/plain")
-    String postInstantAsString(@RequestBody final String text) {
+    String postInstantText(@RequestBody final String text) {
         return Instant.parse(text).toString();
     }
 
     @PostMapping(value = "instant", produces = MediaType.TEXT_PLAIN_VALUE, consumes = "application/json")
     String postInstant(@RequestBody final Instant instant) {
         return instant.toString();
+    }
+
+    // XML
+    @GetMapping(value = "instants/xml", produces = MediaType.APPLICATION_XML_VALUE)
+    List<Instant> getInstantsXml(@RequestParam("count") final int count) {
+        return IntStream.range(0, count).mapToObj(i -> Instant.now()).collect(Collectors.toList());
     }
 }

@@ -21,7 +21,6 @@ class TextTest {
     void text_test_001() {
         final var instant = textCase001.get();
 
-        Assertions.assertEquals(true, instant instanceof String);
         Assertions.assertDoesNotThrow(() -> Instant.parse(instant));
     }
 
@@ -31,5 +30,12 @@ class TextTest {
         final var returned = textCase001.post(now);
 
         Assertions.assertEquals(now.toString(), returned);
+    }
+
+    @Test
+    void text_test_003() {
+        final var instant = textCase001.getJson();
+
+        Assertions.assertDoesNotThrow(() -> Instant.parse(instant));
     }
 }

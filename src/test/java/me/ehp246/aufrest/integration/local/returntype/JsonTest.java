@@ -25,7 +25,7 @@ import me.ehp246.aufrest.integration.model.Person;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-class ReturnTypeTest {
+class JsonTest {
     private static Logger LOGGER = LogManager.getLogger();
 
     @Autowired
