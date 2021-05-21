@@ -3,7 +3,6 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -70,9 +69,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             final HttpResponse<Object> httpResponse;
             // Try/catch on send only.
             try {
-                httpResponse = client.send(httpReq,
-                        (BodyHandler<Object>) (req.bodyHandler() == null ? bodyHandlerProvider.get(req)
-                                : req.bodyHandler()));
+                httpResponse = (HttpResponse<Object>) client.send(httpReq, bodyHandlerProvider.get(req));
             } catch (IOException | InterruptedException e) {
                 LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 

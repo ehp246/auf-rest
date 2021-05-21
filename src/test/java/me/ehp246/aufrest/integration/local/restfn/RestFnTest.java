@@ -1,8 +1,5 @@
 package me.ehp246.aufrest.integration.local.restfn;
 
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
@@ -58,41 +55,4 @@ class RestFnTest {
         Assertions.assertEquals(200, response.statusCode());
     }
 
-    @Test
-    void bodyhandler_001() {
-        final var response = restFn.apply(new RestRequest() {
-
-            @Override
-            public String uri() {
-                return "http://localhost:" + port + "/restfn/path/1";
-            }
-
-            @Override
-            public BodyHandler<?> bodyHandler() {
-                return BodyHandlers.discarding();
-            }
-        });
-
-        Assertions.assertEquals(200, response.statusCode());
-        Assertions.assertEquals(null, response.body());
-    }
-
-    @Test
-    void bodyhandler_002() {
-        final var id = UUID.randomUUID().toString();
-        final var response = restFn.apply(new RestRequest() {
-
-            @Override
-            public String uri() {
-                return "http://localhost:" + port + "/restfn/path/" + id;
-            }
-
-            @Override
-            public BodyHandler<?> bodyHandler() {
-                return BodyHandlers.ofString();
-            }
-        });
-
-        Assertions.assertEquals(id, response.body());
-    }
 }

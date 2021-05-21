@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.api.rest;
 
-import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -64,10 +63,6 @@ public interface RestRequest {
     }
 
     default Map<String, List<String>> headers() {
-        return null;
-    }
-
-    default BodyHandler<?> bodyHandler() {
         return null;
     }
 }
