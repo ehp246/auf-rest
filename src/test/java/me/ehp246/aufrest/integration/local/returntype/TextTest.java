@@ -35,7 +35,7 @@ class TextTest {
 
     @Test
     void text_test_003() {
-        Assertions.assertDoesNotThrow(() -> Instant.parse(textCase001.getJson()));
+        Assertions.assertDoesNotThrow(() -> Instant.parse(textCase001.getJson().replace("\"", "")));
     }
 
     @Test

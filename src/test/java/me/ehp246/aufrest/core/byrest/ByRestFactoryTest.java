@@ -2,6 +2,7 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +19,14 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.exception.UnassignableResponseBody;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase001;
+import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang
@@ -517,6 +520,13 @@ class ByRestFactoryTest {
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
 
         Assertions.assertEquals(toBeThrown, thrown);
+    }
+
+    @Test
+    void exception_005() {
+        Assertions.assertThrows(UnassignableResponseBody.class,
+                new ByRestFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
+                        .newInstance(ExCase001.class)::post);
     }
 
     @Test

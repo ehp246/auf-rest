@@ -17,6 +17,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.UnassignableResponseBody;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
@@ -51,9 +52,14 @@ public final class ByRestFactory {
         this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
-    public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver phResolver) {
+    public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
         this(clientProvider, new RestClientConfig() {
-        }, phResolver, name -> null);
+        }, propertyResolver, name -> null);
+    }
+
+    public ByRestFactory(final RestFnProvider clientProvider) {
+        this(clientProvider, new RestClientConfig() {
+        }, s -> s, name -> null);
     }
 
     @SuppressWarnings("unchecked")
@@ -165,7 +171,12 @@ public final class ByRestFactory {
                         return null;
                     }
 
-                    return httpResponse.body();
+                    final var body = httpResponse.body();
+                    if (!invoked.canReturn(body.getClass())) {
+                        throw new UnassignableResponseBody(invoked.getReturnType().getClass(),
+                                body.getClass());
+                    }
+                    return body;
                 });
 
     }
