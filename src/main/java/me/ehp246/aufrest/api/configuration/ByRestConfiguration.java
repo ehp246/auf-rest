@@ -106,6 +106,10 @@ public final class ByRestConfiguration {
                 return BodyHandlers.discarding();
             }
 
+            if (type.isAssignableFrom(String.class)) {
+                return BodyHandlers.ofString();
+            }
+
             return responseInfo -> {
                 // The server might not set the header. Treat it as text?
                 final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")

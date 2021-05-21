@@ -2,6 +2,8 @@ package me.ehp246.aufrest.integration.local.returntype;
 
 import java.time.Instant;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -14,8 +16,11 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @ByRest("http://localhost:${local.server.port}/json/")
 interface TextTestCase001 {
-    @OfMapping(value = "instant")
+    @OfMapping("instant")
     String getJson();
+
+    @OfMapping("person")
+    String getPerson(@RequestParam("name") String name);
 
     @OfMapping(value = "instant", accept = HttpUtils.TEXT_PLAIN)
     String get();
