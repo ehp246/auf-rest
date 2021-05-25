@@ -1,10 +1,10 @@
 /**
  * 
  */
-package me.ehp246.aufrest.integration.local.xml;
+package me.ehp246.aufrest.integration.local.returntype;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -17,21 +17,16 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  * @author Lei Yang
  *
  */
-@Disabled
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class XmlTest {
     @Autowired
-    private TestCase001 case001;
+    private XmlTestCase001 case001;
 
+    @Disabled
     @Test
     void test_001() {
         final var count = (int) (Math.random() * 10);
-        List<Instant> instants;
-        try {
-            instants = case001.get001(count);
-        } catch (final Exception e) {
-            throw e;
-        }
+        final var instants = case001.get001(count);
 
         Assertions.assertEquals(count, instants.size());
 
@@ -39,11 +34,23 @@ class XmlTest {
     }
 
     @Test
-    void test_008() {
-        try {
-            case001.get008();
-        } catch (final Exception e) {
-            throw e;
-        }
+    void test_002() {
+        final var count = (int) (Math.random() * 10);
+        final var xml = case001.get006(count);
+
+        Assertions.assertEquals(true, xml.length() > 10);
+    }
+
+    @Test
+    void test_003() {
+        final var text = UUID.randomUUID().toString();
+
+        Assertions.assertEquals(text, case001.getText(text));
+    }
+
+    @Test
+    void test_004() {
+        final var text = UUID.randomUUID().toString();
+        Assertions.assertEquals(true, case001.getPerson(text).contains(text));
     }
 }

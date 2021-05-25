@@ -24,6 +24,8 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
+import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
@@ -81,7 +83,8 @@ public final class ByRestConfiguration {
     @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
     public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
         return req -> {
-            if (req.body() == null) {
+            // No content type, no content.
+            if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();
             }
             if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
@@ -101,6 +104,10 @@ public final class ByRestConfiguration {
 
             if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
                 return BodyHandlers.discarding();
+            }
+
+            if (type.isAssignableFrom(String.class)) {
+                return BodyHandlers.ofString();
             }
 
             return responseInfo -> {
@@ -143,5 +150,10 @@ public final class ByRestConfiguration {
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
     public InvocationAuthProviderResolver methodAuthProviderMap(final BeanFactory env) {
         return name -> env.getBean(name, InvocationAuthProvider.class);
+    }
+
+    @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")
+    public RestFn restFn(final RestFnProvider restFnProvider, final RestClientConfig clientConfig) {
+        return restFnProvider.get(clientConfig);
     }
 }

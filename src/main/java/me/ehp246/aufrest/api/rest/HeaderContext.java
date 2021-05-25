@@ -101,7 +101,7 @@ public final class HeaderContext {
     }
 
     /**
-     * Sets the header to the specified value. All existing values are removed.
+     * Set the header to the specified value. All existing values are removed.
      *
      * @param name  Can not be <code>null</code>.
      * @param value Can not be <code>null</code>.
@@ -126,6 +126,22 @@ public final class HeaderContext {
     public static void set(final Map<String, List<String>> headers) {
         clear();
         merge(headers);
+    }
+
+    /**
+     * Set the header to the value if it is non-blank and non-null. Otherwise, do
+     * nothing.
+     * 
+     * @param name  header name
+     * @param value header value. <code>null</code> and non-blank values are
+     *              ignored.
+     */
+    public static void setIfPresent(final String name, final String value) {
+        if (!OneUtil.hasValue(value)) {
+            return;
+        }
+
+        HeaderContext.set(name, value);
     }
 
     /**

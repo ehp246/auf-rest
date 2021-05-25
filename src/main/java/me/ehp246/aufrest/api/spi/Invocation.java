@@ -12,12 +12,6 @@ import java.util.List;
  */
 public interface Invocation {
     /**
-     * The type where the method is declared.
-     * 
-     */
-    Class<?> declaredType();
-
-    /**
      * The object on which the invocation is made.
      * 
      */

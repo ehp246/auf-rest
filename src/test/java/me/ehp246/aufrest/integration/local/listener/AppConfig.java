@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.ByRestListener;
+import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.Jackson;
@@ -37,8 +37,8 @@ class AppConfig {
 
     @Bean
     @Profile("listenerEx")
-    ByRestListener listenerEx() {
-        return new ByRestListener() {
+    RestListener listenerEx() {
+        return new RestListener() {
 
             @Override
             public void onRequest(HttpRequest httpRequest, RestRequest req) {

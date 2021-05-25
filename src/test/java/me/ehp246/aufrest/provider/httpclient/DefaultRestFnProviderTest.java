@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.ByRestListener;
+import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -90,7 +90,7 @@ class DefaultRestFnProviderTest {
         final var map = new HashMap<>();
         final var clientBuilderSupplier = new MockClientBuilderSupplier();
 
-        final var obs = List.of(new ByRestListener() {
+        final var obs = List.of(new RestListener() {
 
             @Override
             public void onRequest(HttpRequest httpRequest, RestRequest req) {
@@ -98,7 +98,7 @@ class DefaultRestFnProviderTest {
                 map.put("2", req);
             }
 
-        }, new ByRestListener() {
+        }, new RestListener() {
 
             @Override
             public void onRequest(HttpRequest httpRequest, RestRequest req) {
@@ -128,7 +128,7 @@ class DefaultRestFnProviderTest {
         Exception ex = null;
         try {
             new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder,
-                    List.of(new ByRestListener() {
+                    List.of(new RestListener() {
 
                         @Override
                         public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
@@ -157,7 +157,7 @@ class DefaultRestFnProviderTest {
         Exception ex = null;
         try {
             new DefaultRestFnProvider(new MockClientBuilderSupplier(orig)::builder, reqBuilder,
-                    List.of(new ByRestListener() {
+                    List.of(new RestListener() {
 
                         @Override
                         public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
@@ -184,7 +184,7 @@ class DefaultRestFnProviderTest {
         Exception ex = null;
         try {
             new DefaultRestFnProvider(new MockClientBuilderSupplier()::builder, reqBuilder,
-                    List.of(new ByRestListener() {
+                    List.of(new RestListener() {
 
                         @Override
                         public void onRequest(HttpRequest httpRequest, RestRequest req) {

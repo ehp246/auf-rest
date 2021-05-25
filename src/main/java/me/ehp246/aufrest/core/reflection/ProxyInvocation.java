@@ -25,15 +25,16 @@ import me.ehp246.aufrest.api.spi.Invocation;
  *
  */
 public final class ProxyInvocation implements Invocation {
-    private final Class<?> declaredType;
+    private final Class<?> declaringType;
     private final Object target;
     private final Method method;
     private final List<?> args;
     private final Annotation[][] parameterAnnotations;
     private final List<Class<?>> threws;
 
-    public ProxyInvocation(final Class<?> declaredType, final Object target, final Method method, final Object[] args) {
-        this.declaredType = declaredType;
+    public ProxyInvocation(final Class<?> declaringType, final Object target, final Method method,
+            final Object[] args) {
+        this.declaringType = declaringType;
         this.target = target;
         this.method = Objects.requireNonNull(method);
         this.args = Collections.unmodifiableList(args == null ? new ArrayList<Object>() : Arrays.asList(args));
@@ -41,9 +42,8 @@ public final class ProxyInvocation implements Invocation {
         this.threws = List.of(this.method.getExceptionTypes());
     }
 
-    @Override
-    public Class<?> declaredType() {
-        return this.declaredType;
+    public Class<?> declaringType() {
+        return this.declaringType;
     }
 
     @Override

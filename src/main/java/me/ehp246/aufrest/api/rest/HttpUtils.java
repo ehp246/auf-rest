@@ -22,6 +22,7 @@ public final class HttpUtils {
     public final static String CONTENT_TYPE = "content-type";
     public final static String ACCEPT = "accept";
     public static final String REQUEST_ID = "x-aufrest-request-id";
+    public static final String TRACEPARENT = "traceparent";
 
     public final static String BEARER = "Bearer";
     public final static String BASIC = "Basic";

@@ -13,4 +13,6 @@ interface ExCase001 {
     void get();
 
     void delete() throws IOException, InterruptedException;
+
+    String post();
 }

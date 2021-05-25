@@ -1,8 +1,14 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +47,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 final class RestFromInvocation {
+    private final static String BOUNDARY = "b06e7433-8dd0-43fe-982c-f33a18a871f1";
+
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
 
@@ -51,9 +59,9 @@ final class RestFromInvocation {
     private final String accept;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
 
-    RestFromInvocation(final Function<String, String> uriResolver, final InvocationAuthProviderResolver methodAuthProviderMap,
-            final Duration timeout, final Optional<Supplier<String>> proxyAuthSupplier, final String contentType,
-            final String accept) {
+    RestFromInvocation(final Function<String, String> uriResolver,
+            final InvocationAuthProviderResolver methodAuthProviderMap, final Duration timeout,
+            final Optional<Supplier<String>> proxyAuthSupplier, final String contentType, final String accept) {
         super();
         this.uriResolver = uriResolver;
         this.timeout = timeout;
@@ -99,8 +107,6 @@ final class RestFromInvocation {
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
         final var accept = ofMapping.map(OfMapping::accept).orElse(this.accept);
-
-        final var contentType = ofMapping.map(OfMapping::contentType).orElse(this.contentType);
 
         final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
@@ -169,6 +175,12 @@ final class RestFromInvocation {
                         .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
+        final var contentType = Optional.of(ofMapping.map(OfMapping::contentType).orElse(this.contentType))
+                .filter(OneUtil::hasValue).orElseGet(() -> {
+                    // TODO: Determine content type by the body type.
+                    // Defaults to JSON.
+                    return HttpUtils.APPLICATION_JSON;
+                });
 
         return new RestRequest() {
 
@@ -222,6 +234,22 @@ final class RestFromInvocation {
                 return headers;
             }
         };
+    }
+
+    private static BodyPublisher ofMimeMultipartData(Path path) throws IOException {
+        final var byteArrays = new ArrayList<byte[]>();
+        final var mimeType = Files.probeContentType(path);
+
+        byteArrays
+                .add(("--" + BOUNDARY + "\r\nContent-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8));
+
+        byteArrays.add(("\"file\"; filename=\"" + path.getFileName() + "\"\r\nContent-Type: "
+                + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(Files.readAllBytes(path));
+        byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(("--" + BOUNDARY + "--").getBytes(StandardCharsets.UTF_8));
+
+        return BodyPublishers.ofByteArrays(byteArrays);
     }
 
     private static List<Class<?>> bodyType(final List<Class<?>> types) {

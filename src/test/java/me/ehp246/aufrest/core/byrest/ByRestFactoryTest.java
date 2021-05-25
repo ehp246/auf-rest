@@ -2,6 +2,7 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +19,14 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.exception.UnassignableResponseBody;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.Invocation;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase001;
+import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang
@@ -514,5 +520,31 @@ class ByRestFactoryTest {
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
 
         Assertions.assertEquals(toBeThrown, thrown);
+    }
+
+    @Test
+    void exception_005() {
+        Assertions.assertThrows(UnassignableResponseBody.class,
+                new ByRestFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
+                        .newInstance(ExCase001.class)::post);
+    }
+
+    @Test
+    void invocationAuth_001() {
+        final var invocationHolder = new Invocation[1];
+        final var auth = UUID.randomUUID().toString();
+        final var newInstance = new ByRestFactory(cfg -> client, new RestClientConfig() {
+        }, env::resolveRequiredPlaceholders, name -> invocation -> {
+            invocationHolder[0] = invocation;
+            return auth;
+        }).newInstance(InvocationAuthCase001.class);
+
+        newInstance.getOnInvocation();
+
+        Assertions.assertEquals(auth, reqRef.get().authSupplier().get());
+        final var invocation = invocationHolder[0];
+        Assertions.assertEquals(InvocationAuthCase001.class, invocation.method().getDeclaringClass());
+        Assertions.assertEquals(true, newInstance == invocation.target());
+        Assertions.assertEquals(0, invocation.args().size());
     }
 }

@@ -49,7 +49,7 @@ public @interface OfMapping {
     /**
      * Defines the content type and appropriate serialization provider.
      */
-    String contentType() default HttpUtils.APPLICATION_JSON;
+    String contentType() default "";
 
     /**
      * Defines the Accept header. Usually derived by the return type of the method.
