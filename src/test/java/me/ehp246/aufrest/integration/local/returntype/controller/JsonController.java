@@ -70,9 +70,8 @@ class JsonController {
         return instant.toString();
     }
 
-    // XML
-    @GetMapping(value = "instants/xml", produces = MediaType.APPLICATION_XML_VALUE)
-    List<Instant> getInstantsXml(@RequestParam("count") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> Instant.now()).collect(Collectors.toList());
+    @GetMapping("null")
+    Person getNull() {
+        return null;
     }
 }

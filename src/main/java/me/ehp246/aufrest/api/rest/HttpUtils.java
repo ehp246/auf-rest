@@ -20,6 +20,7 @@ public final class HttpUtils {
     // Headers
     public final static String AUTHORIZATION = "authorization";
     public final static String CONTENT_TYPE = "content-type";
+    public final static String CONTENT_LENGTH = "content-length";
     public final static String ACCEPT = "accept";
     public static final String REQUEST_ID = "x-aufrest-request-id";
     public static final String TRACEPARENT = "traceparent";

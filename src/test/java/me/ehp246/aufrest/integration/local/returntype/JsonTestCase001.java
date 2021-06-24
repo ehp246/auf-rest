@@ -19,9 +19,7 @@ import me.ehp246.aufrest.integration.model.Person;
  */
 @SuppressWarnings("rawtypes")
 @ByRest("http://localhost:${local.server.port}/json/")
-interface TestCase001 {
-    // Body types
-
+interface JsonTestCase001 {
     @OfMapping("instants")
     @Reifying(Instant.class)
     List<Instant> get001(@RequestParam("count") int count);
@@ -32,6 +30,9 @@ interface TestCase001 {
 
     @OfMapping("person")
     Person get007();
+
+    @OfMapping("null")
+    Person getNull();
 
     @OfMapping("persons")
     @Reifying(Person.class)

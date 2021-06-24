@@ -1,7 +1,5 @@
 package me.ehp246.aufrest.integration.local.timeout;
 
-import java.net.http.HttpTimeoutException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +19,7 @@ class GlobalResponseTimeoutTest {
 
     @Test
     void test_001() {
-        final var cause = Assertions.assertThrows(Exception.class, case001::get).getCause();
-
-        Assertions.assertEquals(true, cause instanceof HttpTimeoutException);
+        Assertions.assertThrows(Exception.class, case001::get);
     }
 
 }

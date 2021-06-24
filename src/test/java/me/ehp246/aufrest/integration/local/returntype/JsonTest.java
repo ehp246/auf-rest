@@ -32,7 +32,7 @@ class JsonTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private TestCase001 case001;
+    private JsonTestCase001 case001;
 
     @Test
     void test_001() {
@@ -132,6 +132,11 @@ class JsonTest {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    @Test
+    void test_007() {
+        Assertions.assertEquals(null, case001.getNull());
     }
 
     @SuppressWarnings("unchecked")

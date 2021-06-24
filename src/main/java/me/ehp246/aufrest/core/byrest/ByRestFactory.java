@@ -172,7 +172,7 @@ public final class ByRestFactory {
                     }
 
                     final var body = httpResponse.body();
-                    if (!invoked.canReturn(body.getClass())) {
+                    if (body != null && !invoked.canReturn(body.getClass())) {
                         throw new UnassignableResponseBody(invoked.getReturnType().getClass(),
                                 body.getClass());
                     }
