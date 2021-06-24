@@ -110,14 +110,18 @@ public final class ByRestConfiguration {
                 return BodyHandlers.ofString();
             }
 
-            // Complex type
+            // Declared return type requires de-serialization.
             return responseInfo -> {
-                // The server might not set the header. Defaults to JSON.
+                // The server might not set the header. Assuming JSON.
                 final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
                         .orElse(HttpUtils.APPLICATION_JSON)
                         .toLowerCase();
                 // Default to UTF-8 text
                 return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                    if (responseInfo.statusCode() == 204) {
+                        return null;
+                    }
+
                     if (responseInfo.statusCode() >= 300) {
                         return text;
                     }

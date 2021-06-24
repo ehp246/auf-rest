@@ -204,4 +204,9 @@ class JsonTest {
 
         list.forEach(person -> Assertions.assertEquals(true, person instanceof Person));
     }
+
+    @Test
+    void status_204_001() {
+        Assertions.assertEquals(null, case001.getStatus204());
+    }
 }

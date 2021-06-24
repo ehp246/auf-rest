@@ -34,6 +34,9 @@ interface JsonTestCase001 {
     @OfMapping("null")
     Person getNull();
 
+    @OfMapping("204")
+    Person getStatus204();
+
     @OfMapping("persons")
     @Reifying(Person.class)
     List<Person> get008();

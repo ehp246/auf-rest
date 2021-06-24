@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,5 +75,10 @@ class JsonController {
     @GetMapping("null")
     Person getNull() {
         return null;
+    }
+
+    @GetMapping("204")
+    ResponseEntity<Person> get204() {
+        return new ResponseEntity<Person>(HttpStatus.NO_CONTENT);
     }
 }
