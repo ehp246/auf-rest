@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
@@ -30,6 +31,9 @@ interface JsonTestCase001 {
 
     @OfMapping("person")
     Person get007();
+
+    @OfMapping("person")
+    Person getZip(@RequestHeader("accept-encoding") String acceptEncoding);
 
     @OfMapping("null")
     Person getNull();

@@ -209,4 +209,16 @@ class JsonTest {
     void status_204_001() {
         Assertions.assertEquals(null, case001.getStatus204());
     }
+
+    @Test
+    void zip_001() {
+        final var person = case001.getZip(null);
+        Assertions.assertEquals(true, person.getDob() != null);
+    }
+
+    @Test
+    void zip_002() {
+        final var person = case001.getZip("gzip");
+        Assertions.assertEquals(true, person.getDob() != null);
+    }
 }

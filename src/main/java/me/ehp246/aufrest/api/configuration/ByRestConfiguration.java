@@ -1,5 +1,8 @@
 package me.ehp246.aufrest.api.configuration;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -7,12 +10,15 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.zip.GZIPInputStream;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -112,12 +118,18 @@ public final class ByRestConfiguration {
 
             // Declared return type requires de-serialization.
             return responseInfo -> {
-                // The server might not set the header. Assuming JSON.
-                final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
-                        .orElse(HttpUtils.APPLICATION_JSON)
-                        .toLowerCase();
-                // Default to UTF-8 text
-                return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                final var encoding = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("");
+
+                return BodySubscribers.mapping(BodySubscribers.ofInputStream(), bodyIs -> {
+                    final String text;
+                    try (final var is = encoding.equalsIgnoreCase("gzip") ? new GZIPInputStream(bodyIs) : new BufferedInputStream(bodyIs);
+                            final var byteOs = new ByteArrayOutputStream()) {
+                        is.transferTo(byteOs);
+                        text = byteOs.toString(StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     if (responseInfo.statusCode() == 204) {
                         return null;
                     }
@@ -126,6 +138,9 @@ public final class ByRestConfiguration {
                         return text;
                     }
 
+                    // The server might not set the header. Assuming JSON.
+                    final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
+                            .orElse(MediaType.APPLICATION_JSON_VALUE).toLowerCase();
                     if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
                         return jacksonFn.fromJson(text, receiver);
                     }
