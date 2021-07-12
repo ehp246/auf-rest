@@ -218,7 +218,6 @@ class JsonTest {
 
     @Test
     void zip_002() {
-        final var person = case001.getZip("gzip");
-        Assertions.assertEquals(true, person.getDob() != null);
+        Assertions.assertThrows(Exception.class, () -> case001.getZip("gzip"), "should not allow overwrite");
     }
 }

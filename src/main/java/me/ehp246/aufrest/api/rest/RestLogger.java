@@ -12,8 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.core.util.OneUtil;
-
 /**
  * @author Lei Yang
  *
@@ -63,6 +61,10 @@ public final class RestLogger implements RestListener {
                 + httpResponse.statusCode());
 
         LOGGER.atTrace().log(httpResponse.headers().map());
-        LOGGER.atTrace().log(OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(httpResponse.body())));
+        try {
+            LOGGER.atTrace().log(this.objectMapper.writeValueAsString(httpResponse.body()));
+        } catch (Exception e) {
+            LOGGER.atError().log("Failed to log response body: " + e.getMessage());
+        }
     }
 }

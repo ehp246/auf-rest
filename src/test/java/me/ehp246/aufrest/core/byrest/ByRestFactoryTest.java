@@ -225,8 +225,23 @@ class ByRestFactoryTest {
     }
 
     @Test
+    void acceptGzip_001() {
+        factory.newInstance(RequestHeaderTestCase001.class).get("1234");
+
+        Assertions.assertTrue(reqRef.get().headers().get("accept-encoding").get(0).equalsIgnoreCase("gzip"),
+                "should have the value");
+    }
+
+    @Test
+    void acceptGzip_002() {
+        factory.newInstance(RequestHeaderTestCase001.AcceptGZipTestCase002.class).get();
+
+        Assertions.assertTrue(reqRef.get().headers().get("accept-encoding") == null, "should have not the value");
+    }
+
+    @Test
     void header_001() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
         newInstance.get("1234");
 
         Assertions.assertEquals("1234", reqRef.get().headers().get("x-correl-id").get(0), "should have the value");
@@ -241,21 +256,21 @@ class ByRestFactoryTest {
 
         newInstance.get((String) null);
 
-        Assertions.assertEquals(0, reqRef.get().headers().size());
-    }
-
-    @Test
-    void header_002() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
-
-        newInstance.getBlank("1234");
-
         Assertions.assertEquals(1, reqRef.get().headers().size());
     }
 
     @Test
+    void header_002() {
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+
+        newInstance.getBlank("1234");
+
+        Assertions.assertEquals(2, reqRef.get().headers().size());
+    }
+
+    @Test
     void header_003() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         final var uuid = UUID.randomUUID();
 
@@ -267,32 +282,32 @@ class ByRestFactoryTest {
 
     @Test
     void header_004() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.getRepeated("1", "2");
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(1, headers.size());
+        Assertions.assertEquals(2, headers.size());
         Assertions.assertEquals(2, headers.get("x-correl-id").size(), "should concate");
     }
 
     @Test
     void header_005() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.getMultiple("1", "2");
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(2, headers.size(), "should have both");
+        Assertions.assertEquals(3, headers.size(), "should have both");
         Assertions.assertEquals("1", headers.get("x-span-id").get(0));
         Assertions.assertEquals("2", headers.get("x-trace-id").get(0));
     }
 
     @Test
     void header_006() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.get(List.of("CN", "EN", "   "));
 
@@ -306,72 +321,72 @@ class ByRestFactoryTest {
 
     @Test
     void header_007() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.get(Map.of("CN", "EN", "   ", ""));
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(2, headers.size(), "should have two headers");
+        Assertions.assertEquals(3, headers.size(), "should have two headers");
         Assertions.assertEquals(1, headers.get("CN").size());
         Assertions.assertEquals(1, headers.get("   ").size());
     }
 
     @Test
     void header_008() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), "uuid");
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(2, headers.size(), "should have two headers");
+        Assertions.assertEquals(true, headers.size() >= 2, "should have two headers at minimum");
         Assertions.assertEquals(2, headers.get("x-correl-id").size(), "should concate all values");
         Assertions.assertEquals(1, headers.get("accept-language").size());
     }
 
     @Test
     void header_009() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.get(CollectionUtils
                 .toMultiValueMap(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid"))));
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(2, headers.size(), "should have two headers");
+        Assertions.assertEquals(true, headers.size() >= 2, "should have two headers");
         Assertions.assertEquals(1, headers.get("x-correl-id").size());
         Assertions.assertEquals(2, headers.get("accept-language").size());
     }
 
     @Test
     void header_010() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.getMapOfList(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid")));
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(2, headers.size());
+        Assertions.assertEquals(true, headers.size() >= 2);
         Assertions.assertEquals(1, headers.get("x-correl-id").size());
         Assertions.assertEquals(2, headers.get("accept-language").size());
     }
 
     @Test
     void header_011() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.getListOfList(List.of(List.of("DE"), List.of("CN", "EN"), List.of("JP")));
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(1, headers.size());
+        Assertions.assertEquals(true, headers.size() >= 1);
         Assertions.assertEquals(4, headers.get("accept-language").size());
     }
 
     @Test
     void header_012() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         final var nullList = new ArrayList<String>();
         nullList.add("EN");
@@ -382,19 +397,19 @@ class ByRestFactoryTest {
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(1, headers.size(), "should filter out all nulls");
+        Assertions.assertTrue(headers.size() >= 1, "should filter out all nulls");
         Assertions.assertEquals(4, headers.get("accept-language").size());
     }
 
     @Test
     void header_013() {
-        final var newInstance = factory.newInstance(RequestHeaderSpec001.class);
+        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
 
         newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), null);
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(2, headers.size(), "should have two headers");
+        Assertions.assertTrue(headers.size() >= 2, "should have two headers");
         Assertions.assertEquals(1, headers.get("x-correl-id").size(), "should filter out nulls");
         Assertions.assertEquals(1, headers.get("accept-language").size());
     }

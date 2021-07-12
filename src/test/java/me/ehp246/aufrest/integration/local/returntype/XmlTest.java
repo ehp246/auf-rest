@@ -35,7 +35,7 @@ class XmlTest {
 
     @Test
     void test_002() {
-        final var count = (int) (Math.random() * 10);
+        final var count = (int) (Math.random() * 10) + 10;
         final var xml = case001.get006(count);
 
         Assertions.assertEquals(true, xml.length() > 10);
