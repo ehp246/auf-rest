@@ -33,8 +33,20 @@ class StreamTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void json_001() throws JsonParseException, JsonMappingException, IOException {
+    void stream_001() throws JsonParseException, JsonMappingException, IOException {
         final var in = case001.get("Jon Snow");
+
+        Assertions.assertTrue(in instanceof GZIPInputStream);
+
+        final var person = objectMapper.readValue(in, Person.class);
+
+        Assertions.assertTrue(person.getName().equals("Jon Snow"));
+        Assertions.assertTrue(person.getDob() instanceof Instant);
+    }
+
+    @Test
+    void stream_002() throws JsonParseException, JsonMappingException, IOException {
+        final var in = case001.get002("Jon Snow").body();
 
         Assertions.assertTrue(in instanceof GZIPInputStream);
 
