@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.integration.local.stream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.zip.GZIPInputStream;
@@ -53,5 +54,11 @@ class StreamTest {
 
         Assertions.assertTrue(person.getName().equals("Jon Snow"));
         Assertions.assertTrue(person.getDob() instanceof Instant);
+    }
+
+    @Test
+    void json_003() {
+        final var count = (int) (Math.random() * 100);
+        Assertions.assertTrue(case001.post(new ByteArrayInputStream(new byte[count])) == count);
     }
 }

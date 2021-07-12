@@ -19,7 +19,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.exception.UnassignableResponseBody;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -539,7 +538,7 @@ class ByRestFactoryTest {
 
     @Test
     void exception_005() {
-        Assertions.assertThrows(UnassignableResponseBody.class,
+        Assertions.assertThrows(Exception.class,
                 new ByRestFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
                         .newInstance(ExCase001.class)::post);
     }

@@ -20,7 +20,7 @@ import me.ehp246.aufrest.integration.model.Person;
  */
 @SuppressWarnings("rawtypes")
 @ByRest("http://localhost:${local.server.port}/json/")
-interface JsonTestCase001 {
+interface JsonCase001 {
     @OfMapping("instants")
     @Reifying(Instant.class)
     List<Instant> get001(@RequestParam("count") int count);
@@ -37,6 +37,12 @@ interface JsonTestCase001 {
 
     @OfMapping("null")
     Person getNull();
+
+    @OfMapping("double")
+    double getDouble001();
+
+    @OfMapping("double")
+    Double getDouble002();
 
     @OfMapping("204")
     Person getStatus204();

@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
@@ -51,6 +52,17 @@ public final class RestLogger implements RestListener {
     public void onRequest(final HttpRequest httpRequest, final RestRequest request) {
         LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
         LOGGER.atTrace().log(httpRequest.headers().map());
+
+        if (request.body() == null) {
+            LOGGER.atTrace().log("");
+            return;
+        }
+
+        // Skip it.
+        if (request.body() instanceof InputStream) {
+            LOGGER.atTrace().log(request.body());
+            return;
+        }
 
         httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
     }

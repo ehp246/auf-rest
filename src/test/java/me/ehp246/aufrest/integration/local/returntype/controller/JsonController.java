@@ -88,6 +88,11 @@ class JsonController {
         return null;
     }
 
+    @GetMapping("double")
+    double getDouble() {
+        return Math.random() + 1;
+    }
+
     @GetMapping("204")
     ResponseEntity<Person> get204() {
         return new ResponseEntity<Person>(HttpStatus.NO_CONTENT);

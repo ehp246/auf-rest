@@ -91,6 +91,11 @@ public final class ByRestConfiguration {
     @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
     public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
         return req -> {
+            // Short-circuit for InputStream
+            if (req.body() instanceof InputStream) {
+                return BodyPublishers.ofInputStream(() -> (InputStream) req.body());
+            }
+
             // No content type, no content.
             if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();

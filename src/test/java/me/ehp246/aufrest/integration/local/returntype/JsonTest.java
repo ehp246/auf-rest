@@ -32,7 +32,7 @@ class JsonTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private JsonTestCase001 case001;
+    private JsonCase001 case001;
 
     @Test
     void test_001() {
@@ -208,6 +208,12 @@ class JsonTest {
     @Test
     void status_204_001() {
         Assertions.assertEquals(null, case001.getStatus204());
+    }
+
+    @Test
+    void double_001() {
+        Assertions.assertTrue(case001.getDouble001() > 1);
+        Assertions.assertTrue(case001.getDouble002() > 1);
     }
 
     @Test

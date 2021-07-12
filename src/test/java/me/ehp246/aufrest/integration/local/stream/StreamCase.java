@@ -16,6 +16,9 @@ interface StreamCase {
     interface Case001 {
         @OfMapping("/person")
         InputStream get(@RequestParam("name") String name);
+
+        @OfMapping("/person")
+        Integer post(InputStream in);
     }
 
     @ByRest(value = "http://localhost:${local.server.port}", acceptGZip = false)
