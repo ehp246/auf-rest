@@ -3,6 +3,7 @@ package me.ehp246.aufrest.api.configuration;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -10,6 +11,7 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -116,6 +118,14 @@ public final class ByRestConfiguration {
             return responseInfo -> {
                 final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
                         .equalsIgnoreCase("gzip");
+
+                // Short-circuit the content-type.
+                if (type.isAssignableFrom(InputStream.class)) {
+                    return gzipped
+                            ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
+                                    in -> OneUtil.orThrow(() -> new GZIPInputStream(in)))
+                            : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
+                }
 
                 return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
                     try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes)); final var byteOs = new ByteArrayOutputStream()) {

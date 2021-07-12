@@ -50,7 +50,18 @@ class XmlController {
 
     @GetMapping("persons")
     List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> (Person) Instant::now).collect(Collectors.toList());
+        return IntStream.range(0, count).mapToObj(i -> new Person() {
+
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public Instant getDob() {
+                return Instant.now();
+            }
+        }).collect(Collectors.toList());
     }
 
     @GetMapping("text/{text}")

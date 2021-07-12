@@ -64,7 +64,7 @@ public final class RestLogger implements RestListener {
         try {
             LOGGER.atTrace().log(this.objectMapper.writeValueAsString(httpResponse.body()));
         } catch (Exception e) {
-            LOGGER.atError().log("Failed to log response body: " + e.getMessage());
+            LOGGER.atWarn().log("Failed to log response body: " + httpResponse.body());
         }
     }
 }

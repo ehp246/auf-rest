@@ -23,7 +23,18 @@ import me.ehp246.aufrest.integration.model.Person;
 class FormController {
     @GetMapping("person")
     ResponseEntity<Person> get() {
-        return new ResponseEntity<Person>(Instant::now, HttpStatus.OK);
+        return new ResponseEntity<Person>(new Person() {
+
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public Instant getDob() {
+                return Instant.now();
+            }
+        }, HttpStatus.OK);
     }
 
     @PostMapping("person")
