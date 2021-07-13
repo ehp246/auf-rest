@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
@@ -19,9 +20,7 @@ import me.ehp246.aufrest.integration.model.Person;
  */
 @SuppressWarnings("rawtypes")
 @ByRest("http://localhost:${local.server.port}/json/")
-interface TestCase001 {
-    // Body types
-
+interface JsonCase001 {
     @OfMapping("instants")
     @Reifying(Instant.class)
     List<Instant> get001(@RequestParam("count") int count);
@@ -32,6 +31,21 @@ interface TestCase001 {
 
     @OfMapping("person")
     Person get007();
+
+    @OfMapping("person")
+    Person getZip(@RequestHeader("accept-encoding") String acceptEncoding);
+
+    @OfMapping("null")
+    Person getNull();
+
+    @OfMapping("double")
+    double getDouble001();
+
+    @OfMapping("double")
+    Double getDouble002();
+
+    @OfMapping("204")
+    Person getStatus204();
 
     @OfMapping("persons")
     @Reifying(Person.class)

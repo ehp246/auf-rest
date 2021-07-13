@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,7 +53,18 @@ class JsonController {
 
     @GetMapping("persons")
     List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> (Person) Instant::now).collect(Collectors.toList());
+        return IntStream.range(0, count).mapToObj(i -> new Person() {
+
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public Instant getDob() {
+                return Instant.now();
+            }
+        }).collect(Collectors.toList());
     }
 
     // Text
@@ -70,9 +83,18 @@ class JsonController {
         return instant.toString();
     }
 
-    // XML
-    @GetMapping(value = "instants/xml", produces = MediaType.APPLICATION_XML_VALUE)
-    List<Instant> getInstantsXml(@RequestParam("count") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> Instant.now()).collect(Collectors.toList());
+    @GetMapping("null")
+    Person getNull() {
+        return null;
+    }
+
+    @GetMapping("double")
+    double getDouble() {
+        return Math.random() + 1;
+    }
+
+    @GetMapping("204")
+    ResponseEntity<Person> get204() {
+        return new ResponseEntity<Person>(HttpStatus.NO_CONTENT);
     }
 }

@@ -32,7 +32,7 @@ class JsonTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private TestCase001 case001;
+    private JsonCase001 case001;
 
     @Test
     void test_001() {
@@ -134,6 +134,11 @@ class JsonTest {
         });
     }
 
+    @Test
+    void test_007() {
+        Assertions.assertEquals(null, case001.getNull());
+    }
+
     @SuppressWarnings("unchecked")
     @Disabled
     @Test
@@ -198,5 +203,27 @@ class JsonTest {
         Assertions.assertEquals(true, list instanceof List);
 
         list.forEach(person -> Assertions.assertEquals(true, person instanceof Person));
+    }
+
+    @Test
+    void status_204_001() {
+        Assertions.assertEquals(null, case001.getStatus204());
+    }
+
+    @Test
+    void double_001() {
+        Assertions.assertTrue(case001.getDouble001() > 1);
+        Assertions.assertTrue(case001.getDouble002() > 1);
+    }
+
+    @Test
+    void zip_001() {
+        final var person = case001.getZip(null);
+        Assertions.assertEquals(true, person.getDob() != null);
+    }
+
+    @Test
+    void zip_002() {
+        Assertions.assertThrows(Exception.class, () -> case001.getZip("gzip"), "should not allow overwrite");
     }
 }

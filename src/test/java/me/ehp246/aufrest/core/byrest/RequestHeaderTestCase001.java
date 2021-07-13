@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest("")
-interface RequestHeaderSpec001 {
+interface RequestHeaderTestCase001 {
     void get(@RequestHeader("x-correl-id") String correlId);
 
     /**
@@ -62,4 +62,9 @@ interface RequestHeaderSpec001 {
     void getMapOfList(@RequestHeader Map<String, List<String>> headers);
 
     void getListOfList(@RequestHeader("accept-language") List<List<String>> accepted);
+
+    @ByRest(value = "", acceptGZip = false)
+    interface AcceptGZipTestCase002 {
+        void get();
+    }
 }

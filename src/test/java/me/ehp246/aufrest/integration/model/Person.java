@@ -9,7 +9,5 @@ import java.time.Instant;
 public interface Person {
     Instant getDob();
 
-    default String getName() {
-        return null;
-    }
+    String getName();
 }

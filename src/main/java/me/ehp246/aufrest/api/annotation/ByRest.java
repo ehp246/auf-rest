@@ -64,6 +64,13 @@ public @interface ByRest {
     String accept() default HttpUtils.APPLICATION_JSON;
 
     /**
+     * Defines the Accept-Encoding request header value. When true, the default, the
+     * header value will be set to 'gzip'. Otherwise, the header will not be set.
+     * 
+     */
+    boolean acceptGZip() default true;
+
+    /**
      * Defines the Authorization type and value required by the endpoint.
      *
      * <p>

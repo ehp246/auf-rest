@@ -1,30 +1,25 @@
 package me.ehp246.aufrest.core.byrest;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -35,6 +30,7 @@ import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
@@ -46,28 +42,21 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class RestFromInvocation {
-    private final static String BOUNDARY = "b06e7433-8dd0-43fe-982c-f33a18a871f1";
+final class RestRequestFromInvocation {
 
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
 
-    private final Function<String, String> uriResolver;
-    private final Duration timeout;
     private final Optional<Supplier<String>> proxyAuthSupplier;
-    private final String contentType;
-    private final String accept;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
+    private final ByRestProxyConfig byRestConfig;
 
-    RestFromInvocation(final Function<String, String> uriResolver,
-            final InvocationAuthProviderResolver methodAuthProviderMap, final Duration timeout,
-            final Optional<Supplier<String>> proxyAuthSupplier, final String contentType, final String accept) {
+    RestRequestFromInvocation(final ByRestProxyConfig byRestConfig,
+            final InvocationAuthProviderResolver methodAuthProviderMap,
+            final Optional<Supplier<String>> proxyAuthSupplier) {
         super();
-        this.uriResolver = uriResolver;
-        this.timeout = timeout;
+        this.byRestConfig = byRestConfig;
         this.proxyAuthSupplier = proxyAuthSupplier;
-        this.contentType = contentType;
-        this.accept = accept;
         this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
@@ -94,7 +83,8 @@ final class RestFromInvocation {
 
         final String id = UUID.randomUUID().toString();
         final String url = UriComponentsBuilder
-                .fromUriString(uriResolver.apply(ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
+                .fromUriString(this.byRestConfig
+                        .resolveUri(ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
                 .queryParams(CollectionUtils.toMultiValueMap(queryParams.entrySet().stream()
                         .collect(Collectors.toMap(e -> OneUtil.orThrow(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
                                 e -> OneUtil
@@ -106,12 +96,18 @@ final class RestFromInvocation {
             return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
-        final var accept = ofMapping.map(OfMapping::accept).orElse(this.accept);
+        final var accept = ofMapping.map(OfMapping::accept).orElse(this.byRestConfig.accept());
 
         final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
         final var headers = new HashMap<String, List<String>>();
 
+        // Set accept-encoding at a lower priority.
+        if (byRestConfig.acceptGZip()) {
+            headers.put(HttpHeaders.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
+        }
+
+        // Collect headers from invocation arguments. Last step, highest priority.
         invocation.streamOfAnnotatedArguments(RequestHeader.class)
                 .forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
                     @Override
@@ -175,7 +171,8 @@ final class RestFromInvocation {
                         .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
-        final var contentType = Optional.of(ofMapping.map(OfMapping::contentType).orElse(this.contentType))
+        final var contentType = Optional
+                .of(ofMapping.map(OfMapping::contentType).orElse(this.byRestConfig.contentType()))
                 .filter(OneUtil::hasValue).orElseGet(() -> {
                     // TODO: Determine content type by the body type.
                     // Defaults to JSON.
@@ -201,7 +198,7 @@ final class RestFromInvocation {
 
             @Override
             public Duration timeout() {
-                return timeout;
+                return byRestConfig.timeout();
             }
 
             @Override
@@ -234,22 +231,6 @@ final class RestFromInvocation {
                 return headers;
             }
         };
-    }
-
-    private static BodyPublisher ofMimeMultipartData(Path path) throws IOException {
-        final var byteArrays = new ArrayList<byte[]>();
-        final var mimeType = Files.probeContentType(path);
-
-        byteArrays
-                .add(("--" + BOUNDARY + "\r\nContent-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8));
-
-        byteArrays.add(("\"file\"; filename=\"" + path.getFileName() + "\"\r\nContent-Type: "
-                + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-        byteArrays.add(Files.readAllBytes(path));
-        byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
-        byteArrays.add(("--" + BOUNDARY + "--").getBytes(StandardCharsets.UTF_8));
-
-        return BodyPublishers.ofByteArrays(byteArrays);
     }
 
     private static List<Class<?>> bodyType(final List<Class<?>> types) {

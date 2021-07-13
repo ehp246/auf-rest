@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
+import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -20,6 +21,7 @@ interface TextTestCase001 {
     String getJson();
 
     @OfMapping("person")
+    @AsIs
     String getPerson(@RequestParam("name") String name);
 
     @OfMapping(value = "instant", accept = HttpUtils.TEXT_PLAIN)

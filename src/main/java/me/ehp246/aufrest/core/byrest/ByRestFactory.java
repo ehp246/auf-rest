@@ -17,10 +17,10 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
-import me.ehp246.aufrest.api.exception.UnassignableResponseBody;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -105,8 +105,33 @@ public final class ByRestFactory {
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final var restFromInvocation = new RestFromInvocation(path -> propertyResolver.resolve(byRest.value() + path), methodAuthProviderMap,
-                timeout, proxyAuthSupplier, byRest.contentType(), byRest.accept());
+        final var restFromInvocation = new RestRequestFromInvocation(new ByRestProxyConfig() {
+
+            @Override
+            public String resolveUri(final String path) {
+                return propertyResolver.resolve(byRest.value() + path);
+            }
+
+            @Override
+            public Duration timeout() {
+                return timeout;
+            }
+
+            @Override
+            public String contentType() {
+                return byRest.contentType();
+            }
+
+            @Override
+            public boolean acceptGZip() {
+                return byRest.acceptGZip();
+            }
+
+            @Override
+            public String accept() {
+                return byRest.accept();
+            }
+        }, methodAuthProviderMap, proxyAuthSupplier);
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 (proxy, method, args) -> {
@@ -171,12 +196,7 @@ public final class ByRestFactory {
                         return null;
                     }
 
-                    final var body = httpResponse.body();
-                    if (!invoked.canReturn(body.getClass())) {
-                        throw new UnassignableResponseBody(invoked.getReturnType().getClass(),
-                                body.getClass());
-                    }
-                    return body;
+                    return httpResponse.body();
                 });
 
     }

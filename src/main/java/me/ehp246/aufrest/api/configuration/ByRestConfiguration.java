@@ -1,5 +1,9 @@
 package me.ehp246.aufrest.api.configuration;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -7,12 +11,16 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.zip.GZIPInputStream;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -83,6 +91,11 @@ public final class ByRestConfiguration {
     @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
     public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
         return req -> {
+            // Short-circuit for InputStream
+            if (req.body() instanceof InputStream) {
+                return BodyPublishers.ofInputStream(() -> (InputStream) req.body());
+            }
+
             // No content type, no content.
             if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();
@@ -106,20 +119,40 @@ public final class ByRestConfiguration {
                 return BodyHandlers.discarding();
             }
 
-            if (type.isAssignableFrom(String.class)) {
-                return BodyHandlers.ofString();
-            }
-
+            // Declared return type requires de-serialization.
             return responseInfo -> {
-                // The server might not set the header. Treat it as text?
-                final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE).orElse("")
-                        .toLowerCase();
-                // Default to UTF-8 text
-                return BodySubscribers.mapping(BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
+                        .equalsIgnoreCase("gzip");
+
+                // Short-circuit the content-type.
+                if (type.isAssignableFrom(InputStream.class)) {
+                    return gzipped
+                            ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
+                                    in -> OneUtil.orThrow(() -> new GZIPInputStream(in)))
+                            : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
+                }
+
+                return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
+                    try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes)); final var byteOs = new ByteArrayOutputStream()) {
+                        gis.transferTo(byteOs);
+                        return byteOs.toString(StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                    if (responseInfo.statusCode() == 204) {
+                        return null;
+                    }
+
                     if (responseInfo.statusCode() >= 300) {
                         return text;
                     }
-                    if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
+
+                    // The server might not set the header. Assuming JSON.
+                    final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
+                            .orElse(MediaType.APPLICATION_JSON_VALUE);
+
+                    if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
                         return jacksonFn.fromJson(text, receiver);
                     }
                     return text;
