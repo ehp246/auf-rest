@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class RestLogger implements RestListener {
     private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
+
     private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
 
         @Override
@@ -50,31 +51,39 @@ public final class RestLogger implements RestListener {
 
     @Override
     public void onRequest(final HttpRequest httpRequest, final RestRequest request) {
-        LOGGER.atTrace().log(httpRequest.method() + " " + httpRequest.uri());
-        LOGGER.atTrace().log(httpRequest.headers().map());
+        if (!LOGGER.isTraceEnabled()) {
+            return;
+        }
+
+        LOGGER.trace(httpRequest.method() + " " + httpRequest.uri());
+        LOGGER.trace(httpRequest.headers().map());
 
         if (request.body() == null) {
-            LOGGER.atTrace().log("");
+            LOGGER.trace("");
             return;
         }
 
         // Skip it.
         if (request.body() instanceof InputStream) {
-            LOGGER.atTrace().log(request.body());
+            LOGGER.trace(request.body());
             return;
         }
 
-        httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
+        httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.trace("-"));
     }
 
     @Override
     public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
-        LOGGER.atTrace().log(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
+        if (!LOGGER.isTraceEnabled()) {
+            return;
+        }
+
+        LOGGER.trace(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
                 + httpResponse.statusCode());
 
-        LOGGER.atTrace().log(httpResponse.headers().map());
+        LOGGER.trace(httpResponse.headers().map());
         try {
-            LOGGER.atTrace().log(this.objectMapper.writeValueAsString(httpResponse.body()));
+            LOGGER.trace(this.objectMapper.writeValueAsString(httpResponse.body()));
         } catch (Exception e) {
             LOGGER.atWarn().log("Failed to log response body: " + httpResponse.body());
         }

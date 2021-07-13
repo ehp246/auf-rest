@@ -2,11 +2,17 @@ package me.ehp246.aufrest.api.configuration;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+
+import me.ehp246.aufrest.mock.Jackson;
 
 /**
  * @author Lei Yang
  *
  */
+@SpringBootTest(classes = ByRestConfiguration.class)
+@Import(Jackson.class)
 class ByRestConfigurationTest {
 
     @Test
