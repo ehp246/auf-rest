@@ -1,10 +1,15 @@
 package me.ehp246.aufrest.integration.local.exception;
 
+import java.time.Instant;
+import java.util.Map;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
@@ -19,6 +24,9 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class ExTest {
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private ExCase001 case001;
 
     @Test
@@ -27,7 +35,6 @@ class ExTest {
 
         Assertions.assertEquals(301, ex.statusCode());
         Assertions.assertTrue(ex.getCause() instanceof RedirectionResponseException, "Should be more specific");
-        Assertions.assertTrue(ex.getCause().bodyToString().equals("301"));
     }
 
     @Test
@@ -171,5 +178,27 @@ class ExTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> case001.getError(699));
 
         Assertions.assertEquals(699, ex.statusCode());
+    }
+
+    @Test
+    void test_body_001() {
+        final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> case001.getRedirect(400));
+
+        Assertions.assertEquals(400, ex.statusCode());
+
+        Assertions.assertTrue(ex.httpResponse().body() instanceof Integer);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void test_body_002() {
+        final var now = Instant.now();
+        final var ex = Assertions.assertThrows(ErrorResponseException.class,
+                () -> case001.getBody(objectMapper.writeValueAsString(Map.of("1", now))));
+
+        Assertions.assertTrue(ex.httpResponse().body() instanceof Map);
+
+        final var body = (Map<String, Object>) ex.httpResponse().body();
+        Assertions.assertTrue(body.get("1").equals(now.toString()));
     }
 }

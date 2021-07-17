@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.local.exception;
 
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -34,4 +35,7 @@ interface ExCase001 {
 
     @OfMapping("/{statusCode}")
     void getError(@PathVariable("statusCode") int statusCode) throws ErrorResponseException;
+    
+    @OfMapping("/body")
+    void getBody(@RequestParam("body") String body) throws ErrorResponseException;
 }

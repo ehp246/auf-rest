@@ -116,8 +116,12 @@ public final class ByRestConfiguration {
 
             // Declared return type requires de-serialization.
             return responseInfo -> {
+                final var statusCode = responseInfo.statusCode();
                 final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
                         .equalsIgnoreCase("gzip");
+                // The server might not set the header. Assuming JSON.
+                final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
+                        .orElse(MediaType.APPLICATION_JSON_VALUE);
 
                 // Short-circuit the content-type.
                 if (type.isAssignableFrom(InputStream.class)) {
@@ -135,27 +139,15 @@ public final class ByRestConfiguration {
                         throw new RuntimeException(e);
                     }
                 }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-                    if (responseInfo.statusCode() == 204) {
+                    if ((statusCode == 204) || (statusCode < 300
+                            && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
                         return null;
                     }
-
-                    if (responseInfo.statusCode() >= 300) {
-                        return text;
-                    }
-
-                    /**
-                     * Normal return processing on 200.
-                     */
-                    if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
-                        return null;
-                    }
-
-                    // The server might not set the header. Assuming JSON.
-                    final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
-                            .orElse(MediaType.APPLICATION_JSON_VALUE);
 
                     if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                        return jacksonFn.fromJson(text, receiver);
+                        // Default de-serialization for error code.
+                        return jacksonFn.fromJson(text,
+                                responseInfo.statusCode() < 300 ? receiver : () -> Object.class);
                     }
                     return text;
                 });
