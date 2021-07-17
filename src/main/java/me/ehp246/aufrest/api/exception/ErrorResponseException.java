@@ -6,13 +6,11 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
- * Thrown when the framework receives a HttpResponse that it dosn't know how to
+ * Thrown when the library receives a HTTP response that it dosn't know how to
  * handle. The exact occasions of the exception depend on the method signature
  * of the {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interface.
- *
  * <p>
- * The exception happens only after a response has been received and the
- * framework cann't handle it according to the method signature.
+ * The exception happens only after a response has been received.
  * 
  * @author Lei Yang
  * @since 2.4.3
