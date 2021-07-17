@@ -9,31 +9,14 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @since 2.3.7
  *
  */
-public final class ServerErrorResponseException extends Exception {
+public final class ServerErrorResponseException extends ErrorResponseException {
     private static final long serialVersionUID = -3503724512415848631L;
 
-    private final RestRequest request;
-    private final HttpResponse<?> response;
-
     public ServerErrorResponseException(final RestRequest request, final HttpResponse<?> response) {
-        super();
-        if (response.statusCode() < 500) {
-            throw new IllegalArgumentException();
+        super(request, response);
+        final var statusCode = response.statusCode();
+        if (statusCode < 500 || response.statusCode() > 599) {
+            throw new IllegalArgumentException("Un-supported status code: " + statusCode);
         }
-
-        this.request = request;
-        this.response = response;
-    }
-
-    public HttpResponse<?> httpResponse() {
-        return this.response;
-    }
-
-    public int statusCode() {
-        return this.httpResponse().statusCode();
-    }
-
-    public RestRequest request() {
-        return request;
     }
 }

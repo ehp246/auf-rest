@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
@@ -89,7 +90,8 @@ public final class ByRestFactory {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return new BasicAuth(propertyResolver.resolve(auth.value()[0]), propertyResolver.resolve(auth.value()[1]))::value;
+                return new BasicAuth(propertyResolver.resolve(auth.value()[0]),
+                        propertyResolver.resolve(auth.value()[1]))::value;
             case BEARER:
                 if (auth.value().length < 1) {
                     throw new IllegalArgumentException(
@@ -171,24 +173,24 @@ public final class ByRestFactory {
                         return httpResponse;
                     }
 
+                    // Should throw the more specific type if possible.
+                    ErrorResponseException ex = null;
                     if (httpResponse.statusCode() >= 600) {
-                        throw new UnhandledResponseException(req, httpResponse);
+                        ex = new ErrorResponseException(req, httpResponse);
+                    } else if (httpResponse.statusCode() >= 500) {
+                        ex = new ServerErrorResponseException(req, httpResponse);
+                    } else if (httpResponse.statusCode() >= 400) {
+                        ex = new ClientErrorResponseException(req, httpResponse);
+                    } else if (httpResponse.statusCode() >= 300) {
+                        ex = new RedirectionResponseException(req, httpResponse);
                     }
 
-                    if (httpResponse.statusCode() >= 500 && invoked.canThrow(ServerErrorResponseException.class)) {
-                        throw new ServerErrorResponseException(req, httpResponse);
-                    }
-
-                    if (httpResponse.statusCode() >= 400 && invoked.canThrow(ClientErrorResponseException.class)) {
-                        throw new ClientErrorResponseException(req, httpResponse);
-                    }
-
-                    if (httpResponse.statusCode() >= 300) {
-                        if (invoked.canThrow(RedirectionResponseException.class)) {
-                            throw new RedirectionResponseException(req, httpResponse);
+                    if (ex != null) {
+                        if (invoked.canThrow(ex.getClass())) {
+                            throw ex;
                         }
 
-                        throw new UnhandledResponseException(req, httpResponse);
+                        throw new UnhandledResponseException(ex);
                     }
 
                     // Discard the response.
