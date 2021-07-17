@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -148,7 +147,7 @@ public final class ByRestConfiguration {
                      * Normal return processing on 200.
                      */
                     if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
-                        return BodyHandlers.discarding();
+                        return null;
                     }
 
                     // The server might not set the header. Assuming JSON.
