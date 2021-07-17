@@ -20,7 +20,7 @@ class ExController {
     }
 
     @GetMapping("{statusCode}")
-    ResponseEntity<?> get(@PathVariable("statusCode") int statusCode) {
-        return ResponseEntity.status(statusCode).build();
+    ResponseEntity<String> get(@PathVariable("statusCode") int statusCode) {
+        return ResponseEntity.status(statusCode).body(statusCode + "");
     }
 }

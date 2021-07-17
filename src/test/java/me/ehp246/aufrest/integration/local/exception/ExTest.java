@@ -27,10 +27,11 @@ class ExTest {
 
         Assertions.assertEquals(301, ex.statusCode());
         Assertions.assertTrue(ex.getCause() instanceof RedirectionResponseException, "Should be more specific");
+        Assertions.assertTrue(ex.getCause().bodyToString().equals("301"));
     }
 
     @Test
-    void test300_002() {
+    void test300_002() throws RedirectionResponseException {
         final var ex = Assertions.assertThrows(RedirectionResponseException.class, () -> case001.get02(301));
 
         Assertions.assertEquals(301, ex.statusCode());
@@ -127,6 +128,7 @@ class ExTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> case001.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
+        Assertions.assertTrue(ex.getMessage().endsWith("400"), "Should include the body");
     }
 
     @Test

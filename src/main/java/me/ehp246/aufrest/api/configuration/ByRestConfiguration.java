@@ -115,10 +115,6 @@ public final class ByRestConfiguration {
             final var receiver = req.bodyReceiver();
             final Class<?> type = receiver == null ? void.class : receiver.type();
 
-            if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
-                return BodyHandlers.discarding();
-            }
-
             // Declared return type requires de-serialization.
             return responseInfo -> {
                 final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
@@ -146,6 +142,13 @@ public final class ByRestConfiguration {
 
                     if (responseInfo.statusCode() >= 300) {
                         return text;
+                    }
+
+                    /**
+                     * Normal return processing on 200.
+                     */
+                    if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
+                        return BodyHandlers.discarding();
                     }
 
                     // The server might not set the header. Assuming JSON.

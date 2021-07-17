@@ -23,7 +23,8 @@ public class ErrorResponseException extends Exception {
     protected final HttpResponse<?> response;
 
     public ErrorResponseException(final RestRequest request, final HttpResponse<?> response) {
-        super();
+        super(response.request().method() + " " + response.uri().toString() + " " + response.statusCode()
+                + System.lineSeparator() + OneUtil.toString(response.body()));
         this.request = request;
         this.response = response;
     }
