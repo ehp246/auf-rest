@@ -70,6 +70,8 @@ public @interface ByRest {
      */
     boolean acceptGZip() default true;
 
+    Class<?> errorType() default Object.class;
+
     /**
      * Defines the Authorization type and value required by the endpoint.
      *

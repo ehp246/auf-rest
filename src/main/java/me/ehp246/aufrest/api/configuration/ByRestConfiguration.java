@@ -147,7 +147,7 @@ public final class ByRestConfiguration {
                     if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
                         // Default de-serialization for error code.
                         return jacksonFn.fromJson(text,
-                                responseInfo.statusCode() < 300 ? receiver : () -> Object.class);
+                                responseInfo.statusCode() < 300 ? receiver : () -> receiver.errorType());
                     }
                     return text;
                 });

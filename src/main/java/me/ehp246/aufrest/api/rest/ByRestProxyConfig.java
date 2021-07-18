@@ -5,7 +5,8 @@ import java.time.Duration;
 import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
- * The instantiation of a {@link ByRest} annotation as an object.
+ * Defines the configuration of a {@link ByRest} proxy. Mostly the Java object
+ * equivalent of the annotation.
  * 
  * @author Lei Yang
  *
@@ -20,4 +21,6 @@ public interface ByRestProxyConfig {
     String contentType();
 
     boolean acceptGZip();
+
+    Class<?> errorType();
 }

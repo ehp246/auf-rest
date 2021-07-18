@@ -133,6 +133,12 @@ public final class ByRestFactory {
             public String accept() {
                 return byRest.accept();
             }
+
+            @Override
+            public Class<?> errorType() {
+                return byRest.errorType();
+            }
+
         }, methodAuthProviderMap, proxyAuthSupplier);
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
