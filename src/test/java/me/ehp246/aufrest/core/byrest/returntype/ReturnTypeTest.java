@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.mock.env.MockEnvironment;
 
+import me.ehp246.aufrest.api.annotation.Default;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
@@ -95,9 +96,12 @@ class ReturnTypeTest {
     void errorType_001() {
         factory.newInstance(ErrorTypeCases.Case001.class).get();
 
-        Assertions.assertTrue(reqRef.get().bodyReceiver().errorType() == Object.class);
+        Assertions.assertTrue(reqRef.get().bodyReceiver().errorType() == Default.class);
     }
 
+    /**
+     * 
+     */
     @Test
     void errorType_002() {
         factory.newInstance(ErrorTypeCases.Case002.class).get();

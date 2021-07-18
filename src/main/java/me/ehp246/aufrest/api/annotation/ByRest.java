@@ -7,8 +7,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.time.Duration;
 
-import me.ehp246.aufrest.api.rest.HttpUtils;
-
 /**
  * Indicates that the annotated interface should be scanned by the framework as
  * a proxy of a REST endpoint.
@@ -61,7 +59,7 @@ public @interface ByRest {
     /**
      * Defines the Accept header. Usually derived by the return type of the method.
      */
-    String accept() default HttpUtils.APPLICATION_JSON;
+    String accept() default "application/json";
 
     /**
      * Defines the Accept-Encoding request header value. When true, the default, the
@@ -70,7 +68,7 @@ public @interface ByRest {
      */
     boolean acceptGZip() default true;
 
-    Class<?> errorType() default Object.class;
+    Class<?> errorType() default Default.class;
 
     /**
      * Defines the Authorization type and value required by the endpoint.

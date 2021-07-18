@@ -154,6 +154,11 @@ final class RestRequestFromInvocation {
             }
 
             @Override
+            public Class<?> errorType() {
+                return byRestConfig.errorType();
+            }
+
+            @Override
             public List<Class<?>> reifying() {
                 return returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size());
             }
