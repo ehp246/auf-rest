@@ -11,12 +11,20 @@ import org.springframework.core.type.AnnotationMetadata;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
+import me.ehp246.aufrest.api.configuration.ByRestConfiguration;
+import me.ehp246.aufrest.api.rest.EnableByRestConfig;
 
-public class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
-    private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
+public final class EnableByRestRegistrar implements ImportBeanDefinitionRegistrar {
+    private final static Logger LOGGER = LogManager.getLogger(EnableByRestRegistrar.class);
 
     @Override
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
+
+        // Register the enable config.
+        registry.registerBeanDefinition(EnableByRestConfig.class.getCanonicalName(),
+                getEnableConfigBeanDefinition(
+                        (Class<?>) metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName())
+                                .get("errorType")));
 
         LOGGER.debug("Scanning for {}", ByRest.class.getCanonicalName());
 
@@ -52,4 +60,19 @@ public class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
         return proxyBeanDefinition;
     }
 
+    private BeanDefinition getEnableConfigBeanDefinition(final Class<?> errorType) {
+        final var proxyBeanDefinition = new GenericBeanDefinition();
+        proxyBeanDefinition.setBeanClass(EnableByRestConfig.class);
+
+        final var args = new ConstructorArgumentValues();
+        args.addGenericArgumentValue(errorType);
+
+        proxyBeanDefinition.setConstructorArgumentValues(args);
+
+        proxyBeanDefinition.setFactoryBeanName(ByRestConfiguration.class.getName());
+
+        proxyBeanDefinition.setFactoryMethodName("newEnableByRestConfig");
+
+        return proxyBeanDefinition;
+    }
 }

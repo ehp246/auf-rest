@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
+import me.ehp246.aufrest.api.rest.EnableByRestConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -54,6 +55,11 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  */
 @Import({ DefaultRestFnProvider.class })
 public final class ByRestConfiguration {
+
+    public EnableByRestConfig newEnableByRestConfig(final Class<?> errorType) {
+        return () -> errorType;
+    }
+
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
     public RestClientConfig restClientConfig(
             @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,

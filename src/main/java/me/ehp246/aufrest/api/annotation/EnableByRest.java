@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.configuration.ByRestConfiguration;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
-import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
+import me.ehp246.aufrest.core.byrest.EnableByRestRegistrar;
 
 /**
  * Enables AufRest's annotation-driven REST-proxing capability for client-side
@@ -24,7 +24,7 @@ import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-@Import({ ByRestRegistrar.class, ByRestConfiguration.class, ByRestFactory.class })
+@Import({ EnableByRestRegistrar.class, ByRestConfiguration.class, ByRestFactory.class })
 public @interface EnableByRest {
     /**
      * Specifies the packages to scan for annotated
@@ -32,4 +32,6 @@ public @interface EnableByRest {
      * package of each class specified will be scanned.
      */
     Class<?>[] scan() default {};
+
+    Class<?> errorType() default Object.class;
 }
