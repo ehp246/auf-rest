@@ -33,5 +33,5 @@ public @interface EnableByRest {
      */
     Class<?>[] scan() default {};
 
-    Class<?> errorType() default Object.class;
+    Class<?> errorType() default String.class;
 }

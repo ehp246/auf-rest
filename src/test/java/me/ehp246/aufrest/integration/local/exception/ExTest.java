@@ -187,29 +187,26 @@ class ExTest {
     }
 
     @Test
-    void test_body_001() {
+    void errorrType_01() {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> case001.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
 
-        Assertions.assertTrue(ex.httpResponse().body() instanceof Integer);
+        Assertions.assertTrue(ex.httpResponse().body() instanceof String);
+        Assertions.assertEquals("400", ex.responseBody(String.class));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void test_body_002() {
+    void errorType_02() {
         final var now = Instant.now();
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
                 () -> case001.getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
-        Assertions.assertTrue(ex.httpResponse().body() instanceof Map);
-
-        final var body = (Map<String, Object>) ex.httpResponse().body();
-        Assertions.assertTrue(body.get("now").equals(now.toString()));
+        Assertions.assertEquals(String.class, ex.httpResponse().body().getClass());
     }
 
     @Test
-    void errorType_002() {
+    void errorType_03() {
         final var now = Instant.now();
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
                 () -> restFactory.newInstance(ExCase.class, new MockByRestProxyConfig() {
