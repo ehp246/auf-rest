@@ -17,19 +17,20 @@ import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.integration.local.errortype.ErrorType;
 import me.ehp246.aufrest.mock.MockByRestProxyConfig;
 
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig01.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class ExTest {
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
-    private ExCase001 case001;
+    private ExCase case001;
 
     @Autowired
     private ByRestFactory restFactory;
@@ -211,7 +212,7 @@ class ExTest {
     void errorType_002() {
         final var now = Instant.now();
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
-                () -> restFactory.newInstance(ExCase001.class, new MockByRestProxyConfig() {
+                () -> restFactory.newInstance(ExCase.class, new MockByRestProxyConfig() {
                     @Override
                     public String uri() {
                         return "http://localhost:${local.server.port}/status-code/";
@@ -219,13 +220,13 @@ class ExTest {
 
                     @Override
                     public Class<?> errorType() {
-                        return ErrorType01.class;
+                        return ErrorType.class;
                     }
 
                 }).getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
-        Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType01);
+        Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType);
 
-        Assertions.assertEquals(now.toString(), ex.responseBody(ErrorType01.class).getNow().toString());
+        Assertions.assertEquals(now.toString(), ex.responseBody(ErrorType.class).getNow().toString());
     }
 }

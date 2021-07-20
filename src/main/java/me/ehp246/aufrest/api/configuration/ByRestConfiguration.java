@@ -131,26 +131,32 @@ public final class ByRestConfiguration {
                             : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
                 }
 
-                return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
-                    try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes)); final var byteOs = new ByteArrayOutputStream()) {
-                        gis.transferTo(byteOs);
-                        return byteOs.toString(StandardCharsets.UTF_8);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-                    if ((statusCode == 204) || (statusCode < 300
-                            && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
-                        return null;
-                    }
+                return BodySubscribers
+                        .mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
+                            try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
+                                    final var byteOs = new ByteArrayOutputStream()) {
+                                gis.transferTo(byteOs);
+                                return byteOs.toString(StandardCharsets.UTF_8);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                            if ((statusCode == 204) || (statusCode < 300
+                                    && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
+                                return null;
+                            }
 
-                    if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                        // Default de-serialization for error code.
-                        return jacksonFn.fromJson(text,
-                                responseInfo.statusCode() < 300 ? receiver : () -> receiver.errorType());
-                    }
-                    return text;
-                });
+                            if (statusCode >= 300 && receiver.errorType() == String.class) {
+                                return text;
+                            }
+
+                            if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
+                                // Default de-serialization for error code.
+                                return jacksonFn.fromJson(text,
+                                        statusCode < 300 ? receiver : () -> receiver.errorType());
+                            }
+                            return text;
+                        });
             };
         };
     }

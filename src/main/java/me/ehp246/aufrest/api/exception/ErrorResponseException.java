@@ -42,6 +42,10 @@ public class ErrorResponseException extends Exception {
         return (T) this.response.body();
     }
 
+    public Object responseBody() {
+        return this.response.body();
+    }
+
     public String bodyToString() {
         return OneUtil.toString(this.httpResponse().body());
     }

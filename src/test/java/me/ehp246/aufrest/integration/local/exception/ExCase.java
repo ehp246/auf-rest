@@ -15,7 +15,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
  *
  */
 @ByRest("http://localhost:${local.server.port}/status-code/")
-interface ExCase001 {
+interface ExCase {
     @OfMapping("runtime")
     void get();
 
