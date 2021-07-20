@@ -36,6 +36,11 @@ public class ErrorResponseException extends Exception {
     public int statusCode() {
         return this.httpResponse().statusCode();
     }
+    
+    @SuppressWarnings("unchecked")
+    public <T> T responseBody(Class<T> t) {
+        return (T) this.response.body();
+    }
 
     public String bodyToString() {
         return OneUtil.toString(this.httpResponse().body());

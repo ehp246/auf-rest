@@ -219,13 +219,13 @@ class ExTest {
 
                     @Override
                     public Class<?> errorType() {
-                        return Now.class;
+                        return ErrorType01.class;
                     }
 
                 }).getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
-        Assertions.assertTrue(ex.httpResponse().body() instanceof Now);
+        Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType01);
 
-        Assertions.assertEquals(now.toString(), ((Now) (ex.httpResponse().body())).getNow().toString());
+        Assertions.assertEquals(now.toString(), ex.responseBody(ErrorType01.class).getNow().toString());
     }
 }
