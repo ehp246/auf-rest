@@ -13,7 +13,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * The exception happens only after a response has been received.
  * 
  * @author Lei Yang
- * @since 2.4.3
+ * @since 2.5.0
  *
  */
 public class ErrorResponseException extends Exception {

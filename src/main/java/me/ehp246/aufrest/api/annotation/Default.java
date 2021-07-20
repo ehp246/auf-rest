@@ -5,7 +5,7 @@ package me.ehp246.aufrest.api.annotation;
  * value.
  * 
  * @author Lei Yang
- * @since 2.4.3
+ * @since 2.5.0
  *
  */
 public final class Default {
