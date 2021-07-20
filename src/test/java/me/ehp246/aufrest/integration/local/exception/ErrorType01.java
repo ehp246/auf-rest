@@ -6,6 +6,6 @@ import java.time.Instant;
  * @author Lei Yang
  *
  */
-interface ErrorType01 {
+public interface ErrorType01 {
     Instant getNow();
 }
