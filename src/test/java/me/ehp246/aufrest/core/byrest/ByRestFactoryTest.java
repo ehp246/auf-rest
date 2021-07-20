@@ -25,6 +25,7 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase001;
+import me.ehp246.aufrest.mock.MockByRestProxyConfig;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -560,5 +561,18 @@ class ByRestFactoryTest {
         Assertions.assertEquals(InvocationAuthCase001.class, invocation.method().getDeclaringClass());
         Assertions.assertEquals(true, newInstance == invocation.target());
         Assertions.assertEquals(0, invocation.args().size());
+    }
+
+    @Test
+    void errorType_001() {
+        factory.newInstance(ExCase001.class, new MockByRestProxyConfig() {
+
+            @Override
+            public Class<?> errorType() {
+                return Instant.class;
+            }
+        }).get();
+
+        Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());
     }
 }

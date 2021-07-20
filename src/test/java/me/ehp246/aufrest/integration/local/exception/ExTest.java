@@ -16,18 +16,23 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.mock.MockByRestProxyConfig;
 
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig01.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class ExTest {
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private ExCase001 case001;
+
+    @Autowired
+    private ByRestFactory restFactory;
 
     @Test
     void test300_001() {
@@ -194,11 +199,33 @@ class ExTest {
     void test_body_002() {
         final var now = Instant.now();
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
-                () -> case001.getBody(objectMapper.writeValueAsString(Map.of("1", now))));
+                () -> case001.getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof Map);
 
         final var body = (Map<String, Object>) ex.httpResponse().body();
-        Assertions.assertTrue(body.get("1").equals(now.toString()));
+        Assertions.assertTrue(body.get("now").equals(now.toString()));
+    }
+
+    @Test
+    void errorType_002() {
+        final var now = Instant.now();
+        final var ex = Assertions.assertThrows(ErrorResponseException.class,
+                () -> restFactory.newInstance(ExCase001.class, new MockByRestProxyConfig() {
+                    @Override
+                    public String uri() {
+                        return "http://localhost:${local.server.port}/status-code/";
+                    }
+
+                    @Override
+                    public Class<?> errorType() {
+                        return Now.class;
+                    }
+
+                }).getBody(objectMapper.writeValueAsString(Map.of("now", now))));
+
+        Assertions.assertTrue(ex.httpResponse().body() instanceof Now);
+
+        Assertions.assertEquals(now.toString(), ((Now) (ex.httpResponse().body())).getNow().toString());
     }
 }

@@ -98,7 +98,7 @@ final class RestRequestFromInvocation {
      */
     @SuppressWarnings("unchecked")
     RestRequest from(ProxyInvocation invocation) {
-        final var ofMapping = invocation.findOnMethod(OfMapping.class);
+        final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
 
         final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
         final var unnamedPathMap = pathParams.get("");
@@ -120,19 +120,19 @@ final class RestRequestFromInvocation {
         final String id = UUID.randomUUID().toString();
         final String uri = UriComponentsBuilder
                 .fromUriString(propertyResolver.resolve(
-                        this.byRestConfig.uri() + ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
+                        this.byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
                 .queryParams(CollectionUtils.toMultiValueMap(queryParams.entrySet().stream()
                         .collect(Collectors.toMap(e -> OneUtil.orThrow(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
                                 e -> OneUtil
                                         .orThrow(() -> List.of(URLEncoder.encode(e.getValue().toString(), "UTF-8")))))))
                 .buildAndExpand(pathParams).toUriString();
 
-        final String method = ofMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
+        final String method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
             final var invokedMethodName = invocation.getMethodName().toUpperCase();
             return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
-        final var accept = ofMapping.map(OfMapping::accept).orElse(this.byRestConfig.accept());
+        final var accept = optionalOfMapping.map(OfMapping::accept).orElse(this.byRestConfig.accept());
 
         final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
@@ -207,13 +207,13 @@ final class RestRequestFromInvocation {
 
         final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
-                .orElse(ofMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
+                .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
                         .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
                         .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
         final var contentType = Optional
-                .of(ofMapping.map(OfMapping::contentType).orElse(this.byRestConfig.contentType()))
+                .ofNullable(optionalOfMapping.map(OfMapping::contentType).orElse(this.byRestConfig.contentType()))
                 .filter(OneUtil::hasValue).orElseGet(() -> {
                     // TODO: Determine content type by the body type.
                     // Defaults to JSON.

@@ -14,7 +14,10 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 public interface ByRestProxyConfig {
     String uri();
 
-    Auth auth();
+    default Auth auth() {
+        return new Auth() {
+        };
+    }
 
     String timeout();
 
@@ -22,13 +25,21 @@ public interface ByRestProxyConfig {
 
     String contentType();
 
-    boolean acceptGZip();
+    default boolean acceptGZip() {
+        return true;
+    }
 
-    Class<?> errorType();
+    default Class<?> errorType() {
+        return Object.class;
+    }
 
     interface Auth {
-        List<String> value();
+        default List<String> value() {
+            return List.of();
+        }
 
-        AuthScheme scheme();
+        default AuthScheme scheme() {
+            return AuthScheme.DEFAULT;
+        }
     }
 }
