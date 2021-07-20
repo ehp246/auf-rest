@@ -16,26 +16,26 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
  */
 @ByRest("http://localhost:${local.server.port}/status-code/")
 interface ExCase001 {
-    @OfMapping("/runtime")
+    @OfMapping("runtime")
     void get();
 
-    @OfMapping("/{statusCode}")
+    @OfMapping("{statusCode}")
     void get(@PathVariable("statusCode") int statusCode);
 
-    @OfMapping("/{statusCode}")
+    @OfMapping("{statusCode}")
     void get02(@PathVariable("statusCode") int statusCode)
             throws ClientErrorResponseException, ServerErrorResponseException, RedirectionResponseException;
 
-    @OfMapping("/{statusCode}")
+    @OfMapping("{statusCode}")
     void getClientError(@PathVariable("statusCode") int statusCode) throws ClientErrorResponseException;
 
-    @OfMapping("/{statusCode}")
+    @OfMapping("{statusCode}")
     void getRedirect(@PathVariable("statusCode") int statusCode)
             throws RedirectionResponseException, ErrorResponseException;
 
-    @OfMapping("/{statusCode}")
+    @OfMapping("{statusCode}")
     void getError(@PathVariable("statusCode") int statusCode) throws ErrorResponseException;
     
-    @OfMapping("/body")
+    @OfMapping("body")
     void getBody(@RequestParam("body") String body) throws ErrorResponseException;
 }

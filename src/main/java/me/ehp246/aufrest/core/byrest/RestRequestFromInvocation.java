@@ -34,6 +34,7 @@ import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
+import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -50,14 +51,16 @@ final class RestRequestFromInvocation {
     private final Optional<Supplier<String>> proxyAuthSupplier;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
     private final ByRestProxyConfig byRestConfig;
+    private final PropertyResolver propertyResolver;
 
     RestRequestFromInvocation(final ByRestProxyConfig byRestConfig,
-            final InvocationAuthProviderResolver methodAuthProviderMap,
+            final InvocationAuthProviderResolver methodAuthProviderMap, final PropertyResolver propertyResolver,
             final Optional<Supplier<String>> proxyAuthSupplier) {
         super();
         this.byRestConfig = byRestConfig;
         this.proxyAuthSupplier = proxyAuthSupplier;
         this.methodAuthProviderMap = methodAuthProviderMap;
+        this.propertyResolver = propertyResolver;
     }
 
     @SuppressWarnings("unchecked")
@@ -82,9 +85,9 @@ final class RestRequestFromInvocation {
         }
 
         final String id = UUID.randomUUID().toString();
-        final String url = UriComponentsBuilder
-                .fromUriString(this.byRestConfig
-                        .resolveUri(ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
+        final String uri = UriComponentsBuilder
+                .fromUriString(propertyResolver.resolve(
+                        this.byRestConfig.uri() + ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
                 .queryParams(CollectionUtils.toMultiValueMap(queryParams.entrySet().stream()
                         .collect(Collectors.toMap(e -> OneUtil.orThrow(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
                                 e -> OneUtil
@@ -183,6 +186,9 @@ final class RestRequestFromInvocation {
                     // Defaults to JSON.
                     return HttpUtils.APPLICATION_JSON;
                 });
+        final var timeout = Optional.of(byRestConfig.timeout()).filter(OneUtil::hasValue).map(text -> OneUtil
+                .orThrow(() -> Duration.parse(text), e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                .orElse(null);
 
         return new RestRequest() {
 
@@ -193,7 +199,7 @@ final class RestRequestFromInvocation {
 
             @Override
             public String uri() {
-                return url;
+                return uri;
             }
 
             @Override
@@ -203,7 +209,7 @@ final class RestRequestFromInvocation {
 
             @Override
             public Duration timeout() {
-                return byRestConfig.timeout();
+                return timeout;
             }
 
             @Override

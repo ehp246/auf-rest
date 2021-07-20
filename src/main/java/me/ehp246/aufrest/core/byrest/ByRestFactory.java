@@ -4,7 +4,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -19,6 +20,7 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
@@ -64,40 +66,32 @@ public final class ByRestFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T newInstance(final Class<T> byRestInterface) {
+    public <T> T newInstance(final Class<T> byRestInterface, final ByRestProxyConfig byRestConfig) {
         final var interfaceName = byRestInterface.getCanonicalName();
 
         LOGGER.atDebug().log("Instantiating @ByRest {}", interfaceName);
 
-        // Annotation required.
-        final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
-
-        final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
-                .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
-                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
-                .orElse(null);
-
-        final Optional<Supplier<String>> proxyAuthSupplier = Optional.of(byRest.auth()).map(auth -> {
+        final Optional<Supplier<String>> proxyAuthSupplier = Optional.of(byRestConfig.auth()).map(auth -> {
             switch (auth.scheme()) {
             case SIMPLE:
-                if (auth.value().length < 1) {
+                if (auth.value().size() < 1) {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return propertyResolver.resolve(auth.value()[0])::toString;
+                return propertyResolver.resolve(auth.value().get(0))::toString;
             case BASIC:
-                if (auth.value().length < 2) {
+                if (auth.value().size() < 2) {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return new BasicAuth(propertyResolver.resolve(auth.value()[0]),
-                        propertyResolver.resolve(auth.value()[1]))::value;
+                return new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
+                        propertyResolver.resolve(auth.value().get(1)))::value;
             case BEARER:
-                if (auth.value().length < 1) {
+                if (auth.value().size() < 1) {
                     throw new IllegalArgumentException(
                             "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
                 }
-                return new BearerToken(propertyResolver.resolve(auth.value()[0]))::value;
+                return new BearerToken(propertyResolver.resolve(auth.value().get(0)))::value;
             case NONE:
                 return () -> null;
             default:
@@ -110,36 +104,41 @@ public final class ByRestFactory {
         final var restFromInvocation = new RestRequestFromInvocation(new ByRestProxyConfig() {
 
             @Override
-            public String resolveUri(final String path) {
-                return propertyResolver.resolve(byRest.value() + path);
+            public String uri() {
+                return propertyResolver.resolve(byRestConfig.uri());
             }
 
             @Override
-            public Duration timeout() {
-                return timeout;
+            public Auth auth() {
+                return byRestConfig.auth();
             }
 
             @Override
-            public String contentType() {
-                return byRest.contentType();
-            }
-
-            @Override
-            public boolean acceptGZip() {
-                return byRest.acceptGZip();
+            public String timeout() {
+                return propertyResolver.resolve(byRestConfig.timeout());
             }
 
             @Override
             public String accept() {
-                return byRest.accept();
+                return byRestConfig.accept();
+            }
+
+            @Override
+            public String contentType() {
+                return byRestConfig.contentType();
+            }
+
+            @Override
+            public boolean acceptGZip() {
+                return byRestConfig.acceptGZip();
             }
 
             @Override
             public Class<?> errorType() {
-                return byRest.errorType();
+                return byRestConfig.errorType();
             }
 
-        }, methodAuthProviderMap, proxyAuthSupplier);
+        }, methodAuthProviderMap, propertyResolver, proxyAuthSupplier);
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 (proxy, method, args) -> {
@@ -207,5 +206,63 @@ public final class ByRestFactory {
                     return httpResponse.body();
                 });
 
+    }
+
+    public <T> T newInstance(final Class<T> byRestInterface) {
+        final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
+        final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
+                .orElse(null);
+
+        return this.newInstance(byRestInterface, new ByRestProxyConfig() {
+            private final Auth auth = new Auth() {
+
+                @Override
+                public List<String> value() {
+                    return Arrays.asList(byRest.auth().value());
+                }
+
+                @Override
+                public AuthScheme scheme() {
+                    return AuthScheme.valueOf(byRest.auth().scheme().name());
+                }
+                
+            };
+            
+            @Override
+            public String uri() {
+                return propertyResolver.resolve(byRest.value());
+            }
+
+            @Override
+            public String timeout() {
+                return timeout;
+            }
+
+            @Override
+            public String contentType() {
+                return byRest.contentType();
+            }
+
+            @Override
+            public boolean acceptGZip() {
+                return byRest.acceptGZip();
+            }
+
+            @Override
+            public String accept() {
+                return byRest.accept();
+            }
+
+            @Override
+            public Class<?> errorType() {
+                return byRest.errorType();
+            }
+
+            @Override
+            public Auth auth() {
+                return auth;
+            }
+
+        });
     }
 }
