@@ -55,7 +55,13 @@ public interface RestRequest {
     }
 
     default BodyReceiver bodyReceiver() {
-        return null;
+        return new BodyReceiver() {
+
+            @Override
+            public Class<?> type() {
+                return void.class;
+            }
+        };
     }
 
     default Object body() {

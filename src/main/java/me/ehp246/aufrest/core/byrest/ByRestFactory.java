@@ -7,7 +7,6 @@ import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,8 +20,6 @@ import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
-import me.ehp246.aufrest.api.rest.BasicAuth;
-import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
@@ -69,76 +66,16 @@ public final class ByRestFactory {
     public <T> T newInstance(final Class<T> byRestInterface, final ByRestProxyConfig byRestConfig) {
         final var interfaceName = byRestInterface.getCanonicalName();
 
-        LOGGER.atDebug().log("Instantiating @ByRest {}", interfaceName);
-
-        final Optional<Supplier<String>> proxyAuthSupplier = Optional.of(byRestConfig.auth()).map(auth -> {
-            switch (auth.scheme()) {
-            case SIMPLE:
-                if (auth.value().size() < 1) {
-                    throw new IllegalArgumentException(
-                            "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
-                }
-                return propertyResolver.resolve(auth.value().get(0))::toString;
-            case BASIC:
-                if (auth.value().size() < 2) {
-                    throw new IllegalArgumentException(
-                            "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
-                }
-                return new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
-                        propertyResolver.resolve(auth.value().get(1)))::value;
-            case BEARER:
-                if (auth.value().size() < 1) {
-                    throw new IllegalArgumentException(
-                            "Missing required arguments for " + auth.scheme().name() + " on " + interfaceName);
-                }
-                return new BearerToken(propertyResolver.resolve(auth.value().get(0)))::value;
-            case NONE:
-                return () -> null;
-            default:
-                return null;
-            }
-        });
+        LOGGER.atDebug().log("Instantiating {}", interfaceName);
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final var restFromInvocation = new RestRequestFromInvocation(new ByRestProxyConfig() {
-
-            @Override
-            public String uri() {
-                return propertyResolver.resolve(byRestConfig.uri());
-            }
-
-            @Override
-            public Auth auth() {
-                return byRestConfig.auth();
-            }
-
-            @Override
-            public String timeout() {
-                return propertyResolver.resolve(byRestConfig.timeout());
-            }
-
-            @Override
-            public String accept() {
-                return byRestConfig.accept();
-            }
-
-            @Override
-            public String contentType() {
-                return byRestConfig.contentType();
-            }
-
-            @Override
-            public boolean acceptGZip() {
-                return byRestConfig.acceptGZip();
-            }
-
-            @Override
-            public Class<?> errorType() {
-                return byRestConfig.errorType();
-            }
-
-        }, methodAuthProviderMap, propertyResolver, proxyAuthSupplier);
+        final RestRequestFromInvocation restFromInvocation;
+        try {
+            restFromInvocation = new RestRequestFromInvocation(byRestConfig, methodAuthProviderMap, propertyResolver);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Failed to instantiate " + byRestInterface.getCanonicalName(), e);
+        }
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 (proxy, method, args) -> {
@@ -160,7 +97,7 @@ public final class ByRestFactory {
                     }
 
                     final var invoked = new ProxyInvocation(byRestInterface, proxy, method, args);
-                    final var req = restFromInvocation.get(invoked);
+                    final var req = restFromInvocation.from(invoked);
                     final var outcome = RestFnOutcome.invoke(() -> {
                         ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
                         try {
@@ -225,9 +162,9 @@ public final class ByRestFactory {
                 public AuthScheme scheme() {
                     return AuthScheme.valueOf(byRest.auth().scheme().name());
                 }
-                
+
             };
-            
+
             @Override
             public String uri() {
                 return propertyResolver.resolve(byRest.value());
