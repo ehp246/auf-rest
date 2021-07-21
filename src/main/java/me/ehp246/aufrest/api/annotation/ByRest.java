@@ -7,6 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.time.Duration;
 
+import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
@@ -66,15 +67,20 @@ public @interface ByRest {
     /**
      * Defines the Accept-Encoding request header value. When true, the default, the
      * header value will be set to 'gzip'. Otherwise, the header will not be set.
-     * 
      */
     boolean acceptGZip() default true;
 
+    /**
+     * Specifies the Java type to which the response body of an
+     * {@link ErrorResponseException} should be de-serialized to for the interface.
+     * <p>
+     * The default value, {@link Default}, indicates to use the global errorType
+     * specified by {@link EnableByRest}.
+     */
     Class<?> errorType() default Default.class;
 
     /**
      * Defines the Authorization type and value required by the endpoint.
-     *
      * <p>
      * Note the default <code>Auth.scheme</code> for the element is
      * {@link me.ehp246.aufrest.api.rest.AuthScheme DEFAULT}. It is

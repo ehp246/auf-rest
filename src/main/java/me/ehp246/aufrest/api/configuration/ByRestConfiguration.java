@@ -119,7 +119,8 @@ public final class ByRestConfiguration {
                 final var statusCode = responseInfo.statusCode();
                 final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
                         .equalsIgnoreCase("gzip");
-                // The server might not set the header. Assuming JSON.
+                // The server might not set the header. Assuming JSON. Otherwise, follow the
+                // header.
                 final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
                         .orElse(MediaType.APPLICATION_JSON_VALUE);
 
@@ -146,15 +147,17 @@ public final class ByRestConfiguration {
                                 return null;
                             }
 
+                            // This means a JSON string will not be de-serialized.
                             if (statusCode >= 300 && receiver.errorType() == String.class) {
                                 return text;
                             }
 
                             if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                                // Default de-serialization for error code.
                                 return jacksonFn.fromJson(text,
                                         statusCode < 300 ? receiver : () -> receiver.errorType());
                             }
+
+                            // Returns the raw text for anything that is not JSON for now.
                             return text;
                         });
             };

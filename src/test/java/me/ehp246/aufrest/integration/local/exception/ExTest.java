@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.local.exception;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
@@ -192,8 +193,7 @@ class ExTest {
 
         Assertions.assertEquals(400, ex.statusCode());
 
-        Assertions.assertTrue(ex.httpResponse().body() instanceof String);
-        Assertions.assertEquals("400", ex.responseBody(String.class));
+        Assertions.assertEquals(400, ex.responseBody(Integer.class));
     }
 
     @Test
@@ -202,7 +202,7 @@ class ExTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
                 () -> case001.getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
-        Assertions.assertEquals(String.class, ex.httpResponse().body().getClass());
+        Assertions.assertEquals(LinkedHashMap.class, ex.httpResponse().body().getClass());
     }
 
     @Test
