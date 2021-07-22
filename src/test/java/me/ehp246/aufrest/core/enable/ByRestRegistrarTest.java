@@ -10,7 +10,7 @@ import me.ehp246.aufrest.mock.Jackson;
  * @author Lei Yang
  *
  */
-class EnableByRestRegistrarTest {
+class ByRestRegistrarTest {
     private AnnotationConfigApplicationContext appCtx;
 
     @AfterEach

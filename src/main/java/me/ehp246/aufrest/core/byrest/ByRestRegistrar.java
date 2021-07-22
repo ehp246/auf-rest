@@ -19,8 +19,8 @@ import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 
-public final class EnableByRestRegistrar implements ImportBeanDefinitionRegistrar {
-    private final static Logger LOGGER = LogManager.getLogger(EnableByRestRegistrar.class);
+public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
+    private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
 
     @Override
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
