@@ -27,21 +27,24 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
         LOGGER.debug("Scanning for {}", ByRest.class.getCanonicalName());
 
         new ByRestScanner(EnableByRest.class, ByRest.class, metadata).perform().forEach(beanDefinition -> {
-            registry.registerBeanDefinition(beanDefinition.getBeanClassName(), this.getProxyBeanDefinition(
-                    metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName()), beanDefinition));
+            LOGGER.trace("Registering {}", beanDefinition.getBeanClassName());
+
+            final Class<?> byRestInterface;
+            try {
+                byRestInterface = Class.forName(beanDefinition.getBeanClassName());
+            } catch (final ClassNotFoundException ignored) {
+                // Class scanning started this. Should not happen.
+                throw new RuntimeException("Class scanning started this. Should not happen.");
+            }
+
+            final var name = byRestInterface.getAnnotation(ByRest.class).name();
+            registry.registerBeanDefinition(name.equals("") ? byRestInterface.getSimpleName() : name,
+                    this.getProxyBeanDefinition(
+                    metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName()), byRestInterface));
         });
     }
 
-    private BeanDefinition getProxyBeanDefinition(Map<String, Object> map, final BeanDefinition beanDefinition) {
-        LOGGER.trace("Defining {}", beanDefinition.getBeanClassName());
-
-        final Class<?> byRestInterface;
-        try {
-            byRestInterface = Class.forName(beanDefinition.getBeanClassName());
-        } catch (final ClassNotFoundException ignored) {
-            // Class scanning started this. Should not happen.
-            throw new RuntimeException("Class scanning started this. Should not happen.");
-        }
+    private BeanDefinition getProxyBeanDefinition(Map<String, Object> map, final Class<?> byRestInterface) {
 
         final var byRest = byRestInterface.getAnnotation(ByRest.class);
         final var globalErrorType = (Class<?>) map.get("errorType");

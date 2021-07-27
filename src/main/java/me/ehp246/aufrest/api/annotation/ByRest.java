@@ -34,6 +34,15 @@ public @interface ByRest {
     String value();
 
     /**
+     * Defines an optional bean name by which the proxy interface can be injected.
+     * <p>
+     * The default name is {@link Class#getSimpleName()}.
+     * 
+     * @return the bean name of the proxy interface.
+     */
+    String name() default "";
+
+    /**
      * Defines how long to wait for a response before raising a
      * {@link java.util.concurrent.TimeoutException TimeoutException}. The value is
      * parsed by {@link Duration java.time.Duration.parse(CharSequence)} and should
@@ -83,8 +92,8 @@ public @interface ByRest {
      * Defines the Authorization type and value required by the endpoint.
      * <p>
      * Note the default <code>Auth.scheme</code> for the element is
-     * {@link me.ehp246.aufrest.api.rest.AuthScheme DEFAULT}. It is
-     * different from an explicitly defined value which is set to
+     * {@link me.ehp246.aufrest.api.rest.AuthScheme DEFAULT}. It is different from
+     * an explicitly defined value which is set to
      * {@link me.ehp246.aufrest.api.rest.AuthScheme BEARER}.
      *
      * @see Auth

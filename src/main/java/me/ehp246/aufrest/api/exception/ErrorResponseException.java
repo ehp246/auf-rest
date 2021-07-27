@@ -1,6 +1,9 @@
 package me.ehp246.aufrest.api.exception;
 
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -38,12 +41,47 @@ public class ErrorResponseException extends Exception {
     }
     
     @SuppressWarnings("unchecked")
-    public <T> T responseBody(Class<T> t) {
+    public <T> T body(Class<T> t) {
         return (T) this.response.body();
     }
 
-    public Object responseBody() {
+    public Object body() {
         return this.response.body();
+    }
+
+    public HttpHeaders headers() {
+        return this.response.headers();
+    }
+
+    public List<String> headerValues(final String name) {
+        return this.response.headers().allValues(name);
+    }
+
+    /**
+     * Returns the first value of the header if present. Otherwise, returns the
+     * <code>def</code>.
+     * 
+     * @param name header name
+     * @param def  the value to return if the response has no value for the header
+     * @return header value or <code>def</code>
+     */
+    public String headerValue(final String name, final String def) {
+        return this.response.headers().firstValue(name).orElse(def);
+    }
+
+    /**
+     * Returns the first value of the header if present. Otherwise, returns
+     * <code>null</code>.
+     * 
+     * @param name header name
+     * @return header value or <code>null</code>
+     */
+    public String headerValue(final String name) {
+        return this.response.headers().firstValue(name).orElse(null);
+    }
+
+    public Map<String, List<String>> headersMap() {
+        return this.response.headers().map();
     }
 
     public String bodyToString() {

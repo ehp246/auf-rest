@@ -43,9 +43,13 @@ class ErrorTypeTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
                 () -> case01.getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
-        Assertions.assertTrue(ex.responseBody() instanceof ErrorType);
+        Assertions.assertEquals(ex.httpResponse().headers(), ex.headers());
 
-        Assertions.assertEquals(now.toString(), ex.responseBody(ErrorType.class).getNow().toString());
+        Assertions.assertEquals(ex.httpResponse().headers().map(), ex.headersMap());
+
+        Assertions.assertTrue(ex.body() instanceof ErrorType);
+
+        Assertions.assertEquals(now.toString(), ex.body(ErrorType.class).getNow().toString());
     }
 
     @Test
@@ -67,7 +71,7 @@ class ErrorTypeTest {
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof Map);
 
-        Assertions.assertEquals(now.toString(), ex.responseBody(Map.class).get("now").toString());
+        Assertions.assertEquals(now.toString(), ex.body(Map.class).get("now").toString());
     }
 
     @Test
@@ -78,7 +82,7 @@ class ErrorTypeTest {
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof Map);
 
-        Assertions.assertEquals(now.toString(), ex.responseBody(Map.class).get("now").toString());
+        Assertions.assertEquals(now.toString(), ex.body(Map.class).get("now").toString());
     }
 
     @Test
@@ -89,6 +93,6 @@ class ErrorTypeTest {
 
         Assertions.assertEquals(String.class, ex.httpResponse().body().getClass());
 
-        Assertions.assertEquals(string, ex.responseBody(String.class));
+        Assertions.assertEquals(string, ex.body(String.class));
     }
 }

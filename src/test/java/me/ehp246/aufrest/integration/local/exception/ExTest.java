@@ -193,7 +193,7 @@ class ExTest {
 
         Assertions.assertEquals(400, ex.statusCode());
 
-        Assertions.assertEquals(400, ex.responseBody(Integer.class));
+        Assertions.assertEquals(400, ex.body(Integer.class));
     }
 
     @Test
@@ -224,6 +224,6 @@ class ExTest {
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType);
 
-        Assertions.assertEquals(now.toString(), ex.responseBody(ErrorType.class).getNow().toString());
+        Assertions.assertEquals(now.toString(), ex.body(ErrorType.class).getNow().toString());
     }
 }
