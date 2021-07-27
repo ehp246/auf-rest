@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
@@ -40,9 +41,9 @@ public final class DefaultRequestBuilder implements RequestBuilder {
     private final Optional<AuthProvider> authProvider;
     private final Duration responseTimeout;
 
-    public DefaultRequestBuilder(final Supplier<HttpRequest.Builder> reqBuilderSupplier,
-            final HeaderProvider headerProvider, final AuthProvider authProvider,
-            final BodyPublisherProvider bodyPublisherProvider, final String requestTimeout) {
+    public DefaultRequestBuilder(@Nullable final Supplier<HttpRequest.Builder> reqBuilderSupplier,
+            @Nullable final HeaderProvider headerProvider, @Nullable final AuthProvider authProvider,
+            @Nullable final BodyPublisherProvider bodyPublisherProvider, @Nullable final String requestTimeout) {
         super();
         this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
         this.headerProvider = Optional.ofNullable(headerProvider);
@@ -93,10 +94,8 @@ public final class DefaultRequestBuilder implements RequestBuilder {
 
         // Authentication
         Optional.ofNullable(Optional.ofNullable(req.authSupplier())
-                .orElse(() -> authProvider.map(provider -> provider.get(req)).orElse(null)))
-                .map(Supplier::get)
-                .filter(OneUtil::hasValue)
-                .ifPresent(header -> builder.header(HttpUtils.AUTHORIZATION, header));
+                .orElse(() -> authProvider.map(provider -> provider.get(req)).orElse(null))).map(Supplier::get)
+                .filter(OneUtil::hasValue).ifPresent(header -> builder.header(HttpUtils.AUTHORIZATION, header));
 
         // Timeout
         Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout())

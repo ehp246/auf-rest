@@ -39,6 +39,10 @@ class MockClientBuilderSupplier {
         this.e = null;
     }
 
+    static Supplier<HttpClient.Builder> supplierOn(final Supplier<HttpResponse<?>> responseSupplier) {
+        return new MockClientBuilderSupplier(responseSupplier)::builder;
+    }
+
     @SuppressWarnings("unchecked")
     HttpClient.Builder builder() {
         builderCount++;

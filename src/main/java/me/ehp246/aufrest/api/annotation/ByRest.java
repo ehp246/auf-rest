@@ -7,7 +7,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.time.Duration;
 
-import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
  * Indicates that the annotated interface should be scanned by the framework as
@@ -31,6 +32,15 @@ public @interface ByRest {
      * value must resolve to a full HTTP-based URL.
      */
     String value();
+
+    /**
+     * Defines an optional bean name by which the proxy interface can be injected.
+     * <p>
+     * The default name is {@link Class#getSimpleName()}.
+     * 
+     * @return the bean name of the proxy interface.
+     */
+    String name() default "";
 
     /**
      * Defines how long to wait for a response before raising a
@@ -61,27 +71,34 @@ public @interface ByRest {
     /**
      * Defines the Accept header. Usually derived by the return type of the method.
      */
-    String accept() default HttpUtils.APPLICATION_JSON;
+    String accept() default "application/json";
 
     /**
      * Defines the Accept-Encoding request header value. When true, the default, the
      * header value will be set to 'gzip'. Otherwise, the header will not be set.
-     * 
      */
     boolean acceptGZip() default true;
 
     /**
+     * Specifies the Java type to which the response body of an
+     * {@link ErrorResponseException} should be de-serialized to for the interface.
+     * <p>
+     * The default value, {@link Default}, indicates to use the global errorType
+     * specified by {@link EnableByRest}.
+     */
+    Class<?> errorType() default Default.class;
+
+    /**
      * Defines the Authorization type and value required by the endpoint.
-     *
      * <p>
      * Note the default <code>Auth.scheme</code> for the element is
-     * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Scheme DEFAULT}. It is
-     * different from an explicitly defined value which is set to
-     * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Scheme BEARER}.
+     * {@link me.ehp246.aufrest.api.rest.AuthScheme DEFAULT}. It is different from
+     * an explicitly defined value which is set to
+     * {@link me.ehp246.aufrest.api.rest.AuthScheme BEARER}.
      *
      * @see Auth
      */
-    Auth auth() default @Auth(value = {}, scheme = Auth.Scheme.DEFAULT);
+    Auth auth() default @Auth(value = {}, scheme = AuthScheme.DEFAULT);
 
     /**
      * Defines the Authorization types supported.
@@ -90,11 +107,11 @@ public @interface ByRest {
         /**
          * Defines the type of the Authorization required by the endpoint.
          */
-        Scheme scheme() default Scheme.BEARER;
+        AuthScheme scheme() default AuthScheme.BEARER;
 
         /**
          * Defines the argument or arguments to construct Authorization header. See
-         * {@link Scheme Scheme} for how the provided values are used.
+         * {@link AuthScheme Scheme} for how the provided values are used.
          * <p>
          * Spring property placeholder is supported.
          * <p>
@@ -102,60 +119,6 @@ public @interface ByRest {
          * application. They are used as-is.
          */
         String[] value() default {};
-
-        /**
-         * Indicates to the framework how to construct the value of Authorization header
-         * for the endpoint with given scheme and arguments.
-         */
-        enum Scheme {
-            /**
-             * Indicates the value of Authorization header for the endpoint is to be
-             * provided by the optional global
-             * {@link me.ehp246.aufrest.api.rest.AuthProvider AuthProvider} bean. For this
-             * type, the value element is ignored.
-             * <p>
-             * The global bean is not defined by default. Additionally it could return
-             * <code>null</code> for the URI. In which case, the requests from the proxy
-             * interface will have no Authorization header.
-             *
-             * @see me.ehp246.aufrest.api.rest.AuthProvider
-             */
-            DEFAULT,
-            /**
-             * Indicates the endpoint requires HTTP basic authentication. For this scheme,
-             * the value element should specify the two components of user name and password
-             * in the format of <code>{"${username}", "${password}"}</code>. I.e., the first
-             * value is the username, the second the password.
-             * <p>
-             * Either component can be blank.
-             */
-            BASIC,
-            /**
-             * Indicates the endpoint requires Bearer token authorization. For this scheme,
-             * the value should be a single string that is the token without any prefix.
-             * <p>
-             * Blank string is accepted as-is. The framework does not validate the value.
-             * <p>
-             * Additional values are ignored.
-             * 
-             */
-            BEARER,
-            /**
-             * Indicates to the framework that the value should be set to the Authorization
-             * header as-is without any additional processing. This is mainly to provide a
-             * static direct access to the header.
-             * <p>
-             * Requires a single value. Only the first is accepted. Additional values are
-             * ignored.
-             * 
-             */
-            SIMPLE,
-
-            /**
-             * Indicates explicitly that Authorization should not be set.
-             */
-            NONE
-        }
     }
 
 }

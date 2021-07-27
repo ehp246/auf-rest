@@ -7,7 +7,7 @@ import java.net.http.HttpRequest;
  * default Authorization header value provider for the
  * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces that have
  * authorization scheme of
- * {@link me.ehp246.aufrest.api.annotation.ByRest.Auth.Scheme DEFAULT}.
+ * {@link me.ehp246.aufrest.api.rest.AuthScheme DEFAULT}.
  *
  * <p>
  * The framework calls the bean passing in the out-going {@link RestRequest}

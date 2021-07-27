@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.exception.controller;
+package me.ehp246.aufrest.integration.local.errortype.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/status-code/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-class ExController {
-    @GetMapping("runtime")
-    void get() {
-        throw new RuntimeException();
-    }
-
+class ErrorTypeController {
     @GetMapping("{statusCode}")
     ResponseEntity<String> get(@PathVariable("statusCode") int statusCode,
             @RequestParam(value = "body", required = false) final String body) {

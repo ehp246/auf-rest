@@ -15,7 +15,7 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.RestClientConfig;
+import me.ehp246.aufrest.api.annotation.Default;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
@@ -25,8 +25,6 @@ import me.ehp246.aufrest.core.byrest.ByRestFactory;
  *
  */
 class ReturnTypeTest {
-    final RestClientConfig clientConfig = new RestClientConfig() {
-    };
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
     private final RestFn client = request -> {
         reqRef.set(request);
@@ -35,7 +33,7 @@ class ReturnTypeTest {
     private final ByRestFactory factory = new ByRestFactory(cfg -> client,
             new MockEnvironment()::resolveRequiredPlaceholders);
 
-    private final ReturnTypeTestCase001 case001 = factory.newInstance(ReturnTypeTestCase001.class);
+    private final ReturnTypeCase001 case001 = factory.newInstance(ReturnTypeCase001.class);
 
     @BeforeEach
     void beforeEach() {
@@ -45,23 +43,23 @@ class ReturnTypeTest {
     @Test
     void return_type_001() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                factory.newInstance(ReturnTypeTestCase001.class)::get001);
+                factory.newInstance(ReturnTypeCase001.class)::get001);
     }
 
     @Test
     void return_type_002() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                factory.newInstance(ReturnTypeTestCase001.class)::get002);
+                factory.newInstance(ReturnTypeCase001.class)::get002);
     }
 
     @Test
     void return_type_003() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get004);
+        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase001.class)::get004);
     }
 
     @Test
     void return_type_004() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeTestCase001.class)::get005);
+        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase001.class)::get005);
     }
 
     @Disabled
@@ -94,4 +92,20 @@ class ReturnTypeTest {
         Assertions.assertEquals(Instant.class, bodyReceiver.reifying().get(0));
     }
 
+    @Test
+    void errorType_001() {
+        factory.newInstance(ErrorTypeCases.Case001.class).get();
+
+        Assertions.assertTrue(reqRef.get().bodyReceiver().errorType() == Default.class);
+    }
+
+    /**
+     * 
+     */
+    @Test
+    void errorType_002() {
+        factory.newInstance(ErrorTypeCases.Case002.class).get();
+
+        Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());
+    }
 }

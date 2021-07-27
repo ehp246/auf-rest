@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.exception;
+package me.ehp246.aufrest.integration.local.errortype;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -13,6 +13,6 @@ import me.ehp246.aufrest.mock.Jackson;
  */
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 @Import(Jackson.class)
-@EnableByRest
+@EnableByRest(errorType = ErrorType.class)
 class AppConfig {
 }

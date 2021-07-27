@@ -95,7 +95,7 @@ public final class ProxyInvocation implements Invocation {
     }
 
     public boolean canThrow(Class<?> type) {
-        return this.threws.contains(type);
+        return this.getThrows().stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
     }
 
     public boolean canReturn(Class<?> type) {

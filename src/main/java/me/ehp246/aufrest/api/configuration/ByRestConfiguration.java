@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -115,14 +114,15 @@ public final class ByRestConfiguration {
             final var receiver = req.bodyReceiver();
             final Class<?> type = receiver == null ? void.class : receiver.type();
 
-            if (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)) {
-                return BodyHandlers.discarding();
-            }
-
             // Declared return type requires de-serialization.
             return responseInfo -> {
+                final var statusCode = responseInfo.statusCode();
                 final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
                         .equalsIgnoreCase("gzip");
+                // The server might not set the header. Assuming JSON. Otherwise, follow the
+                // header.
+                final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
+                        .orElse(MediaType.APPLICATION_JSON_VALUE);
 
                 // Short-circuit the content-type.
                 if (type.isAssignableFrom(InputStream.class)) {
@@ -132,31 +132,34 @@ public final class ByRestConfiguration {
                             : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
                 }
 
-                return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
-                    try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes)); final var byteOs = new ByteArrayOutputStream()) {
-                        gis.transferTo(byteOs);
-                        return byteOs.toString(StandardCharsets.UTF_8);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-                    if (responseInfo.statusCode() == 204) {
-                        return null;
-                    }
+                return BodySubscribers
+                        .mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
+                            try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
+                                    final var byteOs = new ByteArrayOutputStream()) {
+                                gis.transferTo(byteOs);
+                                return byteOs.toString(StandardCharsets.UTF_8);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                            if ((statusCode == 204) || (statusCode < 300
+                                    && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
+                                return null;
+                            }
 
-                    if (responseInfo.statusCode() >= 300) {
-                        return text;
-                    }
+                            // This means a JSON string will not be de-serialized.
+                            if (statusCode >= 300 && receiver.errorType() == String.class) {
+                                return text;
+                            }
 
-                    // The server might not set the header. Assuming JSON.
-                    final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
-                            .orElse(MediaType.APPLICATION_JSON_VALUE);
+                            if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
+                                return jacksonFn.fromJson(text,
+                                        statusCode < 300 ? receiver : () -> receiver.errorType());
+                            }
 
-                    if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                        return jacksonFn.fromJson(text, receiver);
-                    }
-                    return text;
-                });
+                            // Returns the raw text for anything that is not JSON for now.
+                            return text;
+                        });
             };
         };
     }

@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
+import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**

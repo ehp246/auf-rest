@@ -1,23 +1,45 @@
 package me.ehp246.aufrest.api.rest;
 
-import java.time.Duration;
+import java.util.List;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
- * The instantiation of a {@link ByRest} annotation as an object.
+ * Defines the configuration of a {@link ByRest} proxy. Mostly the Java object
+ * equivalent of the annotation.
  * 
  * @author Lei Yang
  *
  */
 public interface ByRestProxyConfig {
-    String resolveUri(String path);
+    String uri();
 
-    Duration timeout();
+    default Auth auth() {
+        return new Auth() {
+        };
+    }
+
+    String timeout();
 
     String accept();
 
     String contentType();
 
-    boolean acceptGZip();
+    default boolean acceptGZip() {
+        return true;
+    }
+
+    default Class<?> errorType() {
+        return Object.class;
+    }
+
+    interface Auth {
+        default List<String> value() {
+            return List.of();
+        }
+
+        default AuthScheme scheme() {
+            return AuthScheme.DEFAULT;
+        }
+    }
 }

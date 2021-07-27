@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.annotation.Reifying;
  */
 @SuppressWarnings("rawtypes")
 @ByRest("")
-interface ReturnTypeTestCase001 {
+interface ReturnTypeCase001 {
     CompletableFuture get001();
 
     @Reifying(HttpResponse.class)

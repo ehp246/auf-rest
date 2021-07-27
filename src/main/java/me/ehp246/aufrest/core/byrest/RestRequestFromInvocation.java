@@ -29,11 +29,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
+import me.ehp246.aufrest.api.rest.BasicAuth;
+import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
+import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -50,19 +53,52 @@ final class RestRequestFromInvocation {
     private final Optional<Supplier<String>> proxyAuthSupplier;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
     private final ByRestProxyConfig byRestConfig;
+    private final PropertyResolver propertyResolver;
+    private final Duration timeout;
 
     RestRequestFromInvocation(final ByRestProxyConfig byRestConfig,
-            final InvocationAuthProviderResolver methodAuthProviderMap,
-            final Optional<Supplier<String>> proxyAuthSupplier) {
+            final InvocationAuthProviderResolver methodAuthProviderMap, final PropertyResolver propertyResolver) {
         super();
         this.byRestConfig = byRestConfig;
-        this.proxyAuthSupplier = proxyAuthSupplier;
         this.methodAuthProviderMap = methodAuthProviderMap;
+        this.propertyResolver = propertyResolver;
+        this.proxyAuthSupplier = Optional.of(byRestConfig.auth()).map(auth -> {
+            switch (auth.scheme()) {
+            case SIMPLE:
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                return propertyResolver.resolve(auth.value().get(0))::toString;
+            case BASIC:
+                if (auth.value().size() < 2) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                return new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
+                        propertyResolver.resolve(auth.value().get(1)))::value;
+            case BEARER:
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                return new BearerToken(propertyResolver.resolve(auth.value().get(0)))::value;
+            case NONE:
+                return () -> null;
+            default:
+                return null;
+            }
+        });
+        this.timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
+                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                .orElse(null);
     }
 
+    /**
+     * Creates a {@link RestRequest} from a {@link ProxyInvocation}.
+     * 
+     */
     @SuppressWarnings("unchecked")
-    RestRequest get(ProxyInvocation invocation) {
-        final var ofMapping = invocation.findOnMethod(OfMapping.class);
+    RestRequest from(ProxyInvocation invocation) {
+        final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
 
         final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
         final var unnamedPathMap = pathParams.get("");
@@ -82,21 +118,21 @@ final class RestRequestFromInvocation {
         }
 
         final String id = UUID.randomUUID().toString();
-        final String url = UriComponentsBuilder
-                .fromUriString(this.byRestConfig
-                        .resolveUri(ofMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
+        final String uri = UriComponentsBuilder
+                .fromUriString(propertyResolver.resolve(
+                        this.byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
                 .queryParams(CollectionUtils.toMultiValueMap(queryParams.entrySet().stream()
                         .collect(Collectors.toMap(e -> OneUtil.orThrow(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
                                 e -> OneUtil
                                         .orThrow(() -> List.of(URLEncoder.encode(e.getValue().toString(), "UTF-8")))))))
                 .buildAndExpand(pathParams).toUriString();
 
-        final String method = ofMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
+        final String method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
             final var invokedMethodName = invocation.getMethodName().toUpperCase();
             return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
 
-        final var accept = ofMapping.map(OfMapping::accept).orElse(this.byRestConfig.accept());
+        final var accept = optionalOfMapping.map(OfMapping::accept).orElse(this.byRestConfig.accept());
 
         final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
 
@@ -154,6 +190,11 @@ final class RestRequestFromInvocation {
             }
 
             @Override
+            public Class<?> errorType() {
+                return byRestConfig.errorType();
+            }
+
+            @Override
             public List<Class<?>> reifying() {
                 return returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size());
             }
@@ -166,13 +207,13 @@ final class RestRequestFromInvocation {
 
         final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
-                .orElse(ofMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
+                .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
                         .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
                         .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
         final var contentType = Optional
-                .of(ofMapping.map(OfMapping::contentType).orElse(this.byRestConfig.contentType()))
+                .ofNullable(optionalOfMapping.map(OfMapping::contentType).orElse(this.byRestConfig.contentType()))
                 .filter(OneUtil::hasValue).orElseGet(() -> {
                     // TODO: Determine content type by the body type.
                     // Defaults to JSON.
@@ -188,7 +229,7 @@ final class RestRequestFromInvocation {
 
             @Override
             public String uri() {
-                return url;
+                return uri;
             }
 
             @Override
@@ -198,7 +239,7 @@ final class RestRequestFromInvocation {
 
             @Override
             public Duration timeout() {
-                return byRestConfig.timeout();
+                return timeout;
             }
 
             @Override
