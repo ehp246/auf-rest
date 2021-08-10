@@ -15,8 +15,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
@@ -34,8 +32,6 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 public final class DefaultRequestBuilder implements RequestBuilder {
-    private final static Logger LOGGER = LogManager.getLogger(DefaultRequestBuilder.class);
-
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
     private final BodyPublisherProvider bodyPublisherProvider;
     private final Optional<HeaderProvider> headerProvider;
