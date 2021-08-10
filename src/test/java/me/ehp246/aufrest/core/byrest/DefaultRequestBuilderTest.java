@@ -174,13 +174,14 @@ class DefaultRequestBuilderTest {
 
     @Test
     void auth_header_002() {
-        HeaderContext.add("authorization", UUID.randomUUID().toString());
+        final var value = UUID.randomUUID().toString();
+        HeaderContext.add("authorization", value);
 
         final var req = new DefaultRequestBuilder(null, null, null, null, null).apply(new RestRequest() {
 
             @Override
             public String uri() {
-                return "http://w.w.w";
+                return "http://localhost";
             }
 
             @Override
@@ -189,8 +190,7 @@ class DefaultRequestBuilderTest {
             }
         });
 
-        Assertions.assertEquals(true, req.headers().firstValue("authorization").isEmpty(),
-                "Should not come from usual headers");
+        Assertions.assertEquals(value, req.headers().firstValue("authorization").get(), "Should come from the context");
     }
 
     @Test
@@ -201,7 +201,7 @@ class DefaultRequestBuilderTest {
 
             @Override
             public String uri() {
-                return "http://w.w.w";
+                return "http://localhost";
             }
 
             @Override
@@ -215,8 +215,7 @@ class DefaultRequestBuilderTest {
             }
         });
 
-        Assertions.assertEquals("me2", req.headers().firstValue("authorization").get(),
-                "Should not come from usual headers");
+        Assertions.assertEquals("me2", req.headers().firstValue("authorization").get(), "Should come from the request");
     }
 
     @Test
@@ -497,7 +496,7 @@ class DefaultRequestBuilderTest {
             }
         }).headers();
 
-        Assertions.assertEquals(true, headers.firstValue(HttpUtils.AUTHORIZATION).isEmpty());
+        Assertions.assertEquals(0, headers.allValues(HttpUtils.AUTHORIZATION).size(), "Should filter blank strings");
     }
 
     @Test
