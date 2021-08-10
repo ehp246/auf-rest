@@ -28,7 +28,7 @@ class UriTest {
     };
 
     private final ByRestFactory factory = new ByRestFactory(clientCfg -> client,
-            new MockEnvironment().withProperty("echo.base", "http://localhost.com")::resolveRequiredPlaceholders);
+            new MockEnvironment().withProperty("echo.base", "http://localhost")::resolveRequiredPlaceholders);
 
     final TestCase001 case001 = factory.newInstance(TestCase001.class);
 
@@ -43,7 +43,7 @@ class UriTest {
 
         final var request = reqRef.get();
 
-        Assertions.assertEquals("http://localhost.com/get/1/path2/3", request.uri());
+        Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
     }
 
     @Test
@@ -56,7 +56,7 @@ class UriTest {
          * Method-level annotation overwrites type-level. This behavior is different
          * from Spring's RequestMapping.
          */
-        Assertions.assertEquals("http://localhost.com/3/4", request.uri(),
+        Assertions.assertEquals("http://localhost/3/4", request.uri(),
                 "Should overwrite type-level annotation");
     }
 
@@ -70,7 +70,7 @@ class UriTest {
          * Method-level annotation overwrites type-level. This behavior is different
          * from Spring's RequestMapping.
          */
-        Assertions.assertEquals("http://localhost.com/get/1/path2/3", request.uri(),
+        Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri(),
                 "Should overwrite type-level annotation");
     }
 
@@ -78,14 +78,14 @@ class UriTest {
     void uri_004() {
         case001.getWithPlaceholder();
 
-        Assertions.assertEquals("http://localhost.com/get", reqRef.get().uri());
+        Assertions.assertEquals("http://localhost/get", reqRef.get().uri());
     }
 
     @Test
     void uri_005() {
         case001.get001();
 
-        Assertions.assertEquals("http://localhost.com/", reqRef.get().uri());
+        Assertions.assertEquals("http://localhost/", reqRef.get().uri());
     }
 
     @Test
@@ -98,7 +98,7 @@ class UriTest {
          * Method-level annotation overwrites type-level. This behavior is different
          * from Spring's RequestMapping.
          */
-        Assertions.assertEquals("http://localhost.com/get/1/path2/3", request.uri());
+        Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
     }
 
     @Test
@@ -110,7 +110,7 @@ class UriTest {
         /**
          * Explicit parameter takes precedence.
          */
-        Assertions.assertEquals("http://localhost.com/get/1/path2/3", request.uri());
+        Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
     }
 
     @Test
@@ -122,7 +122,7 @@ class UriTest {
         /**
          * Explicit parameter takes precedence.
          */
-        Assertions.assertEquals("http://localhost.com/get/1/path2/3%20%3D%201", request.uri());
+        Assertions.assertEquals("http://localhost/get/1/path2/3%20%3D%201", request.uri());
     }
 
     /*
@@ -145,6 +145,6 @@ class UriTest {
 
         final var request = reqRef.get();
 
-        Assertions.assertEquals("http://localhost.com/get/1/path2/3", request.uri());
+        Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
     }
 }
