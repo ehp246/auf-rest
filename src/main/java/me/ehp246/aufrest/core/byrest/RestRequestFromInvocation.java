@@ -104,12 +104,14 @@ final class RestRequestFromInvocation {
 
         final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value).entrySet()
                 .stream().map(entry -> {
+                    if (entry.getKey().equals("")) {
+                        return entry;
+                    }
                     entry.setValue(UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
                     return entry;
                 }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         final var unnamedPathMap = pathParams.get("");
-
         if (unnamedPathMap != null && unnamedPathMap instanceof Map) {
             ((Map<String, Object>) unnamedPathMap).entrySet().stream()
                     .forEach(entry -> pathParams.putIfAbsent(entry.getKey(),

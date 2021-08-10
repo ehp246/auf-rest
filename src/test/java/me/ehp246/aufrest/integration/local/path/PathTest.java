@@ -26,7 +26,7 @@ class PathTest {
     @Test
     void path_02() {
         final var pathId = UUID.randomUUID().toString();
-        Assertions.assertEquals("/path/" + pathId, case001.get(pathId));
+        Assertions.assertEquals(pathId, case001.get(pathId));
     }
 
     @Test
