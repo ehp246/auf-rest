@@ -1,5 +1,8 @@
 package me.ehp246.aufrest.integration.local.path;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +19,20 @@ class PathTest {
     private TestCase001 case001;
 
     @Test
-    void test_001() {
+    void path_01() {
         Assertions.assertEquals("/path", case001.get());
+    }
+
+    @Test
+    void path_02() {
+        final var pathId = UUID.randomUUID().toString();
+        Assertions.assertEquals("/path/" + pathId, case001.get(pathId));
+    }
+
+    @Test
+    void path_03() {
+        final var pathId = UUID.randomUUID().toString() + " = " + UUID.randomUUID().toString() + " ? "
+                + Instant.now().toString();
+        Assertions.assertEquals(pathId, case001.get(pathId));
     }
 }

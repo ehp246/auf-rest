@@ -3,6 +3,7 @@ package me.ehp246.aufrest.core.byrest;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -100,15 +102,22 @@ final class RestRequestFromInvocation {
     RestRequest from(ProxyInvocation invocation) {
         final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
 
-        final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value);
+        final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value).entrySet()
+                .stream().map(entry -> {
+                    entry.setValue(UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
+                    return entry;
+                }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         final var unnamedPathMap = pathParams.get("");
 
         if (unnamedPathMap != null && unnamedPathMap instanceof Map) {
             ((Map<String, Object>) unnamedPathMap).entrySet().stream()
-                    .forEach(entry -> pathParams.putIfAbsent(entry.getKey(), entry.getValue()));
+                    .forEach(entry -> pathParams.putIfAbsent(entry.getKey(),
+                            UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
         }
 
         final var queryParams = invocation.mapAnnotatedArguments(RequestParam.class, RequestParam::value);
+
         final var unnamedQueryMap = queryParams.get("");
 
         if (unnamedQueryMap != null && unnamedQueryMap instanceof Map) {
@@ -122,9 +131,9 @@ final class RestRequestFromInvocation {
                 .fromUriString(propertyResolver.resolve(
                         this.byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
                 .queryParams(CollectionUtils.toMultiValueMap(queryParams.entrySet().stream()
-                        .collect(Collectors.toMap(e -> OneUtil.orThrow(() -> URLEncoder.encode(e.getKey(), "UTF-8")),
-                                e -> OneUtil
-                                        .orThrow(() -> List.of(URLEncoder.encode(e.getValue().toString(), "UTF-8")))))))
+                        .collect(Collectors.toMap(
+                                e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8),
+                                e -> List.of(URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))))))
                 .buildAndExpand(pathParams).toUriString();
 
         final String method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {

@@ -106,6 +106,11 @@ class ByRestFactoryTest {
     }
 
     @Test
+    void pathParam_01() {
+
+    }
+
+    @Test
     void requestParam002() {
         final var newInstance = factory.newInstance(RequestParamCase001.class);
 
