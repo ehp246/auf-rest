@@ -56,16 +56,13 @@ public final class DefaultRequestBuilder implements RequestBuilder {
     @Override
     public HttpRequest apply(RestRequest req) {
         final var builder = reqBuilderSupplier.get();
-
+        final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
         // Provider headers, context headers, request headers in ascending priority.
         Optional.ofNullable(Stream
-                .of(new HashMap<String, List<String>>(
-                        headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),
-                        Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
+                .of(providedHeaders, HeaderContext.map(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
                 .map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
                         Map.Entry::getValue, (left, right) -> right)))
-                .map(Map::entrySet).stream().flatMap(Set::stream)
-                .forEach(entry -> {
+                .map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
                     final var key = entry.getKey().toLowerCase(Locale.US);
                     final var values = entry.getValue();
                     if (HttpUtils.RESERVED_HEADERS.contains(key) || values == null || values.isEmpty()) {
@@ -89,6 +86,10 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         // Authentication in descending priority.
         if (req.authSupplier() != null) {
             Optional.ofNullable(req.authSupplier().get()).filter(OneUtil::hasValue)
+                    .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
+        } else if (providedHeaders.get(HttpUtils.AUTHORIZATION) != null
+                && providedHeaders.get(HttpUtils.AUTHORIZATION).size() > 0) {
+            Optional.ofNullable(providedHeaders.get(HttpUtils.AUTHORIZATION).get(0)).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
         } else if (authProvider.isPresent()) {
             authProvider.map(provider -> provider.get(req)).filter(OneUtil::hasValue)

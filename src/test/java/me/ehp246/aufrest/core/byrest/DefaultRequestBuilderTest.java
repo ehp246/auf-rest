@@ -149,7 +149,7 @@ class DefaultRequestBuilderTest {
     }
 
     @Test
-    void auth_header_001() {
+    void auth_headerContext_01() {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
         final var request = new MockReq() {
@@ -173,7 +173,7 @@ class DefaultRequestBuilderTest {
     }
 
     @Test
-    void auth_header_002() {
+    void auth_headerContext_02() {
         final var value = UUID.randomUUID().toString();
         HeaderContext.add("authorization", value);
 
@@ -194,7 +194,7 @@ class DefaultRequestBuilderTest {
     }
 
     @Test
-    void auth_header_003() {
+    void auth_headerContext_03() {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
         final var req = new DefaultRequestBuilder(null, null, null, null, null).apply(new RestRequest() {
@@ -216,6 +216,86 @@ class DefaultRequestBuilderTest {
         });
 
         Assertions.assertEquals("me2", req.headers().firstValue("authorization").get(), "Should come from the request");
+    }
+
+    @Test
+    void auth_headerContext_04() {
+        HeaderContext.add("authorization", UUID.randomUUID().toString());
+
+        final var req = new DefaultRequestBuilder(null, null, r -> null, null, null).apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost";
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                // Let the authProvider handle it.
+                return null;
+            }
+
+            @Override
+            public Map<String, List<String>> headers() {
+                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+            }
+        });
+
+        Assertions.assertEquals(0, req.headers().allValues("authorization").size(),
+                "Should come from the authProvider");
+    }
+
+    @Test
+    void auth_headerProvider_01() {
+        final var fromProvider = UUID.randomUUID().toString();
+        // No authProvider.
+        final var req = new DefaultRequestBuilder(null,
+                r -> Map.of(HttpUtils.AUTHORIZATION, List.of(fromProvider)), null, null, null)
+                        .apply(new MockReq() {
+                            // No request auth.
+                            @Override
+                            public Supplier<String> authSupplier() {
+                                return null;
+                            }
+
+                            // Should be ignored
+                            @Override
+                            public Map<String, List<String>> headers() {
+                                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                            }
+                        });
+
+        Assertions.assertEquals(1, req.headers().allValues("authorization").size(), "Should be from headerProvider");
+        Assertions.assertEquals(fromProvider, req.headers().allValues("authorization").get(0),
+                "Should be from headerProvider");
+    }
+
+    @Test
+    void auth_headerProvider_02() {
+        final var fromProvider = UUID.randomUUID().toString();
+        HeaderContext.add("authorization", UUID.randomUUID().toString());
+
+        // No authProvider. headerProvider should be ignored.
+        final var req = new DefaultRequestBuilder(null,
+                r -> Map.of(HttpUtils.AUTHORIZATION, List.of(fromProvider)), null, null, null)
+                        .apply(new MockReq() {
+                            // No request auth.
+                            @Override
+                            public Supplier<String> authSupplier() {
+                                return null;
+                            }
+
+                            // Should be ignored
+                            @Override
+                            public Map<String, List<String>> headers() {
+                                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                            }
+                        });
+
+        Assertions.assertEquals(1, req.headers().allValues("authorization").size(),
+                "Should come from headerProvider");
+        Assertions.assertEquals(fromProvider, req.headers().allValues("authorization").get(0),
+                "Should come from headerProvider");
     }
 
     @Test
