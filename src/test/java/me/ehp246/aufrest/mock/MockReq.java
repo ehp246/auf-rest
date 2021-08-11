@@ -13,7 +13,7 @@ public class MockReq implements RestRequest {
 
     @Override
     public String uri() {
-        return "http://nowhere.com";
+        return "http://localhost";
     }
 
 }

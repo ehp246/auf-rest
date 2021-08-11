@@ -6,6 +6,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -14,8 +15,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
@@ -33,8 +32,6 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 public final class DefaultRequestBuilder implements RequestBuilder {
-    private final static Logger LOGGER = LogManager.getLogger(DefaultRequestBuilder.class);
-
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
     private final BodyPublisherProvider bodyPublisherProvider;
     private final Optional<HeaderProvider> headerProvider;
@@ -59,22 +56,16 @@ public final class DefaultRequestBuilder implements RequestBuilder {
     @Override
     public HttpRequest apply(RestRequest req) {
         final var builder = reqBuilderSupplier.get();
-
-        // Provider headers, context headers, request headers in ascending priorities.
+        final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
+        // Provider headers, context headers, request headers in ascending priority.
         Optional.ofNullable(Stream
-                .of(new HashMap<String, List<String>>(
-                        headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new)), HeaderContext.map(),
-                        Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
+                .of(providedHeaders, HeaderContext.map(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
                 .map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
                         Map.Entry::getValue, (left, right) -> right)))
                 .map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
-                    final var key = entry.getKey().toLowerCase();
+                    final var key = entry.getKey().toLowerCase(Locale.US);
                     final var values = entry.getValue();
-                    if (HttpUtils.RESERVED_HEADERS.contains(key)) {
-                        LOGGER.atWarn().log("Ignoring header {}: {}", key, values);
-                        return;
-                    }
-                    if (values == null || values.isEmpty()) {
+                    if (HttpUtils.RESERVED_HEADERS.contains(key) || values == null || values.isEmpty()) {
                         return;
                     }
                     entry.getValue().stream().filter(OneUtil::hasValue).forEach(value -> builder.header(key, value));
@@ -92,10 +83,21 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         // Accept.
         builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
 
-        // Authentication
-        Optional.ofNullable(Optional.ofNullable(req.authSupplier())
-                .orElse(() -> authProvider.map(provider -> provider.get(req)).orElse(null))).map(Supplier::get)
-                .filter(OneUtil::hasValue).ifPresent(header -> builder.header(HttpUtils.AUTHORIZATION, header));
+        // Authentication in descending priority.
+        if (req.authSupplier() != null) {
+            Optional.ofNullable(req.authSupplier().get()).filter(OneUtil::hasValue)
+                    .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
+        } else if (providedHeaders.get(HttpUtils.AUTHORIZATION) != null
+                && providedHeaders.get(HttpUtils.AUTHORIZATION).size() > 0) {
+            Optional.ofNullable(providedHeaders.get(HttpUtils.AUTHORIZATION).get(0)).filter(OneUtil::hasValue)
+                    .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
+        } else if (authProvider.isPresent()) {
+            authProvider.map(provider -> provider.get(req)).filter(OneUtil::hasValue)
+                    .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
+        } else if (HeaderContext.map().getOrDefault(HttpUtils.AUTHORIZATION, List.of()).size() > 0) {
+            Optional.ofNullable(HeaderContext.map().get(HttpUtils.AUTHORIZATION).get(0)).filter(OneUtil::hasValue)
+                    .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
+        }
 
         // Timeout
         Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout())
