@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
@@ -77,13 +79,24 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         // Request id
         builder.setHeader(HttpUtils.REQUEST_ID,
                 Optional.ofNullable(req.id()).orElseGet(() -> UUID.randomUUID().toString()));
-        // Content-Type.
+
+        // Content type
         builder.setHeader(HttpUtils.CONTENT_TYPE, Optional.of(req.contentType()).filter(OneUtil::hasValue).get());
 
-        // Accept.
+        final URI uri;
+        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+            // Expecting this uri doesn't have query parameters on it.
+            uri = URI.create(req.uri());
+        } else {
+            // Add query parameters
+            uri = URI.create(UriComponentsBuilder.fromUriString(req.uri())
+                    .queryParams(CollectionUtils.toMultiValueMap(req.queryParams())).toUriString());
+        }
+
+        // Accept
         builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
 
-        // Authentication in descending priority.
+        // Authentication in descending priority
         if (req.authSupplier() != null) {
             Optional.ofNullable(req.authSupplier().get()).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
@@ -103,7 +116,7 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout())
                 .ifPresent(timeout -> builder.timeout(timeout));
 
-        builder.method(req.method().toUpperCase(), bodyPublisherProvider.get(req)).uri(URI.create(req.uri()));
+        builder.method(req.method().toUpperCase(), bodyPublisherProvider.get(req)).uri(uri);
 
         return builder.build();
     }

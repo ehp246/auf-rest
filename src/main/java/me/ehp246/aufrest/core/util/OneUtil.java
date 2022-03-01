@@ -1,11 +1,16 @@
 package me.ehp246.aufrest.core.util;
 
 import java.lang.annotation.Annotation;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -85,5 +90,21 @@ public final class OneUtil {
             final Class<? extends Annotation> type) {
         return Optional.ofNullable(annos).filter(Objects::nonNull).orElseGet(ArrayList::new).stream()
                 .filter(anno -> anno.annotationType() == type);
+    }
+
+    public static String formUrlEncodedBody(final Map<String, List<String>> map) {
+        final var joiner = new StringJoiner("&");
+        for (final var entry : map.entrySet()) {
+            final var key = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
+            for (final var value : entry.getValue()) {
+                if (hasValue(value)) {
+                    joiner.add(String.join("=", key, URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8)));
+                } else {
+                    joiner.add(key);
+                }
+            }
+        }
+    
+        return joiner.toString();
     }
 }

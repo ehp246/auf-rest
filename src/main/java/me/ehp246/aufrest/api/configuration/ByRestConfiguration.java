@@ -91,15 +91,22 @@ public final class ByRestConfiguration {
     public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
         return req -> {
             // Short-circuit for InputStream
-            if (req.body() instanceof InputStream) {
-                return BodyPublishers.ofInputStream(() -> (InputStream) req.body());
+            if (req.body() instanceof InputStream bodyStream) {
+                return BodyPublishers.ofInputStream(() -> bodyStream);
             }
 
             // No content type, no content.
             if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();
             }
-            if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
+
+            final var contentType = req.contentType().toLowerCase();
+
+            if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+                return BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams()));
+            }
+
+            if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
                 return BodyPublishers.ofString(req.body().toString());
             }
 
