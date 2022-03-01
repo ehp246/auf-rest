@@ -58,13 +58,8 @@ public final class RestLogger implements RestListener {
         LOGGER.trace(httpRequest.method() + " " + httpRequest.uri());
         LOGGER.trace(httpRequest.headers().map());
 
-        if (request.body() == null) {
-            LOGGER.trace("");
-            return;
-        }
-
-        // Skip it.
-        if (request.body() instanceof InputStream) {
+        // Special support for InputStream
+        if (request.body() != null && request.body() instanceof InputStream) {
             LOGGER.trace(request.body());
             return;
         }
@@ -78,8 +73,7 @@ public final class RestLogger implements RestListener {
             return;
         }
 
-        LOGGER.trace(httpResponse.request().method() + " " + httpResponse.uri().toString() + " "
-                + httpResponse.statusCode());
+        LOGGER.trace(httpResponse.statusCode());
 
         LOGGER.trace(httpResponse.headers().map());
         try {

@@ -16,7 +16,7 @@ interface ContentTypeTestCases {
         // Should go with the interface
         void get1();
 
-        // Should go with the method
+        // Should go with the interface
         @OfMapping
         void get2();
 
@@ -30,7 +30,7 @@ interface ContentTypeTestCases {
         // Should go with the interface
         void get1();
 
-        // Should go with the method
+        // Should go with the interface
         @OfMapping
         void get2();
 

@@ -15,5 +15,4 @@ import me.ehp246.aufrest.mock.Jackson;
 @EnableByRest
 @Import(Jackson.class)
 class AppConfig {
-
 }

@@ -95,15 +95,20 @@ public final class ByRestConfiguration {
                 return BodyPublishers.ofInputStream(() -> bodyStream);
             }
 
-            // No content type, no content.
-            if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
+            // The rest needs the content type. No content type, no content.
+            if (!OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();
             }
 
             final var contentType = req.contentType().toLowerCase();
 
             if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+                // Encode query parameters as the body ignoring the body object.
                 return BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams()));
+            }
+
+            if (req.body() == null) {
+                return BodyPublishers.noBody();
             }
 
             if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
+import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 
@@ -12,12 +13,19 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  * @author Lei Yang
  *
  */
-@ByRest(value = "http://localhost:${local.server.port}/", contentType = "application/x-www-form-urlencoded")
+@ByRest(value = "http://localhost:${local.server.port}/form", contentType = "application/x-www-form-urlencoded")
 interface FormCase {
     String post(Map<String, String> map);
 
-    @OfMapping(value = "urlencoded")
+    @OfMapping(value = "/string")
+    @AsIs
     String post(@RequestParam("name") String name);
 
-    String post(@RequestParam("name") String name, @RequestParam("dob") Instant dob);
+    @OfMapping(value = "/person")
+    Person postQueryInBody(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
+            @RequestParam("dob") Instant dob);
+
+    @OfMapping(value = "/person-queryonpath", contentType = "application/json")
+    Person postQueryOnPath(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
+            @RequestParam("dob") Instant dob);
 }

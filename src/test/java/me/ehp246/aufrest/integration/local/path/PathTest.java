@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.integration.local.path;
 
-import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -31,8 +30,7 @@ class PathTest {
 
     @Test
     void path_03() {
-        final var pathId = UUID.randomUUID().toString() + " = " + UUID.randomUUID().toString() + " ? "
-                + Instant.now().toString();
+        final var pathId = UUID.randomUUID().toString();
         Assertions.assertEquals(pathId, case001.get(pathId));
     }
 }

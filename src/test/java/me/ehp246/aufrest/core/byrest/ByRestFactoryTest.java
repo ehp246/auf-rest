@@ -95,14 +95,24 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void requestParam001() {
+    void queryParams_01() {
         final var newInstance = factory.newInstance(RequestParamCase001.class);
 
         newInstance.queryByParams("q1", "q2");
 
         final var request = reqRef.get();
 
-        Assertions.assertEquals("https://postman-echo.com/get?query1=q1&query2=q2", request.uri());
+        Assertions.assertEquals(HttpUtils.APPLICATION_JSON, request.contentType());
+        Assertions.assertEquals("https://postman-echo.com/get", request.uri());
+
+        final var queryParams = request.queryParams();
+        Assertions.assertEquals(2, queryParams.size());
+
+        Assertions.assertEquals(1, queryParams.get("query1").size());
+        Assertions.assertEquals("q1", queryParams.get("query1").get(0));
+
+        Assertions.assertEquals(1, queryParams.get("query2").size());
+        Assertions.assertEquals("q2", queryParams.get("query2").get(0));
     }
 
     @Test
@@ -111,44 +121,39 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void requestParam002() {
+    void requestParams_02() {
         final var newInstance = factory.newInstance(RequestParamCase001.class);
 
         newInstance.queryEncoded("1 + 1 = 2");
         final var request = reqRef.get();
 
-        Assertions.assertEquals("https://postman-echo.com/get?query+1=1+%2B+1+%3D+2", request.uri(),
-                "Should be encoded");
+        Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
     }
 
     @Test
-    void requestMap001() {
+    void queryParamMap_01() {
         final var newInstance = factory.newInstance(RequestParamCase001.class);
 
         newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2"));
+
         final var request = reqRef.get();
 
-        Assertions.assertEquals("https://postman-echo.com/get?query+1=1+%2B+1+%3D+2&query2=q2", request.uri());
+        Assertions.assertEquals(2, request.queryParams().size());
+        Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
+        Assertions.assertEquals("q2", request.queryParams().get("query2").get(0));
     }
 
     @Test
-    void requestMap002() {
+    void queryParamMap_02() {
         final var newInstance = factory.newInstance(RequestParamCase001.class);
 
-        newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2"));
+        newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2-a"), "q2-b");
+
         final var request = reqRef.get();
 
-        Assertions.assertEquals("https://postman-echo.com/get?query+1=1+%2B+1+%3D+2&query2=q2", request.uri());
-    }
-
-    @Test
-    void requestMap003() {
-        final var newInstance = factory.newInstance(RequestParamCase001.class);
-
-        newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2"), "q3");
-        final var request = reqRef.get();
-
-        Assertions.assertEquals("https://postman-echo.com/get?query+1=1+%2B+1+%3D+2&query2=q3", request.uri());
+        Assertions.assertEquals(2, request.queryParams().size());
+        Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
+        Assertions.assertEquals(2, request.queryParams().get("query2").size(), "Should collect all");
     }
 
     @Test
@@ -432,14 +437,14 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void contentType_002() {
+    void contentType_02() {
         final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
 
         newInstance.get2();
 
-        var req = reqRef.get();
+        final var req = reqRef.get();
 
-        Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.contentType());
+        Assertions.assertEquals("i-type", req.contentType());
         Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.accept());
     }
 
@@ -468,14 +473,14 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void contentType_005() {
+    void contentType_05() {
         final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
 
         newInstance.get2();
 
-        var req = reqRef.get();
+        final var req = reqRef.get();
 
-        Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.contentType());
+        Assertions.assertEquals("i-type", req.contentType());
         Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.accept());
     }
 

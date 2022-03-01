@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.integration.local.mime.form;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -22,5 +23,35 @@ class FormTest {
         final var name = UUID.randomUUID().toString();
 
         Assertions.assertEquals(name, formCase.post(name));
+    }
+
+    @Test
+    void post_02() {
+        final var now = Instant.now();
+        final var person = formCase.postQueryInBody(null, "", now);
+        
+        Assertions.assertEquals(true, now.equals(person.dob()));
+        Assertions.assertEquals(true, person.firstName() == null);
+        Assertions.assertEquals(true, person.lastName() == "");
+    }
+
+    @Test
+    void post_03() {
+        final var now = Instant.now();
+        final var person = formCase.postQueryOnPath("", "", now);
+
+        Assertions.assertEquals(true, now.equals(person.dob()));
+        Assertions.assertEquals(true, person.firstName() == "");
+        Assertions.assertEquals(true, person.lastName() == "");
+    }
+
+    @Test
+    void post_04() {
+        final var now = Instant.now();
+        final var person = formCase.postQueryOnPath(null, now.toString(), now);
+
+        Assertions.assertEquals(true, now.equals(person.dob()));
+        Assertions.assertEquals(true, person.firstName() == "");
+        Assertions.assertEquals(true, person.lastName().equals(now.toString()));
     }
 }

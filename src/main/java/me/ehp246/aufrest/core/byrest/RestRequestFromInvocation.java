@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
 import java.lang.annotation.Annotation;
-import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -116,26 +115,24 @@ final class RestRequestFromInvocation {
                     .putIfAbsent(entry.getKey(), UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
         }
 
-        final var queryParams = invocation.<String, Object, RequestParam>mapAnnotatedArguments(RequestParam.class,
+        final var queryParamArgs = invocation.<String, Object, RequestParam>mapAnnotatedArguments(RequestParam.class,
                 RequestParam::value);
 
-        final var unnamedQueryMap = queryParams.get("");
+        final var unnamedQueryMap = queryParamArgs.get("");
 
         if (unnamedQueryMap != null && unnamedQueryMap instanceof Map) {
-            queryParams.remove("");
+            queryParamArgs.remove("");
             ((Map<String, Object>) unnamedQueryMap).entrySet().stream()
-                    .forEach(e -> queryParams.putIfAbsent(e.getKey(), e.getValue()));
+                    .forEach(e -> queryParamArgs.putIfAbsent(e.getKey(), e.getValue()));
         }
 
         final var id = UUID.randomUUID().toString();
-        final var collectedQueryParams = queryParams.entrySet().stream()
-                .collect(Collectors.toMap(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8),
-                        e -> List.of(URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))));
+        final var queryParams = queryParamArgs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
+                e -> e.getValue() == null ? List.<String>of() : List.of(e.getValue().toString())));
         final var uri = UriComponentsBuilder
                 .fromUriString(propertyResolver.resolve(this.byRestConfig.uri()
                         + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
-                .buildAndExpand(pathParams)
-                .toUriString();
+                .buildAndExpand(pathParams).toUriString();
 
         final var method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
             final var invokedMethodName = invocation.getMethodName().toUpperCase();
@@ -285,7 +282,7 @@ final class RestRequestFromInvocation {
 
             @Override
             public Map<String, List<String>> queryParams() {
-                return collectedQueryParams;
+                return queryParams;
             }
         };
     }
