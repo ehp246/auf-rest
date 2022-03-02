@@ -47,4 +47,41 @@ class ProxyInvocationTest {
         Assertions.assertEquals(null, annotatedArguments.get("query 1").get(1));
 
     }
+
+    @Test
+    void scanArgs_04() {
+        final var annotatedArguments = new ProxyInvocation(TestCase.class, new Object(),
+                ReflectionUtils.findMethod(TestCase.class, "scanArgs04", String.class, String.class, String.class,
+                        String.class),
+                new Object[] { "arg1", "arg2", "arg3", null }).<String, String, RequestParam>mapArgumentsOfAnnotation(
+                        RequestParam.class, RequestParam::value);
+
+        Assertions.assertEquals(2, annotatedArguments.size(), "Should collect all arguments that have the same key");
+        Assertions.assertEquals(2, annotatedArguments.get("query 1").size());
+
+        Assertions.assertEquals("arg1", annotatedArguments.get("query 1").get(0));
+        Assertions.assertEquals("arg2", annotatedArguments.get("query 1").get(1));
+
+        Assertions.assertEquals(1, annotatedArguments.get("query 3").size());
+        Assertions.assertEquals("arg3", annotatedArguments.get("query 3").get(0));
+    }
+
+    @Test
+    void scanArgs_05() {
+        final var annotatedArguments = new ProxyInvocation(TestCase.class, new Object(),
+                ReflectionUtils.findMethod(TestCase.class, "scanArgs05", String.class, String.class, String.class,
+                        String.class),
+                new Object[] { "arg1", "arg2", "arg3", null }).<String, String, RequestParam>mapArgumentsOfAnnotation(
+                        RequestParam.class, RequestParam::value);
+
+        Assertions.assertEquals(2, annotatedArguments.size(), "Should collect all arguments that have the same key");
+        Assertions.assertEquals(2, annotatedArguments.get("query 1").size());
+
+        Assertions.assertEquals("arg1", annotatedArguments.get("query 1").get(0));
+        Assertions.assertEquals("arg2", annotatedArguments.get("query 1").get(1));
+
+        Assertions.assertEquals(2, annotatedArguments.get("query 3").size());
+        Assertions.assertEquals("arg3", annotatedArguments.get("query 3").get(0));
+        Assertions.assertEquals(null, annotatedArguments.get("query 3").get(1));
+    }
 }

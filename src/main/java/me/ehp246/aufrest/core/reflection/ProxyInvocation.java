@@ -170,6 +170,16 @@ public final class ProxyInvocation implements Invocation {
         return map;
     }
 
+    /**
+     * Collects all arguments by the given Annotation type to a List.
+     * 
+     * @param <K>
+     * @param <V>
+     * @param <A>
+     * @param annotationType
+     * @param keySupplier
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public <K, V, A extends Annotation> Map<K, List<V>> mapArgumentsOfAnnotation(final Class<A> annotationType,
             final Function<A, K> keySupplier) {
