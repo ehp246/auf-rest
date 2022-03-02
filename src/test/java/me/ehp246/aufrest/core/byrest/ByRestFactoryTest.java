@@ -96,9 +96,7 @@ class ByRestFactoryTest {
 
     @Test
     void queryParams_01() {
-        final var newInstance = factory.newInstance(RequestParamCase001.class);
-
-        newInstance.queryByParams("q1", "q2");
+        factory.newInstance(RequestParamCase001.class).queryByParams("q1", "q2");
 
         final var request = reqRef.get();
 
@@ -116,18 +114,21 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void pathParam_01() {
+    void queryParams_02() {
+        factory.newInstance(RequestParamCase001.class).queryEncoded("1 + 1 = 2");
 
+        Assertions.assertEquals("1 + 1 = 2", reqRef.get().queryParams().get("query 1").get(0));
     }
 
     @Test
-    void requestParams_02() {
-        final var newInstance = factory.newInstance(RequestParamCase001.class);
+    void queryParams_03() {
+        factory.newInstance(RequestParamCase001.class).getByMultiple("1 + 1 = 2", "3");
 
-        newInstance.queryEncoded("1 + 1 = 2");
-        final var request = reqRef.get();
+        final var queryParams = reqRef.get().queryParams();
 
-        Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
+        Assertions.assertEquals(2, queryParams.size());
+
+        Assertions.assertEquals("1 + 1 = 2", reqRef.get().queryParams().get("query 1").get(0));
     }
 
     @Test

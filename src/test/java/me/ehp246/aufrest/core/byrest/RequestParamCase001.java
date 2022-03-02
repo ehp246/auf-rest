@@ -23,6 +23,8 @@ interface RequestParamCase001 {
 
     void getByMap(@RequestParam Map<String, String> queryParams, @RequestParam("query2") String query2);
 
+    void getByMultiple(@RequestParam("query 1") String query1, @RequestParam("query 1") String query2);
+
     void getByObject(@RequestParam QueryObject queryObject);
 
     interface QueryObject {

@@ -100,7 +100,7 @@ final class RestRequestFromInvocation {
     RestRequest from(ProxyInvocation invocation) {
         final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
 
-        final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value).entrySet()
+        final var pathParams = invocation.findArgumentOfAnnotation(PathVariable.class, PathVariable::value).entrySet()
                 .stream().map(entry -> {
                     if (entry.getKey().equals("")) {
                         return entry;
@@ -115,7 +115,7 @@ final class RestRequestFromInvocation {
                     .putIfAbsent(entry.getKey(), UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
         }
 
-        final var queryParamArgs = invocation.<String, Object, RequestParam>mapAnnotatedArguments(RequestParam.class,
+        final var queryParamArgs = invocation.<String, Object, RequestParam>findArgumentOfAnnotation(RequestParam.class,
                 RequestParam::value);
 
         final var unnamedQueryMap = queryParamArgs.get("");
