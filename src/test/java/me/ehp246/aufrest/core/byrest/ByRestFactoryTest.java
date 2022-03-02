@@ -154,7 +154,10 @@ class ByRestFactoryTest {
 
         Assertions.assertEquals(2, request.queryParams().size());
         Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
+
         Assertions.assertEquals(2, request.queryParams().get("query2").size(), "Should collect all");
+        Assertions.assertEquals("q2-b", request.queryParams().get("query2").get(0), "Should be determinstic in order");
+        Assertions.assertEquals("q2-a", request.queryParams().get("query2").get(1));
     }
 
     @Test

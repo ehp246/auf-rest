@@ -115,20 +115,45 @@ final class RestRequestFromInvocation {
                     .putIfAbsent(entry.getKey(), UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
         }
 
-        final var queryParamArgs = invocation.<String, Object, RequestParam>findArgumentOfAnnotation(RequestParam.class,
+        final var queryParamArgs = invocation.<String, Object, RequestParam>mapArgumentsOfAnnotation(RequestParam.class,
                 RequestParam::value);
 
-        final var unnamedQueryMap = queryParamArgs.get("");
+        // Should not have a name for the query parameter map
+        final var unnamedQuery = queryParamArgs.remove("");
 
-        if (unnamedQueryMap != null && unnamedQueryMap instanceof Map) {
-            queryParamArgs.remove("");
-            ((Map<String, Object>) unnamedQueryMap).entrySet().stream()
-                    .forEach(e -> queryParamArgs.putIfAbsent(e.getKey(), e.getValue()));
+        if (unnamedQuery != null && unnamedQuery.size() > 0 && unnamedQuery.get(0) instanceof Map<?, ?> map) {
+            map.entrySet().stream()
+                    .forEach(e -> queryParamArgs.merge(e.getKey().toString(), List.of(e.getValue()), (o, p) -> {
+                        o.add(p.get(0));
+                        return o;
+                    }));
         }
 
         final var id = UUID.randomUUID().toString();
-        final var queryParams = queryParamArgs.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
-                e -> e.getValue() == null ? List.<String>of() : List.of(e.getValue().toString())));
+
+        final var queryParams = new HashMap<String, List<String>>();
+        queryParamArgs.entrySet().stream().map(e -> {
+            return new Map.Entry<String, List<String>>() {
+                private List<String> l = e.getValue().stream().map(Object::toString).collect(Collectors.toList());
+
+                @Override
+                public String getKey() {
+                    return e.getKey();
+                }
+
+                @Override
+                public List<String> getValue() {
+                    return l;
+                }
+
+                @Override
+                public List<String> setValue(List<String> value) {
+                    this.l = value;
+                    return l;
+                }
+            };
+        }).forEach(e -> queryParams.put(e.getKey(), e.getValue()));
+
         final var uri = UriComponentsBuilder
                 .fromUriString(propertyResolver.resolve(this.byRestConfig.uri()
                         + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
@@ -155,7 +180,7 @@ final class RestRequestFromInvocation {
                 .forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
                     @Override
                     public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
-                        newValue(annoArg.getAnnotation().value(), annoArg.getArgument());
+                        newValue(annoArg.annotation().value(), annoArg.argument());
                     }
 
                     private void newValue(final Object key, final Object newValue) {
@@ -213,7 +238,7 @@ final class RestRequestFromInvocation {
         };
 
         final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
-                .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
+                .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.argument()))
                 .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
                         .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
                         .orElse(proxyAuthSupplier.orElse(null)));

@@ -2,7 +2,6 @@ package me.ehp246.aufrest.core.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -184,10 +183,11 @@ public final class ProxyInvocation implements Invocation {
     public <K, V, A extends Annotation> Map<K, List<V>> mapArgumentsOfAnnotation(final Class<A> annotationType,
             final Function<A, K> keySupplier) {
         return streamOfAnnotatedArguments(annotationType)
-                .collect(Collectors.groupingBy(a -> keySupplier.apply(a.getAnnotation()),
-                        Collectors.mapping(a -> (V) a.getArgument(), Collectors.<V>toList())));
+                .collect(Collectors.groupingBy(a -> keySupplier.apply(a.annotation()),
+                        Collectors.mapping(a -> (V) a.argument(), Collectors.<V>toList())));
     }
 
+    @SuppressWarnings("unchecked")
     public <A extends Annotation> Stream<AnnotatedArgument<A>> streamOfAnnotatedArguments(
             final Class<A> annotationType) {
         final var builder = Stream.<AnnotatedArgument<A>>builder();
@@ -195,27 +195,9 @@ public final class ProxyInvocation implements Invocation {
         for (int i = 0; i < parameterAnnotations.length; i++) {
             final var arg = args.get(i);
             final var parameter = method.getParameters()[i];
+
             Stream.of(parameterAnnotations[i]).filter(annotation -> annotation.annotationType() == annotationType)
-                    .map(anno -> new AnnotatedArgument<A>() {
-
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        public A getAnnotation() {
-                            return (A) anno;
-                        }
-
-                        @Override
-                        public Object getArgument() {
-                            return arg;
-                        }
-
-                        @Override
-                        public Parameter getParameter() {
-                            return parameter;
-                        }
-
-                    }).forEach(builder::add);
-            ;
+                    .map(anno -> new AnnotatedArgument<>((A) anno, arg, parameter)).forEach(builder::add);
         }
 
         return builder.build();
