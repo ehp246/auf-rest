@@ -31,6 +31,6 @@ interface FormCase {
             @RequestParam("dob") Instant dob);
 
     @OfMapping(value = "/querymap")
-    List<String> postQueryMapOnPath(@RequestParam Map<String, String> map,
+    List<String> postQueryMap(@RequestParam Map<String, String> map,
             @RequestParam("qList") List<String> list, @RequestParam("qList") String query);
 }

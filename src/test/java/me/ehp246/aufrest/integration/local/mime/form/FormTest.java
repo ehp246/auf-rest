@@ -60,6 +60,6 @@ class FormTest {
     @Test
     void queryMap_01() {
         Assertions.assertEquals(4,
-                formCase.postQueryMapOnPath(Map.of("qList", "p1"), List.of("p2", "p3"), "p4").size());
+                formCase.postQueryMap(Map.of("qList", "p1"), List.of("p2", "p3"), "p4").size());
     }
 }
