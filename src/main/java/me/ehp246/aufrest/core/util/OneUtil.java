@@ -104,7 +104,7 @@ public final class OneUtil {
                 }
             }
         }
-    
+
         return joiner.toString();
     }
 
@@ -114,22 +114,34 @@ public final class OneUtil {
         }
 
         final var map = new HashMap<String, List<String>>(input.size());
-        
+
         for (final var entry : input.entrySet()) {
-            final var values = entry.getValue();
+            final var args = entry.getValue();
             final var mapped = new ArrayList<String>();
 
-            if (values != null) {
-                for (final var value : values) {
-                    if (value instanceof List<?> v) {
-                        v.stream().map(t -> t == null ? (String) null : t.toString()).forEach(t -> mapped.add(t));
-                    } else {
-                        mapped.add(value == null ? null : value.toString());
-                    }
+            if (args == null) {
+                map.put(entry.getKey(), mapped);
+            }
+
+            for (final var arg : args) {
+                if (arg == null) {
+                    mapped.add(null);
+                } else if (arg instanceof Map<?, ?> m) {
+                    m.entrySet().stream().forEach(t -> {
+                        final var v = t.getValue();
+                        mapped.add(v == null ? (String) null : v.toString());
+
+                        map.put(t.getKey().toString(), mapped);
+                    });
+                } else if (arg instanceof List<?> v) {
+                    v.stream().map(t -> t == null ? (String) null : t.toString()).forEach(t -> mapped.add(t));
+                    map.put(entry.getKey(), mapped);
+                } else {
+                    mapped.add(arg.toString());
+                    map.put(entry.getKey(), mapped);
                 }
             }
 
-            map.put(entry.getKey(), mapped);
         }
 
         return map;

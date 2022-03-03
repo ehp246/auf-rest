@@ -180,4 +180,19 @@ class OneUtilTest {
         Assertions.assertEquals("v3", mapped.get("k2").get(0));
         Assertions.assertEquals(null, mapped.get("k2").get(1));
     }
+
+    @Test
+    void queryParamMap_10() {
+        final var mapped = OneUtil
+                .toQueryParamMap(Map.of("", List.of(Map.of("k1", "v2"), Map.of("k1", "v2")), "k2", List.of("v3")));
+
+        Assertions.assertEquals(2, mapped.size());
+
+        Assertions.assertEquals(2, mapped.get("k1").size());
+        Assertions.assertEquals("v2", mapped.get("k1").get(0));
+        Assertions.assertEquals("v2", mapped.get("k1").get(1));
+
+        Assertions.assertEquals(1, mapped.get("k2").size());
+        Assertions.assertEquals("v3", mapped.get("k2").get(0));
+    }
 }
