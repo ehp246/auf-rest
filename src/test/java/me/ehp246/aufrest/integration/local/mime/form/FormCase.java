@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.local.mime.form;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,4 +29,8 @@ interface FormCase {
     @OfMapping(value = "/person-queryonpath", contentType = "application/json")
     Person postQueryOnPath(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
             @RequestParam("dob") Instant dob);
+
+    @OfMapping(value = "/querymap")
+    List<String> postQueryMapOnPath(@RequestParam Map<String, String> map,
+            @RequestParam("qList") List<String> list, @RequestParam("qList") String query);
 }

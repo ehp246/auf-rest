@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.integration.local.mime.form;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,5 +32,10 @@ class FormController {
     Person postQueryOnPath(@RequestParam(value = "firstName", required = false) final String firstName,
             @RequestParam(value = "lastName") final String lastName, @RequestParam("dob") Instant dob) {
         return new Person(firstName, lastName, dob);
+    }
+
+    @PostMapping(value = "querymap")
+    List<String> queryParams(@RequestParam("qList") List<String> listParams) {
+        return listParams;
     }
 }
