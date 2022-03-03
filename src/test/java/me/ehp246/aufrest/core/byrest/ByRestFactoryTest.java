@@ -126,9 +126,22 @@ class ByRestFactoryTest {
 
         final var queryParams = reqRef.get().queryParams();
 
-        Assertions.assertEquals(2, queryParams.size());
+        Assertions.assertEquals(1, queryParams.size());
 
-        Assertions.assertEquals("1 + 1 = 2", reqRef.get().queryParams().get("query 1").get(0));
+        Assertions.assertEquals("1 + 1 = 2", queryParams.get("query 1").get(0));
+        Assertions.assertEquals("3", queryParams.get("query 1").get(1));
+    }
+
+    @Test
+    void queryParamList_01() {
+        factory.newInstance(RequestParamCase001.class).getByList(List.of("1 + 1 = 2", "3"));
+
+        final var queryParams = reqRef.get().queryParams();
+
+        Assertions.assertEquals(1, queryParams.size());
+
+        Assertions.assertEquals("1 + 1 = 2", queryParams.get("qList").get(0));
+        Assertions.assertEquals("3", queryParams.get("qList").get(1));
     }
 
     @Test

@@ -90,7 +90,9 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         } else {
             // Add query parameters
             uri = URI.create(UriComponentsBuilder.fromUriString(req.uri())
-                    .queryParams(CollectionUtils.toMultiValueMap(req.queryParams())).toUriString());
+                    .queryParams(
+                            CollectionUtils.toMultiValueMap(Optional.ofNullable(req.queryParams()).orElseGet(Map::of)))
+                    .toUriString());
         }
 
         // Accept

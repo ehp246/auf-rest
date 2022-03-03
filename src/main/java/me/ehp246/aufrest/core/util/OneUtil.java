@@ -5,9 +5,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -106,5 +106,32 @@ public final class OneUtil {
         }
     
         return joiner.toString();
+    }
+
+    public static Map<String, List<String>> toQueryParamMap(final Map<String, List<Object>> input) {
+        if (input == null || input.size() == 0) {
+            return new HashMap<String, List<String>>();
+        }
+
+        final var map = new HashMap<String, List<String>>(input.size());
+        
+        for (final var entry : input.entrySet()) {
+            final var values = entry.getValue();
+            final var mapped = new ArrayList<String>();
+
+            if (values != null) {
+                for (final var value : values) {
+                    if (value instanceof List<?> v) {
+                        v.stream().map(t -> t == null ? (String) null : t.toString()).forEach(t -> mapped.add(t));
+                    } else {
+                        mapped.add(value == null ? null : value.toString());
+                    }
+                }
+            }
+
+            map.put(entry.getKey(), mapped);
+        }
+
+        return map;
     }
 }

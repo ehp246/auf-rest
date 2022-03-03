@@ -119,9 +119,9 @@ final class RestRequestFromInvocation {
                 RequestParam::value);
 
         // Should not have a name for the query parameter map
-        final var unnamedQuery = queryParamArgs.remove("");
+        final var unnamedQueryMap = queryParamArgs.remove("");
 
-        if (unnamedQuery != null && unnamedQuery.size() > 0 && unnamedQuery.get(0) instanceof Map<?, ?> map) {
+        if (unnamedQueryMap != null && unnamedQueryMap.size() > 0 && unnamedQueryMap.get(0) instanceof Map<?, ?> map) {
             map.entrySet().stream()
                     .forEach(e -> queryParamArgs.merge(e.getKey().toString(), List.of(e.getValue()), (o, p) -> {
                         o.add(p.get(0));
@@ -129,30 +129,7 @@ final class RestRequestFromInvocation {
                     }));
         }
 
-        final var id = UUID.randomUUID().toString();
-
-        final var queryParams = new HashMap<String, List<String>>();
-        queryParamArgs.entrySet().stream().map(e -> {
-            return new Map.Entry<String, List<String>>() {
-                private List<String> l = e.getValue().stream().map(Object::toString).collect(Collectors.toList());
-
-                @Override
-                public String getKey() {
-                    return e.getKey();
-                }
-
-                @Override
-                public List<String> getValue() {
-                    return l;
-                }
-
-                @Override
-                public List<String> setValue(List<String> value) {
-                    this.l = value;
-                    return l;
-                }
-            };
-        }).forEach(e -> queryParams.put(e.getKey(), e.getValue()));
+        final var queryParams = OneUtil.toQueryParamMap(queryParamArgs);
 
         final var uri = UriComponentsBuilder
                 .fromUriString(propertyResolver.resolve(this.byRestConfig.uri()
@@ -254,6 +231,7 @@ final class RestRequestFromInvocation {
                 });
 
         return new RestRequest() {
+            private final String id = UUID.randomUUID().toString();
 
             @Override
             public String id() {

@@ -31,7 +31,7 @@ class FormTest {
         final var person = formCase.postQueryInBody(null, "", now);
         
         Assertions.assertEquals(true, now.equals(person.dob()));
-        Assertions.assertEquals(true, person.firstName() == null);
+        Assertions.assertEquals("", person.firstName());
         Assertions.assertEquals(true, person.lastName() == "");
     }
 
