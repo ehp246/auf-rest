@@ -63,23 +63,8 @@ public final class ByRestConfiguration {
                         e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
                 .orElse(null);
 
-        return new RestClientConfig() {
-
-            @Override
-            public Duration connectTimeout() {
-                return connTimeout;
-            }
-
-            /**
-             * Default to discarding.
-             */
-            @Override
-            public BodyHandlerProvider bodyHandlerProvider() {
-                return bodyHandlerProvider != null ? bodyHandlerProvider
-                        : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null);
-            }
-
-        };
+        return new RestClientConfig(connTimeout, bodyHandlerProvider != null ? bodyHandlerProvider
+                : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null));
     }
 
     @Bean("ff1e0d94-2413-4d4c-8822-411641137fdd")

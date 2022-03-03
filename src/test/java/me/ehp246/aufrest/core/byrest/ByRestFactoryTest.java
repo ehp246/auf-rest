@@ -575,8 +575,8 @@ class ByRestFactoryTest {
     void invocationAuth_001() {
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
-        final var newInstance = new ByRestFactory(cfg -> client, new RestClientConfig() {
-        }, env::resolveRequiredPlaceholders, name -> invocation -> {
+        final var newInstance = new ByRestFactory(cfg -> client, new RestClientConfig(),
+                env::resolveRequiredPlaceholders, name -> invocation -> {
             invocationHolder[0] = invocation;
             return auth;
         }).newInstance(InvocationAuthCase001.class);

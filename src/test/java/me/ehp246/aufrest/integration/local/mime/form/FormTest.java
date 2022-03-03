@@ -33,7 +33,7 @@ class FormTest {
         final var person = formCase.postQueryInBody(null, "", now);
         
         Assertions.assertEquals(true, now.equals(person.dob()));
-        Assertions.assertEquals("", person.firstName());
+        Assertions.assertEquals(null, person.firstName());
         Assertions.assertEquals(true, person.lastName() == "");
     }
 
@@ -53,7 +53,7 @@ class FormTest {
         final var person = formCase.postQueryOnPath(null, now.toString(), now);
 
         Assertions.assertEquals(true, now.equals(person.dob()));
-        Assertions.assertEquals(true, person.firstName() == "");
+        Assertions.assertEquals(null, person.firstName());
         Assertions.assertEquals(true, person.lastName().equals(now.toString()));
     }
 

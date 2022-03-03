@@ -35,8 +35,7 @@ class DefaultRestFnProviderTest {
         final var clientProvider = new DefaultRestFnProvider(client::builder);
         final var count = (int) (Math.random() * 20);
 
-        IntStream.range(0, count).forEach(i -> clientProvider.get(new RestClientConfig() {
-        }));
+        IntStream.range(0, count).forEach(i -> clientProvider.get(new RestClientConfig()));
 
         Assertions.assertEquals(count, client.builderCount(), "Should ask for a new builder for each client");
     }
@@ -51,8 +50,7 @@ class DefaultRestFnProviderTest {
             return mockBuilder;
         });
 
-        new DefaultRestFnProvider(() -> mockBuilder).get(new RestClientConfig() {
-        });
+        new DefaultRestFnProvider(() -> mockBuilder).get(new RestClientConfig());
 
         Assertions.assertEquals(null, ref.get());
     }
@@ -68,14 +66,7 @@ class DefaultRestFnProviderTest {
             return mockBuilder;
         });
 
-        new DefaultRestFnProvider(() -> mockBuilder).get(new RestClientConfig() {
-
-            @Override
-            public Duration connectTimeout() {
-                return timeout;
-            }
-
-        });
+        new DefaultRestFnProvider(() -> mockBuilder).get(new RestClientConfig(timeout));
 
         Assertions.assertEquals(timeout, ref.get());
     }
@@ -107,8 +98,8 @@ class DefaultRestFnProviderTest {
             }
         });
 
-        new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new RestClientConfig() {
-        }).apply(req);
+        new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new RestClientConfig())
+                .apply(req);
 
         Assertions.assertEquals(true, map.get("1") == mockedReq);
         Assertions.assertEquals(true, map.get("1") == map.get("3"));
@@ -134,8 +125,7 @@ class DefaultRestFnProviderTest {
                         public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
                             map.put("5", exception);
                         }
-                    })).get(new RestClientConfig() {
-                    }).apply(req);
+                    })).get(new RestClientConfig()).apply(req);
         } catch (Exception e) {
             ex = e;
         }
@@ -163,8 +153,7 @@ class DefaultRestFnProviderTest {
                         public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
                             map.put("5", exception);
                         }
-                    })).get(new RestClientConfig() {
-                    }).apply(req);
+                    })).get(new RestClientConfig()).apply(req);
         } catch (Exception e) {
             ex = e;
         }
@@ -190,8 +179,7 @@ class DefaultRestFnProviderTest {
                         public void onRequest(HttpRequest httpRequest, RestRequest req) {
                             throw orig;
                         }
-                    })).get(new RestClientConfig() {
-                    }).apply(req);
+                    })).get(new RestClientConfig()).apply(req);
         } catch (Exception e) {
             ex = e;
         }
@@ -205,8 +193,8 @@ class DefaultRestFnProviderTest {
 
         final var ex = Assertions.assertThrows(RestFnException.class, () ->
             new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
-                    req -> Mockito.mock(HttpRequest.class), null).get(new RestClientConfig() {
-                }).apply(() -> "http://nowhere"));
+                    req -> Mockito.mock(HttpRequest.class), null).get(new RestClientConfig())
+                            .apply(() -> "http://nowhere"));
 
         Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }
@@ -217,8 +205,8 @@ class DefaultRestFnProviderTest {
 
         final var ex = Assertions.assertThrows(RestFnException.class,
                 () -> new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
-                        req -> Mockito.mock(HttpRequest.class), null).get(new RestClientConfig() {
-                        }).apply(() -> "http://nowhere"));
+                        req -> Mockito.mock(HttpRequest.class), null).get(new RestClientConfig())
+                                .apply(() -> "http://nowhere"));
 
         Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }

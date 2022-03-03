@@ -53,13 +53,11 @@ public final class ByRestFactory {
     }
 
     public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
-        this(clientProvider, new RestClientConfig() {
-        }, propertyResolver, name -> null);
+        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null);
     }
 
     public ByRestFactory(final RestFnProvider clientProvider) {
-        this(clientProvider, new RestClientConfig() {
-        }, s -> s, name -> null);
+        this(clientProvider, new RestClientConfig(), s -> s, name -> null);
     }
 
     @SuppressWarnings("unchecked")

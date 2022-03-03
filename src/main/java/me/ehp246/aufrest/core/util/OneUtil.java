@@ -121,6 +121,7 @@ public final class OneUtil {
 
             if (args == null) {
                 map.put(entry.getKey(), mapped);
+                continue;
             }
 
             for (final var arg : args) {

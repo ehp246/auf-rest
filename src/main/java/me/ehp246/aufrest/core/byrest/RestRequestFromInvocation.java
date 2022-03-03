@@ -35,6 +35,7 @@ import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestRequestRecord;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
@@ -230,64 +231,8 @@ final class RestRequestFromInvocation {
                     return HttpUtils.APPLICATION_JSON;
                 });
 
-        return new RestRequest() {
-            private final String id = UUID.randomUUID().toString();
-
-            @Override
-            public String id() {
-                return id;
-            }
-
-            @Override
-            public String uri() {
-                return uri;
-            }
-
-            @Override
-            public String method() {
-                return method;
-            }
-
-            @Override
-            public Duration timeout() {
-                return timeout;
-            }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return authSupplier;
-            }
-
-            @Override
-            public String contentType() {
-                return contentType;
-            }
-
-            @Override
-            public String accept() {
-                return accept;
-            }
-
-            @Override
-            public BodyReceiver bodyReceiver() {
-                return bodyReceiver;
-            }
-
-            @Override
-            public Object body() {
-                return body;
-            }
-
-            @Override
-            public Map<String, List<String>> headers() {
-                return headers;
-            }
-
-            @Override
-            public Map<String, List<String>> queryParams() {
-                return queryParams;
-            }
-        };
+        return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier, contentType,
+                accept, bodyReceiver, body, headers, queryParams);
     }
 
     private static List<Class<?>> bodyType(final List<Class<?>> types) {
