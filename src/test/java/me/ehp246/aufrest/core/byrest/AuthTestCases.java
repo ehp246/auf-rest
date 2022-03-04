@@ -3,8 +3,8 @@ package me.ehp246.aufrest.core.byrest;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
-import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
  * @author Lei Yang
@@ -77,10 +77,43 @@ interface AuthTestCases {
     }
 
     @ByRest("")
-    interface InvocationAuthCase001 {
+    interface InvocationAuthCase01 {
         void get();
 
         @OfMapping(authProvider = "getOnInvocation")
         void getOnInvocation();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = "getOnInterface"))
+    interface InvocationAuthCase02 {
+        void get();
+
+        @OfMapping(authProvider = "getOnMethod")
+        void getOnMethod();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE, value = "getOnInterface"))
+    interface InvocationAuthCase03 {
+        // Should have no Auth
+        void get();
+
+        // Should have Auth
+        @OfMapping(authProvider = "getOnMethod")
+        void getOnMethod();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE, value = "SIMPLE"))
+    interface InvocationAuthCase04 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN))
+    interface InvocationAuthCase05 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE))
+    interface InvocationAuthCase06 {
+        void get();
     }
 }
