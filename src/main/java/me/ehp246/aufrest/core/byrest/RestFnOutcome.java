@@ -6,26 +6,17 @@ import java.util.function.Supplier;
 import me.ehp246.aufrest.api.exception.RestFnException;
 
 /**
+ * @param received  The object that is either returned or thrown by the
+ *                  invocation. Could be <code>null</code> or <code>void</code>.
+ * @param hasThrown Indicates the invocation didn't complete normally. It has
+ *                  thrown an error/exception.
+ * 
  * @author Lei Yang
- *
+ * 
  */
-interface RestFnOutcome {
-    /**
-     * The object that is either returned or thrown by the invocation. Could be null
-     * or void.
-     * 
-     * @return
-     */
-    Object received();
-
-    /**
-     * Indicates the invocation didn't complete normally. It has thrown an
-     * error/exception.
-     * 
-     * @return
-     */
-    default boolean hasThrown() {
-        return false;
+record RestFnOutcome(Object received, boolean hasThrown) {
+    RestFnOutcome(Object received) {
+        this(received, false);
     }
 
     /**
@@ -37,7 +28,7 @@ interface RestFnOutcome {
      * @return
      * @throws Throwable
      */
-    default Object orElseThrow(final List<Class<?>> canThrow) throws Throwable {
+    Object orElseThrow(final List<Class<?>> canThrow) throws Throwable {
         final var received = this.received();
         if (!this.hasThrown()) {
             return received;
@@ -61,20 +52,9 @@ interface RestFnOutcome {
     static RestFnOutcome invoke(final Supplier<?> supplier) {
         try {
             // Call it now. Don't wait.
-            final var returned = supplier.get();
-            return () -> returned;
+            return new RestFnOutcome(supplier.get());
         } catch (Exception e) {
-            return new RestFnOutcome() {
-                @Override
-                public Object received() {
-                    return e;
-                }
-
-                @Override
-                public boolean hasThrown() {
-                    return true;
-                }
-            };
+            return new RestFnOutcome(e, true);
         }
     }
 }
