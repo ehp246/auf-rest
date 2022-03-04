@@ -26,7 +26,12 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase001;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase04;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase05;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase06;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -573,29 +578,144 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void invocationAuth_001() {
+    void invocationAuth_01() {
+        final var nameHolder = new String[1];
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
         final var newInstance = new ByRestFactory(cfg -> client, new RestClientConfig(),
-                env::resolveRequiredPlaceholders, name -> invocation -> {
-            invocationHolder[0] = invocation;
-            return auth;
-        }).newInstance(InvocationAuthCase001.class);
+                env::resolveRequiredPlaceholders, name -> {
+                    nameHolder[0] = name;
+                    return invocation -> {
+                        invocationHolder[0] = invocation;
+                        return auth;
+                    };
+                }).newInstance(InvocationAuthCase01.class);
 
         newInstance.getOnInvocation();
 
+        // Auth supplier call is lazy.
         Assertions.assertEquals(auth, reqRef.get().authSupplier().get());
+        Assertions.assertEquals("getOnInvocation", nameHolder[0]);
         final var invocation = invocationHolder[0];
-        Assertions.assertEquals(InvocationAuthCase001.class, invocation.method().getDeclaringClass());
+        Assertions.assertEquals(InvocationAuthCase01.class, invocation.method().getDeclaringClass());
         Assertions.assertEquals(true, newInstance == invocation.target());
         Assertions.assertEquals(0, invocation.args().size());
     }
 
     @Test
+    void invocationAuth_02() {
+        final var nameHolder = new String[1];
+        final var invocationHolder = new Invocation[1];
+        final var auth = UUID.randomUUID().toString();
+
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+            nameHolder[0] = name;
+            return invocation -> {
+                invocationHolder[0] = invocation;
+                return auth;
+            };
+        }).newInstance(InvocationAuthCase01.class).get();
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier(), "should follow the interface with no Auth");
+        Assertions.assertEquals(null, nameHolder[0], "should follow the interface with no Auth");
+    }
+
+    @Test
+    void invocationAuth_03() {
+        final var nameHolder = new String[1];
+        final var invocationHolder = new Invocation[1];
+        final var auth = UUID.randomUUID().toString();
+
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+            nameHolder[0] = name;
+            return invocation -> {
+                invocationHolder[0] = invocation;
+                return auth;
+            };
+        }).newInstance(InvocationAuthCase02.class).get();
+
+        Assertions.assertEquals(auth, reqRef.get().authSupplier().get(), "should follow the interface with Auth");
+        Assertions.assertEquals("getOnInterface", nameHolder[0], "should follow the interface with Auth");
+    }
+
+    @Test
+    void invocationAuth_04() {
+        final var nameHolder = new String[1];
+        final var invocationHolder = new Invocation[1];
+        final var auth = UUID.randomUUID().toString();
+
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+            nameHolder[0] = name;
+            return invocation -> {
+                invocationHolder[0] = invocation;
+                return auth;
+            };
+        }).newInstance(InvocationAuthCase02.class).getOnMethod();
+
+        Assertions.assertEquals(auth, reqRef.get().authSupplier().get(), "should follow the interface");
+        Assertions.assertEquals("getOnMethod", nameHolder[0], "should follow the method");
+    }
+
+    @Test
+    void invocationAuth_05() {
+        final var nameHolder = new String[1];
+        final var invocationHolder = new Invocation[1];
+        final var auth = UUID.randomUUID().toString();
+
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+            nameHolder[0] = name;
+            return invocation -> {
+                invocationHolder[0] = invocation;
+                return auth;
+            };
+        }).newInstance(InvocationAuthCase03.class).getOnMethod();
+
+        Assertions.assertEquals(auth, reqRef.get().authSupplier().get(), "should follow the method");
+        Assertions.assertEquals("getOnMethod", nameHolder[0]);
+    }
+
+    @Test
+    void invocationAuth_06() {
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                name -> invocation -> null).newInstance(InvocationAuthCase03.class).get();
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "should follow the interface");
+    }
+
+    @Test
+    void invocationAuth_07() {
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                name -> invocation -> null).newInstance(InvocationAuthCase04.class).get();
+
+        Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
+    }
+
+    @Test
+    void invocationAuth_08() {
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                name -> invocation -> null).newInstance(InvocationAuthCase04.class).get();
+
+        Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
+    }
+
+    @Test
+    void invocationAuth_09() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                        name -> invocation -> null).newInstance(InvocationAuthCase05.class));
+    }
+
+    @Test
+    void invocationAuth_10() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                        name -> invocation -> null).newInstance(InvocationAuthCase06.class));
+    }
+
+    @Test
     void errorType_01() {
         factory.newInstance(ExCase001.class,
-                new ByRestProxyConfig(null, new AuthConfig(), null, null, null, true, Instant.class))
-                .get();
+                new ByRestProxyConfig(null, new AuthConfig(), null, null, null, true, Instant.class)).get();
 
         Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());
     }

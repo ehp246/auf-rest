@@ -62,8 +62,8 @@ public @interface OfMapping {
      * <p>
      * Empty string indicates there is no bean for the method.
      * <p>
-     * If no bean of the name and the type can be found,
-     * {@link NoSuchBeanDefinitionException} will be thrown at invocation.
+     * When a name is specified but no bean of the type can be found at invocation,
+     * {@link NoSuchBeanDefinitionException} will be thrown.
      * 
      * @return a bean name
      */
