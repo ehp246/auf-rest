@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,12 +24,7 @@ interface RequestParamCase001 {
 
     void getByMap(@RequestParam Map<String, String> queryParams, @RequestParam("query2") String query2);
 
-    void getByObject(@RequestParam QueryObject queryObject);
+    void getByMultiple(@RequestParam("query 1") String query1, @RequestParam("query 1") String query2);
 
-    interface QueryObject {
-        String getFirstName();
-
-        String getLastName();
-    }
-
+    void getByList(@RequestParam("qList") List<String> q);
 }

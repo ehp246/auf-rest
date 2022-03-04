@@ -39,5 +39,4 @@ public final class HttpUtils {
     private HttpUtils() {
         super();
     }
-
 }

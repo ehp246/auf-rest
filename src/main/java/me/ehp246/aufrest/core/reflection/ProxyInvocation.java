@@ -2,7 +2,6 @@ package me.ehp246.aufrest.core.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import me.ehp246.aufrest.api.spi.Invocation;
@@ -142,9 +142,9 @@ public final class ProxyInvocation implements Invocation {
     }
 
     /**
-     * Looks for arguments that are annotated by the given Annotation type. Returns
-     * a map with the key provided by the key supplier function, the value the
-     * argument.
+     * Finds the first parameter that is annotated by the given Annotation type
+     * {@code annotationType} and returns a map with the key provided by the key
+     * supplier function, the value the argument for the parameter.
      *
      * @param <K>            Key from the key supplier
      * @param <V>            Argument object reference
@@ -154,7 +154,7 @@ public final class ProxyInvocation implements Invocation {
      * @return returned Map can be modified. Never <code>null</code>.
      */
     @SuppressWarnings("unchecked")
-    public <K, V, A extends Annotation> Map<K, V> mapAnnotatedArguments(final Class<A> annotationType,
+    public <K, V, A extends Annotation> Map<K, V> findArgumentOfAnnotation(final Class<A> annotationType,
             final Function<A, K> keySupplier) {
         final var map = new HashMap<K, V>();
         for (int i = 0; i < parameterAnnotations.length; i++) {
@@ -169,6 +169,25 @@ public final class ProxyInvocation implements Invocation {
         return map;
     }
 
+    /**
+     * Collects all arguments by the given Annotation type to a List.
+     * 
+     * @param <K>
+     * @param <V>
+     * @param <A>
+     * @param annotationType
+     * @param keySupplier
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <K, V, A extends Annotation> Map<K, List<V>> mapArgumentsOfAnnotation(final Class<A> annotationType,
+            final Function<A, K> keySupplier) {
+        return streamOfAnnotatedArguments(annotationType)
+                .collect(Collectors.groupingBy(a -> keySupplier.apply(a.annotation()),
+                        Collectors.mapping(a -> (V) a.argument(), Collectors.<V>toList())));
+    }
+
+    @SuppressWarnings("unchecked")
     public <A extends Annotation> Stream<AnnotatedArgument<A>> streamOfAnnotatedArguments(
             final Class<A> annotationType) {
         final var builder = Stream.<AnnotatedArgument<A>>builder();
@@ -176,27 +195,9 @@ public final class ProxyInvocation implements Invocation {
         for (int i = 0; i < parameterAnnotations.length; i++) {
             final var arg = args.get(i);
             final var parameter = method.getParameters()[i];
+
             Stream.of(parameterAnnotations[i]).filter(annotation -> annotation.annotationType() == annotationType)
-                    .map(anno -> new AnnotatedArgument<A>() {
-
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        public A getAnnotation() {
-                            return (A) anno;
-                        }
-
-                        @Override
-                        public Object getArgument() {
-                            return arg;
-                        }
-
-                        @Override
-                        public Parameter getParameter() {
-                            return parameter;
-                        }
-
-                    }).forEach(builder::add);
-            ;
+                    .map(anno -> new AnnotatedArgument<>((A) anno, arg, parameter)).forEach(builder::add);
         }
 
         return builder.build();

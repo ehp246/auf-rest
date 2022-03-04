@@ -71,4 +71,8 @@ public interface RestRequest {
     default Map<String, List<String>> headers() {
         return null;
     }
+
+    default Map<String, List<String>> queryParams() {
+        return null;
+    }
 }

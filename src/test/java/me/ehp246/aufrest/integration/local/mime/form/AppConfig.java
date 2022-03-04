@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.stream;
+package me.ehp246.aufrest.integration.local.mime.form;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -15,4 +15,5 @@ import me.ehp246.aufrest.mock.Jackson;
 @EnableByRest
 @Import(Jackson.class)
 class AppConfig {
+
 }

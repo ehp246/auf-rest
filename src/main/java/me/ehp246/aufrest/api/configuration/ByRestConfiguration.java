@@ -63,23 +63,8 @@ public final class ByRestConfiguration {
                         e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
                 .orElse(null);
 
-        return new RestClientConfig() {
-
-            @Override
-            public Duration connectTimeout() {
-                return connTimeout;
-            }
-
-            /**
-             * Default to discarding.
-             */
-            @Override
-            public BodyHandlerProvider bodyHandlerProvider() {
-                return bodyHandlerProvider != null ? bodyHandlerProvider
-                        : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null);
-            }
-
-        };
+        return new RestClientConfig(connTimeout, bodyHandlerProvider != null ? bodyHandlerProvider
+                : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null));
     }
 
     @Bean("ff1e0d94-2413-4d4c-8822-411641137fdd")
@@ -91,15 +76,27 @@ public final class ByRestConfiguration {
     public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
         return req -> {
             // Short-circuit for InputStream
-            if (req.body() instanceof InputStream) {
-                return BodyPublishers.ofInputStream(() -> (InputStream) req.body());
+            if (req.body() instanceof InputStream bodyStream) {
+                return BodyPublishers.ofInputStream(() -> bodyStream);
             }
 
-            // No content type, no content.
-            if (req.body() == null || !OneUtil.hasValue(req.contentType())) {
+            // The rest needs the content type. No content type, no content.
+            if (!OneUtil.hasValue(req.contentType())) {
                 return BodyPublishers.noBody();
             }
-            if (req.contentType().toLowerCase().startsWith(HttpUtils.TEXT_PLAIN)) {
+
+            final var contentType = req.contentType().toLowerCase();
+
+            if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+                // Encode query parameters as the body ignoring the body object.
+                return BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams()));
+            }
+
+            if (req.body() == null) {
+                return BodyPublishers.noBody();
+            }
+
+            if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
                 return BodyPublishers.ofString(req.body().toString());
             }
 

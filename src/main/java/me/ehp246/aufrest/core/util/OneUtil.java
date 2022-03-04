@@ -1,11 +1,16 @@
 package me.ehp246.aufrest.core.util;
 
 import java.lang.annotation.Annotation;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -85,5 +90,61 @@ public final class OneUtil {
             final Class<? extends Annotation> type) {
         return Optional.ofNullable(annos).filter(Objects::nonNull).orElseGet(ArrayList::new).stream()
                 .filter(anno -> anno.annotationType() == type);
+    }
+
+    public static String formUrlEncodedBody(final Map<String, List<String>> map) {
+        final var joiner = new StringJoiner("&");
+        for (final var entry : map.entrySet()) {
+            final var key = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
+            for (final var value : entry.getValue()) {
+                if (hasValue(value)) {
+                    joiner.add(String.join("=", key, URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8)));
+                } else {
+                    joiner.add(key);
+                }
+            }
+        }
+
+        return joiner.toString();
+    }
+
+    public static Map<String, List<String>> toQueryParamMap(final Map<String, List<Object>> input) {
+        if (input == null || input.size() == 0) {
+            return new HashMap<String, List<String>>();
+        }
+
+        final var map = new HashMap<String, List<String>>(input.size());
+
+        for (final var entry : input.entrySet()) {
+            final var args = entry.getValue();
+            final var mapped = new ArrayList<String>();
+
+            if (args == null) {
+                map.put(entry.getKey(), mapped);
+                continue;
+            }
+
+            for (final var arg : args) {
+                if (arg == null) {
+                    mapped.add(null);
+                } else if (arg instanceof Map<?, ?> m) {
+                    m.entrySet().stream().forEach(t -> {
+                        final var v = t.getValue();
+                        mapped.add(v == null ? (String) null : v.toString());
+
+                        map.put(t.getKey().toString(), mapped);
+                    });
+                } else if (arg instanceof List<?> v) {
+                    v.stream().map(t -> t == null ? (String) null : t.toString()).forEach(t -> mapped.add(t));
+                    map.put(entry.getKey(), mapped);
+                } else {
+                    mapped.add(arg.toString());
+                    map.put(entry.getKey(), mapped);
+                }
+            }
+
+        }
+
+        return map;
     }
 }

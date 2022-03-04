@@ -5,7 +5,6 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +20,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -53,13 +53,11 @@ public final class ByRestFactory {
     }
 
     public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
-        this(clientProvider, new RestClientConfig() {
-        }, propertyResolver, name -> null);
+        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null);
     }
 
     public ByRestFactory(final RestFnProvider clientProvider) {
-        this(clientProvider, new RestClientConfig() {
-        }, s -> s, name -> null);
+        this(clientProvider, new RestClientConfig(), s -> s, name -> null);
     }
 
     @SuppressWarnings("unchecked")
@@ -150,56 +148,10 @@ public final class ByRestFactory {
         final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
                 .orElse(null);
 
-        return this.newInstance(byRestInterface, new ByRestProxyConfig() {
-            private final Auth auth = new Auth() {
-
-                @Override
-                public List<String> value() {
-                    return Arrays.asList(byRest.auth().value());
-                }
-
-                @Override
-                public AuthScheme scheme() {
-                    return AuthScheme.valueOf(byRest.auth().scheme().name());
-                }
-
-            };
-
-            @Override
-            public String uri() {
-                return propertyResolver.resolve(byRest.value());
-            }
-
-            @Override
-            public String timeout() {
-                return timeout;
-            }
-
-            @Override
-            public String contentType() {
-                return byRest.contentType();
-            }
-
-            @Override
-            public boolean acceptGZip() {
-                return byRest.acceptGZip();
-            }
-
-            @Override
-            public String accept() {
-                return byRest.accept();
-            }
-
-            @Override
-            public Class<?> errorType() {
-                return byRest.errorType();
-            }
-
-            @Override
-            public Auth auth() {
-                return auth;
-            }
-
-        });
+        return this.newInstance(byRestInterface,
+                new ByRestProxyConfig(propertyResolver.resolve(byRest.value()),
+                        new AuthConfig(Arrays.asList(byRest.auth().value()),
+                                AuthScheme.valueOf(byRest.auth().scheme().name())),
+                        timeout, byRest.accept(), byRest.contentType(), byRest.acceptGZip(), byRest.errorType()));
     }
 }

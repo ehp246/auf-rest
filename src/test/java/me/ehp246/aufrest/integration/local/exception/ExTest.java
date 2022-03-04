@@ -17,9 +17,10 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.integration.local.errortype.ErrorType;
-import me.ehp246.aufrest.mock.MockByRestProxyConfig;
 
 /**
  * @author Lei Yang
@@ -209,18 +210,12 @@ class ExTest {
     void errorType_03() {
         final var now = Instant.now();
         final var ex = Assertions.assertThrows(ErrorResponseException.class,
-                () -> restFactory.newInstance(ExCase.class, new MockByRestProxyConfig() {
-                    @Override
-                    public String uri() {
-                        return "http://localhost:${local.server.port}/status-code/";
-                    }
-
-                    @Override
-                    public Class<?> errorType() {
-                        return ErrorType.class;
-                    }
-
-                }).getBody(objectMapper.writeValueAsString(Map.of("now", now))));
+                () -> restFactory
+                        .newInstance(ExCase.class,
+                                new ByRestProxyConfig("http://localhost:${local.server.port}/status-code/",
+                                        new AuthConfig(), null,
+                                        null, null, true, ErrorType.class))
+                        .getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType);
 

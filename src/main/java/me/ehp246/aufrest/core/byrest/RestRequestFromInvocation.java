@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
 import java.lang.annotation.Annotation;
-import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +35,7 @@ import me.ehp246.aufrest.api.rest.BodyReceiver;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestRequestRecord;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
@@ -102,7 +101,7 @@ final class RestRequestFromInvocation {
     RestRequest from(ProxyInvocation invocation) {
         final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
 
-        final var pathParams = invocation.mapAnnotatedArguments(PathVariable.class, PathVariable::value).entrySet()
+        final var pathParams = invocation.findArgumentOfAnnotation(PathVariable.class, PathVariable::value).entrySet()
                 .stream().map(entry -> {
                     if (entry.getKey().equals("")) {
                         return entry;
@@ -113,32 +112,32 @@ final class RestRequestFromInvocation {
 
         final var unnamedPathMap = pathParams.get("");
         if (unnamedPathMap != null && unnamedPathMap instanceof Map) {
-            ((Map<String, Object>) unnamedPathMap).entrySet().stream()
-                    .forEach(entry -> pathParams.putIfAbsent(entry.getKey(),
-                            UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
+            ((Map<String, Object>) unnamedPathMap).entrySet().stream().forEach(entry -> pathParams
+                    .putIfAbsent(entry.getKey(), UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
         }
 
-        final var queryParams = invocation.mapAnnotatedArguments(RequestParam.class, RequestParam::value);
+        final var queryParamArgs = invocation.<String, Object, RequestParam>mapArgumentsOfAnnotation(RequestParam.class,
+                RequestParam::value);
 
-        final var unnamedQueryMap = queryParams.get("");
+        // Should not have a name for the query parameter map
+        final var unnamedQueryMap = queryParamArgs.remove("");
 
-        if (unnamedQueryMap != null && unnamedQueryMap instanceof Map) {
-            queryParams.remove("");
-            ((Map<String, Object>) unnamedQueryMap).entrySet().stream()
-                    .forEach(e -> queryParams.putIfAbsent(e.getKey(), e.getValue()));
+        if (unnamedQueryMap != null && unnamedQueryMap.size() > 0 && unnamedQueryMap.get(0) instanceof Map<?, ?> map) {
+            map.entrySet().stream()
+                    .forEach(e -> queryParamArgs.merge(e.getKey().toString(), List.of(e.getValue()), (o, p) -> {
+                        o.add(p.get(0));
+                        return o;
+                    }));
         }
 
-        final String id = UUID.randomUUID().toString();
-        final String uri = UriComponentsBuilder
-                .fromUriString(propertyResolver.resolve(
-                        this.byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
-                .queryParams(CollectionUtils.toMultiValueMap(queryParams.entrySet().stream()
-                        .collect(Collectors.toMap(
-                                e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8),
-                                e -> List.of(URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))))))
+        final var queryParams = OneUtil.toQueryParamMap(queryParamArgs);
+
+        final var uri = UriComponentsBuilder
+                .fromUriString(propertyResolver.resolve(this.byRestConfig.uri()
+                        + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
                 .buildAndExpand(pathParams).toUriString();
 
-        final String method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
+        final var method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
             final var invokedMethodName = invocation.getMethodName().toUpperCase();
             return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
         }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
@@ -159,7 +158,7 @@ final class RestRequestFromInvocation {
                 .forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
                     @Override
                     public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
-                        newValue(annoArg.getAnnotation().value(), annoArg.getArgument());
+                        newValue(annoArg.annotation().value(), annoArg.argument());
                     }
 
                     private void newValue(final Object key, final Object newValue) {
@@ -167,13 +166,13 @@ final class RestRequestFromInvocation {
                             return;
                         }
 
-                        if (newValue instanceof Iterable) {
-                            ((Iterable<Object>) newValue).forEach(v -> newValue(key, v));
+                        if (newValue instanceof Iterable<?> iter) {
+                            iter.forEach(v -> newValue(key, v));
                             return;
                         }
 
-                        if (newValue instanceof Map) {
-                            ((Map<Object, Object>) newValue).entrySet().forEach(entry -> {
+                        if (newValue instanceof Map<?, ?> map) {
+                            map.entrySet().forEach(entry -> {
                                 newValue(entry.getKey(), entry.getValue());
                             });
                             return;
@@ -217,72 +216,23 @@ final class RestRequestFromInvocation {
         };
 
         final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
-                .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.getArgument()))
+                .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.argument()))
                 .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
                         .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
                         .orElse(proxyAuthSupplier.orElse(null)));
 
         final var body = payload.size() >= 1 ? payload.get(0) : null;
-        final var contentType = Optional
-                .ofNullable(optionalOfMapping.map(OfMapping::contentType).orElse(this.byRestConfig.contentType()))
-                .filter(OneUtil::hasValue).orElseGet(() -> {
-                    // TODO: Determine content type by the body type.
+
+        final var contentType = Optional.ofNullable(optionalOfMapping.map(OfMapping::contentType)
+                .filter(OneUtil::hasValue).orElseGet(this.byRestConfig::contentType)).filter(OneUtil::hasValue)
+                .orElseGet(() -> {
+                    // TODO: Determine content type by the body object type.
                     // Defaults to JSON.
                     return HttpUtils.APPLICATION_JSON;
                 });
 
-        return new RestRequest() {
-
-            @Override
-            public String id() {
-                return id;
-            }
-
-            @Override
-            public String uri() {
-                return uri;
-            }
-
-            @Override
-            public String method() {
-                return method;
-            }
-
-            @Override
-            public Duration timeout() {
-                return timeout;
-            }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return authSupplier;
-            }
-
-            @Override
-            public String contentType() {
-                return contentType;
-            }
-
-            @Override
-            public String accept() {
-                return accept;
-            }
-
-            @Override
-            public BodyReceiver bodyReceiver() {
-                return bodyReceiver;
-            }
-
-            @Override
-            public Object body() {
-                return body;
-            }
-
-            @Override
-            public Map<String, List<String>> headers() {
-                return headers;
-            }
-        };
+        return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier, contentType,
+                accept, bodyReceiver, body, headers, queryParams);
     }
 
     private static List<Class<?>> bodyType(final List<Class<?>> types) {
