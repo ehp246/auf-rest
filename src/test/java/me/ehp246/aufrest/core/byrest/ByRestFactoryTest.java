@@ -19,13 +19,14 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase001;
-import me.ehp246.aufrest.mock.MockByRestProxyConfig;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -591,14 +592,10 @@ class ByRestFactoryTest {
     }
 
     @Test
-    void errorType_001() {
-        factory.newInstance(ExCase001.class, new MockByRestProxyConfig() {
-
-            @Override
-            public Class<?> errorType() {
-                return Instant.class;
-            }
-        }).get();
+    void errorType_01() {
+        factory.newInstance(ExCase001.class,
+                new ByRestProxyConfig(null, new AuthConfig(), null, null, null, true, Instant.class))
+                .get();
 
         Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());
     }

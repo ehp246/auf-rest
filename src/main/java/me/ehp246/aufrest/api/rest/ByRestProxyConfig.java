@@ -3,6 +3,8 @@ package me.ehp246.aufrest.api.rest;
 import java.util.List;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
+
 
 /**
  * Defines the configuration of a {@link ByRest} proxy. Mostly the Java object
@@ -11,35 +13,15 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * @author Lei Yang
  *
  */
-public interface ByRestProxyConfig {
-    String uri();
-
-    default Auth auth() {
-        return new Auth() {
-        };
+public record ByRestProxyConfig(String uri, AuthConfig auth, String timeout, String accept, String contentType,
+        boolean acceptGZip, Class<?> errorType) {
+    public ByRestProxyConfig(String uri, String timeout, String accept, String contentType) {
+        this(uri, new AuthConfig(), timeout, accept, contentType, true, Object.class);
     }
 
-    String timeout();
-
-    String accept();
-
-    String contentType();
-
-    default boolean acceptGZip() {
-        return true;
-    }
-
-    default Class<?> errorType() {
-        return Object.class;
-    }
-
-    interface Auth {
-        default List<String> value() {
-            return List.of();
-        }
-
-        default AuthScheme scheme() {
-            return AuthScheme.DEFAULT;
+    public static record AuthConfig(List<String> value, AuthScheme scheme) {
+        public AuthConfig() {
+            this(List.of(), AuthScheme.DEFAULT);
         }
     }
 }
