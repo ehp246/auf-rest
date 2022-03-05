@@ -103,17 +103,37 @@ interface AuthTestCases {
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE, value = "SIMPLE"))
-    interface InvocationAuthCase04 {
-        void get();
-    }
-
-    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN))
-    interface InvocationAuthCase05 {
+    interface SimpleAuthCase01 {
         void get();
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE))
-    interface InvocationAuthCase06 {
+    interface SimpleAuthCase02 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN))
+    interface BeanAuthCase05 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BASIC))
+    interface BasicAuthCase01 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BASIC, value = { "user", "name" }))
+    interface BasicAuthCase02 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEARER))
+    interface BearerAuthCase01 {
+        void get();
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEARER, value = "token"))
+    interface BearerAuthCase02 {
         void get();
     }
 }
