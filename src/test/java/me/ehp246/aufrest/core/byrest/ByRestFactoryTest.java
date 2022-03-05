@@ -26,12 +26,16 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase04;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase05;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase06;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -685,7 +689,7 @@ class ByRestFactoryTest {
     @Test
     void invocationAuth_07() {
         new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(InvocationAuthCase04.class).get();
+                name -> invocation -> null).newInstance(SimpleAuthCase01.class).get();
 
         Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
     }
@@ -693,7 +697,7 @@ class ByRestFactoryTest {
     @Test
     void invocationAuth_08() {
         new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(InvocationAuthCase04.class).get();
+                name -> invocation -> null).newInstance(SimpleAuthCase01.class).get();
 
         Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
     }
@@ -702,14 +706,44 @@ class ByRestFactoryTest {
     void invocationAuth_09() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                        name -> invocation -> null).newInstance(InvocationAuthCase05.class));
+                        name -> invocation -> null).newInstance(BeanAuthCase05.class));
     }
 
     @Test
     void invocationAuth_10() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                        name -> invocation -> null).newInstance(InvocationAuthCase06.class));
+                        name -> invocation -> null).newInstance(SimpleAuthCase02.class));
+    }
+
+    @Test
+    void basicAuth_01() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                        name -> invocation -> null).newInstance(BasicAuthCase01.class));
+    }
+
+    @Test
+    void basicAuth_02() {
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                name -> invocation -> null).newInstance(BasicAuthCase02.class).get();
+        
+        Assertions.assertEquals("Basic dXNlcjpuYW1l", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void bearerAuth_01() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                        name -> invocation -> null).newInstance(BearerAuthCase01.class));
+    }
+
+    @Test
+    void bearerAuth_02() {
+        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                name -> invocation -> null).newInstance(BearerAuthCase02.class).get();
+
+        Assertions.assertEquals("Bearer token", reqRef.get().authSupplier().get());
     }
 
     @Test
