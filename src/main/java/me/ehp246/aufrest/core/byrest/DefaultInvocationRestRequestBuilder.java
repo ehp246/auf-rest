@@ -47,7 +47,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class RestRequestFromInvocation {
+final class DefaultInvocationRestRequestBuilder {
 
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
@@ -58,7 +58,7 @@ final class RestRequestFromInvocation {
     private final PropertyResolver propertyResolver;
     private final Duration timeout;
 
-    RestRequestFromInvocation(final ByRestProxyConfig byRestConfig,
+    DefaultInvocationRestRequestBuilder(final ByRestProxyConfig byRestConfig,
             final InvocationAuthProviderResolver methodAuthProviderResolver, final PropertyResolver propertyResolver) {
         super();
         this.byRestConfig = byRestConfig;

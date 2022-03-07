@@ -11,13 +11,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-public class JsonByJackson {
+public final class JsonByJackson implements JsonFn {
     private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
 
     private final ObjectMapper objectMapper;
@@ -27,6 +28,7 @@ public class JsonByJackson {
         this.objectMapper = objectMapper;
     }
 
+    @Override
     public String toJson(final Object value) {
         if (value == null) {
             return null;
@@ -35,6 +37,7 @@ public class JsonByJackson {
         return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
     }
 
+    @Override
     public Object fromJson(final String json, final BodyReceiver receiver) {
         if (receiver == null || json == null || json.isBlank()) {
             return null;

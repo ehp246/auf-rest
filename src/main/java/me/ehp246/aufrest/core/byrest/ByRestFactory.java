@@ -68,9 +68,9 @@ public final class ByRestFactory {
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final RestRequestFromInvocation restFromInvocation;
+        final DefaultInvocationRestRequestBuilder restFromInvocation;
         try {
-            restFromInvocation = new RestRequestFromInvocation(byRestConfig, methodAuthProviderMap, propertyResolver);
+            restFromInvocation = new DefaultInvocationRestRequestBuilder(byRestConfig, methodAuthProviderMap, propertyResolver);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Failed to instantiate " + byRestInterface.getCanonicalName(), e);
         }

@@ -529,7 +529,7 @@ class ByRestFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestFactory(config -> req -> {
             throw restFnException;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RestFnException.class, newInstance::get);
 
@@ -542,7 +542,7 @@ class ByRestFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestFactory(config -> req -> {
             throw restFnException;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(IOException.class, newInstance::delete);
 
@@ -555,7 +555,7 @@ class ByRestFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestFactory(config -> req -> {
             throw restFnException;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(InterruptedException.class, newInstance::delete);
 
@@ -567,7 +567,7 @@ class ByRestFactoryTest {
         final var toBeThrown = new RuntimeException();
         final var newInstance = new ByRestFactory(config -> req -> {
             throw toBeThrown;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
 
@@ -578,7 +578,7 @@ class ByRestFactoryTest {
     void exception_005() {
         Assertions.assertThrows(Exception.class,
                 new ByRestFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
-                        .newInstance(ExCase001.class)::post);
+                        .newInstance(ExceptionCase001.class)::post);
     }
 
     @Test
@@ -748,7 +748,7 @@ class ByRestFactoryTest {
 
     @Test
     void errorType_01() {
-        factory.newInstance(ExCase001.class,
+        factory.newInstance(ExceptionCase001.class,
                 new ByRestProxyConfig(null, new AuthConfig(), null, null, null, true, Instant.class)).get();
 
         Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());

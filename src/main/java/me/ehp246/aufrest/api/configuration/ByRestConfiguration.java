@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -27,7 +26,6 @@ import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
@@ -35,6 +33,7 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
+import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
@@ -52,7 +51,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class })
+@Import({ DefaultRestFnProvider.class, DefaultBodyPublisherProvider.class, JsonByJackson.class })
 public final class ByRestConfiguration {
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
     public RestClientConfig restClientConfig(
@@ -67,46 +66,8 @@ public final class ByRestConfiguration {
                 : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null));
     }
 
-    @Bean("ff1e0d94-2413-4d4c-8822-411641137fdd")
-    public JsonByJackson jacksonFn(final ObjectMapper objectMapper) {
-        return new JsonByJackson(objectMapper);
-    }
-
-    @Bean("063d7d99-ac10-4746-a308-390bad7872e2")
-    public BodyPublisherProvider bodyPublisherProvider(final JsonByJackson jacksonFn) {
-        return req -> {
-            // Short-circuit for InputStream
-            if (req.body() instanceof InputStream bodyStream) {
-                return BodyPublishers.ofInputStream(() -> bodyStream);
-            }
-
-            // The rest needs the content type. No content type, no content.
-            if (!OneUtil.hasValue(req.contentType())) {
-                return BodyPublishers.noBody();
-            }
-
-            final var contentType = req.contentType().toLowerCase();
-
-            if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
-                // Encode query parameters as the body ignoring the body object.
-                return BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams()));
-            }
-
-            if (req.body() == null) {
-                return BodyPublishers.noBody();
-            }
-
-            if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
-                return BodyPublishers.ofString(req.body().toString());
-            }
-
-            // Default to JSON.
-            return BodyPublishers.ofString(jacksonFn.toJson(req.body()));
-        };
-    }
-
     @Bean("c1af17fc-0e88-4d4a-a5ce-648aea1adb17")
-    public BodyHandlerProvider bodyHandlerProvider(final JsonByJackson jacksonFn) {
+    public BodyHandlerProvider bodyHandlerProvider(final JsonFn jsonFn) {
         return req -> {
             final var receiver = req.bodyReceiver();
             final Class<?> type = receiver == null ? void.class : receiver.type();
@@ -150,7 +111,7 @@ public final class ByRestConfiguration {
                             }
 
                             if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                                return jacksonFn.fromJson(text,
+                                return jsonFn.fromJson(text,
                                         statusCode < 300 ? receiver : () -> receiver.errorType());
                             }
 
