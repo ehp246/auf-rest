@@ -1,24 +1,15 @@
 package me.ehp246.aufrest.api.configuration;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.zip.GZIPInputStream;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,7 +24,6 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
-import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
@@ -51,7 +41,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, DefaultBodyPublisherProvider.class, JsonByJackson.class })
+@Import({ DefaultRestFnProvider.class, DefaultBodyPublisherProvider.class, JsonByJackson.class,
+        DefaultBodyHandlerProvider.class })
 public final class ByRestConfiguration {
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
     public RestClientConfig restClientConfig(
@@ -64,62 +55,6 @@ public final class ByRestConfiguration {
 
         return new RestClientConfig(connTimeout, bodyHandlerProvider != null ? bodyHandlerProvider
                 : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null));
-    }
-
-    @Bean("c1af17fc-0e88-4d4a-a5ce-648aea1adb17")
-    public BodyHandlerProvider bodyHandlerProvider(final JsonFn jsonFn) {
-        return req -> {
-            final var receiver = req.bodyReceiver();
-            final Class<?> type = receiver == null ? void.class : receiver.type();
-
-            // Declared return type requires de-serialization.
-            return responseInfo -> {
-                final var statusCode = responseInfo.statusCode();
-                final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
-                        .equalsIgnoreCase("gzip");
-                // The server might not set the header. Assuming JSON. Otherwise, follow the
-                // header.
-                final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
-                        .orElse(MediaType.APPLICATION_JSON_VALUE);
-
-                // Short-circuit the content-type.
-                if (type.isAssignableFrom(InputStream.class)) {
-                    return gzipped
-                            ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
-                                    in -> OneUtil.orThrow(() -> new GZIPInputStream(in)))
-                            : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
-                }
-
-                return BodySubscribers
-                        .mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
-                            try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
-                                    final var byteOs = new ByteArrayOutputStream()) {
-                                gis.transferTo(byteOs);
-                                return byteOs.toString(StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-                            if ((statusCode == 204) || (statusCode < 300
-                                    && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
-                                return null;
-                            }
-
-                            // This means a JSON string will not be de-serialized.
-                            if (statusCode >= 300 && receiver.errorType() == String.class) {
-                                return text;
-                            }
-
-                            if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                                return jsonFn.fromJson(text,
-                                        statusCode < 300 ? receiver : () -> receiver.errorType());
-                            }
-
-                            // Returns the raw text for anything that is not JSON for now.
-                            return text;
-                        });
-            };
-        };
     }
 
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
