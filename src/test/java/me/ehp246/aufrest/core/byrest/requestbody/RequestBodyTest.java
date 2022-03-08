@@ -51,4 +51,13 @@ class RequestBodyTest {
 
         Assertions.assertEquals(36, ((BodyPublisher) (reqRef.get().body())).contentLength());
     }
+
+    @Test
+    void body_03() {
+        final var noBody = BodyPublishers.noBody();
+
+        factory.newInstance(RequestBodyTestCase01.class).get(0, noBody, null);
+
+        Assertions.assertEquals(noBody, reqRef.get().body(), "should use the publisher");
+    }
 }

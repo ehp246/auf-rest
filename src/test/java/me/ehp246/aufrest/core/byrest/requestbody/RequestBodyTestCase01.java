@@ -16,6 +16,8 @@ interface RequestBodyTestCase01 {
 
     void get(InputStream body);
 
+    void get(int i, BodyPublisher publisher, InputStream stream);
+
     <T> T get(BodyHandler<T> handler);
 
     <T> T get(BodyPublisher body, BodyHandler<T> handler);

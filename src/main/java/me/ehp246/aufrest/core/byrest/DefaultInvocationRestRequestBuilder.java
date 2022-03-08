@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
 import java.lang.annotation.Annotation;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -156,8 +157,6 @@ final class DefaultInvocationRestRequestBuilder {
 
         final var accept = optionalOfMapping.map(OfMapping::accept).orElse(this.byRestConfig.accept());
 
-        final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
-
         final var headers = new HashMap<String, List<String>>();
 
         // Set accept-encoding at a lower priority.
@@ -231,10 +230,8 @@ final class DefaultInvocationRestRequestBuilder {
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.argument()))
                 .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
                         .map(name -> (Supplier<String>) () -> methodAuthProviderResolver.get(name).get(invocation))
-                        .orElse(byRestProxyAuthProvider.map(provider -> (Supplier<String>) () -> provider.get(invocation))
-                                .orElse(null)));
-
-        final var body = payload.size() >= 1 ? payload.get(0) : null;
+                        .orElse(byRestProxyAuthProvider
+                                .map(provider -> (Supplier<String>) () -> provider.get(invocation)).orElse(null)));
 
         final var contentType = Optional.ofNullable(optionalOfMapping.map(OfMapping::contentType)
                 .filter(OneUtil::hasValue).orElseGet(this.byRestConfig::contentType)).filter(OneUtil::hasValue)
@@ -245,7 +242,16 @@ final class DefaultInvocationRestRequestBuilder {
                 });
 
         return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier, contentType,
-                accept, bodyReceiver, body, headers, queryParams);
+                accept, bodyReceiver, resolveBody(invocation), headers, queryParams);
+    }
+
+    private Object resolveBody(ProxyInvocation invocation) {
+        return invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst().map(v -> (Object) v)
+                .orElseGet(() -> {
+                    final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
+
+                    return payload.size() >= 1 ? payload.get(0) : null;
+                });
     }
 
     private static List<Class<?>> bodyType(final List<Class<?>> types) {

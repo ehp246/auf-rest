@@ -24,17 +24,16 @@ final class DefaultBodyPublisherProvider implements BodyPublisherProvider {
 
     @Override
     public BodyPublisher get(RestRequest req) {
-        if (req.body() == null) {
-            return BodyPublishers.noBody();
-        }
+        final var body = req.body();
 
         // Short-circuit for a few low-level types.
         // In these cases, the content type is ignored.
-        if (req.body() instanceof BodyPublisher body) {
-            return body;
+        if (body != null && body instanceof BodyPublisher publisher) {
+            return publisher;
         }
-        if (req.body() instanceof InputStream body) {
-            return BodyPublishers.ofInputStream(() -> body);
+
+        if (body != null && body instanceof InputStream stream) {
+            return BodyPublishers.ofInputStream(() -> stream);
         }
 
         // The rest needs the content type. No content type, no content.
@@ -49,12 +48,16 @@ final class DefaultBodyPublisherProvider implements BodyPublisherProvider {
             return BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams()));
         }
 
+        if (body == null) {
+            return BodyPublishers.noBody();
+        }
+
         if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
-            return BodyPublishers.ofString(req.body().toString());
+            return BodyPublishers.ofString(body.toString());
         }
 
         // Default to JSON.
-        return BodyPublishers.ofString(jsonFn.toJson(req.body()));
+        return BodyPublishers.ofString(jsonFn.toJson(body));
     }
 
 }
