@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.requestbody;
+package me.ehp246.aufrest.integration.local.bodys;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;

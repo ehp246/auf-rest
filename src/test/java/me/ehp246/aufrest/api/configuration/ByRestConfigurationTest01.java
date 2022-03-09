@@ -24,26 +24,26 @@ class ByRestConfigurationTest01 {
 
     @Test
     void test_001() {
-        final var clientConfig = new ByRestConfiguration().restClientConfig("", req -> null);
+        final var clientConfig = new ByRestConfiguration().restClientConfig("");
 
         Assertions.assertEquals(null, clientConfig.connectTimeout());
     }
 
     @Test
     void test_002() {
-        final var clientConfig = new ByRestConfiguration().restClientConfig(null, null);
+        final var clientConfig = new ByRestConfiguration().restClientConfig(null);
 
         Assertions.assertEquals(null, clientConfig.connectTimeout());
     }
 
     @Test
     void test_004() {
-        Assertions.assertDoesNotThrow(() -> new ByRestConfiguration().restClientConfig(null, null));
+        Assertions.assertDoesNotThrow(() -> new ByRestConfiguration().restClientConfig(null));
     }
 
     @Test
     void test_005() {
-        final var clientConfig = new ByRestConfiguration().restClientConfig("PT1S", null);
+        final var clientConfig = new ByRestConfiguration().restClientConfig("PT1S");
 
         Assertions.assertEquals(1000, clientConfig.connectTimeout().toMillis());
     }

@@ -3,6 +3,7 @@ package me.ehp246.aufrest.core.byrest;
 import java.lang.annotation.Annotation;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,7 +33,8 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -48,7 +50,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class DefaultInvocationRestRequestBuilder {
+final class DefaultByRestRequestBuilder {
 
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
@@ -58,13 +60,22 @@ final class DefaultInvocationRestRequestBuilder {
     private final ByRestProxyConfig byRestConfig;
     private final PropertyResolver propertyResolver;
     private final Duration timeout;
+    private final BodyHandlerProvider bodyHandlerProvider;
 
-    DefaultInvocationRestRequestBuilder(final ByRestProxyConfig byRestConfig,
-            final InvocationAuthProviderResolver methodAuthProviderResolver, final PropertyResolver propertyResolver) {
+    DefaultByRestRequestBuilder(final ByRestProxyConfig byRestConfig,
+            final InvocationAuthProviderResolver methodAuthProviderResolver, final PropertyResolver propertyResolver,
+            final BodyHandlerProvider bodyHandlerProvider) {
         super();
         this.byRestConfig = byRestConfig;
         this.methodAuthProviderResolver = methodAuthProviderResolver;
         this.propertyResolver = propertyResolver;
+        this.bodyHandlerProvider = bodyHandlerProvider;
+
+        this.timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
+                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                .orElse(null);
+
         this.byRestProxyAuthProvider = Optional.of(byRestConfig.auth()).map(auth -> {
             return switch (auth.scheme()) {
             case SIMPLE -> {
@@ -100,10 +111,6 @@ final class DefaultInvocationRestRequestBuilder {
             default -> null;
             };
         });
-        this.timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
-                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
-                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
-                .orElse(null);
     }
 
     /**
@@ -203,29 +210,6 @@ final class DefaultInvocationRestRequestBuilder {
                                 invocation.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
                 .collect(Collectors.toList()));
 
-        final var bodyReceiver = new BodyReceiver() {
-
-            @Override
-            public Class<?> type() {
-                return returnTypes.get(0);
-            }
-
-            @Override
-            public Class<?> errorType() {
-                return byRestConfig.errorType();
-            }
-
-            @Override
-            public List<Class<?>> reifying() {
-                return returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size());
-            }
-
-            @Override
-            public List<? extends Annotation> annotations() {
-                return invocation.getMethodDeclaredAnnotations();
-            }
-        };
-
         final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
                 .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.argument()))
                 .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
@@ -241,8 +225,15 @@ final class DefaultInvocationRestRequestBuilder {
                     return HttpUtils.APPLICATION_JSON;
                 });
 
+        final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
+                .map(args -> args.size() == 0 ? null : args.get(0))
+                .orElseGet(() -> bodyHandlerProvider
+                        .get(new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
+                                returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
+                                invocation.getMethodDeclaredAnnotations())));
+
         return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier, contentType,
-                accept, bodyReceiver, resolveBody(invocation), headers, queryParams);
+                accept, resolveBody(invocation), headers, queryParams, bodyHandler);
     }
 
     private Object resolveBody(ProxyInvocation invocation) {

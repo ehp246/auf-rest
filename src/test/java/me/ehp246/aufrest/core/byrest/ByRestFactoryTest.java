@@ -19,8 +19,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
-import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -28,13 +26,13 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
@@ -744,13 +742,5 @@ class ByRestFactoryTest {
                 name -> invocation -> null).newInstance(BearerAuthCase02.class).get();
 
         Assertions.assertEquals("Bearer token", reqRef.get().authSupplier().get());
-    }
-
-    @Test
-    void errorType_01() {
-        factory.newInstance(ExceptionCase001.class,
-                new ByRestProxyConfig(null, new AuthConfig(), null, null, null, true, Instant.class)).get();
-
-        Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());
     }
 }

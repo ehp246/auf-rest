@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.integration.local.requestbody;
+package me.ehp246.aufrest.integration.local.bodys;
 
 import java.io.IOException;
 import java.net.http.HttpRequest.BodyPublishers;

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 
 /**
  * @author Lei Yang
@@ -34,49 +34,30 @@ public class JsonByJacksonTest {
     void list_001() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from), () -> Instants.class);
+        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
+                new BindingDescriptor(Instants.class));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings("unchecked")
     @Test
     void list_002() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from), new BodyReceiver() {
-            @Override
-            public Class<List> type() {
-                return List.class;
-            }
-
-            @Override
-            public List<Class<?>> reifying() {
-                return List.of(Instant.class);
-            }
-
-        });
+        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
+                new BindingDescriptor(List.class, null, List.of(Instant.class), List.of()));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings("unchecked")
     @Test
     void list_003() {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
         final List<List<Instant>> back = (List<List<Instant>>) jackson.fromJson(jackson.toJson(from),
-                new BodyReceiver() {
-                    @Override
-                    public Class<List> type() {
-                        return List.class;
-                    }
-
-                    @Override
-                    public List<Class<?>> reifying() {
-                        return List.of(List.class, Instant.class);
-                    }
-                });
+                new BindingDescriptor(List.class, null, List.of(List.class, Instant.class), List.of()));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -86,23 +67,14 @@ public class JsonByJacksonTest {
         Assertions.assertEquals(4, all.size());
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     @Test
     void list_004() {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<Person> back = (List<Person>) jackson.fromJson(jackson.toJson(from), new BodyReceiver() {
-            @Override
-            public Class<List> type() {
-                return List.class;
-            }
-
-            @Override
-            public List<Class<?>> reifying() {
-                return List.of(Person.class);
-            }
-        });
+        final List<Person> back = (List<Person>) jackson.fromJson(jackson.toJson(from),
+                new BindingDescriptor(List.class, null, List.of(Person.class), List.of()));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);

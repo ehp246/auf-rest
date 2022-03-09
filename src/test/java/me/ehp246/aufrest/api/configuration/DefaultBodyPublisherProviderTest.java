@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.mock.MockReq;
 
@@ -23,7 +23,7 @@ class DefaultBodyPublisherProviderTest {
         }
 
         @Override
-        public Object fromJson(String json, BodyReceiver receiver) {
+        public Object fromJson(String json, BindingDescriptor receiver) {
             return null;
         }
     };

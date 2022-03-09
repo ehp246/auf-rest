@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.api.configuration;
 
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.Import;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -46,15 +44,12 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 public final class ByRestConfiguration {
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
     public RestClientConfig restClientConfig(
-            @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout,
-            @Autowired(required = false) final BodyHandlerProvider bodyHandlerProvider) {
-        final var connTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
-                .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
-                        e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
-                .orElse(null);
-
-        return new RestClientConfig(connTimeout, bodyHandlerProvider != null ? bodyHandlerProvider
-                : req -> respInfo -> BodySubscribers.mapping(BodySubscribers.discarding(), body -> null));
+            @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
+        return new RestClientConfig(
+                Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
+                        .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
+                                e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
+                        .orElse(null));
     }
 
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -38,7 +38,7 @@ public final class JsonByJackson implements JsonFn {
     }
 
     @Override
-    public Object fromJson(final String json, final BodyReceiver receiver) {
+    public Object fromJson(final String json, final BindingDescriptor receiver) {
         if (receiver == null || json == null || json.isBlank()) {
             return null;
         }

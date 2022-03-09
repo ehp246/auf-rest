@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.api.rest;
 
-import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 
 /**
@@ -8,12 +7,8 @@ import java.time.Duration;
  *
  * @author Lei Yang
  */
-public record RestClientConfig(Duration connectTimeout, BodyHandlerProvider bodyHandlerProvider) {
+public record RestClientConfig(Duration connectTimeout) {
     public RestClientConfig() {
-        this(null, req -> BodyHandlers.discarding());
-    }
-
-    public RestClientConfig(Duration connectTimeout) {
-        this(connectTimeout, req -> BodyHandlers.discarding());
+        this(null);
     }
 }

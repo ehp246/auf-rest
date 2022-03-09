@@ -1,6 +1,6 @@
 package me.ehp246.aufrest.api.spi;
 
-import me.ehp246.aufrest.api.rest.BodyReceiver;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 
 /**
  * @author Lei Yang
@@ -9,6 +9,6 @@ import me.ehp246.aufrest.api.rest.BodyReceiver;
 public interface JsonFn {
     String toJson(final Object value);
 
-    Object fromJson(final String json, final BodyReceiver receiver);
+    Object fromJson(final String json, final BindingDescriptor receiver);
 }
 

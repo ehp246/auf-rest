@@ -13,8 +13,8 @@ import java.util.zip.GZIPInputStream;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -31,9 +31,8 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
     }
 
     @Override
-    public BodyHandler<?> get(RestRequest req) {
-        final var receiver = req.bodyReceiver();
-        final Class<?> type = receiver == null ? void.class : receiver.type();
+    public BodyHandler<?> get(final BindingDescriptor binding) {
+        final Class<?> type = binding == null ? void.class : binding.type();
 
         // Declared return type requires de-serialization.
         return responseInfo -> {
@@ -68,12 +67,13 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
                 }
 
                 // This means a JSON string will not be de-serialized.
-                if (statusCode >= 300 && receiver.errorType() == String.class) {
+                if (statusCode >= 300 && binding.errorType() == String.class) {
                     return text;
                 }
 
                 if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                    return jsonFn.fromJson(text, statusCode < 300 ? receiver : () -> receiver.errorType());
+                    return jsonFn.fromJson(text,
+                            statusCode < 300 ? binding : new BindingDescriptor(binding.errorType()));
                 }
 
                 // Returns the raw text for anything that is not JSON for now.
