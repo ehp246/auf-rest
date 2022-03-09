@@ -25,10 +25,12 @@ import me.ehp246.aufrest.api.spi.Invocation;
  *
  */
 public final class ProxyInvocation implements Invocation {
+
     private final Class<?> declaringType;
     private final Object target;
     private final Method method;
     private final List<?> args;
+    private final List<Class<?>> parameterTypes;
     private final Annotation[][] parameterAnnotations;
     private final List<Class<?>> threws;
 
@@ -39,6 +41,7 @@ public final class ProxyInvocation implements Invocation {
         this.method = Objects.requireNonNull(method);
         this.args = Collections.unmodifiableList(args == null ? new ArrayList<Object>() : Arrays.asList(args));
         this.parameterAnnotations = this.method.getParameterAnnotations();
+        this.parameterTypes = Arrays.asList(this.method.getParameterTypes());
         this.threws = List.of(this.method.getExceptionTypes());
     }
 
@@ -102,11 +105,16 @@ public final class ProxyInvocation implements Invocation {
         return this.method.getReturnType().isAssignableFrom(type);
     }
 
-    public List<?> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations) {
+    public List<?> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations,
+            final Set<Class<?>> recognized) {
         final var valueArgs = new ArrayList<>();
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
                     .filter(annotation -> annotations.contains(annotation.annotationType())).findAny().isPresent()) {
+                continue;
+            } 
+            
+            if (recognized.contains(parameterTypes.get(i))) {
                 continue;
             }
             valueArgs.add(args.get(i));

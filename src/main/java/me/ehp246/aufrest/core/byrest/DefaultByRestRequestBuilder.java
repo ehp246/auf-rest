@@ -52,8 +52,9 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 final class DefaultByRestRequestBuilder {
 
-    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATIONS = Set.of(PathVariable.class,
+    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
+    private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
 
     private final Optional<InvocationAuthProvider> byRestProxyAuthProvider;
     private final InvocationAuthProviderResolver methodAuthProviderResolver;
@@ -239,7 +240,7 @@ final class DefaultByRestRequestBuilder {
     private Object resolveBody(ProxyInvocation invocation) {
         return invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst().map(v -> (Object) v)
                 .orElseGet(() -> {
-                    final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATIONS);
+                    final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED);
 
                     return payload.size() >= 1 ? payload.get(0) : null;
                 });
