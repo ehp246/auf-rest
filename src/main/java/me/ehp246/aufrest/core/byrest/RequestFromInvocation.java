@@ -42,6 +42,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestRequestRecord;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ResponseBodyHandlerProviderResolver;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -50,7 +51,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class DefaultByRestRequestBuilder {
+final class RequestFromInvocation {
 
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
@@ -61,16 +62,16 @@ final class DefaultByRestRequestBuilder {
     private final ByRestProxyConfig byRestConfig;
     private final PropertyResolver propertyResolver;
     private final Duration timeout;
-    private final BodyHandlerProvider bodyHandlerProvider;
+    private final ResponseBodyHandlerProviderResolver bodyHandlerResolver;
 
-    DefaultByRestRequestBuilder(final ByRestProxyConfig byRestConfig,
+    RequestFromInvocation(final ByRestProxyConfig byRestConfig,
             final InvocationAuthProviderResolver methodAuthProviderResolver, final PropertyResolver propertyResolver,
-            final BodyHandlerProvider bodyHandlerProvider) {
+            final ResponseBodyHandlerProviderResolver bodyHandlerResolver) {
         super();
         this.byRestConfig = byRestConfig;
         this.methodAuthProviderResolver = methodAuthProviderResolver;
         this.propertyResolver = propertyResolver;
-        this.bodyHandlerProvider = bodyHandlerProvider;
+        this.bodyHandlerResolver = bodyHandlerResolver;
 
         this.timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
                 .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
@@ -227,11 +228,12 @@ final class DefaultByRestRequestBuilder {
                 });
 
         final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
-                .map(args -> args.size() == 0 ? null : args.get(0))
-                .orElseGet(() -> bodyHandlerProvider
-                        .get(new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
-                                returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
-                                invocation.getMethodDeclaredAnnotations())));
+                .map(args -> args.size() == 0 ? null : (BodyHandlerProvider) b -> args.get(0))
+                .orElseGet(() -> optionalOfMapping.map(OfMapping::responseBodyHandlerProvider)
+                        .map(bodyHandlerResolver::get).orElseGet(() -> bodyHandlerResolver.get("")))
+                .get(new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
+                        returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
+                        invocation.getMethodDeclaredAnnotations()));
 
         return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier, contentType,
                 accept, resolveBody(invocation), headers, queryParams, bodyHandler);

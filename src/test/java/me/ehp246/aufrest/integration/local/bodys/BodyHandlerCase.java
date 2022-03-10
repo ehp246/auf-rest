@@ -13,5 +13,4 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
 interface BodyHandlerCase {
     @OfMapping(value = "/publisher")
     int postNumber(BodyHandler<Integer> bodyHandler, String number);
-
 }

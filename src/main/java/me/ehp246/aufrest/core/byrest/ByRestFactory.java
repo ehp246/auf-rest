@@ -20,7 +20,6 @@ import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -28,6 +27,7 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ResponseBodyHandlerProviderResolver;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -43,32 +43,34 @@ public final class ByRestFactory {
     private final RestFnProvider clientProvider;
     private final RestClientConfig clientConfig;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
-    private final BodyHandlerProvider bodyHandlerProvider;
+    private final ResponseBodyHandlerProviderResolver bodyHandlerResolver;
 
     @Autowired
     public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
             final PropertyResolver propertyResolver, final InvocationAuthProviderResolver methodAuthProviderMap,
-            final BodyHandlerProvider bodyHandlerProvider) {
+            final ResponseBodyHandlerProviderResolver bodyHandlerResolver) {
         super();
         this.propertyResolver = propertyResolver;
         this.clientProvider = clientProvider;
         this.clientConfig = clientConfig;
         this.methodAuthProviderMap = methodAuthProviderMap;
-        this.bodyHandlerProvider = bodyHandlerProvider;
+        this.bodyHandlerResolver = bodyHandlerResolver;
     }
 
     public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
-        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null, b -> BodyHandlers.discarding());
+        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null,
+                name -> binding -> BodyHandlers.discarding());
     }
 
     public ByRestFactory(final RestFnProvider clientProvider) {
-        this(clientProvider, new RestClientConfig(), s -> s, name -> null, b -> BodyHandlers.discarding());
+        this(clientProvider, new RestClientConfig(), s -> s, name -> null,
+                name -> binding -> BodyHandlers.discarding());
     }
 
     public ByRestFactory(RestFnProvider restFnProvider, RestClientConfig restClientConfig,
             PropertyResolver propertyResolver, InvocationAuthProviderResolver invocationAuthProviderResolver) {
         this(restFnProvider, restClientConfig, propertyResolver, invocationAuthProviderResolver,
-                b -> BodyHandlers.discarding());
+                name -> binding -> BodyHandlers.discarding());
     }
 
     @SuppressWarnings("unchecked")
@@ -79,10 +81,10 @@ public final class ByRestFactory {
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final DefaultByRestRequestBuilder restFromInvocation;
+        final RequestFromInvocation restFromInvocation;
         try {
-            restFromInvocation = new DefaultByRestRequestBuilder(byRestConfig, methodAuthProviderMap,
-                    propertyResolver, bodyHandlerProvider);
+            restFromInvocation = new RequestFromInvocation(byRestConfig, methodAuthProviderMap,
+                    propertyResolver, bodyHandlerResolver);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Failed to instantiate " + byRestInterface.getCanonicalName(), e);
         }

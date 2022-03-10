@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.rest.AuthProvider;
+import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -22,6 +23,7 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
+import me.ehp246.aufrest.api.spi.ResponseBodyHandlerProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
@@ -79,5 +81,11 @@ public final class ByRestConfiguration {
     @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")
     public RestFn restFn(final RestFnProvider restFnProvider, final RestClientConfig clientConfig) {
         return restFnProvider.get(clientConfig);
+    }
+
+    @Bean
+    public ResponseBodyHandlerProviderResolver invocationBodyHandlerProvider(final BeanFactory env) {
+        return name -> OneUtil.hasValue(name) ? env.getBean(name, BodyHandlerProvider.class)::get
+                : env.getBean(DefaultBodyHandlerProvider.class)::get;
     }
 }

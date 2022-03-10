@@ -68,4 +68,6 @@ public @interface OfMapping {
      * @return a bean name
      */
     String authProvider() default "";
+
+    String responseBodyHandlerProvider() default "";
 }

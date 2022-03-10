@@ -100,6 +100,10 @@ public @interface ByRest {
      */
     Auth auth() default @Auth(value = {}, scheme = AuthScheme.DEFAULT);
 
+    String requestBodyPubliserProvider() default "";
+
+    String responseBodyHandlerProvider() default "";
+
     /**
      * Defines the Authorization types supported.
      */

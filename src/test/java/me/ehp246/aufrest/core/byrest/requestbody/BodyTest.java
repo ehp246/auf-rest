@@ -20,7 +20,7 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  * @author Lei Yang
  *
  */
-class RequestBodyTest {
+class BodyTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
     private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
@@ -34,30 +34,35 @@ class RequestBodyTest {
     }
 
     @Test
-    void body_01() {
+    void request_01() {
         final var body = Mockito.mock(InputStream.class);
 
-        factory.newInstance(RequestBodyTestCase01.class).get(body);
+        factory.newInstance(BodyTestCases.RequestCase01.class).get(body);
 
         Assertions.assertEquals(body, reqRef.get().body());
     }
 
     @Test
-    void body_02() {
+    void request_02() {
         final var payload = UUID.randomUUID().toString();
         final var body = BodyPublishers.ofString(payload);
 
-        factory.newInstance(RequestBodyTestCase01.class).get(body);
+        factory.newInstance(BodyTestCases.RequestCase01.class).get(body);
 
         Assertions.assertEquals(36, ((BodyPublisher) (reqRef.get().body())).contentLength());
     }
 
     @Test
-    void body_03() {
+    void request_03() {
         final var noBody = BodyPublishers.noBody();
 
-        factory.newInstance(RequestBodyTestCase01.class).get(0, noBody, null);
+        factory.newInstance(BodyTestCases.RequestCase01.class).get(0, noBody, null);
 
         Assertions.assertEquals(noBody, reqRef.get().body(), "should use the publisher");
+    }
+
+    @Test
+    void response_01() {
+
     }
 }
