@@ -19,8 +19,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
-import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -28,13 +26,13 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
@@ -529,7 +527,7 @@ class ByRestFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestFactory(config -> req -> {
             throw restFnException;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RestFnException.class, newInstance::get);
 
@@ -542,7 +540,7 @@ class ByRestFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestFactory(config -> req -> {
             throw restFnException;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(IOException.class, newInstance::delete);
 
@@ -555,7 +553,7 @@ class ByRestFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestFactory(config -> req -> {
             throw restFnException;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(InterruptedException.class, newInstance::delete);
 
@@ -567,7 +565,7 @@ class ByRestFactoryTest {
         final var toBeThrown = new RuntimeException();
         final var newInstance = new ByRestFactory(config -> req -> {
             throw toBeThrown;
-        }, s -> s).newInstance(ExCase001.class);
+        }, s -> s).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
 
@@ -578,7 +576,7 @@ class ByRestFactoryTest {
     void exception_005() {
         Assertions.assertThrows(Exception.class,
                 new ByRestFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
-                        .newInstance(ExCase001.class)::post);
+                        .newInstance(ExceptionCase001.class)::post);
     }
 
     @Test
@@ -744,13 +742,5 @@ class ByRestFactoryTest {
                 name -> invocation -> null).newInstance(BearerAuthCase02.class).get();
 
         Assertions.assertEquals("Bearer token", reqRef.get().authSupplier().get());
-    }
-
-    @Test
-    void errorType_01() {
-        factory.newInstance(ExCase001.class,
-                new ByRestProxyConfig(null, new AuthConfig(), null, null, null, true, Instant.class)).get();
-
-        Assertions.assertEquals(Instant.class, reqRef.get().bodyReceiver().errorType());
     }
 }

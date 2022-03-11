@@ -14,9 +14,9 @@ import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
  *
  */
 public record ByRestProxyConfig(String uri, AuthConfig auth, String timeout, String accept, String contentType,
-        boolean acceptGZip, Class<?> errorType) {
+        boolean acceptGZip, Class<?> errorType, String responseBodyHandler) {
     public ByRestProxyConfig(String uri, String timeout, String accept, String contentType) {
-        this(uri, new AuthConfig(), timeout, accept, contentType, true, Object.class);
+        this(uri, new AuthConfig(), timeout, accept, contentType, true, Object.class, "");
     }
 
     public static record AuthConfig(List<String> value, AuthScheme scheme) {

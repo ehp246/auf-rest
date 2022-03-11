@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -59,7 +58,6 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         }
 
         final HttpClient client = clientBuilder.build();
-        final BodyHandlerProvider bodyHandlerProvider = clientConfig.bodyHandlerProvider();
 
         return req -> {
             final var httpReq = reqBuilder.apply(req);
@@ -69,7 +67,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             final HttpResponse<Object> httpResponse;
             // Try/catch on send only.
             try {
-                httpResponse = (HttpResponse<Object>) client.send(httpReq, bodyHandlerProvider.get(req));
+                httpResponse = (HttpResponse<Object>) client.send(httpReq, req.responseBodyHandler());
             } catch (IOException | InterruptedException e) {
                 LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
 

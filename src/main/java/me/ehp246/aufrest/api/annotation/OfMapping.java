@@ -5,6 +5,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
@@ -68,4 +70,14 @@ public @interface OfMapping {
      * @return a bean name
      */
     String authProvider() default "";
+
+    /**
+     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
+     * that would be called to handle the response on the method.
+     * 
+     * @return a bean name
+     * @see HttpClient#send(java.net.http.HttpRequest,
+     *      java.net.http.HttpResponse.BodyHandler)
+     */
+    String responseBodyHandler() default "";
 }

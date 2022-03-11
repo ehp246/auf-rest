@@ -7,6 +7,6 @@ import java.net.http.HttpResponse.BodyHandler;
  *
  */
 @FunctionalInterface
-public interface BodyHandlerProvider {
-    BodyHandler<?> get(RestRequest req);
+public interface BindingBodyHandlerProvider {
+    BodyHandler<?> get(BindingDescriptor binding);
 }

@@ -5,6 +5,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
@@ -99,6 +101,17 @@ public @interface ByRest {
      * @see Auth
      */
     Auth auth() default @Auth(value = {}, scheme = AuthScheme.DEFAULT);
+
+    /**
+     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
+     * that would be called to handle the response on the methods that do not
+     * specify its own handler.
+     * 
+     * @return a bean name
+     * @see HttpClient#send(java.net.http.HttpRequest,
+     *      java.net.http.HttpResponse.BodyHandler)
+     */
+    String responseBodyHandler() default "";
 
     /**
      * Defines the Authorization types supported.

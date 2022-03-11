@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -54,14 +56,8 @@ public interface RestRequest {
         return HttpUtils.APPLICATION_JSON;
     }
 
-    default BodyReceiver bodyReceiver() {
-        return new BodyReceiver() {
-
-            @Override
-            public Class<?> type() {
-                return void.class;
-            }
-        };
+    default BodyHandler<?> responseBodyHandler() {
+        return BodyHandlers.discarding();
     }
 
     default Object body() {

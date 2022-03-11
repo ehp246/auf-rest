@@ -1,31 +1,68 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Proxy;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
+import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
+import me.ehp246.aufrest.api.rest.BasicAuth;
+import me.ehp246.aufrest.api.rest.BearerToken;
+import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestRequestRecord;
+import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -37,27 +74,45 @@ import me.ehp246.aufrest.core.util.OneUtil;
 public final class ByRestFactory {
     private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
 
+    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
+            RequestParam.class, RequestHeader.class, AuthHeader.class);
+    private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
+
     private final PropertyResolver propertyResolver;
     private final RestFnProvider clientProvider;
     private final RestClientConfig clientConfig;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
+    private final BodyHandlerResolver bodyHandlerResolver;
+    private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
 
     @Autowired
     public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
-            final PropertyResolver propertyResolver, final InvocationAuthProviderResolver methodAuthProviderMap) {
+            final PropertyResolver propertyResolver, final InvocationAuthProviderResolver methodAuthProviderMap,
+            final BodyHandlerResolver bodyHandlerResolver,
+            final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
         super();
         this.propertyResolver = propertyResolver;
         this.clientProvider = clientProvider;
         this.clientConfig = clientConfig;
         this.methodAuthProviderMap = methodAuthProviderMap;
+        this.bodyHandlerResolver = bodyHandlerResolver;
+        this.bindingBodyHandlerProvider = bindingBodyHandlerProvider;
     }
 
     public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
-        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null);
+        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null,
+                name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
     }
 
     public ByRestFactory(final RestFnProvider clientProvider) {
-        this(clientProvider, new RestClientConfig(), s -> s, name -> null);
+        this(clientProvider, new RestClientConfig(), s -> s, name -> null,
+                name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
+    }
+
+    public ByRestFactory(RestFnProvider restFnProvider, RestClientConfig restClientConfig,
+            PropertyResolver propertyResolver, InvocationAuthProviderResolver invocationAuthProviderResolver) {
+        this(restFnProvider, restClientConfig, propertyResolver, invocationAuthProviderResolver,
+                name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
     }
 
     @SuppressWarnings("unchecked")
@@ -68,9 +123,9 @@ public final class ByRestFactory {
 
         final var httpFn = clientProvider.get(clientConfig);
 
-        final RestRequestFromInvocation restFromInvocation;
+        final Function<ProxyInvocation, RestRequest> requestFn;
         try {
-            restFromInvocation = new RestRequestFromInvocation(byRestConfig, methodAuthProviderMap, propertyResolver);
+            requestFn = newRequestFn(byRestConfig);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Failed to instantiate " + byRestInterface.getCanonicalName(), e);
         }
@@ -95,7 +150,7 @@ public final class ByRestFactory {
                     }
 
                     final var invoked = new ProxyInvocation(byRestInterface, proxy, method, args);
-                    final var req = restFromInvocation.from(invoked);
+                    final var req = requestFn.apply(invoked);
                     final var outcome = RestFnOutcome.invoke(() -> {
                         ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
                         try {
@@ -143,6 +198,187 @@ public final class ByRestFactory {
 
     }
 
+    @SuppressWarnings("unchecked")
+    private Function<ProxyInvocation, RestRequest> newRequestFn(final ByRestProxyConfig byRestConfig) {
+        final var timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
+                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                .orElse(null);
+
+        final Optional<InvocationAuthProvider> byRestProxyAuthProvider = Optional.of(byRestConfig.auth()).map(auth -> {
+            return switch (auth.scheme()) {
+            case SIMPLE -> {
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                final var simple = propertyResolver.resolve(auth.value().get(0)).toString();
+                yield i -> simple;
+            }
+            case BASIC -> {
+                if (auth.value().size() < 2) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
+                        propertyResolver.resolve(auth.value().get(1))).value();
+                yield i -> basic;
+            }
+            case BEARER -> {
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0))).value();
+                yield i -> bearer;
+            }
+            case BEAN -> {
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                }
+                final var provider = methodAuthProviderMap.get(auth.value().get(0));
+                yield i -> provider.get(i);
+            }
+            case NONE -> i -> (String) null;
+            default -> null;
+            };
+        });
+
+        return new Function<ProxyInvocation, RestRequest>() {
+            @Override
+            public RestRequest apply(ProxyInvocation invocation) {
+                final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
+
+                final var pathParams = invocation.findArgumentOfAnnotation(PathVariable.class, PathVariable::value)
+                        .entrySet().stream().map(entry -> {
+                            if (entry.getKey().equals("")) {
+                                return entry;
+                            }
+                            entry.setValue(UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
+                            return entry;
+                        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+                final var unnamedPathMap = pathParams.get("");
+                if (unnamedPathMap != null && unnamedPathMap instanceof Map) {
+                    ((Map<String, Object>) unnamedPathMap).entrySet().stream()
+                            .forEach(entry -> pathParams.putIfAbsent(entry.getKey(),
+                                    UriUtils.encode(entry.getValue().toString(), StandardCharsets.UTF_8)));
+                }
+
+                final var queryParamArgs = invocation.<String, Object, RequestParam>mapArgumentsOfAnnotation(
+                        RequestParam.class, RequestParam::value);
+
+                // Should not have a name for the query parameter map
+                final var unnamedQueryMap = queryParamArgs.remove("");
+
+                if (unnamedQueryMap != null && unnamedQueryMap.size() > 0
+                        && unnamedQueryMap.get(0) instanceof Map<?, ?> map) {
+                    map.entrySet().stream()
+                            .forEach(e -> queryParamArgs.merge(e.getKey().toString(), List.of(e.getValue()), (o, p) -> {
+                                o.add(p.get(0));
+                                return o;
+                            }));
+                }
+
+                final var queryParams = OneUtil.toQueryParamMap(queryParamArgs);
+
+                final var uri = UriComponentsBuilder
+                        .fromUriString(propertyResolver.resolve(byRestConfig.uri()
+                                + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")))
+                        .buildAndExpand(pathParams).toUriString();
+
+                final var method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> {
+                    final var invokedMethodName = invocation.getMethodName().toUpperCase();
+                    return HttpUtils.METHOD_NAMES.stream().filter(name -> invokedMethodName.startsWith(name)).findAny();
+                }).map(String::toUpperCase).orElseThrow(() -> new RuntimeException("Un-defined HTTP method"));
+
+                final var accept = optionalOfMapping.map(OfMapping::accept).orElse(byRestConfig.accept());
+
+                final var headers = new HashMap<String, List<String>>();
+
+                // Set accept-encoding at a lower priority.
+                if (byRestConfig.acceptGZip()) {
+                    headers.put(HttpHeaders.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
+                }
+
+                // Collect headers from invocation arguments. Last step, highest priority.
+                invocation.streamOfAnnotatedArguments(RequestHeader.class)
+                        .forEach(new Consumer<AnnotatedArgument<RequestHeader>>() {
+                            @Override
+                            public void accept(final AnnotatedArgument<RequestHeader> annoArg) {
+                                newValue(annoArg.annotation().value(), annoArg.argument());
+                            }
+
+                            private void newValue(final Object key, final Object newValue) {
+                                if (newValue == null) {
+                                    return;
+                                }
+
+                                if (newValue instanceof Iterable<?> iter) {
+                                    iter.forEach(v -> newValue(key, v));
+                                    return;
+                                }
+
+                                if (newValue instanceof Map<?, ?> map) {
+                                    map.entrySet().forEach(entry -> {
+                                        newValue(entry.getKey(), entry.getValue());
+                                    });
+                                    return;
+                                }
+
+                                getMapped(key).add(newValue.toString());
+                            }
+
+                            private List<String> getMapped(final Object key) {
+                                return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
+                            }
+                        });
+
+                final var authSupplier = invocation.streamOfAnnotatedArguments(AuthHeader.class).findFirst()
+                        .map(arg -> (Supplier<String>) () -> OneUtil.toString(arg.argument()))
+                        .orElse(optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue)
+                                .map(name -> (Supplier<String>) () -> methodAuthProviderMap.get(name).get(invocation))
+                                .orElse(byRestProxyAuthProvider
+                                        .map(provider -> (Supplier<String>) () -> provider.get(invocation))
+                                        .orElse(null)));
+
+                final var contentType = Optional.ofNullable(optionalOfMapping.map(OfMapping::contentType)
+                        .filter(OneUtil::hasValue).orElseGet(byRestConfig::contentType)).filter(OneUtil::hasValue)
+                        .orElseGet(() -> {
+                            // TODO: Determine content type by the body object type.
+                            // Defaults to JSON.
+                            return HttpUtils.APPLICATION_JSON;
+                        });
+
+                final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
+                        .map(args -> args.size() == 0 ? null : args.get(0))
+                        .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler)
+                                .map(name -> OneUtil.hasValue(name) ? name : byRestConfig.responseBodyHandler())
+                                .filter(OneUtil::hasValue).map(bodyHandlerResolver::get))
+                        .orElseGet(() -> bindingBodyHandlerProvider.get(bindingOf(invocation)));
+
+                return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier,
+                        contentType, accept, invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
+                                .map(v -> (Object) v).orElseGet(() -> {
+                                    final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATED,
+                                            PARAMETER_RECOGNIZED);
+
+                                    return payload.size() >= 1 ? payload.get(0) : null;
+                                }),
+                        headers, queryParams, bodyHandler);
+
+            }
+
+            private BindingDescriptor bindingOf(ProxyInvocation invocation) {
+                final var returnTypes = returnTypes(Stream
+                        .concat(Arrays.stream(new Class<?>[] { invocation.getReturnType() }), Arrays.stream(
+                                invocation.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
+                        .collect(Collectors.toList()));
+
+                return new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
+                        returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
+                        invocation.getMethodDeclaredAnnotations());
+            }
+        };
+    }
+
     public <T> T newInstance(final Class<T> byRestInterface) {
         final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
         final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
@@ -152,6 +388,19 @@ public final class ByRestFactory {
                 new ByRestProxyConfig(propertyResolver.resolve(byRest.value()),
                         new AuthConfig(Arrays.asList(byRest.auth().value()),
                                 AuthScheme.valueOf(byRest.auth().scheme().name())),
-                        timeout, byRest.accept(), byRest.contentType(), byRest.acceptGZip(), byRest.errorType()));
+                        timeout, byRest.accept(), byRest.contentType(), byRest.acceptGZip(), byRest.errorType(),
+                        byRest.responseBodyHandler()));
+    }
+
+    private static List<Class<?>> returnTypes(final List<Class<?>> types) {
+        if (types.size() == 0) {
+            throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
+        }
+
+        final var head = types.get(0);
+        if (head.isAssignableFrom(HttpResponse.class) || head.isAssignableFrom(CompletableFuture.class)) {
+            return returnTypes(new ArrayList<>(types.subList(1, types.size())));
+        }
+        return types;
     }
 }

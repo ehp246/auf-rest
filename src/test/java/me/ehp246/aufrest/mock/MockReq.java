@@ -16,4 +16,14 @@ public class MockReq implements RestRequest {
         return "http://localhost";
     }
 
+    public static RestRequest withBody(final Object body) {
+        return new MockReq() {
+
+            @Override
+            public Object body() {
+                return body;
+            }
+
+        };
+    }
 }
