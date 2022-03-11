@@ -166,6 +166,7 @@ public final class ByRestFactory {
                 new ByRestProxyConfig(propertyResolver.resolve(byRest.value()),
                         new AuthConfig(Arrays.asList(byRest.auth().value()),
                                 AuthScheme.valueOf(byRest.auth().scheme().name())),
-                        timeout, byRest.accept(), byRest.contentType(), byRest.acceptGZip(), byRest.errorType()));
+                        timeout, byRest.accept(), byRest.contentType(), byRest.acceptGZip(), byRest.errorType(),
+                        byRest.bodyHandlerProvider()));
     }
 }

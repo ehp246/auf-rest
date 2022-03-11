@@ -45,16 +45,18 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
     }
 
     private BeanDefinition getProxyBeanDefinition(Map<String, Object> map, final Class<?> byRestInterface) {
-
         final var byRest = byRestInterface.getAnnotation(ByRest.class);
         final var globalErrorType = (Class<?>) map.get("errorType");
 
         final var args = new ConstructorArgumentValues();
+
         args.addGenericArgumentValue(byRestInterface);
         args.addGenericArgumentValue(new ByRestProxyConfig(byRest.value(),
                 new AuthConfig(Arrays.asList(byRest.auth().value()), AuthScheme.valueOf(byRest.auth().scheme().name())),
                 byRest.timeout(), byRest.accept(), byRest.contentType(), byRest.acceptGZip(),
-                byRest.errorType() == Default.class ? globalErrorType : byRest.errorType()));
+                byRest.errorType() == Default.class ? globalErrorType : byRest.errorType(),
+                byRest.bodyHandlerProvider()));
+
         final var beanDef = new GenericBeanDefinition();
         beanDef.setBeanClass(byRestInterface);
         beanDef.setConstructorArgumentValues(args);

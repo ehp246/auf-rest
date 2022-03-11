@@ -229,7 +229,8 @@ final class RequestFromInvocation {
 
         final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
                 .map(args -> args.size() == 0 ? null : (BodyHandlerProvider) b -> args.get(0))
-                .orElseGet(() -> optionalOfMapping.map(OfMapping::responseBodyHandlerProvider)
+                .orElseGet(() -> optionalOfMapping.map(OfMapping::bodyHandlerProvider)
+                        .map(name -> OneUtil.hasValue(name) ? name : byRestConfig.bodyHandlerProvider())
                         .map(bodyHandlerResolver::get).orElseGet(() -> bodyHandlerResolver.get("")))
                 .get(new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
                         returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),

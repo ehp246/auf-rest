@@ -3,6 +3,8 @@ package me.ehp246.aufrest.core.byrest.requestbody;
 import java.io.InputStream;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
+import me.ehp246.aufrest.api.rest.RestClientConfig;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.mock.MockHttpResponse;
@@ -22,11 +26,13 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  */
 class BodyTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-
-    private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
+    private final RestFnProvider restFnProvider = cfg -> request -> {
         reqRef.set(request);
         return new MockHttpResponse<Object>();
-    }, new MockEnvironment()::resolveRequiredPlaceholders);
+    };
+
+    private final ByRestFactory factory = new ByRestFactory(restFnProvider,
+            new MockEnvironment()::resolveRequiredPlaceholders);
 
     @BeforeEach
     void beforeEach() {
@@ -63,6 +69,118 @@ class BodyTest {
 
     @Test
     void response_01() {
+        final var handler = BodyHandlers.ofByteArray();
+        factory.newInstance(BodyTestCases.ResponseCase01.class).getOnMethod(handler);
 
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_02() {
+        final var nameRef = new String[] { "1" };
+        final var handler = BodyHandlers.ofByteArray();
+
+        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> null;
+                }).newInstance(BodyTestCases.ResponseCase01.class).getOfMapping(handler);
+
+        Assertions.assertEquals("1", nameRef[0], "should not call the resolver");
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_03() {
+        final var nameRef = new String[1];
+        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> null;
+                }).newInstance(BodyTestCases.ResponseCase01.class).getOfMapping();
+
+        Assertions.assertEquals("", nameRef[0]);
+        Assertions.assertEquals(null, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_04() {
+        final var handler = Mockito.mock(BodyHandler.class);
+
+        final var nameRef = new String[1];
+
+        new ByRestFactory(restFnProvider, new RestClientConfig(),
+                new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> handler;
+                }).newInstance(BodyTestCases.ResponseCase01.class).getOfMappingNamed();
+
+        Assertions.assertEquals("named", nameRef[0]);
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_05() {
+        final var handler = Mockito.mock(BodyHandler.class);
+
+        final var nameRef = new String[1];
+
+        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> null;
+                }).newInstance(BodyTestCases.ResponseCase02.class).getOnMethod(0, handler);
+
+        Assertions.assertEquals(null, nameRef[0]);
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_06() {
+        final var handler = Mockito.mock(BodyHandler.class);
+
+        final var nameRef = new String[1];
+
+        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> handler;
+                }).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping(null);
+
+        Assertions.assertEquals(null, nameRef[0]);
+        Assertions.assertEquals(null, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_07() {
+        final var handler = Mockito.mock(BodyHandler.class);
+
+        final var nameRef = new String[1];
+
+        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> handler;
+                }).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
+
+        Assertions.assertEquals("interfaceNamed", nameRef[0]);
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
+    }
+
+    @Test
+    void response_08() {
+        final var handler = Mockito.mock(BodyHandler.class);
+
+        final var nameRef = new String[1];
+
+        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+                null, name -> {
+                    nameRef[0] = name;
+                    return binding -> handler;
+                }).newInstance(BodyTestCases.ResponseCase02.class).getOfMappingNamed();
+
+        Assertions.assertEquals("methodNamed", nameRef[0]);
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
     }
 }

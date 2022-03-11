@@ -60,8 +60,7 @@ class ErrorTypeTest {
                 () -> restFactory
                         .newInstance(ErrorTypeCase.Case01.class,
                                 new ByRestProxyConfig("http://localhost:${local.server.port}/status-code/",
-                                        new AuthConfig(), null,
-                                        null, null, true, Object.class))
+                                        new AuthConfig(), null, null, null, true, Object.class, ""))
                         .getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof Map);

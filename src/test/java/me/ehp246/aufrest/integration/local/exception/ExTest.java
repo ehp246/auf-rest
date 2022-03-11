@@ -214,7 +214,7 @@ class ExTest {
                         .newInstance(ExCase.class,
                                 new ByRestProxyConfig("http://localhost:${local.server.port}/status-code/",
                                         new AuthConfig(), null,
-                                        null, null, true, ErrorType.class))
+                                        null, null, true, ErrorType.class, ""))
                         .getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType);
