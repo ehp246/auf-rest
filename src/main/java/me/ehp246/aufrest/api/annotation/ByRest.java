@@ -5,12 +5,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 
 /**
  * Indicates that the annotated interface should be scanned by the framework as
@@ -103,14 +103,15 @@ public @interface ByRest {
     Auth auth() default @Auth(value = {}, scheme = AuthScheme.DEFAULT);
 
     /**
-     * Defines the name of a Spring bean of {@link BodyHandlerProvider} type that
-     * would provide the {@linkplain HttpResponse.BodyHandler} for handling the
-     * response on the interface. The handler will apply to all methods that does
-     * not have one specified by {@linkplain OfMapping}.
+     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
+     * that would be called to handle the response on the methods that do not
+     * specify its own handler.
      * 
      * @return a bean name
+     * @see HttpClient#send(java.net.http.HttpRequest,
+     *      java.net.http.HttpResponse.BodyHandler)
      */
-    String bodyHandlerProvider() default "";
+    String responseBodyHandler() default "";
 
     /**
      * Defines the Authorization types supported.

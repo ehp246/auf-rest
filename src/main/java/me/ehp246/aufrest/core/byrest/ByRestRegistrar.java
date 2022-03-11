@@ -55,7 +55,7 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
                 new AuthConfig(Arrays.asList(byRest.auth().value()), AuthScheme.valueOf(byRest.auth().scheme().name())),
                 byRest.timeout(), byRest.accept(), byRest.contentType(), byRest.acceptGZip(),
                 byRest.errorType() == Default.class ? globalErrorType : byRest.errorType(),
-                byRest.bodyHandlerProvider()));
+                byRest.responseBodyHandler()));
 
         final var beanDef = new GenericBeanDefinition();
         beanDef.setBeanClass(byRestInterface);

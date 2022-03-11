@@ -5,11 +5,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 
@@ -72,11 +72,12 @@ public @interface OfMapping {
     String authProvider() default "";
 
     /**
-     * Defines the name of a Spring bean of {@link BodyHandlerProvider} type that
-     * would provide the {@linkplain HttpResponse.BodyHandler} for handling the
-     * response on the method.
+     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
+     * that would be called to handle the response on the method.
      * 
      * @return a bean name
+     * @see HttpClient#send(java.net.http.HttpRequest,
+     *      java.net.http.HttpResponse.BodyHandler)
      */
-    String bodyHandlerProvider() default "";
+    String responseBodyHandler() default "";
 }

@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.api.configuration;
 
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -13,7 +14,6 @@ import org.springframework.context.annotation.Import;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -22,8 +22,8 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
+import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
-import me.ehp246.aufrest.api.spi.ResponseBodyHandlerProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
@@ -84,8 +84,7 @@ public final class ByRestConfiguration {
     }
 
     @Bean
-    public ResponseBodyHandlerProviderResolver invocationBodyHandlerProvider(final BeanFactory env) {
-        return name -> OneUtil.hasValue(name) ? env.getBean(name, BodyHandlerProvider.class)::get
-                : env.getBean(DefaultBodyHandlerProvider.class)::get;
+    public BodyHandlerResolver invocationBodyHandlerProvider(final BeanFactory env) {
+        return name -> env.getBean(name, BodyHandler.class);
     }
 }

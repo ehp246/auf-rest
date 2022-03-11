@@ -61,9 +61,19 @@ class BodyTest {
         final var bodyHandler = new MockResponseBodyHandler<Integer>(1);
         final var original = UUID.randomUUID().toString();
 
-        Assertions.assertEquals(1, handlerCase.postNumber(bodyHandler, original),
+        Assertions.assertEquals(1, handlerCase.postNumber(original, bodyHandler),
                 "should ignore the actual response body");
         // Somehow the string is not de-quoted by the controller
         Assertions.assertEquals(jsonFn.toJson(List.of("\"" + original + "\"")), bodyHandler.asReturned());
+    }
+
+    @Test
+    void handler_02() {
+        Assertions.assertEquals("method", handlerCase.postOnMethod(""));
+    }
+
+    @Test
+    void handler_03() {
+        Assertions.assertEquals("interface", handlerCase.postOnInterface(""));
     }
 }

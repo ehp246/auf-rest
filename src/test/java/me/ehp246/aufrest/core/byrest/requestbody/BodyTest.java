@@ -84,7 +84,8 @@ class BodyTest {
                 null, name -> {
                     nameRef[0] = name;
                     return binding -> null;
-                }).newInstance(BodyTestCases.ResponseCase01.class).getOfMapping(handler);
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase01.class)
+                        .getOfMapping(handler);
 
         Assertions.assertEquals("1", nameRef[0], "should not call the resolver");
         Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
@@ -96,11 +97,11 @@ class BodyTest {
         new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
-                    return binding -> null;
-                }).newInstance(BodyTestCases.ResponseCase01.class).getOfMapping();
+                    return null;
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase01.class).getOfMapping();
 
-        Assertions.assertEquals("", nameRef[0]);
-        Assertions.assertEquals(null, reqRef.get().responseBodyHandler());
+        Assertions.assertEquals(null, nameRef[0]);
+        Assertions.assertEquals(true, reqRef.get().responseBodyHandler() != null);
     }
 
     @Test
@@ -113,8 +114,9 @@ class BodyTest {
                 new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
-                    return binding -> handler;
-                }).newInstance(BodyTestCases.ResponseCase01.class).getOfMappingNamed();
+                    return handler;
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase01.class)
+                        .getOfMappingNamed();
 
         Assertions.assertEquals("named", nameRef[0]);
         Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
@@ -130,7 +132,8 @@ class BodyTest {
                 null, name -> {
                     nameRef[0] = name;
                     return binding -> null;
-                }).newInstance(BodyTestCases.ResponseCase02.class).getOnMethod(0, handler);
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase02.class).getOnMethod(0,
+                        handler);
 
         Assertions.assertEquals(null, nameRef[0]);
         Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
@@ -145,11 +148,12 @@ class BodyTest {
         new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
-                    return binding -> handler;
-                }).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping(null);
+                    return handler;
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase02.class)
+                        .getOfMapping(null);
 
-        Assertions.assertEquals(null, nameRef[0]);
-        Assertions.assertEquals(null, reqRef.get().responseBodyHandler());
+        Assertions.assertEquals("interfaceNamed", nameRef[0], "should fall back to annotations");
+        Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
     }
 
     @Test
@@ -161,8 +165,8 @@ class BodyTest {
         new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
-                    return binding -> handler;
-                }).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
+                    return handler;
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
 
         Assertions.assertEquals("interfaceNamed", nameRef[0]);
         Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
@@ -177,8 +181,9 @@ class BodyTest {
         new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
-                    return binding -> handler;
-                }).newInstance(BodyTestCases.ResponseCase02.class).getOfMappingNamed();
+                    return handler;
+                }, binding -> BodyHandlers.discarding()).newInstance(BodyTestCases.ResponseCase02.class)
+                        .getOfMappingNamed();
 
         Assertions.assertEquals("methodNamed", nameRef[0]);
         Assertions.assertEquals(handler, reqRef.get().responseBodyHandler());
