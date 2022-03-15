@@ -73,7 +73,7 @@ public @interface OfMapping {
 
     /**
      * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
-     * that would be called to handle the response on the method.
+     * that would be called to handle the response for the method.
      * 
      * @return a bean name
      * @see HttpClient#send(java.net.http.HttpRequest,

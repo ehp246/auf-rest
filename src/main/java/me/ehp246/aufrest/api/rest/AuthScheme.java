@@ -2,9 +2,15 @@ package me.ehp246.aufrest.api.rest;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
+import me.ehp246.aufrest.api.annotation.ByRest;
+
 /**
  * Indicates to the framework how to construct the value of Authorization header
  * for the endpoint with given scheme and arguments.
+ * 
+ * @author Lei Yang
+ * @since 1.0
+ * @see ByRest
  */
 public enum AuthScheme {
     /**
@@ -52,10 +58,10 @@ public enum AuthScheme {
 
     /**
      * Indicates the value of Authorization header for the endpoint is to be
-     * provided by a Spring bean of {@link InvocationAuthProvider} type that has the
-     * name specified as by the first value.
+     * provided by a Spring bean of {@link InvocationAuthProvider} type with the
+     * name specified by the first value.
      * <p>
-     * On the first value is used. Additional values are ignored.
+     * Only the first value is used for bean lookup. Additional values are ignored.
      * <p>
      * If no bean of the type and the name can be found at invocation,
      * {@link NoSuchBeanDefinitionException} will be thrown.

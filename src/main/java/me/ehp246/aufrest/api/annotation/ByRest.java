@@ -13,8 +13,8 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
- * Indicates that the annotated interface should be scanned by the framework as
- * a proxy of a REST endpoint.
+ * Indicates that the annotated interface should be scanned by Auf REST as a
+ * proxy of a REST endpoint.
  * <p>
  * For each annotated interface, the framework defines a bean of the type and
  * makes it available for injection. On behalf of the application the framework
