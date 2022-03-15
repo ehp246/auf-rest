@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
- * Thrown when the library receives a HTTP response that it dosn't know how to
+ * Thrown when Auf REST receives a HTTP response that it dosn't know how to
  * handle. The exact occasions of the exception depend on the method signature
  * of the {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interface.
  * <p>
