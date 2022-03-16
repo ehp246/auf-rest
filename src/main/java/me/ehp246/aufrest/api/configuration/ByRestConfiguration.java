@@ -41,8 +41,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, DefaultBodyPublisherProvider.class, JsonByJackson.class,
-        DefaultBodyHandlerProvider.class })
+@Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })
 public final class ByRestConfiguration {
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
     public RestClientConfig restClientConfig(
