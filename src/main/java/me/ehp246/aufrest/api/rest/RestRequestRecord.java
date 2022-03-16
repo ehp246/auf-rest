@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * @author Lei Yang
  */
 public record RestRequestRecord(String id, String uri, String method, Duration timeout, Supplier<String> authSupplier,
-        String contentType, String accept, Object body, Map<String, List<String>> headers,
-        Map<String, List<String>> queryParams, BodyHandler<?> responseBodyHandler)
+        String contentType, String accept, Map<String, List<String>> headers, Map<String, List<String>> queryParams,
+        Object body, BodyHandler<?> responseBodyHandler)
         implements RestRequest {
 }

@@ -1,9 +1,18 @@
 package me.ehp246.aufrest.api.configuration;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Map;
 
+import org.springframework.util.MimeTypeUtils;
+
+import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -28,12 +37,16 @@ final class DefaultBodyPublisherProvider implements BodyPublisherProvider {
 
         // Short-circuit for a few low-level types.
         // In these cases, the content type is ignored.
-        if (body != null && body instanceof BodyPublisher publisher) {
+        if (body instanceof BodyPublisher publisher) {
             return publisher;
         }
 
-        if (body != null && body instanceof InputStream stream) {
+        if (body instanceof InputStream stream) {
             return BodyPublishers.ofInputStream(() -> stream);
+        }
+
+        if (body instanceof Path file) {
+            return ofMimeMultipartData(Map.of("", file));
         }
 
         // The rest needs the content type. No content type, no content.
@@ -60,4 +73,36 @@ final class DefaultBodyPublisherProvider implements BodyPublisherProvider {
         return BodyPublishers.ofString(jsonFn.toJson(body));
     }
 
+    private static BodyPublisher ofMimeMultipartData(final Map<Object, Object> data) {
+        final var boundary = new String(MimeTypeUtils.generateMultipartBoundary(), StandardCharsets.UTF_8);
+        final var byteArrays = new ArrayList<byte[]>();
+        final byte[] separator = ("--" + boundary + "\r\ncontent-disposition: form-data; name=")
+                .getBytes(StandardCharsets.UTF_8);
+
+        try {
+            for (Map.Entry<Object, Object> entry : data.entrySet()) {
+                byteArrays.add(separator);
+
+                final var key = entry.getKey();
+                final var value = entry.getValue();
+                if (value instanceof Path path) {
+                    final var mimeType = Files.probeContentType(path);
+
+                    byteArrays.add(("\"" + key + "\"; filename=\"" + path.getFileName()
+                            + "\"\r\ncontent-type: " + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+                    byteArrays.add(Files.readAllBytes(path));
+                    byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
+                } else {
+                    byteArrays.add(("\"" + key + "\"\r\n\r\n" + value + "\r\n")
+                            .getBytes(StandardCharsets.UTF_8));
+                }
+            }
+        } catch (IOException e) {
+            throw new RestFnException(e);
+        }
+
+        byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+
+        return BodyPublishers.ofByteArrays(byteArrays);
+    }
 }

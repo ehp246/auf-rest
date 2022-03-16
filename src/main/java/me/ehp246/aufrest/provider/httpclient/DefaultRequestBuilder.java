@@ -1,9 +1,16 @@
 package me.ehp246.aufrest.provider.httpclient;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -17,16 +24,18 @@ import java.util.stream.Stream;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
+import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -35,20 +44,19 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 public final class DefaultRequestBuilder implements RequestBuilder {
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
-    private final BodyPublisherProvider bodyPublisherProvider;
+    private final JsonFn jsonFn;
     private final Optional<HeaderProvider> headerProvider;
     private final Optional<AuthProvider> authProvider;
     private final Duration responseTimeout;
 
     public DefaultRequestBuilder(@Nullable final Supplier<HttpRequest.Builder> reqBuilderSupplier,
             @Nullable final HeaderProvider headerProvider, @Nullable final AuthProvider authProvider,
-            @Nullable final BodyPublisherProvider bodyPublisherProvider, @Nullable final String requestTimeout) {
+            final JsonFn jsonFn, @Nullable final String requestTimeout) {
         super();
         this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
         this.headerProvider = Optional.ofNullable(headerProvider);
         this.authProvider = Optional.ofNullable(authProvider);
-        this.bodyPublisherProvider = bodyPublisherProvider == null ? req -> BodyPublishers.noBody()
-                : bodyPublisherProvider;
+        this.jsonFn = jsonFn;
         this.responseTimeout = Optional.ofNullable(requestTimeout).filter(OneUtil::hasValue)
                 .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
                         e -> new IllegalArgumentException(AufRestConstants.RESPONSE_TIMEOUT + ": " + value)))
@@ -80,21 +88,6 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         builder.setHeader(HttpUtils.REQUEST_ID,
                 Optional.ofNullable(req.id()).orElseGet(() -> UUID.randomUUID().toString()));
 
-        // Content type
-        builder.setHeader(HttpUtils.CONTENT_TYPE, Optional.of(req.contentType()).filter(OneUtil::hasValue).get());
-
-        final URI uri;
-        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
-            // Expecting this uri doesn't have query parameters on it.
-            uri = URI.create(req.uri());
-        } else {
-            // Add query parameters
-            uri = URI.create(UriComponentsBuilder.fromUriString(req.uri())
-                    .queryParams(
-                            CollectionUtils.toMultiValueMap(Optional.ofNullable(req.queryParams()).orElseGet(Map::of)))
-                    .toUriString());
-        }
-
         // Accept
         builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
 
@@ -118,8 +111,105 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout())
                 .ifPresent(timeout -> builder.timeout(timeout));
 
-        builder.method(req.method().toUpperCase(), bodyPublisherProvider.get(req)).uri(uri);
+        // URI
+        final URI uri;
+        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+            // Expecting this uri doesn't have query parameters on it.
+            uri = URI.create(req.uri());
+        } else {
+            // Add query parameters
+            uri = URI.create(UriComponentsBuilder.fromUriString(req.uri())
+                    .queryParams(
+                            CollectionUtils.toMultiValueMap(Optional.ofNullable(req.queryParams()).orElseGet(Map::of)))
+                    .toUriString());
+        }
+
+        // Body
+        final var bodyPublisherRecord = get(req);
+
+        builder.setHeader(HttpUtils.CONTENT_TYPE, bodyPublisherRecord.contentType);
+
+        builder.method(req.method().toUpperCase(), bodyPublisherRecord.publisher()).uri(uri);
 
         return builder.build();
+    }
+
+    private ContentPublisherRecord get(RestRequest req) {
+        final var body = req.body();
+
+        // Short-circuit for a few low-level types.
+        // In these cases, the content type is ignored.
+        if (body instanceof BodyPublisher publisher) {
+            return new ContentPublisherRecord(req.contentType(), publisher);
+        }
+
+        if (body instanceof InputStream stream) {
+            return new ContentPublisherRecord(req.contentType(), BodyPublishers.ofInputStream(() -> stream));
+        }
+
+        if (body instanceof Path file) {
+            final var boundry = new String(MimeTypeUtils.generateMultipartBoundary(), StandardCharsets.UTF_8);
+
+            return new ContentPublisherRecord(HttpUtils.MULTIPART_FORM_DATA + ";boundary=" + boundry,
+                    ofMimeMultipartData(Map.of("file", file), boundry));
+        }
+
+        // The rest needs the content type. No content type, no content.
+        if (!OneUtil.hasValue(req.contentType())) {
+            return new ContentPublisherRecord(req.contentType(), BodyPublishers.noBody());
+        }
+
+        final var contentType = req.contentType().toLowerCase();
+
+        if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+            // Encode query parameters as the body ignoring the body object.
+            return new ContentPublisherRecord(contentType,
+                    BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams())));
+        }
+
+        if (body == null) {
+            return new ContentPublisherRecord(contentType, BodyPublishers.noBody());
+        }
+
+        if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
+            return new ContentPublisherRecord(contentType, BodyPublishers.ofString(body.toString()));
+        }
+
+        // Default to JSON.
+        return new ContentPublisherRecord(contentType, BodyPublishers.ofString(jsonFn.toJson(body)));
+    }
+
+    private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {
+        final var byteArrays = new ArrayList<byte[]>();
+        final byte[] separator = ("--" + boundary + "\r\ncontent-disposition: form-data; name=")
+                .getBytes(StandardCharsets.UTF_8);
+
+        try {
+            for (Map.Entry<Object, Object> entry : data.entrySet()) {
+                byteArrays.add(separator);
+
+                final var key = entry.getKey();
+                final var value = entry.getValue();
+                if (value instanceof Path path) {
+                    final var mimeType = Files.probeContentType(path);
+
+                    byteArrays.add(("\"" + key + "\"; filename=\"" + path.getFileName() + "\"\r\ncontent-type: "
+                            + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+                    byteArrays.add(Files.readAllBytes(path));
+                    byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
+                } else {
+                    byteArrays.add(("\"" + key + "\"\r\n\r\n" + value + "\r\n").getBytes(StandardCharsets.UTF_8));
+                }
+            }
+        } catch (IOException e) {
+            throw new RestFnException(e);
+        }
+
+        byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+
+        return BodyPublishers.ofByteArrays(byteArrays);
+    }
+
+    private record ContentPublisherRecord(String contentType, BodyPublisher publisher) {
     }
 }

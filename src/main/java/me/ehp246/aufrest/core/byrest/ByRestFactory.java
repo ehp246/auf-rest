@@ -339,13 +339,16 @@ public final class ByRestFactory {
                                         .map(provider -> (Supplier<String>) () -> provider.get(invocation))
                                         .orElse(null)));
 
+                final var body = invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
+                        .map(v -> (Object) v).orElseGet(() -> {
+                            final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED);
+
+                            return payload.size() >= 1 ? payload.get(0) : null;
+                        });
+
                 final var contentType = Optional.ofNullable(optionalOfMapping.map(OfMapping::contentType)
                         .filter(OneUtil::hasValue).orElseGet(byRestConfig::contentType)).filter(OneUtil::hasValue)
-                        .orElseGet(() -> {
-                            // TODO: Determine content type by the body object type.
-                            // Defaults to JSON.
-                            return HttpUtils.APPLICATION_JSON;
-                        });
+                        .orElse(HttpUtils.APPLICATION_JSON);
 
                 final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
                         .map(args -> args.size() == 0 ? null : args.get(0))
@@ -355,14 +358,7 @@ public final class ByRestFactory {
                         .orElseGet(() -> bindingBodyHandlerProvider.get(bindingOf(invocation)));
 
                 return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier,
-                        contentType, accept, invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
-                                .map(v -> (Object) v).orElseGet(() -> {
-                                    final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATED,
-                                            PARAMETER_RECOGNIZED);
-
-                                    return payload.size() >= 1 ? payload.get(0) : null;
-                                }),
-                        headers, queryParams, bodyHandler);
+                        contentType, accept, headers, queryParams, body, bodyHandler);
 
             }
 
