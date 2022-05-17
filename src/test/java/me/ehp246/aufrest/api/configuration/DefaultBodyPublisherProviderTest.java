@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
-import me.ehp246.aufrest.api.spi.JsonFn;
 import me.ehp246.aufrest.mock.MockReq;
 
 /**
@@ -15,29 +13,17 @@ import me.ehp246.aufrest.mock.MockReq;
  *
  */
 class DefaultBodyPublisherProviderTest {
-    private final JsonFn jsonFn = new JsonFn() {
-
-        @Override
-        public String toJson(Object value) {
-            return null;
-        }
-
-        @Override
-        public Object fromJson(String json, BindingDescriptor receiver) {
-            return null;
-        }
-    };
 
     @Test
     void body_01() {
         Assertions.assertEquals(0,
-                new DefaultBodyPublisherProvider(jsonFn).get(MockReq.withBody(null)).contentLength());
+                new DefaultBodyPublisherProvider(v -> null).get(MockReq.withBody(null)).contentLength());
     }
 
     @Test
     void body_02() {
         final var mock = Mockito.mock(BodyPublisher.class);
 
-        Assertions.assertEquals(mock, new DefaultBodyPublisherProvider(jsonFn).get(MockReq.withBody(mock)));
+        Assertions.assertEquals(mock, new DefaultBodyPublisherProvider(v -> null).get(MockReq.withBody(mock)));
     }
 }

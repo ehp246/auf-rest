@@ -3,6 +3,8 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -17,6 +19,7 @@ import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
+import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
@@ -27,7 +30,6 @@ import me.ehp246.aufrest.api.rest.RestListener;
  * @author Lei Yang
  */
 public final class DefaultRestFnProvider implements RestFnProvider {
-    private final static Logger LOGGER = LogManager.getLogger(DefaultRestFnProvider.class);
 
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
     private final RequestBuilder reqBuilder;
@@ -57,28 +59,35 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             clientBuilder.connectTimeout(clientConfig.connectTimeout());
         }
 
-        final HttpClient client = clientBuilder.build();
+        return new RestFn() {
+            private static final Logger LOGGER = LogManager.getLogger(RestFn.class);
 
-        return req -> {
-            final var httpReq = reqBuilder.apply(req);
+            private final HttpClient client = clientBuilder.build();
 
-            listeners.stream().forEach(obs -> obs.onRequest(httpReq, req));
+            @Override
+            public HttpResponse<?> apply(RestRequest req) {
+                final var httpReq = reqBuilder.apply(req);
 
-            final HttpResponse<Object> httpResponse;
-            // Try/catch on send only.
-            try {
-                httpResponse = (HttpResponse<Object>) client.send(httpReq, req.responseBodyHandler());
-            } catch (IOException | InterruptedException e) {
-                LOGGER.atError().log("Failed to send request: " + e.getMessage(), e);
+                listeners.stream().forEach(obs -> obs.onRequest(httpReq, req));
 
-                listeners.stream().forEach(obs -> obs.onException(e, httpReq, req));
+                final HttpResponse<Object> httpResponse;
+                // Try/catch on send only.
+                try {
+                    httpResponse = (HttpResponse<Object>) client.send(httpReq,
+                            (BodyHandler<?>) (req.responseBodyHandler() == null ? BodyHandlers.discarding()
+                                    : req.responseBodyHandler()));
+                } catch (IOException | InterruptedException e) {
+                    LOGGER.atError().withThrowable(e).log("Failed: {} ", e::getMessage);
 
-                throw new RestFnException(e);
+                    listeners.stream().forEach(obs -> obs.onException(e, httpReq, req));
+
+                    throw new RestFnException(e);
+                }
+
+                listeners.stream().forEach(obs -> obs.onResponse(httpResponse, req));
+
+                return httpResponse;
             }
-
-            listeners.stream().forEach(obs -> obs.onResponse(httpResponse, req));
-
-            return httpResponse;
         };
     }
 }

@@ -16,7 +16,7 @@ import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.BodyPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.JsonFn;
+import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -24,11 +24,11 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 final class DefaultBodyPublisherProvider implements BodyPublisherProvider {
-    private final JsonFn jsonFn;
+    private final ToJson toJson;
 
-    public DefaultBodyPublisherProvider(JsonFn jsonFn) {
+    public DefaultBodyPublisherProvider(ToJson toJson) {
         super();
-        this.jsonFn = jsonFn;
+        this.toJson = toJson;
     }
 
     @Override
@@ -70,7 +70,7 @@ final class DefaultBodyPublisherProvider implements BodyPublisherProvider {
         }
 
         // Default to JSON.
-        return BodyPublishers.ofString(jsonFn.toJson(body));
+        return BodyPublishers.ofString(toJson.apply(body));
     }
 
     private static BodyPublisher ofMimeMultipartData(final Map<Object, Object> data) {

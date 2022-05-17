@@ -16,7 +16,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.util.MultiValueMapAdapter;
 
-import me.ehp246.aufrest.api.spi.JsonFn;
+import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.mock.MockResponseBodyHandler;
 
 /**
@@ -30,7 +30,7 @@ class BodyTest {
     @Autowired
     private BodyHandlerCase handlerCase;
     @Autowired
-    private JsonFn jsonFn;
+    private ToJson toJson;
 
     @Test
     void publisher_01() {
@@ -64,7 +64,7 @@ class BodyTest {
         Assertions.assertEquals(1, handlerCase.postNumber(original, bodyHandler),
                 "should ignore the actual response body");
         // Somehow the string is not de-quoted by the controller
-        Assertions.assertEquals(jsonFn.toJson(List.of("\"" + original + "\"")), bodyHandler.asReturned());
+        Assertions.assertEquals(toJson.apply(List.of("\"" + original + "\"")), bodyHandler.asReturned());
     }
 
     @Test

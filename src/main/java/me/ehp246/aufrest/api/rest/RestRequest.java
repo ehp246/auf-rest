@@ -56,6 +56,14 @@ public interface RestRequest {
         return HttpUtils.APPLICATION_JSON;
     }
 
+    /**
+     * Defines the {@linkplain BodyHandler} that will be used to handle response for
+     * the request.
+     * <p>
+     * Default is {@linkplain BodyHandlers#discarding()}.
+     * <p>
+     * Should not be {@code null}.
+     */
     default BodyHandler<?> responseBodyHandler() {
         return BodyHandlers.discarding();
     }

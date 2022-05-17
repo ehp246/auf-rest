@@ -11,15 +11,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
-import me.ehp246.aufrest.api.spi.JsonFn;
+import me.ehp246.aufrest.api.spi.FromJson;
+import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-public final class JsonByJackson implements JsonFn {
-    private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
+public final class JsonByJackson implements FromJson, ToJson {
+    private final static Logger LOGGER = LogManager.getLogger(FromJson.class);
 
     private final ObjectMapper objectMapper;
 
@@ -29,16 +30,20 @@ public final class JsonByJackson implements JsonFn {
     }
 
     @Override
-    public String toJson(final Object value) {
+    public String apply(final Object value) {
         if (value == null) {
             return null;
+        }
+
+        if (value instanceof From from) {
+            return OneUtil.orThrow(() -> this.objectMapper.writerFor(from.type()).writeValueAsString(value));
         }
 
         return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
     }
 
     @Override
-    public Object fromJson(final String json, final BindingDescriptor receiver) {
+    public Object apply(final String json, final BindingDescriptor receiver) {
         if (receiver == null || json == null || json.isBlank()) {
             return null;
         }
@@ -71,7 +76,8 @@ public final class JsonByJackson implements JsonFn {
                 return objectMapper.readValue(json, type);
             }
         } catch (final JsonProcessingException e) {
-            LOGGER.error("Failed to de-serialize {}", json, e);
+            LOGGER.atTrace().withThrowable(e).log("Failed to de-serialize: {}", e::getMessage);
+
             throw new RuntimeException(e);
         }
     }

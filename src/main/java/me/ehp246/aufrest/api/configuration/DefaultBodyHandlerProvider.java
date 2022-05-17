@@ -15,7 +15,7 @@ import org.springframework.http.MediaType;
 
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
-import me.ehp246.aufrest.api.spi.JsonFn;
+import me.ehp246.aufrest.api.spi.FromJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -23,9 +23,9 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
-    private final JsonFn jsonFn;
+    private final FromJson jsonFn;
 
-    public DefaultBodyHandlerProvider(JsonFn jsonFn) {
+    public DefaultBodyHandlerProvider(FromJson jsonFn) {
         super();
         this.jsonFn = jsonFn;
     }
@@ -72,7 +72,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
                 }
 
                 if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                    return jsonFn.fromJson(text,
+                    return jsonFn.apply(text,
                             statusCode < 300 ? binding : new BindingDescriptor(binding.errorType()));
                 }
 

@@ -34,7 +34,7 @@ public class JsonByJacksonTest {
     void list_001() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
+        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
                 new BindingDescriptor(Instants.class));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
@@ -45,7 +45,7 @@ public class JsonByJacksonTest {
     void list_002() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
+        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
                 new BindingDescriptor(List.class, null, List.of(Instant.class), List.of()));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
@@ -56,7 +56,7 @@ public class JsonByJacksonTest {
     void list_003() {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
-        final List<List<Instant>> back = (List<List<Instant>>) jackson.fromJson(jackson.toJson(from),
+        final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
                 new BindingDescriptor(List.class, null, List.of(List.class, Instant.class), List.of()));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
@@ -73,7 +73,7 @@ public class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<Person> back = (List<Person>) jackson.fromJson(jackson.toJson(from),
+        final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
                 new BindingDescriptor(List.class, null, List.of(Person.class), List.of()));
 
         back.stream().forEach(value -> {
