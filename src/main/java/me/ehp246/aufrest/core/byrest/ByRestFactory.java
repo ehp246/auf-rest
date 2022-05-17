@@ -58,10 +58,10 @@ import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestRequestRecord;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -100,13 +100,13 @@ public final class ByRestFactory {
     }
 
     public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
-        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null,
-                name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
+        this(clientProvider, new RestClientConfig(), propertyResolver, name -> null, name -> BodyHandlers.discarding(),
+                binding -> BodyHandlers.discarding());
     }
 
     public ByRestFactory(final RestFnProvider clientProvider) {
-        this(clientProvider, new RestClientConfig(), s -> s, name -> null,
-                name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
+        this(clientProvider, new RestClientConfig(), s -> s, name -> null, name -> BodyHandlers.discarding(),
+                binding -> BodyHandlers.discarding());
     }
 
     public ByRestFactory(RestFnProvider restFnProvider, RestClientConfig restClientConfig,
@@ -340,15 +340,15 @@ public final class ByRestFactory {
                                         .orElse(null)));
 
                 final var body = invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
-                        .map(v -> (Object) v).orElseGet(() -> {
-                            final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED);
+                        .map(v -> (Object) v)
+                        .orElseGet(() -> invocation.filterPayloadArgs(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED)
+                                .stream().findFirst()
+                                .map(arg -> new ToJson.From(arg.argument(), arg.parameter().getType())).orElse(null));
 
-                            return payload.size() >= 1 ? payload.get(0) : null;
-                        });
-
-                final var contentType = Optional.ofNullable(optionalOfMapping.map(OfMapping::contentType)
-                        .filter(OneUtil::hasValue).orElseGet(byRestConfig::contentType)).filter(OneUtil::hasValue)
-                        .orElse(HttpUtils.APPLICATION_JSON);
+                final var contentType = Optional
+                        .ofNullable(optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
+                                .orElseGet(byRestConfig::contentType))
+                        .filter(OneUtil::hasValue).orElse(HttpUtils.APPLICATION_JSON);
 
                 final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
                         .map(args -> args.size() == 0 ? null : args.get(0))

@@ -25,4 +25,19 @@ class BodyController {
     List<String> postQueryParams(@RequestParam("first") String firstName, @RequestParam("last") String lastName) {
         return List.of(firstName, lastName);
     }
+
+    @PostMapping(value = "person")
+    String postPerson(@RequestBody String payload) {
+        return payload;
+    }
+
+    @PostMapping(value = "personName")
+    String postPersonName(@RequestBody String payload) {
+        return payload;
+    }
+
+    @PostMapping(value = "personDob")
+    String postPersonDob(@RequestBody String payload) {
+        return payload;
+    }
 }

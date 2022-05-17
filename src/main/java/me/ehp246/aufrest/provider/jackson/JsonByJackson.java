@@ -20,7 +20,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 public final class JsonByJackson implements FromJson, ToJson {
-    private final static Logger LOGGER = LogManager.getLogger(FromJson.class);
+    private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
 
     private final ObjectMapper objectMapper;
 
@@ -36,7 +36,7 @@ public final class JsonByJackson implements FromJson, ToJson {
         }
 
         if (value instanceof From from) {
-            return OneUtil.orThrow(() -> this.objectMapper.writerFor(from.type()).writeValueAsString(value));
+            return OneUtil.orThrow(() -> this.objectMapper.writerFor(from.type()).writeValueAsString(from.value()));
         }
 
         return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));

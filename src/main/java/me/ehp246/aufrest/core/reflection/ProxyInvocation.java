@@ -2,6 +2,7 @@ package me.ehp246.aufrest.core.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +34,7 @@ public final class ProxyInvocation implements Invocation {
     private final List<Class<?>> parameterTypes;
     private final Annotation[][] parameterAnnotations;
     private final List<Class<?>> threws;
+    private final Parameter[] parameters;
 
     public ProxyInvocation(final Class<?> declaringType, final Object target, final Method method,
             final Object[] args) {
@@ -42,6 +44,7 @@ public final class ProxyInvocation implements Invocation {
         this.args = Collections.unmodifiableList(args == null ? new ArrayList<Object>() : Arrays.asList(args));
         this.parameterAnnotations = this.method.getParameterAnnotations();
         this.parameterTypes = Arrays.asList(this.method.getParameterTypes());
+        this.parameters = this.method.getParameters();
         this.threws = List.of(this.method.getExceptionTypes());
     }
 
@@ -105,9 +108,9 @@ public final class ProxyInvocation implements Invocation {
         return this.method.getReturnType().isAssignableFrom(type);
     }
 
-    public List<?> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations,
+    public List<AnnotatedArgument<Annotation>> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations,
             final Set<Class<?>> recognized) {
-        final var valueArgs = new ArrayList<>();
+        final var valueArgs = new ArrayList<AnnotatedArgument<Annotation>>();
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
                     .filter(annotation -> annotations.contains(annotation.annotationType())).findAny().isPresent()) {
@@ -117,7 +120,7 @@ public final class ProxyInvocation implements Invocation {
             if (recognized.contains(parameterTypes.get(i))) {
                 continue;
             }
-            valueArgs.add(args.get(i));
+            valueArgs.add(new AnnotatedArgument<Annotation>(null, args.get(i), parameters[i]));
         }
 
         return valueArgs;
