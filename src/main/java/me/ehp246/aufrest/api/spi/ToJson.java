@@ -13,7 +13,7 @@ public interface ToJson {
 
     record From(Object value, Class<?> type, List<? extends Annotation> annotations) {
         public From {
-            if (!type.isAssignableFrom(value.getClass())) {
+            if (!type.isPrimitive() && !type.isAssignableFrom(value.getClass())) {
                 throw new IllegalArgumentException(
                         "Un-assignable from " + value.getClass().getName() + " to " + type.getName());
             }

@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import me.ehp246.aufrest.api.configuration.ByRestConfiguration;
+import me.ehp246.aufrest.api.configuration.AufRestConfiguration;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.core.byrest.ByRestFactory;
 import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
@@ -25,7 +25,7 @@ import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-@Import({ ByRestRegistrar.class, ByRestConfiguration.class, ByRestFactory.class })
+@Import({ ByRestRegistrar.class, AufRestConfiguration.class, ByRestFactory.class })
 public @interface EnableByRest {
     /**
      * Specifies the packages to scan for annotated

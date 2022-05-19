@@ -24,10 +24,10 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
 
     @Override
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
-        LOGGER.debug("Scanning for {}", ByRest.class.getCanonicalName());
+        LOGGER.atDebug().log("Scanning for {}", ByRest.class::getCanonicalName);
 
         new ByRestScanner(EnableByRest.class, ByRest.class, metadata).perform().forEach(beanDefinition -> {
-            LOGGER.trace("Registering {}", beanDefinition.getBeanClassName());
+            LOGGER.atTrace().log("Registering {}", beanDefinition::getBeanClassName);
 
             final Class<?> byRestInterface;
             try {
@@ -38,7 +38,8 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
             }
 
             final var name = byRestInterface.getAnnotation(ByRest.class).name();
-            registry.registerBeanDefinition(name.equals("") ? byRestInterface.getSimpleName() : name,
+
+            registry.registerBeanDefinition(name.equals("") ? byRestInterface.getName() : name,
                     this.getProxyBeanDefinition(metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName()),
                             byRestInterface));
         });

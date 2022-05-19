@@ -7,12 +7,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 
 /**
  * @author Lei Yang
  */
 record RestRequestRecord(String id, String uri, String method, Duration timeout, Supplier<String> authSupplier,
         String contentType, String accept, Map<String, List<String>> headers, Map<String, List<String>> queryParams,
-        Object body, BodyHandler<?> responseBodyHandler)
+        Object body, BodyAs bodyAs, BodyHandler<?> responseBodyHandler)
         implements RestRequest {
 }

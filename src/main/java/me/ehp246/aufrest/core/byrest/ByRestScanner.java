@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
-class ByRestScanner {
+final class ByRestScanner {
     private final Class<? extends Annotation> enabler;
     private final Class<? extends Annotation> enablee;
     private final AnnotationMetadata metadata;
@@ -38,12 +38,14 @@ class ByRestScanner {
 
         Stream<String> scanThese = null;
         final var base = (Class<?>[]) enablerAttributes.get("scan");
+
         if (base.length > 0) {
             scanThese = Stream.of(base).map(baseClass -> baseClass.getPackage().getName()).distinct();
         } else {
             final var baseName = metadata.getClassName();
             scanThese = Stream.of(baseName.substring(0, baseName.lastIndexOf(".")));
         }
+
         return scanThese.flatMap(packageName -> provider.findCandidateComponents(packageName).stream());
     }
 }

@@ -61,7 +61,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
-import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -340,25 +339,30 @@ public final class ByRestFactory {
                                         .orElse(null)));
 
                 final var body = invocation.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
-                        .map(v -> (Object) v)
-                        .orElseGet(() -> invocation.filterPayloadArgs(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED)
-                                .stream().findFirst()
-                                .map(arg -> new ToJson.From(arg.argument(), arg.parameter().getType())).orElse(null));
+                        .orElseGet(() -> {
+                            final var payload = invocation.filterPayloadArgs(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED);
+
+                            return payload.size() >= 1 ? payload.get(0) : null;
+                        });
 
                 final var contentType = Optional
                         .ofNullable(optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                                 .orElseGet(byRestConfig::contentType))
                         .filter(OneUtil::hasValue).orElse(HttpUtils.APPLICATION_JSON);
 
+                @SuppressWarnings("rawtypes")
                 final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
-                        .map(args -> args.size() == 0 ? null : args.get(0))
+                        .map(args -> args.size() == 0 ? null : args.get(0).argument())
+                        .map(v -> (BodyHandler) v)
                         .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler)
                                 .map(name -> OneUtil.hasValue(name) ? name : byRestConfig.responseBodyHandler())
                                 .filter(OneUtil::hasValue).map(bodyHandlerResolver::get))
                         .orElseGet(() -> bindingBodyHandlerProvider.get(bindingOf(invocation)));
 
                 return new RestRequestRecord(UUID.randomUUID().toString(), uri, method, timeout, authSupplier,
-                        contentType, accept, headers, queryParams, body, bodyHandler);
+                        contentType, accept, headers, queryParams, body == null ? null : body.argument(),
+                        body == null ? null : () -> body.parameter().getType(),
+                        bodyHandler);
 
             }
 

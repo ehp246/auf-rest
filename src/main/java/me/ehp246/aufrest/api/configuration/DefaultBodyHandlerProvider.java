@@ -23,11 +23,11 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
-    private final FromJson jsonFn;
+    private final FromJson fromJson;
 
     public DefaultBodyHandlerProvider(FromJson jsonFn) {
         super();
-        this.jsonFn = jsonFn;
+        this.fromJson = jsonFn;
     }
 
     @Override
@@ -72,7 +72,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
                 }
 
                 if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
-                    return jsonFn.apply(text,
+                    return fromJson.apply(text,
                             statusCode < 300 ? binding : new BindingDescriptor(binding.errorType()));
                 }
 
