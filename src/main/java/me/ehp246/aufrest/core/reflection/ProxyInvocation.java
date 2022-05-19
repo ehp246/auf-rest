@@ -135,10 +135,6 @@ public final class ProxyInvocation implements Invocation {
 
     /**
      * Find all arguments of the given parameter type.
-     *
-     * @param <R>  Parameter type
-     * @param type Class of the parameter type
-     * @return all arguments of the given type. Could have <code>null</code>.
      */
     public List<ReflectedArgument> findArgumentsOfType(final Class<?> type) {
         final var list = new ArrayList<ReflectedArgument>();
