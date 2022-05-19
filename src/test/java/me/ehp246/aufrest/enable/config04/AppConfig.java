@@ -1,10 +1,9 @@
-package me.ehp246.aufrest.enable;
+package me.ehp246.aufrest.enable.config04;
 
 import org.springframework.context.annotation.Import;
 
+import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.enable.config02.Case02;
-import me.ehp246.aufrest.enable.config03.Case03;
 import me.ehp246.aufrest.mock.Jackson;
 
 /**
@@ -12,12 +11,15 @@ import me.ehp246.aufrest.mock.Jackson;
  *
  */
 class AppConfig {
-    @EnableByRest()
+    @EnableByRest
     @Import(Jackson.class)
     static class Config01 {
+        @ByRest("${url}")
+        interface Case01 {
+        }
     }
 
-    @EnableByRest(scan = { Case02.class, Case03.class })
+    @EnableByRest
     @Import(Jackson.class)
     static class Config02 {
 

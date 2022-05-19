@@ -16,7 +16,7 @@ import me.ehp246.aufrest.enable.config03.Case03;
  * @author Lei Yang
  *
  */
-class ByRestRegistrarTest {
+class EnableByRestTest {
     private AnnotationConfigApplicationContext appCtx;
 
     @AfterEach
@@ -32,7 +32,7 @@ class ByRestRegistrarTest {
         appCtx = new AnnotationConfigApplicationContext(AppConfig01.class);
 
         Assertions.assertEquals(true, appCtx.getBean(Case01.class) != null);
-        Assertions.assertEquals(true, appCtx.getBean(Case01.class.getSimpleName()) != null);
+        Assertions.assertEquals(true, appCtx.getBean(Case01.class.getName()) != null);
     }
 
     @Test
@@ -48,7 +48,7 @@ class ByRestRegistrarTest {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config01.class);
 
         Assertions.assertEquals(true, appCtx.getBean(Case01.class) != null);
-        Assertions.assertEquals(true, appCtx.getBean(Case01.class.getSimpleName()) != null);
+        Assertions.assertEquals(true, appCtx.getBean(Case01.class.getName()) != null);
 
         Assertions.assertEquals(true, appCtx.getBean(Case02.class) != null);
         Assertions.assertEquals(true, appCtx.getBean(AppConfig02.BEAN_NAME) != null);
