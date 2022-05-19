@@ -176,7 +176,8 @@ public final class DefaultRequestBuilder implements RequestBuilder {
         }
 
         // Default to JSON.
-        return new ContentPublisher(contentType, BodyPublishers.ofString(toJson.apply(body)));
+        return new ContentPublisher(contentType,
+                BodyPublishers.ofString(toJson.apply(new ToJson.From(body, req.bodyAs().type()))));
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {

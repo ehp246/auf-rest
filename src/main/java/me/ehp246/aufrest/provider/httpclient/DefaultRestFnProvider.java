@@ -77,7 +77,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             (BodyHandler<?>) (req.responseBodyHandler() == null ? BodyHandlers.discarding()
                                     : req.responseBodyHandler()));
                 } catch (IOException | InterruptedException e) {
-                    LOGGER.atError().withThrowable(e).log("Failed: {} ", e::getMessage);
+                    LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
 
                     listeners.stream().forEach(obs -> obs.onException(e, httpReq, req));
 

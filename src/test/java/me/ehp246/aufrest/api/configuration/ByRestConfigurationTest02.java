@@ -16,7 +16,7 @@ import me.ehp246.aufrest.mock.Jackson;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { ByRestConfiguration.class, Jackson.class })
+@SpringBootTest(classes = { AufRestConfiguration.class, Jackson.class })
 @TestPropertySource(properties = { "me.ehp246.aufrest.connectTimeout=PT0.01S",
         "me.ehp246.aufrest.responseTimeout=PT0.1S" })
 class ByRestConfigurationTest02 {

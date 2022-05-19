@@ -72,11 +72,27 @@ public interface RestRequest {
         return null;
     }
 
+    default BodyAs bodyAs() {
+        if (body() == null) {
+            return null;
+        }
+
+        return () -> body().getClass();
+    }
+
     default Map<String, List<String>> headers() {
         return null;
     }
 
     default Map<String, List<String>> queryParams() {
         return null;
+    }
+
+    interface BodyAs {
+        Class<?> type();
+
+        static BodyAs of(Class<?> type) {
+            return () -> type;
+        }
     }
 }

@@ -16,7 +16,7 @@ import me.ehp246.aufrest.mock.Jackson;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = ByRestConfiguration.class)
+@SpringBootTest(classes = AufRestConfiguration.class)
 @Import(Jackson.class)
 class ByRestConfigurationTest01 {
     @Autowired
@@ -24,26 +24,26 @@ class ByRestConfigurationTest01 {
 
     @Test
     void test_001() {
-        final var clientConfig = new ByRestConfiguration().restClientConfig("");
+        final var clientConfig = new AufRestConfiguration().restClientConfig("");
 
         Assertions.assertEquals(null, clientConfig.connectTimeout());
     }
 
     @Test
     void test_002() {
-        final var clientConfig = new ByRestConfiguration().restClientConfig(null);
+        final var clientConfig = new AufRestConfiguration().restClientConfig(null);
 
         Assertions.assertEquals(null, clientConfig.connectTimeout());
     }
 
     @Test
     void test_004() {
-        Assertions.assertDoesNotThrow(() -> new ByRestConfiguration().restClientConfig(null));
+        Assertions.assertDoesNotThrow(() -> new AufRestConfiguration().restClientConfig(null));
     }
 
     @Test
     void test_005() {
-        final var clientConfig = new ByRestConfiguration().restClientConfig("PT1S");
+        final var clientConfig = new AufRestConfiguration().restClientConfig("PT1S");
 
         Assertions.assertEquals(1000, clientConfig.connectTimeout().toMillis());
     }

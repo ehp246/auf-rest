@@ -108,9 +108,9 @@ public final class ProxyInvocation implements Invocation {
         return this.method.getReturnType().isAssignableFrom(type);
     }
 
-    public List<AnnotatedArgument<Annotation>> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations,
+    public List<ReflectedArgument> filterPayloadArgs(final Set<Class<? extends Annotation>> annotations,
             final Set<Class<?>> recognized) {
-        final var valueArgs = new ArrayList<AnnotatedArgument<Annotation>>();
+        final var valueArgs = new ArrayList<ReflectedArgument>();
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
                     .filter(annotation -> annotations.contains(annotation.annotationType())).findAny().isPresent()) {
@@ -120,7 +120,7 @@ public final class ProxyInvocation implements Invocation {
             if (recognized.contains(parameterTypes.get(i))) {
                 continue;
             }
-            valueArgs.add(new AnnotatedArgument<Annotation>(null, args.get(i), parameters[i]));
+            valueArgs.add(new ReflectedArgument(args.get(i), parameters[i], method));
         }
 
         return valueArgs;
@@ -140,15 +140,16 @@ public final class ProxyInvocation implements Invocation {
      * @param type Class of the parameter type
      * @return all arguments of the given type. Could have <code>null</code>.
      */
-    @SuppressWarnings("unchecked")
-    public <R> List<R> findArgumentsOfType(final Class<R> type) {
-        final var list = new ArrayList<R>();
+    public List<ReflectedArgument> findArgumentsOfType(final Class<?> type) {
+        final var list = new ArrayList<ReflectedArgument>();
         final var parameterTypes = method.getParameterTypes();
+
         for (int i = 0; i < parameterTypes.length; i++) {
             if (type.isAssignableFrom(parameterTypes[i])) {
-                list.add((R) args.get(i));
+                list.add(new ReflectedArgument(args.get(i), parameters[i], method));
             }
         }
+
         return list;
     }
 

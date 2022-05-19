@@ -34,6 +34,11 @@ public final class AufRestConstants {
      */
     public static final String RESPONSE_TIMEOUT = "me.ehp246.aufrest.responseTimeout";
 
+    /**
+     * To configure a built-in logger.
+     */
+    public static final String REST_LOGGER = "me.ehp246.aufrest.restLogger";
+
     private AufRestConstants() {
         super();
     }
