@@ -17,7 +17,7 @@ import org.springframework.mock.env.MockEnvironment;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -31,7 +31,7 @@ class BodyTest {
         return new MockHttpResponse<Object>();
     };
 
-    private final ByRestFactory factory = new ByRestFactory(restFnProvider,
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider,
             new MockEnvironment()::resolveRequiredPlaceholders);
 
     @BeforeEach
@@ -80,7 +80,7 @@ class BodyTest {
         final var nameRef = new String[] { "1" };
         final var handler = BodyHandlers.ofByteArray();
 
-        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
                     return binding -> null;
@@ -94,7 +94,7 @@ class BodyTest {
     @Test
     void response_03() {
         final var nameRef = new String[1];
-        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
                     return null;
@@ -110,7 +110,7 @@ class BodyTest {
 
         final var nameRef = new String[1];
 
-        new ByRestFactory(restFnProvider, new RestClientConfig(),
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
                 new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
@@ -128,7 +128,7 @@ class BodyTest {
 
         final var nameRef = new String[1];
 
-        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
                     return binding -> null;
@@ -145,7 +145,7 @@ class BodyTest {
 
         final var nameRef = new String[1];
 
-        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
                     return handler;
@@ -162,7 +162,7 @@ class BodyTest {
 
         final var nameRef = new String[1];
 
-        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
                     return handler;
@@ -178,7 +178,7 @@ class BodyTest {
 
         final var nameRef = new String[1];
 
-        new ByRestFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new MockEnvironment()::resolveRequiredPlaceholders,
                 null, name -> {
                     nameRef[0] = name;
                     return handler;

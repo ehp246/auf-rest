@@ -17,7 +17,7 @@ import me.ehp246.aufrest.provider.TimingExtension;
 @Disabled
 @ExtendWith(TimingExtension.class)
 class ByRestFactoryPerfTest {
-    private final ByRestFactory factory = new ByRestFactory(cfg -> req -> Mockito.mock(HttpResponse.class),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> req -> Mockito.mock(HttpResponse.class),
             Object::toString);
     private final PerfTestCases.Case001 case01 = factory.newInstance(PerfTestCases.Case001.class);
     private final int count = 100000;

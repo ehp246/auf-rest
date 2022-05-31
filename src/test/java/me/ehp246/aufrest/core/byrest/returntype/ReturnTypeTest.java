@@ -11,7 +11,7 @@ import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 
 /**
  * @author Lei Yang
@@ -23,7 +23,7 @@ class ReturnTypeTest {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
-    private final ByRestFactory factory = new ByRestFactory(cfg -> client,
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> client,
             new MockEnvironment()::resolveRequiredPlaceholders);
 
     @BeforeEach

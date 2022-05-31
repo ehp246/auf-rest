@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 
 /**
  * @author Lei Yang
@@ -36,7 +36,7 @@ class ErrorTypeTest {
     private ErrorTypeCase.Case03 case03;
 
     @Autowired
-    private ByRestFactory restFactory;
+    private ByRestProxyFactory restFactory;
 
     @Test
     void errorType_01() {

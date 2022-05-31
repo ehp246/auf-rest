@@ -12,7 +12,7 @@ import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
 
 /**
@@ -27,7 +27,7 @@ class UriTest {
         return Mockito.mock(HttpResponse.class);
     };
 
-    private final ByRestFactory factory = new ByRestFactory(clientCfg -> client,
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(clientCfg -> client,
             new MockEnvironment().withProperty("echo.base", "http://localhost")::resolveRequiredPlaceholders);
 
     final TestCase001 case001 = factory.newInstance(TestCase001.class);

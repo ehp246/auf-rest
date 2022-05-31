@@ -9,7 +9,7 @@ import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 
 /**
  * @author Lei Yang
@@ -21,7 +21,7 @@ class TimeoutTest {
 
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> request -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     }, env::resolveRequiredPlaceholders);

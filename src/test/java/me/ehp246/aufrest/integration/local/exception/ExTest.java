@@ -19,7 +19,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.integration.local.errortype.ErrorType;
 
 /**
@@ -35,7 +35,7 @@ class ExTest {
     private ExCase case001;
 
     @Autowired
-    private ByRestFactory restFactory;
+    private ByRestProxyFactory restFactory;
 
     @Test
     void test300_001() {

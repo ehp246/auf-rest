@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.byrest.ByRestFactory;
+import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -21,7 +21,7 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
 class ContentTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final ByRestFactory factory = new ByRestFactory(cfg -> request -> {
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> request -> {
         reqRef.set(request);
         return new MockHttpResponse<Object>();
     }, new MockEnvironment()::resolveRequiredPlaceholders);

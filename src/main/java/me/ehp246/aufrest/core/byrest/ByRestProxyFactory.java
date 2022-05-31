@@ -70,8 +70,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public final class ByRestFactory {
-    private final static Logger LOGGER = LogManager.getLogger(ByRestFactory.class);
+public final class ByRestProxyFactory {
+    private final static Logger LOGGER = LogManager.getLogger(ByRestProxyFactory.class);
 
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class);
@@ -85,7 +85,7 @@ public final class ByRestFactory {
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
 
     @Autowired
-    public ByRestFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
+    public ByRestProxyFactory(final RestFnProvider clientProvider, final RestClientConfig clientConfig,
             final PropertyResolver propertyResolver, final InvocationAuthProviderResolver methodAuthProviderMap,
             final BodyHandlerResolver bodyHandlerResolver,
             final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
@@ -98,17 +98,17 @@ public final class ByRestFactory {
         this.bindingBodyHandlerProvider = bindingBodyHandlerProvider;
     }
 
-    public ByRestFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
+    public ByRestProxyFactory(final RestFnProvider clientProvider, final PropertyResolver propertyResolver) {
         this(clientProvider, new RestClientConfig(), propertyResolver, name -> null, name -> BodyHandlers.discarding(),
                 binding -> BodyHandlers.discarding());
     }
 
-    public ByRestFactory(final RestFnProvider clientProvider) {
+    public ByRestProxyFactory(final RestFnProvider clientProvider) {
         this(clientProvider, new RestClientConfig(), s -> s, name -> null, name -> BodyHandlers.discarding(),
                 binding -> BodyHandlers.discarding());
     }
 
-    public ByRestFactory(RestFnProvider restFnProvider, RestClientConfig restClientConfig,
+    public ByRestProxyFactory(RestFnProvider restFnProvider, RestClientConfig restClientConfig,
             PropertyResolver propertyResolver, InvocationAuthProviderResolver invocationAuthProviderResolver) {
         this(restFnProvider, restClientConfig, propertyResolver, invocationAuthProviderResolver,
                 name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
