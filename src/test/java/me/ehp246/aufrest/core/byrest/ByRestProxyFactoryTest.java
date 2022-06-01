@@ -150,44 +150,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void method008() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase001.class)::query);
-    }
-
-    @Test
-    void method009() {
-        factory.newInstance(MethodTestCase001.class).create();
-
-        Assertions.assertEquals("POST", reqRef.get().method());
-    }
-
-    @Test
-    void method010() {
-        factory.newInstance(MethodTestCase001.class).remove();
-
-        Assertions.assertEquals("DELETE", reqRef.get().method());
-    }
-
-    @Test
-    void method011() {
-        factory.newInstance(MethodTestCase001.class).getBySomething();
-
-        Assertions.assertEquals("GET", reqRef.get().method());
-    }
-
-    @Test
-    void method012() {
-        Assertions.assertThrows(RuntimeException.class, () -> factory.newInstance(MethodTestCase001.class).query(1));
-    }
-
-    @Test
-    void method0013() {
-        factory.newInstance(MethodTestCase001.class).postByName();
-
-        Assertions.assertEquals("POST", reqRef.get().method());
-    }
-
-    @Test
     void acceptGzip_001() {
         factory.newInstance(RequestHeaderTestCase001.class).get("1234");
 

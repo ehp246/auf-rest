@@ -14,8 +14,6 @@ interface MethodTestCase001 {
 
     void getBySomething();
 
-    void query(int i);
-
     @OfMapping
     void query();
 

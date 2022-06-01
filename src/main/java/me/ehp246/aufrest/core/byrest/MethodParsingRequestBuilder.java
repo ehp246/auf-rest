@@ -32,7 +32,8 @@ final class MethodParsingRequestBuilder {
     private final ByRestProxyConfig config;
     private final String method;
 
-    private MethodParsingRequestBuilder(final Method method, final ByRestProxyConfig proxyConfig) {
+    MethodParsingRequestBuilder(final Method method, final ByRestProxyConfig proxyConfig,
+            final PropertyResolver propertyResolver) {
         this.reflected = new ReflectedProxyMethod(method);
         this.config = proxyConfig;
 
@@ -40,11 +41,6 @@ final class MethodParsingRequestBuilder {
 
         this.method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> HttpUtils.METHOD_NAMES.stream().filter(name -> method.getName().toUpperCase().startsWith(name)).findAny()).map(String::toUpperCase)
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
-    }
-
-    public static MethodParsingRequestBuilder parse(final Method method, final ByRestProxyConfig proxyConfig,
-            final PropertyResolver propertyResolver) {
-        return new MethodParsingRequestBuilder(method, proxyConfig);
     }
 
     public RestRequest apply(final Object[] args) {

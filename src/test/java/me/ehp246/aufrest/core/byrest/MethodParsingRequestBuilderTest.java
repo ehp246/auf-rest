@@ -21,10 +21,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().get();
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
-
-        Assertions.assertEquals("GET", request.method());
+        Assertions.assertEquals("GET",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -33,10 +32,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().get("");
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
-
-        Assertions.assertEquals("GET", request.method());
+        Assertions.assertEquals("GET",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -45,10 +43,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().get(0);
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
-
-        Assertions.assertEquals("GET", request.method());
+        Assertions.assertEquals("GET",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -57,10 +54,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().get();
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
-
-        Assertions.assertEquals("GET", request.method());
+        Assertions.assertEquals("GET",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -69,8 +65,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().query();
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args()));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()));
     }
 
     @Test
@@ -79,10 +76,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().post();
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
-
-        Assertions.assertEquals("POST", request.method());
+        Assertions.assertEquals("POST",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -91,10 +87,8 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().delete();
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
-
-        Assertions.assertEquals("DELETE", request.method());
+        Assertions.assertEquals("DELETE", new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -103,7 +97,7 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().put();
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
+        final var request = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
                 .apply(captor.invocation().args());
 
         Assertions.assertEquals("PUT", request.method());
@@ -115,9 +109,50 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().patch();
 
-        final var request = MethodParsingRequestBuilder.parse(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args());
+        Assertions.assertEquals("PATCH", new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                .apply(captor.invocation().args()).method());
+    }
 
-        Assertions.assertEquals("PATCH", request.method());
+    @Test
+    void method_11() {
+        final var captor = TestUtil.newCaptor(MethodTestCase001.class);
+
+        captor.proxy().create();
+
+        Assertions.assertEquals("POST", new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                .apply(captor.invocation().args()).method());
+    }
+
+    @Test
+    void method_12() {
+        final var captor = TestUtil.newCaptor(MethodTestCase001.class);
+
+        captor.proxy().remove();
+
+        Assertions.assertEquals("DELETE",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
+    }
+
+    @Test
+    void method_13() {
+        final var captor = TestUtil.newCaptor(MethodTestCase001.class);
+
+        captor.proxy().getBySomething();
+
+        Assertions.assertEquals("GET",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
+    }
+
+    @Test
+    void method_14() {
+        final var captor = TestUtil.newCaptor(MethodTestCase001.class);
+
+        captor.proxy().postByName();
+
+        Assertions.assertEquals("POST",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 }
