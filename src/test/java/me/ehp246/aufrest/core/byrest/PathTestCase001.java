@@ -12,7 +12,7 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  * @author Lei Yang
  *
  */
-public interface PathTestCase001 {
+interface PathTestCase001 {
     @OfMapping("get/{path1}/path2/{path3}")
     void get(@PathVariable("path1") String path1, @PathVariable("path3") String path3);
 
