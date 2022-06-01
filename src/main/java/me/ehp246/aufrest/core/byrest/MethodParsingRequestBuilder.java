@@ -4,12 +4,16 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -33,6 +37,7 @@ final class MethodParsingRequestBuilder {
     private final ByRestProxyConfig config;
     private final String method;
     private final UriComponentsBuilder uriBuilder;
+    private final Map<String, Integer> pathMap = new HashMap<>();
 
     MethodParsingRequestBuilder(final Method method, final ByRestProxyConfig proxyConfig,
             final PropertyResolver propertyResolver) {
@@ -41,15 +46,33 @@ final class MethodParsingRequestBuilder {
 
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
-        this.method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> HttpUtils.METHOD_NAMES.stream().filter(name -> method.getName().toUpperCase().startsWith(name)).findAny()).map(String::toUpperCase)
+        this.method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue)
+                .or(() -> HttpUtils.METHOD_NAMES.stream()
+                        .filter(name -> method.getName().toUpperCase().startsWith(name)).findAny())
+                .map(String::toUpperCase)
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
-        this.uriBuilder = UriComponentsBuilder
-                .fromUriString(propertyResolver.resolve(proxyConfig.uri()
-                        + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
+
+        this.uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
+                proxyConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
+
+        this.reflected.allParametersWith(PathVariable.class).forEach(p -> {
+            this.pathMap.put(p.parameter().getAnnotation(PathVariable.class).value(), p.index());
+        });
     }
 
     public RestRequest apply(final Object[] args) {
-        final var uri = this.uriBuilder.build().toUriString();
+        final var pathArgs = new HashMap<String, Object>();
+        this.pathMap.entrySet().stream().forEach(entry -> {
+            final var arg = args[entry.getValue()];
+            if (arg instanceof Map<?, ?> map) {
+                map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(),
+                        UriUtils.encode(e.getValue().toString(), StandardCharsets.UTF_8)));
+            } else {
+                pathArgs.put(entry.getKey(), UriUtils.encode(arg.toString(), StandardCharsets.UTF_8));
+            }
+        });
+
+        final var uri = this.uriBuilder.buildAndExpand(pathArgs).toUriString();
 
         return new RestRequest() {
 
