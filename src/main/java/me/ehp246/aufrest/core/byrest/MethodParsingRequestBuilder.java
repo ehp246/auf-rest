@@ -9,6 +9,7 @@ import java.util.Set;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -31,6 +32,7 @@ final class MethodParsingRequestBuilder {
     private final ReflectedProxyMethod reflected;
     private final ByRestProxyConfig config;
     private final String method;
+    private final UriComponentsBuilder uriBuilder;
 
     MethodParsingRequestBuilder(final Method method, final ByRestProxyConfig proxyConfig,
             final PropertyResolver propertyResolver) {
@@ -41,10 +43,16 @@ final class MethodParsingRequestBuilder {
 
         this.method = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue).or(() -> HttpUtils.METHOD_NAMES.stream().filter(name -> method.getName().toUpperCase().startsWith(name)).findAny()).map(String::toUpperCase)
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
+        this.uriBuilder = UriComponentsBuilder
+                .fromUriString(propertyResolver.resolve(proxyConfig.uri()
+                        + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
     }
 
     public RestRequest apply(final Object[] args) {
+        final var uri = this.uriBuilder.build().toUriString();
+
         return new RestRequest() {
+
             @Override
             public String method() {
                 return method;
@@ -52,7 +60,7 @@ final class MethodParsingRequestBuilder {
 
             @Override
             public String uri() {
-                return null;
+                return uri;
             }
 
         };

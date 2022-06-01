@@ -1,14 +1,12 @@
 package me.ehp246.aufrest.core.byrest;
 
-import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 
 /**
  * @author Lei Yang
  *
  */
-@ByRest("${echo.base}/")
-interface GetCase001 {
+interface UriTestCase001 {
     /**
      * Should be getting from the type.
      *

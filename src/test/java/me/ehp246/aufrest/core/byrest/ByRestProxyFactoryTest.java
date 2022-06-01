@@ -60,12 +60,12 @@ class ByRestProxyFactoryTest {
 
     @Test
     void defaults_001() {
-        final var newInstance = factory.newInstance(GetCase001.class);
+        final var newInstance = factory.newInstance(UriTestCase001.class);
 
         Assertions.assertEquals(true, newInstance.hashCode() == newInstance.hashCode());
         Assertions.assertEquals(true, newInstance.equals(List.of(newInstance).get(0)));
         Assertions.assertEquals(true, Set.of(newInstance).contains(newInstance));
-        Assertions.assertEquals(true, newInstance instanceof GetCase001);
+        Assertions.assertEquals(true, newInstance instanceof UriTestCase001);
         Assertions.assertEquals(true, !newInstance.toString().isBlank());
         Assertions.assertEquals(1, newInstance.getInc(0));
     }

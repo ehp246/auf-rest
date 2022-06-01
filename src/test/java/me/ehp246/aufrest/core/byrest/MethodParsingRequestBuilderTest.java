@@ -13,40 +13,9 @@ import me.ehp246.test.TestUtil;
  */
 class MethodParsingRequestBuilderTest {
     private final PropertyResolver resolver = Object::toString;
-    private final ByRestProxyConfig proxyConfig = new ByRestProxyConfig("uri", "timeout", "accept", "content-type");
+    private final ByRestProxyConfig proxyConfig = new ByRestProxyConfig("${echo.base}/", "timeout", "accept",
+            "content-type");
 
-    @Test
-    void method_01() {
-        final var captor = TestUtil.newCaptor(GetCase001.class);
-
-        captor.proxy().get();
-
-        Assertions.assertEquals("GET",
-                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
-                        .apply(captor.invocation().args()).method());
-    }
-
-    @Test
-    void method_02() {
-        final var captor = TestUtil.newCaptor(GetCase001.class);
-
-        captor.proxy().get("");
-
-        Assertions.assertEquals("GET",
-                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
-                        .apply(captor.invocation().args()).method());
-    }
-
-    @Test
-    void method_03() {
-        final var captor = TestUtil.newCaptor(GetCase001.class);
-
-        captor.proxy().get(0);
-
-        Assertions.assertEquals("GET",
-                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
-                        .apply(captor.invocation().args()).method());
-    }
 
     @Test
     void method_04() {
@@ -87,8 +56,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().delete();
 
-        Assertions.assertEquals("DELETE", new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args()).method());
+        Assertions.assertEquals("DELETE",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -109,8 +79,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().patch();
 
-        Assertions.assertEquals("PATCH", new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args()).method());
+        Assertions.assertEquals("PATCH",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -119,8 +90,9 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().create();
 
-        Assertions.assertEquals("POST", new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
-                .apply(captor.invocation().args()).method());
+        Assertions.assertEquals("POST",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).method());
     }
 
     @Test
@@ -154,5 +126,54 @@ class MethodParsingRequestBuilderTest {
         Assertions.assertEquals("POST",
                 new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
                         .apply(captor.invocation().args()).method());
+    }
+
+    @Test
+    void uri_01() {
+        final var captor = TestUtil.newCaptor(UriTestCase001.class);
+
+        captor.proxy().get();
+
+        Assertions.assertEquals("${echo.base}/get",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).uri());
+    }
+
+    @Test
+    void uri_02() {
+        final String[] ref = new String[1];
+        final var captor = TestUtil.newCaptor(UriTestCase001.class);
+
+        captor.proxy().get();
+
+        Assertions.assertEquals("123",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, s -> {
+                    ref[0] = s;
+                    return "123";
+                }).apply(captor.invocation().args()).uri());
+
+        Assertions.assertEquals("${echo.base}/get", ref[0]);
+    }
+
+    @Test
+    void uri_03() {
+        final var captor = TestUtil.newCaptor(UriTestCase001.class);
+
+        captor.proxy().get("");
+
+        Assertions.assertEquals("${echo.base}/get1",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).uri());
+    }
+
+    @Test
+    void uri_04() {
+        final var captor = TestUtil.newCaptor(UriTestCase001.class);
+
+        captor.proxy().get(1);
+
+        Assertions.assertEquals("${echo.base}/",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, resolver)
+                        .apply(captor.invocation().args()).uri());
     }
 }
