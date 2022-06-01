@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
@@ -19,7 +20,6 @@ class MethodParsingRequestBuilderTest {
             "http://localhost")::resolveRequiredPlaceholders;
     private final ByRestProxyConfig proxyConfig = new ByRestProxyConfig("${echo.base}/", "timeout", "accept",
             "content-type");
-
 
     @Test
     void method_04() {
@@ -270,5 +270,99 @@ class MethodParsingRequestBuilderTest {
         Assertions.assertEquals("http://localhost/get//path2/",
                 new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
                         .apply(captor.invocation().args()).uri());
+    }
+
+    @Test
+    void queryParams_01() {
+        final var captor = TestUtil.newCaptor(RequestParamCase001.class);
+
+        captor.proxy().getByParams("q1", "q2");
+
+        final var request = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args());
+        final var queryParams = request.queryParams();
+
+        Assertions.assertEquals(2, queryParams.size());
+
+        Assertions.assertEquals(1, queryParams.get("query1").size());
+        Assertions.assertEquals("q1", queryParams.get("query1").get(0));
+
+        Assertions.assertEquals(1, queryParams.get("query2").size());
+        Assertions.assertEquals("q2", queryParams.get("query2").get(0));
+
+        Assertions.assertEquals(true, request.queryParams() == queryParams);
+    }
+
+    @Test
+    void queryParams_02() {
+        final var captor = TestUtil.newCaptor(RequestParamCase001.class);
+
+        captor.proxy().queryEncoded("1 + 1 = 2");
+
+        Assertions.assertEquals("1 + 1 = 2",
+                new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                        .apply(captor.invocation().args()).queryParams().get("query 1").get(0),
+                "should not need to encode");
+    }
+
+    @Test
+    void queryParams_03() {
+        final var captor = TestUtil.newCaptor(RequestParamCase001.class);
+
+        captor.proxy().getRepeated("1 + 1 = 2", "3");
+
+        final var queryParams = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args()).queryParams();
+
+        Assertions.assertEquals(2, queryParams.get("query 1").size());
+        Assertions.assertEquals("1 + 1 = 2", queryParams.get("query 1").get(0));
+        Assertions.assertEquals("3", queryParams.get("query 1").get(1));
+    }
+
+    @Test
+    void queryParams_04() {
+        final var captor = TestUtil.newCaptor(RequestParamCase001.class);
+
+        captor.proxy().getByList(List.of("1 + 1 = 2", "3"));
+
+        final var queryParams = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args()).queryParams();
+
+        Assertions.assertEquals(1, queryParams.size());
+
+        Assertions.assertEquals("1 + 1 = 2", queryParams.get("qList").get(0));
+        Assertions.assertEquals("3", queryParams.get("qList").get(1));
+    }
+
+    @Test
+    void queryParams_05() {
+        final var captor = TestUtil.newCaptor(RequestParamCase001.class);
+
+        captor.proxy().getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2"));
+
+        final var queryParams = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args()).queryParams();
+
+        Assertions.assertEquals(2, queryParams.size());
+        Assertions.assertEquals("1 + 1 = 2", queryParams.get("query 1").get(0));
+        Assertions.assertEquals("q2", queryParams.get("query2").get(0));
+    }
+
+    @Test
+    void queryParams_06() {
+        final var captor = TestUtil.newCaptor(RequestParamCase001.class);
+
+        captor.proxy().getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2-a"), "q2-b");
+
+        final var queryParams = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args()).queryParams();
+
+        Assertions.assertEquals(2, queryParams.size());
+        Assertions.assertEquals(1, queryParams.get("query 1").size());
+        Assertions.assertEquals("1 + 1 = 2", queryParams.get("query 1").get(0));
+
+        Assertions.assertEquals(2, queryParams.get("query2").size(), "Should collect all");
+        Assertions.assertEquals("q2-a", queryParams.get("query2").get(0));
+        Assertions.assertEquals("q2-b", queryParams.get("query2").get(1));
     }
 }

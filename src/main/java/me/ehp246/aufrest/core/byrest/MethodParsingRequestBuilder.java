@@ -5,7 +5,10 @@ import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,6 +41,7 @@ final class MethodParsingRequestBuilder {
     private final String method;
     private final UriComponentsBuilder uriBuilder;
     private final Map<String, Integer> pathMap = new HashMap<>();
+    private final Map<Integer, String> queryMap = new HashMap<>();
 
     MethodParsingRequestBuilder(final Method method, final ByRestProxyConfig proxyConfig,
             final PropertyResolver propertyResolver) {
@@ -58,6 +62,10 @@ final class MethodParsingRequestBuilder {
         this.reflected.allParametersWith(PathVariable.class).forEach(p -> {
             this.pathMap.put(p.parameter().getAnnotation(PathVariable.class).value(), p.index());
         });
+
+        this.reflected.allParametersWith(RequestParam.class).forEach(p -> {
+            this.queryMap.put(p.index(), p.parameter().getAnnotation(RequestParam.class).value());
+        });
     }
 
     public RestRequest apply(final Object[] args) {
@@ -74,6 +82,33 @@ final class MethodParsingRequestBuilder {
 
         final var uri = this.uriBuilder.buildAndExpand(pathArgs).toUriString();
 
+        final var queryParams = new HashMap<String, List<String>>();
+        this.queryMap.entrySet().forEach(entry -> {
+            final var arg = args[entry.getKey()];
+            if (arg instanceof Map<?, ?> map) {
+                map.entrySet().stream()
+                        .forEach(
+                                e -> queryParams.merge(e.getKey().toString(),
+                                        new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue()))),
+                                (o, p) -> {
+                            o.add(p.get(0));
+                            return o;
+                        }));
+            } else if (arg instanceof List<?> list) {
+                list.stream()
+                        .forEach(v -> queryParams.merge(entry.getValue(),
+                                new ArrayList<>(Arrays.asList(OneUtil.toString(v))), (o, p) -> {
+                    o.add(p.get(0));
+                    return o;
+                }));
+            } else {
+                queryParams.merge(entry.getValue(), new ArrayList<>(Arrays.asList(OneUtil.toString(arg))), (o, p) -> {
+                    o.add(p.get(0));
+                    return o;
+                });
+            }
+        });
+
         return new RestRequest() {
 
             @Override
@@ -84,6 +119,11 @@ final class MethodParsingRequestBuilder {
             @Override
             public String uri() {
                 return uri;
+            }
+
+            @Override
+            public Map<String, List<String>> queryParams() {
+                return queryParams;
             }
 
         };

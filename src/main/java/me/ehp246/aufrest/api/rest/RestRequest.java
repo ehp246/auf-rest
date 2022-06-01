@@ -84,6 +84,10 @@ public interface RestRequest {
         return null;
     }
 
+    /**
+     * The values do NOT need to be encoded. It will be taken care of by the HTTP
+     * client.
+     */
     default Map<String, List<String>> queryParams() {
         return null;
     }
