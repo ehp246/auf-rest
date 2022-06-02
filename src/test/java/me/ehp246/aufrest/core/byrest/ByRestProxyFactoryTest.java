@@ -71,21 +71,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void acceptGzip_001() {
-        factory.newInstance(RequestHeaderTestCase001.class).get("1234");
-
-        Assertions.assertTrue(reqRef.get().headers().get("accept-encoding").get(0).equalsIgnoreCase("gzip"),
-                "should have the value");
-    }
-
-    @Test
-    void acceptGzip_002() {
-        factory.newInstance(RequestHeaderTestCase001.AcceptGZipTestCase002.class).get();
-
-        Assertions.assertTrue(reqRef.get().headers().get("accept-encoding") == null, "should have not the value");
-    }
-
-    @Test
     void header_001() {
         final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
         newInstance.get("1234");

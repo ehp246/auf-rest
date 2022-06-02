@@ -365,4 +365,29 @@ class MethodParsingRequestBuilderTest {
         Assertions.assertEquals("q2-a", queryParams.get("query2").get(0));
         Assertions.assertEquals("q2-b", queryParams.get("query2").get(1));
     }
+
+    @Test
+    void acceptGZip_01() {
+        final var captor = TestUtil.newCaptor(AcceptGZipTestCase001.class);
+
+        captor.proxy().get();
+
+        final var accept = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args());
+
+        Assertions.assertEquals(true, accept.headers().get("accept-encoding").get(0).equalsIgnoreCase("gzip"));
+    }
+
+    @Test
+    void acceptGZip_02() {
+        final var captor = TestUtil.newCaptor(AcceptGZipTestCase001.class);
+
+        captor.proxy().get();
+
+        final var accept = new MethodParsingRequestBuilder(captor.invocation().method(),
+                new ByRestProxyConfig("", null, null, null, null, false, null, null), mockResolver)
+                        .apply(captor.invocation().args());
+
+        Assertions.assertEquals(null, accept.headers().get("accept-encoding"));
+    }
 }

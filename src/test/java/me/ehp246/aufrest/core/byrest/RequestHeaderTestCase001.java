@@ -62,9 +62,4 @@ interface RequestHeaderTestCase001 {
     void getMapOfList(@RequestHeader Map<String, List<String>> headers);
 
     void getListOfList(@RequestHeader("accept-language") List<List<String>> accepted);
-
-    @ByRest(value = "", acceptGZip = false)
-    interface AcceptGZipTestCase002 {
-        void get();
-    }
 }

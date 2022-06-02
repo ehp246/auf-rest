@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,6 +44,7 @@ final class MethodParsingRequestBuilder {
     private final UriComponentsBuilder uriBuilder;
     private final Map<String, Integer> pathMap = new HashMap<>();
     private final Map<Integer, String> queryMap = new HashMap<>();
+    private final Map<String, List<String>> defaultHeaders = new HashMap<>();
 
     MethodParsingRequestBuilder(final Method method, final ByRestProxyConfig proxyConfig,
             final PropertyResolver propertyResolver) {
@@ -66,6 +69,11 @@ final class MethodParsingRequestBuilder {
         this.reflected.allParametersWith(RequestParam.class).forEach(p -> {
             this.queryMap.put(p.index(), p.parameter().getAnnotation(RequestParam.class).value());
         });
+
+        // Set accept-encoding at a lower priority.
+        if (proxyConfig.acceptGZip()) {
+            defaultHeaders.put(HttpHeaders.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
+        }
     }
 
     public RestRequest apply(final Object[] args) {
@@ -86,21 +94,17 @@ final class MethodParsingRequestBuilder {
         this.queryMap.entrySet().forEach(entry -> {
             final var arg = args[entry.getKey()];
             if (arg instanceof Map<?, ?> map) {
-                map.entrySet().stream()
-                        .forEach(
-                                e -> queryParams.merge(e.getKey().toString(),
-                                        new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue()))),
-                                (o, p) -> {
+                map.entrySet().stream().forEach(e -> queryParams.merge(e.getKey().toString(),
+                        new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue()))), (o, p) -> {
                             o.add(p.get(0));
                             return o;
                         }));
             } else if (arg instanceof List<?> list) {
-                list.stream()
-                        .forEach(v -> queryParams.merge(entry.getValue(),
-                                new ArrayList<>(Arrays.asList(OneUtil.toString(v))), (o, p) -> {
-                    o.add(p.get(0));
-                    return o;
-                }));
+                list.stream().forEach(v -> queryParams.merge(entry.getValue(),
+                        new ArrayList<>(Arrays.asList(OneUtil.toString(v))), (o, p) -> {
+                            o.add(p.get(0));
+                            return o;
+                        }));
             } else {
                 queryParams.merge(entry.getValue(), new ArrayList<>(Arrays.asList(OneUtil.toString(arg))), (o, p) -> {
                     o.add(p.get(0));
@@ -108,6 +112,8 @@ final class MethodParsingRequestBuilder {
                 });
             }
         });
+
+        final var headers = new HashMap<String, List<String>>(defaultHeaders);
 
         return new RestRequest() {
 
@@ -124,6 +130,11 @@ final class MethodParsingRequestBuilder {
             @Override
             public Map<String, List<String>> queryParams() {
                 return queryParams;
+            }
+
+            @Override
+            public Map<String, List<String>> headers() {
+                return headers;
             }
 
         };
