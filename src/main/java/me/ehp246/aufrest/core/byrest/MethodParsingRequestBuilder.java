@@ -41,6 +41,8 @@ final class MethodParsingRequestBuilder {
     private final ReflectedProxyMethod reflected;
     private final ByRestProxyConfig config;
     private final String method;
+    private final String accept;
+    private final String contentType;
     private final UriComponentsBuilder uriBuilder;
     private final Map<String, Integer> pathMap = new HashMap<>();
     private final Map<Integer, String> queryMap = new HashMap<>();
@@ -74,6 +76,11 @@ final class MethodParsingRequestBuilder {
         if (proxyConfig.acceptGZip()) {
             defaultHeaders.put(HttpHeaders.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
         }
+
+        this.accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElse(proxyConfig.accept());
+        this.contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
+                .orElse(proxyConfig.contentType());
+        ;
     }
 
     public RestRequest apply(final Object[] args) {
@@ -135,6 +142,16 @@ final class MethodParsingRequestBuilder {
             @Override
             public Map<String, List<String>> headers() {
                 return headers;
+            }
+
+            @Override
+            public String contentType() {
+                return contentType;
+            }
+
+            @Override
+            public String accept() {
+                return accept;
             }
 
         };

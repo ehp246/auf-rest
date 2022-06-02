@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.test.TestUtil;
 
@@ -18,8 +19,8 @@ import me.ehp246.test.TestUtil;
 class MethodParsingRequestBuilderTest {
     private final PropertyResolver mockResolver = new MockEnvironment().withProperty("echo.base",
             "http://localhost")::resolveRequiredPlaceholders;
-    private final ByRestProxyConfig proxyConfig = new ByRestProxyConfig("${echo.base}/", "timeout", "accept",
-            "content-type");
+    private final ByRestProxyConfig proxyConfig = new ByRestProxyConfig("${echo.base}/", "timeout", "accept-i",
+            "content-type-i");
 
     @Test
     void method_04() {
@@ -384,10 +385,50 @@ class MethodParsingRequestBuilderTest {
 
         captor.proxy().get();
 
-        final var accept = new MethodParsingRequestBuilder(captor.invocation().method(),
+        final var request = new MethodParsingRequestBuilder(captor.invocation().method(),
                 new ByRestProxyConfig("", null, null, null, null, false, null, null), mockResolver)
                         .apply(captor.invocation().args());
 
-        Assertions.assertEquals(null, accept.headers().get("accept-encoding"));
+        Assertions.assertEquals(null, request.headers().get("accept-encoding"));
+    }
+
+    @Test
+    void contentType_01() {
+        final var captor = TestUtil.newCaptor(ContentTypeTestCase01.class);
+
+        captor.proxy().get1();
+
+        final var request = new MethodParsingRequestBuilder(captor.invocation().method(),
+                proxyConfig, mockResolver)
+                        .apply(captor.invocation().args());
+
+        Assertions.assertEquals(proxyConfig.contentType(), request.contentType());
+        Assertions.assertEquals(proxyConfig.accept(), request.accept());
+    }
+
+    @Test
+    void contentType_02() {
+        final var captor = TestUtil.newCaptor(ContentTypeTestCase01.class);
+
+        captor.proxy().get2();
+
+        final var request = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args());
+
+        Assertions.assertEquals(proxyConfig.contentType(), request.contentType());
+        Assertions.assertEquals(HttpUtils.APPLICATION_JSON, request.accept());
+    }
+
+    @Test
+    void contentType_03() {
+        final var captor = TestUtil.newCaptor(ContentTypeTestCase01.class);
+
+        captor.proxy().get3();
+
+        final var request = new MethodParsingRequestBuilder(captor.invocation().method(), proxyConfig, mockResolver)
+                .apply(captor.invocation().args());
+
+        Assertions.assertEquals("m-type", request.contentType());
+        Assertions.assertEquals("m-accept", request.accept());
     }
 }
