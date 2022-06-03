@@ -1,5 +1,5 @@
 package me.ehp246.aufrest.core.byrest;
 
-public interface AcceptGZipTestCase001 {
+interface AcceptGZipTestCase001 {
     void get();
 }
