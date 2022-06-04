@@ -328,24 +328,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_02() {
-        final var nameHolder = new String[1];
-        final var invocationHolder = new Invocation[1];
-        final var auth = UUID.randomUUID().toString();
-
-        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
-            nameHolder[0] = name;
-            return invocation -> {
-                invocationHolder[0] = invocation;
-                return auth;
-            };
-        }).newInstance(InvocationAuthCase01.class).get();
-
-        Assertions.assertEquals(null, reqRef.get().authSupplier(), "should follow the interface with no Auth");
-        Assertions.assertEquals(null, nameHolder[0], "should follow the interface with no Auth");
-    }
-
-    @Test
     void invocationAuth_03() {
         final var nameHolder = new String[1];
         final var invocationHolder = new Invocation[1];

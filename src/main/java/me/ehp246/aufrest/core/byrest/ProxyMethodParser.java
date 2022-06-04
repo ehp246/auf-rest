@@ -4,11 +4,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -19,6 +22,7 @@ import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ReflectedProxyMethod;
@@ -42,6 +46,7 @@ final class ProxyMethodParser {
         this.methodAuthProviderMap = methodAuthProviderMap;
     }
 
+    @SuppressWarnings("unchecked")
     public ParsedMethodRequestBuilder parse(final Method method, final ByRestProxyConfig proxyConfig) {
         final var reflected = new ReflectedProxyMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
@@ -77,7 +82,49 @@ final class ProxyMethodParser {
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                 .orElse(proxyConfig.contentType());
 
-        return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, null, pathMap, queryMap,
+        final var authHeaders = reflected.allParametersWith(AuthHeader.class);
+        if (authHeaders.size() > 1) {
+            throw new IllegalArgumentException(
+                    "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
+        }
+
+        final Function<Object[], Supplier<String>> authSupplierFn;
+        if (authHeaders.size() == 1) {
+            final var param = authHeaders.get(0);
+            final var index = param.index();
+            if (Supplier.class.isAssignableFrom(param.parameter().getType())) {
+                authSupplierFn = args -> (Supplier<String>) (args[index]);
+            } else {
+                authSupplierFn = args -> args[index] == null ? () -> null : args[index]::toString;
+            }
+        } else {
+            authSupplierFn = optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue).map(
+                    name -> {
+                        final var invocationAuthProvider = methodAuthProviderMap.get(name);
+                        return (Function<Object[], Supplier<String>>) args -> () -> invocationAuthProvider
+                                .get(new Invocation() {
+                                    final List<?> asList = args == null ? List.of() : Arrays.asList(args);
+
+                                    @Override
+                                    public Object target() {
+                                        return null;
+                                    }
+
+                                    @Override
+                                    public Method method() {
+                                        return method;
+                                    }
+
+                                    @Override
+                                    public List<?> args() {
+                                        return asList;
+                                    }
+                                });
+                    }).orElse(null);
+        }
+
+
+        return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
                 defaultHeaders);
     }
 }

@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.function.Supplier;
+
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
@@ -11,13 +13,15 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
  *
  */
 interface AuthTestCases {
-    // Default scheme
-    @ByRest("")
     interface Case001 {
         void get();
 
         // AuthHeader overwrite
         void get(@AuthHeader String auth);
+
+        void get(@AuthHeader Supplier<String> authSupplier);
+
+        void getFailure(@AuthHeader String auth1, @AuthHeader String auth2);
     }
 
     @ByRest(value = "", auth = @Auth(value = { "postman", "password" }, scheme = AuthScheme.BASIC))
@@ -76,10 +80,7 @@ interface AuthTestCases {
         void get(@AuthHeader String auth);
     }
 
-    @ByRest("")
     interface InvocationAuthCase01 {
-        void get();
-
         @OfMapping(authProvider = "getOnInvocation")
         void getOnInvocation();
     }

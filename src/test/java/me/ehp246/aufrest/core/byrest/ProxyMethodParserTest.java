@@ -2,15 +2,21 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
+import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
 import me.ehp246.test.TestUtil;
 
 /**
@@ -23,6 +29,10 @@ class ProxyMethodParserTest {
             "http://localhost")::resolveRequiredPlaceholders;
     private final ByRestProxyConfig proxyConfig = new ByRestProxyConfig("${echo.base}/", "timeout", "accept-i",
             "content-type-i");
+    private final ByRestProxyConfig basicConfig = new ByRestProxyConfig("${echo.base}/",
+            new ByRestProxyConfig.AuthConfig(List.of("postman", "password"), AuthScheme.BASIC), "timeout", "accept-i",
+            "content-type-i", true, Object.class, "");
+    private final ProxyMethodParser parser = new ProxyMethodParser(mockResolver, invocationAuthResolver);
 
     @Test
     void method_04() {
@@ -436,5 +446,103 @@ class ProxyMethodParserTest {
 
         Assertions.assertEquals("m-type", request.contentType());
         Assertions.assertEquals("m-accept", request.accept());
+    }
+
+    @Test
+    void authGlobal_01() {
+        final var captor = TestUtil.newCaptor(AuthTestCases.Case001.class);
+
+        captor.proxy().get();
+
+        final var request = parser.parse(captor.invocation().method(), proxyConfig).apply(captor.invocation().args());
+
+        Assertions.assertEquals(null, request.authSupplier(),
+                "Should have no supplier leaving it to the global provider");
+    }
+
+    @Test
+    void authHeader_01() {
+        final var captor = TestUtil.newCaptor(AuthTestCases.Case001.class);
+        final var expected = UUID.randomUUID().toString();
+
+        captor.proxy().get(expected);
+
+        final var request = parser.parse(captor.invocation().method(), proxyConfig).apply(captor.invocation().args());
+
+        Assertions.assertEquals(expected, request.authSupplier().get());
+    }
+
+    @Test
+    void authHeader_02() {
+        final var captor = TestUtil.newCaptor(AuthTestCases.Case001.class);
+        final var expected = (String) null;
+
+        captor.proxy().get(expected);
+
+        final var request = parser.parse(captor.invocation().method(), proxyConfig).apply(captor.invocation().args());
+
+        Assertions.assertEquals(expected, request.authSupplier().get());
+    }
+
+    @Test
+    void authHeader_03() {
+        final var captor = TestUtil.newCaptor(AuthTestCases.Case001.class);
+        final var expected = (Supplier<String>) () -> null;
+
+        captor.proxy().get(expected);
+
+        final var request = parser.parse(captor.invocation().method(), proxyConfig).apply(captor.invocation().args());
+
+        Assertions.assertEquals(expected, request.authSupplier());
+    }
+
+    @Test
+    void authHeader_04() {
+        final var captor = TestUtil.newCaptor(AuthTestCases.Case001.class);
+
+        captor.proxy().getFailure(null, null);
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> parser.parse(captor.invocation().method(), proxyConfig));
+    }
+
+    @Disabled
+    @Test
+    void auth_invocation_01() {
+        final var nameHolder = new String[1];
+        final var invocationHolder = new Invocation[1];
+        final var auth = UUID.randomUUID().toString();
+        final InvocationAuthProviderResolver authProvider = name -> {
+            nameHolder[0] = name;
+            return invocation -> {
+                invocationHolder[0] = invocation;
+                return auth;
+            };
+        };
+
+        final var captor = TestUtil.newCaptor(InvocationAuthCase01.class);
+        captor.proxy().getOnInvocation();
+
+        final var authSupplier = new ProxyMethodParser(mockResolver, authProvider)
+                .parse(captor.invocation().method(), basicConfig).apply(captor.invocation().args()).authSupplier();
+
+        Assertions.assertEquals(auth, authSupplier.get());
+        Assertions.assertEquals("getOnInvocation", nameHolder[0]);
+
+        final var invocation = invocationHolder[0];
+        Assertions.assertEquals(null, invocation.target());
+        Assertions.assertEquals(captor.invocation().method(), invocation.method());
+        Assertions.assertEquals(0, invocation.args().size());
+    }
+
+    @Test
+    void auth_basic_01() {
+        final var captor = TestUtil.newCaptor(AuthTestCases.Case002.class);
+
+        captor.proxy().get();
+
+        Assertions.assertEquals("Basic cG9zdG1hbjpwYXNzd29yZA==",
+                parser.parse(captor.invocation().method(), basicConfig).apply(captor.invocation().args()).authSupplier()
+                        .get());
     }
 }

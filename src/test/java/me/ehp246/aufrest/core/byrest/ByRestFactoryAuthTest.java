@@ -39,43 +39,6 @@ class ByRestFactoryAuthTest {
     }
 
     @Test
-    void default_001() {
-        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
-
-        factory.newInstance(AuthTestCases.Case001.class).get();
-
-        Assertions.assertEquals(null, reqRef.get().authSupplier(),
-                "Should have no supplier leaving it to the global provider");
-    }
-
-    @Test
-    void default_002() {
-        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
-
-        factory.newInstance(AuthTestCases.Case001.class).get("");
-
-        Assertions.assertEquals("", reqRef.get().authSupplier().get());
-    }
-
-    @Test
-    void default_003() {
-        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
-
-        factory.newInstance(AuthTestCases.Case001.class).get(" ");
-
-        Assertions.assertEquals(" ", reqRef.get().authSupplier().get());
-    }
-
-    @Test
-    void default_004() {
-        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
-
-        factory.newInstance(AuthTestCases.Case001.class).get(null);
-
-        Assertions.assertEquals(null, reqRef.get().authSupplier().get());
-    }
-
-    @Test
     void basic_001() {
         factory.newInstance(AuthTestCases.Case002.class).get();
 

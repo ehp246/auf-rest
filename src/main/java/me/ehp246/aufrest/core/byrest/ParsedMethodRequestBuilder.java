@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.web.util.UriComponentsBuilder;
@@ -19,7 +20,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  */
 record ParsedMethodRequestBuilder(String method, String accept, String contentType, UriComponentsBuilder uriBuilder,
-        Supplier<String> authSupplier, Map<String, Integer> pathMap, Map<Integer, String> queryMap,
+        Function<Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap, Map<Integer, String> queryMap,
         Map<String, List<String>> defaultHeaders) {
 
     public RestRequest apply(final Object[] args) {
@@ -60,6 +61,7 @@ record ParsedMethodRequestBuilder(String method, String accept, String contentTy
         });
 
         final var headers = new HashMap<String, List<String>>(defaultHeaders);
+        final var authSupplier = authSupplierFn.apply(args);
 
         return new RestRequest() {
 
