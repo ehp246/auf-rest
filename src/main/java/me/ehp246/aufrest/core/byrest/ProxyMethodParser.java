@@ -4,11 +4,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -20,9 +20,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.rest.BasicAuth;
+import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ReflectedProxyMethod;
@@ -98,31 +99,34 @@ final class ProxyMethodParser {
                 authSupplierFn = args -> args[index] == null ? () -> null : args[index]::toString;
             }
         } else {
-            authSupplierFn = optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue).map(
-                    name -> {
-                        final var invocationAuthProvider = methodAuthProviderMap.get(name);
-                        return (Function<Object[], Supplier<String>>) args -> () -> invocationAuthProvider
-                                .get(new Invocation() {
-                                    final List<?> asList = args == null ? List.of() : Arrays.asList(args);
-
-                                    @Override
-                                    public Object target() {
-                                        return null;
-                                    }
-
-                                    @Override
-                                    public Method method() {
-                                        return method;
-                                    }
-
-                                    @Override
-                                    public List<?> args() {
-                                        return asList;
-                                    }
-                                });
-                    }).orElse(null);
+            authSupplierFn = Optional.ofNullable(proxyConfig.auth()).map(auth -> {
+                return switch (auth.scheme()) {
+                case SIMPLE -> {
+                    if (auth.value().size() < 1) {
+                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                    }
+                    final var simple = auth.value().get(0);
+                    yield (Supplier<String>) simple::toString;
+                }
+                case BASIC -> {
+                    if (auth.value().size() < 2) {
+                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                    }
+                    final var basic = new BasicAuth(auth.value().get(0), auth.value().get(1));
+                    yield (Supplier<String>) basic::value;
+                }
+                case BEARER -> {
+                    if (auth.value().size() < 1) {
+                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                    }
+                    final var bearer = new BearerToken(auth.value().get(0));
+                    yield (Supplier<String>) bearer::value;
+                }
+                case NONE -> (Supplier<String>) () -> null;
+                default -> null;
+                };
+            }).map(supplier -> (Function<Object[], Supplier<String>>) args -> supplier).orElse(null);
         }
-
 
         return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
                 defaultHeaders);

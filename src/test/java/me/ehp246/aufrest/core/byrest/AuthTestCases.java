@@ -16,7 +16,6 @@ interface AuthTestCases {
     interface Case001 {
         void get();
 
-        // AuthHeader overwrite
         void get(@AuthHeader String auth);
 
         void get(@AuthHeader Supplier<String> authSupplier);

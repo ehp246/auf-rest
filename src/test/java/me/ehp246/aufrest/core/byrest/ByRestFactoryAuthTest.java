@@ -39,13 +39,6 @@ class ByRestFactoryAuthTest {
     }
 
     @Test
-    void basic_001() {
-        factory.newInstance(AuthTestCases.Case002.class).get();
-
-        Assertions.assertEquals("Basic cG9zdG1hbjpwYXNzd29yZA==", reqRef.get().authSupplier().get());
-    }
-
-    @Test
     void basic_002() {
         factory.newInstance(AuthTestCases.Case005.class).get();
 

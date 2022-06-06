@@ -61,7 +61,7 @@ record ParsedMethodRequestBuilder(String method, String accept, String contentTy
         });
 
         final var headers = new HashMap<String, List<String>>(defaultHeaders);
-        final var authSupplier = authSupplierFn.apply(args);
+        final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(args);
 
         return new RestRequest() {
 
