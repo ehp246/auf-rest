@@ -8,7 +8,9 @@ import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 
 /**
  * Defines the configuration of a {@link ByRest} proxy. Mostly the Java object
- * equivalent of the annotation.
+ * equivalent of the annotation. *
+ * <p>
+ * Values should be fully resolved. No property placeholder is supported.
  * 
  * @author Lei Yang
  *

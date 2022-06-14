@@ -40,7 +40,7 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  * @author Lei Yang
  *
  */
-class ByRestFactoryTest {
+class ByRestProxyFactoryTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
     private final RestFn client = request -> {
@@ -52,7 +52,7 @@ class ByRestFactoryTest {
             .withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
             .withProperty("postman.username", "postman").withProperty("postman.password", "password");
 
-    private final ByRestFactory factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
     @BeforeEach
     void beforeEach() {
@@ -525,7 +525,7 @@ class ByRestFactoryTest {
     void exception_001() {
         final var checked = new IOException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
         }, s -> s).newInstance(ExceptionCase001.class);
 
@@ -538,7 +538,7 @@ class ByRestFactoryTest {
     void exception_002() {
         final var checked = new IOException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
         }, s -> s).newInstance(ExceptionCase001.class);
 
@@ -551,7 +551,7 @@ class ByRestFactoryTest {
     void exception_003() {
         final var checked = new InterruptedException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
         }, s -> s).newInstance(ExceptionCase001.class);
 
@@ -563,7 +563,7 @@ class ByRestFactoryTest {
     @Test
     void exception_004() {
         final var toBeThrown = new RuntimeException();
-        final var newInstance = new ByRestFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw toBeThrown;
         }, s -> s).newInstance(ExceptionCase001.class);
 
@@ -575,7 +575,7 @@ class ByRestFactoryTest {
     @Test
     void exception_005() {
         Assertions.assertThrows(Exception.class,
-                new ByRestFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
+                new ByRestProxyFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()))
                         .newInstance(ExceptionCase001.class)::post);
     }
 
@@ -584,7 +584,7 @@ class ByRestFactoryTest {
         final var nameHolder = new String[1];
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
-        final var newInstance = new ByRestFactory(cfg -> client, new RestClientConfig(),
+        final var newInstance = new ByRestProxyFactory(cfg -> client, new RestClientConfig(),
                 env::resolveRequiredPlaceholders, name -> {
                     nameHolder[0] = name;
                     return invocation -> {
@@ -610,7 +610,7 @@ class ByRestFactoryTest {
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
 
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
             nameHolder[0] = name;
             return invocation -> {
                 invocationHolder[0] = invocation;
@@ -628,7 +628,7 @@ class ByRestFactoryTest {
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
 
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
             nameHolder[0] = name;
             return invocation -> {
                 invocationHolder[0] = invocation;
@@ -646,7 +646,7 @@ class ByRestFactoryTest {
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
 
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
             nameHolder[0] = name;
             return invocation -> {
                 invocationHolder[0] = invocation;
@@ -664,7 +664,7 @@ class ByRestFactoryTest {
         final var invocationHolder = new Invocation[1];
         final var auth = UUID.randomUUID().toString();
 
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
             nameHolder[0] = name;
             return invocation -> {
                 invocationHolder[0] = invocation;
@@ -678,7 +678,7 @@ class ByRestFactoryTest {
 
     @Test
     void invocationAuth_06() {
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                 name -> invocation -> null).newInstance(InvocationAuthCase03.class).get();
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "should follow the interface");
@@ -686,7 +686,7 @@ class ByRestFactoryTest {
 
     @Test
     void invocationAuth_07() {
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                 name -> invocation -> null).newInstance(SimpleAuthCase01.class).get();
 
         Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
@@ -694,7 +694,7 @@ class ByRestFactoryTest {
 
     @Test
     void invocationAuth_08() {
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                 name -> invocation -> null).newInstance(SimpleAuthCase01.class).get();
 
         Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
@@ -703,27 +703,27 @@ class ByRestFactoryTest {
     @Test
     void invocationAuth_09() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                () -> new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                         name -> invocation -> null).newInstance(BeanAuthCase05.class));
     }
 
     @Test
     void invocationAuth_10() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                () -> new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                         name -> invocation -> null).newInstance(SimpleAuthCase02.class));
     }
 
     @Test
     void basicAuth_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                () -> new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                         name -> invocation -> null).newInstance(BasicAuthCase01.class));
     }
 
     @Test
     void basicAuth_02() {
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                 name -> invocation -> null).newInstance(BasicAuthCase02.class).get();
         
         Assertions.assertEquals("Basic dXNlcjpuYW1l", reqRef.get().authSupplier().get());
@@ -732,13 +732,13 @@ class ByRestFactoryTest {
     @Test
     void bearerAuth_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+                () -> new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                         name -> invocation -> null).newInstance(BearerAuthCase01.class));
     }
 
     @Test
     void bearerAuth_02() {
-        new ByRestFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
+        new ByRestProxyFactory(cfg -> client, new RestClientConfig(), env::resolveRequiredPlaceholders,
                 name -> invocation -> null).newInstance(BearerAuthCase02.class).get();
 
         Assertions.assertEquals("Bearer token", reqRef.get().authSupplier().get());

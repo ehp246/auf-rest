@@ -31,7 +31,7 @@ class ByRestFactoryAuthTest {
             .withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
             .withProperty("postman.username", "postman1").withProperty("postman.password", "password1");
 
-    private final ByRestFactory factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
     @BeforeEach
     void beforeEach() {
@@ -40,7 +40,7 @@ class ByRestFactoryAuthTest {
 
     @Test
     void default_001() {
-        final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
         factory.newInstance(AuthTestCases.Case001.class).get();
 
@@ -50,7 +50,7 @@ class ByRestFactoryAuthTest {
 
     @Test
     void default_002() {
-        final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
         factory.newInstance(AuthTestCases.Case001.class).get("");
 
@@ -59,7 +59,7 @@ class ByRestFactoryAuthTest {
 
     @Test
     void default_003() {
-        final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
         factory.newInstance(AuthTestCases.Case001.class).get(" ");
 
@@ -68,7 +68,7 @@ class ByRestFactoryAuthTest {
 
     @Test
     void default_004() {
-        final var factory = new ByRestFactory(cfg -> client, env::resolveRequiredPlaceholders);
+        final var factory = new ByRestProxyFactory(cfg -> client, env::resolveRequiredPlaceholders);
 
         factory.newInstance(AuthTestCases.Case001.class).get(null);
 

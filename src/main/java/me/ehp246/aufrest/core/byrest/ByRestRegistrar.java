@@ -61,7 +61,7 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
         final var beanDef = new GenericBeanDefinition();
         beanDef.setBeanClass(byRestInterface);
         beanDef.setConstructorArgumentValues(args);
-        beanDef.setFactoryBeanName(ByRestFactory.class.getName());
+        beanDef.setFactoryBeanName(ByRestProxyFactory.class.getName());
         beanDef.setFactoryMethodName("newInstance");
 
         return beanDef;
