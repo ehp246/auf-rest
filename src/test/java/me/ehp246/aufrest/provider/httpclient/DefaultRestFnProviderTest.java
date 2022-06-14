@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestToHttpFn;
 
 /**
  * @author Lei Yang
@@ -74,7 +74,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_001() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final RequestBuilder reqBuilder = req -> mockedReq;
+        final RestToHttpFn reqBuilder = req -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
 
@@ -109,7 +109,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_002() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final RequestBuilder reqBuilder = req -> mockedReq;
+        final RestToHttpFn reqBuilder = req -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
 
@@ -137,7 +137,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_003() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final RequestBuilder reqBuilder = req -> mockedReq;
+        final RestToHttpFn reqBuilder = req -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
 
@@ -165,7 +165,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_004() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final RequestBuilder reqBuilder = req -> mockedReq;
+        final RestToHttpFn reqBuilder = req -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
         final var orig = new IllegalArgumentException("This is a test");

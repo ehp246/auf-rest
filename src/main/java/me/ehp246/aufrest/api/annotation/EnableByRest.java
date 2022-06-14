@@ -12,6 +12,7 @@ import me.ehp246.aufrest.api.configuration.AufRestConfiguration;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
+import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
 
 /**
  * Enables AufRest's annotation-driven REST-proxing capability for client-side
@@ -25,7 +26,7 @@ import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-@Import({ ByRestRegistrar.class, AufRestConfiguration.class, ByRestProxyFactory.class })
+@Import({ ByRestRegistrar.class, AufRestConfiguration.class, ByRestProxyFactory.class, DefaultProxyMethodParser.class })
 public @interface EnableByRest {
     /**
      * Specifies the packages to scan for annotated

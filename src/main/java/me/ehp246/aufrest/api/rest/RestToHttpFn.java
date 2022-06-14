@@ -10,6 +10,6 @@ import java.net.http.HttpRequest;
  *
  */
 @FunctionalInterface
-public interface RequestBuilder {
+public interface RestToHttpFn {
     HttpRequest apply(RestRequest req);
 }

@@ -33,8 +33,8 @@ import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RequestBuilder;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestToHttpFn;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -42,7 +42,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public final class DefaultRequestBuilder implements RequestBuilder {
+public final class DefaultRequestBuilder implements RestToHttpFn {
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
     private final ToJson toJson;
     private final Optional<HeaderProvider> headerProvider;

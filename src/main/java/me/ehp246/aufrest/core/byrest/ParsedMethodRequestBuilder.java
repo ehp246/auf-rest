@@ -19,7 +19,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class ParsedMethodRequestBuilder {
+final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final String method;
     private final String accept;
     private final String contentType;
@@ -43,7 +43,8 @@ final class ParsedMethodRequestBuilder {
         this.defaultHeaders = defaultHeaders;
     }
 
-    public RestRequest apply(final Object[] args) {
+    @Override
+    public RestRequest apply(final Object target, final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
         this.pathMap.entrySet().stream().forEach(entry -> {
             final var arg = args[entry.getValue()];
