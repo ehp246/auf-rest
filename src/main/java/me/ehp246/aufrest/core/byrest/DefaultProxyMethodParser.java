@@ -56,7 +56,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ParsedMethodRequestBuilder parse(final Method method, final ByRestProxyConfig proxyConfig) {
+    public ParsedMethodRequestBuilder parse(final Method method, final ByRestProxyConfig byRestConfig) {
         final var reflected = new ReflectedProxyMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
@@ -67,7 +67,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
 
         final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
-                proxyConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
+                byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
         final Map<String, Integer> pathMap = new HashMap<>();
         final Map<Integer, String> queryMap = new HashMap<>();
@@ -82,14 +82,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         });
 
         // Set accept-encoding at a lower priority.
-        if (proxyConfig.acceptGZip()) {
+        if (byRestConfig.acceptGZip()) {
             defaultHeaders.put(HttpUtils.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
         }
 
         final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
-                .orElse(proxyConfig.accept());
+                .orElse(byRestConfig.accept());
+
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
-                .orElse(proxyConfig.contentType());
+                .or(() -> Optional.ofNullable(byRestConfig.contentType())).filter(OneUtil::hasValue)
+                .orElse(HttpUtils.APPLICATION_JSON);
 
         final var authHeaders = reflected.allParametersWith(AuthHeader.class);
         if (authHeaders.size() > 1) {
@@ -107,7 +109,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 authSupplierFn = args -> args[index] == null ? () -> null : args[index]::toString;
             }
         } else {
-            authSupplierFn = Optional.ofNullable(proxyConfig.auth()).map(auth -> {
+            authSupplierFn = Optional.ofNullable(byRestConfig.auth()).map(auth -> {
                 return switch (auth.scheme()) {
                 case SIMPLE -> {
                     if (auth.value().size() < 1) {

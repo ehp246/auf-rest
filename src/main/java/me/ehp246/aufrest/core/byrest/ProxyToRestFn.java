@@ -7,6 +7,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  *
  */
 @FunctionalInterface
-public interface ProxyToRestFn {
+interface ProxyToRestFn {
     RestRequest apply(Object target, Object[] args);
 }

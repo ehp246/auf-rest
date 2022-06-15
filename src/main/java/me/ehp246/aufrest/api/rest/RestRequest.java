@@ -85,7 +85,7 @@ public interface RestRequest {
     }
 
     /**
-     * The values do NOT need to be encoded. It will be taken care of by the HTTP
+     * The values should NOT be encoded. Encoding will be taken care of by the HTTP
      * client.
      */
     default Map<String, List<String>> queryParams() {

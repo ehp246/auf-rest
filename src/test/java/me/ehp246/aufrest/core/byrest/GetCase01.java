@@ -8,24 +8,15 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  *
  */
 @ByRest("${echo.base}/")
-interface GetCase001 {
+interface GetCase01 {
     /**
      * Should be getting from the type.
-     *
-     * @param str
-     * @return
      */
     @OfMapping("get")
     void get();
 
     /**
      * Should be getting from the method.
-     *
-     * @param param1
-     * @param value1
-     * @param param2
-     * @param value2
-     * @return
      */
     @OfMapping("get1")
     void get(String str);

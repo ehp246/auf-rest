@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  *
  */
 @ByRest("${echo.base}/get")
-interface RequestParamCase001 {
+interface RequestParamCase01 {
     @OfMapping(method = "GET")
     void queryByParams(@RequestParam("query1") String query1, @RequestParam("query2") String query2);
 

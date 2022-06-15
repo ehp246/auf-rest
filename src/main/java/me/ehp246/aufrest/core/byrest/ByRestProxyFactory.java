@@ -1,34 +1,68 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
+import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
+import me.ehp246.aufrest.api.rest.BasicAuth;
+import me.ehp246.aufrest.api.rest.BearerToken;
+import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
+import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.reflection.AnnotatedArgument;
 import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -148,9 +182,9 @@ public final class ByRestProxyFactory {
                         byRest.responseBodyHandler()));
     }
 
-    /*
     @SuppressWarnings("unchecked")
     private Function<ProxyInvocation, RestRequest> newRequestFn(final ByRestProxyConfig byRestConfig) {
+        final InvocationAuthProviderResolver methodAuthProviderMap = null;
         final var timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
                 .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
                         e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
@@ -195,6 +229,11 @@ public final class ByRestProxyFactory {
         return new Function<ProxyInvocation, RestRequest>() {
             @Override
             public RestRequest apply(ProxyInvocation invocation) {
+                final BodyHandlerResolver bodyHandlerResolver = null;
+                final Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
+                        RequestParam.class, RequestHeader.class, AuthHeader.class);
+                final Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
+
                 final var optionalOfMapping = invocation.findOnMethod(OfMapping.class);
 
                 final var pathParams = invocation.findArgumentOfAnnotation(PathVariable.class, PathVariable::value)
@@ -246,7 +285,8 @@ public final class ByRestProxyFactory {
 
                 // Set accept-encoding at a lower priority.
                 if (byRestConfig.acceptGZip()) {
-                    headers.put(HttpHeaders.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
+                    headers.put(org.springframework.http.HttpHeaders.ACCEPT_ENCODING.toLowerCase(Locale.US),
+                            List.of("gzip"));
                 }
 
                 // Collect headers from invocation arguments. Last step, highest priority.
@@ -302,6 +342,7 @@ public final class ByRestProxyFactory {
                                 .orElseGet(byRestConfig::contentType))
                         .filter(OneUtil::hasValue).orElse(HttpUtils.APPLICATION_JSON);
 
+                final BindingBodyHandlerProvider bindingBodyHandlerProvider = null;
                 @SuppressWarnings("rawtypes")
                 final var bodyHandler = Optional.ofNullable(invocation.findArgumentsOfType(BodyHandler.class))
                         .map(args -> args.size() == 0 ? null : args.get(0).argument()).map(v -> (BodyHandler) v)
@@ -340,5 +381,4 @@ public final class ByRestProxyFactory {
         }
         return types;
     }
-    */
 }
