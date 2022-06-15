@@ -312,7 +312,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.getBlank("1234");
 
-        Assertions.assertEquals("1234", reqRef.get().headers().get(""), "should take it as is");
+        Assertions.assertEquals("1234", reqRef.get().headers().get("").get(0), "should take it as is");
     }
 
     @Test
