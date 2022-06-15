@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -28,6 +29,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.reflection.ReflectedParameter;
 import me.ehp246.aufrest.core.reflection.ReflectedProxyMethod;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -70,20 +72,24 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
         final Map<String, Integer> pathMap = new HashMap<>();
-        final Map<Integer, String> queryMap = new HashMap<>();
-        final Map<String, List<String>> defaultHeaders = new HashMap<>();
-
         reflected.allParametersWith(PathVariable.class).forEach(p -> {
             pathMap.put(p.parameter().getAnnotation(PathVariable.class).value(), p.index());
         });
 
+        final Map<Integer, String> queryMap = new HashMap<>();
         reflected.allParametersWith(RequestParam.class).forEach(p -> {
             queryMap.put(p.index(), p.parameter().getAnnotation(RequestParam.class).value());
         });
 
+        // Application headers
+        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream()
+                .collect(Collectors.toMap(ReflectedParameter::index,
+                        p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
+        
         // Set accept-encoding at a lower priority.
+        final Map<String, List<String>> reservedHeaders = new HashMap<>();
         if (byRestConfig.acceptGZip()) {
-            defaultHeaders.put(HttpUtils.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
+            reservedHeaders.put(HttpUtils.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
         }
 
         final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
@@ -139,6 +145,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
 
         return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
-                defaultHeaders);
+                headerMap,
+                reservedHeaders);
     }
 }

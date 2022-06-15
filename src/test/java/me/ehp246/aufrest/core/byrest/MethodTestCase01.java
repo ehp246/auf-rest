@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  *
  */
 @ByRest("")
-interface MethodTestCase001 {
+interface MethodTestCase01 {
     void get();
 
     void getBySomething();

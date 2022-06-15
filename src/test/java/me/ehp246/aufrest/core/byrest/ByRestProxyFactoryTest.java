@@ -102,66 +102,66 @@ class ByRestProxyFactoryTest {
 
     @Test
     void method_04() {
-        factory.newInstance(MethodTestCase001.class).get();
+        factory.newInstance(MethodTestCase01.class).get();
 
         Assertions.assertEquals("GET", reqRef.get().method());
     }
 
     @Test
     void method_05() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase001.class)::query);
+        Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase01.class)::query);
     }
 
     @Test
     void method_06() {
-        factory.newInstance(MethodTestCase001.class).post();
+        factory.newInstance(MethodTestCase01.class).post();
 
         Assertions.assertEquals("POST", reqRef.get().method());
     }
 
     @Test
     void method_07() {
-        factory.newInstance(MethodTestCase001.class).delete();
+        factory.newInstance(MethodTestCase01.class).delete();
 
         Assertions.assertEquals(RequestMethod.DELETE.name(), reqRef.get().method());
     }
 
     @Test
     void method_08() {
-        factory.newInstance(MethodTestCase001.class).put();
+        factory.newInstance(MethodTestCase01.class).put();
 
         Assertions.assertEquals(RequestMethod.PUT.name(), reqRef.get().method());
     }
 
     @Test
     void method_09() {
-        factory.newInstance(MethodTestCase001.class).patch();
+        factory.newInstance(MethodTestCase01.class).patch();
 
         Assertions.assertEquals(RequestMethod.PATCH.name(), reqRef.get().method());
     }
 
     @Test
     void method_10() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase001.class)::query);
+        Assertions.assertThrows(Exception.class, factory.newInstance(MethodTestCase01.class)::query);
     }
 
     @Test
     void method_11() {
-        factory.newInstance(MethodTestCase001.class).create();
+        factory.newInstance(MethodTestCase01.class).create();
 
         Assertions.assertEquals("POST", reqRef.get().method());
     }
 
     @Test
     void method_12() {
-        factory.newInstance(MethodTestCase001.class).remove();
+        factory.newInstance(MethodTestCase01.class).remove();
 
         Assertions.assertEquals("DELETE", reqRef.get().method());
     }
 
     @Test
     void method_13() {
-        factory.newInstance(MethodTestCase001.class).getBySomething();
+        factory.newInstance(MethodTestCase01.class).getBySomething();
 
         Assertions.assertEquals("GET", reqRef.get().method());
     }
@@ -169,12 +169,12 @@ class ByRestProxyFactoryTest {
     @Test
     void method_14() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(MethodTestCase001.class).query(1));
+                () -> factory.newInstance(MethodTestCase01.class).query(1));
     }
 
     @Test
     void method_15() {
-        factory.newInstance(MethodTestCase001.class).postByName();
+        factory.newInstance(MethodTestCase01.class).postByName();
 
         Assertions.assertEquals("POST", reqRef.get().method());
     }
@@ -259,32 +259,36 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void acceptGzip_001() {
-        factory.newInstance(RequestHeaderTestCase001.class).get("1234");
+    void acceptGzip_01() {
+        factory.newInstance(HeaderTestCase01.class).get("1234");
 
         Assertions.assertTrue(reqRef.get().headers().get("accept-encoding").get(0).equalsIgnoreCase("gzip"),
                 "should have the value");
     }
 
     @Test
-    void acceptGzip_002() {
-        factory.newInstance(RequestHeaderTestCase001.AcceptGZipTestCase002.class).get();
+    void acceptGzip_02() {
+        factory.newInstance(HeaderTestCase01.AcceptGZipTestCase002.class).get();
 
         Assertions.assertTrue(reqRef.get().headers().get("accept-encoding") == null, "should have not the value");
     }
 
     @Test
-    void header_001() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_01() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+
         newInstance.get("1234");
 
         Assertions.assertEquals("1234", reqRef.get().headers().get("x-correl-id").get(0), "should have the value");
+    }
 
-        reqRef.set(null);
+    @Test
+    void header_02() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
-        newInstance.get("	");
+        newInstance.get("   ");
 
-        Assertions.assertEquals("	", reqRef.get().headers().get("x-correl-id").get(0));
+        Assertions.assertEquals("   ", reqRef.get().headers().get("x-correl-id").get(0));
 
         reqRef.set(null);
 
@@ -294,17 +298,26 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_002() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_03() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
-        newInstance.getBlank("1234");
+        newInstance.get((String) null);
 
-        Assertions.assertEquals(2, reqRef.get().headers().size());
+        Assertions.assertEquals(null, reqRef.get().headers().get("x-correl-id"));
     }
 
     @Test
-    void header_003() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_04() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+
+        newInstance.getBlank("1234");
+
+        Assertions.assertEquals("1234", reqRef.get().headers().get(""), "should take it as is");
+    }
+
+    @Test
+    void header_05() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         final var uuid = UUID.randomUUID();
 
@@ -315,20 +328,21 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_004() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_06() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.getRepeated("1", "2");
 
-        final var headers = reqRef.get().headers();
+        final var headers = reqRef.get().headers().get("x-correl-id");
 
-        Assertions.assertEquals(2, headers.size());
-        Assertions.assertEquals(2, headers.get("x-correl-id").size(), "should concate");
+        Assertions.assertEquals(2, headers.size(), "should concate");
+        Assertions.assertEquals("1", headers.get(0));
+        Assertions.assertEquals("2", headers.get(1));
     }
 
     @Test
-    void header_005() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_07() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.getMultiple("1", "2");
 
@@ -340,8 +354,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_006() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_08() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.get(List.of("CN", "EN", "   "));
 
@@ -354,8 +368,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_007() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_09() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.get(Map.of("CN", "EN", "   ", ""));
 
@@ -367,8 +381,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_008() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_10() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), "uuid");
 
@@ -380,8 +394,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_009() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_11() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.get(CollectionUtils
                 .toMultiValueMap(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid"))));
@@ -394,8 +408,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_010() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_12() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.getMapOfList(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid")));
 
@@ -407,8 +421,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_011() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_13() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.getListOfList(List.of(List.of("DE"), List.of("CN", "EN"), List.of("JP")));
 
@@ -419,8 +433,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_012() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_14() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         final var nullList = new ArrayList<String>();
         nullList.add("EN");
@@ -436,8 +450,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_013() {
-        final var newInstance = factory.newInstance(RequestHeaderTestCase001.class);
+    void header_15() {
+        final var newInstance = factory.newInstance(HeaderTestCase01.class);
 
         newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), null);
 

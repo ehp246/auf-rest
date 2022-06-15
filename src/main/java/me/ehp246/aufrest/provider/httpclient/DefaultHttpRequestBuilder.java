@@ -42,14 +42,14 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-public final class DefaultRequestBuilder implements RestToHttpFn {
+public final class DefaultHttpRequestBuilder implements RestToHttpFn {
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
     private final ToJson toJson;
     private final Optional<HeaderProvider> headerProvider;
     private final Optional<AuthProvider> authProvider;
     private final Duration responseTimeout;
 
-    public DefaultRequestBuilder(@Nullable final Supplier<HttpRequest.Builder> reqBuilderSupplier,
+    public DefaultHttpRequestBuilder(@Nullable final Supplier<HttpRequest.Builder> reqBuilderSupplier,
             @Nullable final HeaderProvider headerProvider, @Nullable final AuthProvider authProvider,
             final ToJson toJson, @Nullable final String requestTimeout) {
         super();

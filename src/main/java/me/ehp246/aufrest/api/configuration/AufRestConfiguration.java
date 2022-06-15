@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
-import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
+import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
@@ -66,7 +66,7 @@ public final class AufRestConfiguration {
     public RestToHttpFn requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
             @Autowired(required = false) final AuthProvider authProvider, final ToJson toJson,
             @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
-        return new DefaultRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, toJson, requestTimeout);
+        return new DefaultHttpRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, toJson, requestTimeout);
     }
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")

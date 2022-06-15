@@ -14,7 +14,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.mock.MockReq;
-import me.ehp246.aufrest.provider.httpclient.DefaultRequestBuilder;
+import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 
 /**
  * @author Lei Yang
@@ -29,8 +29,8 @@ class DefaultRequestBuilderHeaderTest {
         HeaderContext.clear();
     }
 
-    DefaultRequestBuilder builder(HeaderProvider provider) {
-        return new DefaultRequestBuilder(null, provider, null, null, null);
+    DefaultHttpRequestBuilder builder(HeaderProvider provider) {
+        return new DefaultHttpRequestBuilder(null, provider, null, null, null);
     }
 
     @Test

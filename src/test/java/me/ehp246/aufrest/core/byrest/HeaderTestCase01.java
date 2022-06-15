@@ -24,28 +24,18 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest("")
-interface RequestHeaderTestCase001 {
+interface HeaderTestCase01 {
     void get(@RequestHeader("x-correl-id") String correlId);
 
-    /**
-     * Should be ignored.
-     *
-     * @param correlId
-     */
     void getBlank(@RequestHeader("") String correlId);
 
     /**
      * Object::toString
-     *
-     * @param correlId
      */
     void get(@RequestHeader("x-uuid") UUID correlId);
 
     /**
      * Same Header repeated are concatenated
-     *
-     * @param correlId1
-     * @param correlId2
      */
     void getRepeated(@RequestHeader("x-correl-id") String correlId1, @RequestHeader("x-correl-id") String correlId2);
 

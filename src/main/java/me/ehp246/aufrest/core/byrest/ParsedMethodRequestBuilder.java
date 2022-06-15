@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -27,11 +29,13 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final Function<Object[], Supplier<String>> authSupplierFn;
     private final Map<String, Integer> pathMap;
     private final Map<Integer, String> queryMap;
-    private final Map<String, List<String>> defaultHeaders;
+    private final Map<Integer, String> headerMap;
+    private final Map<String, List<String>> reservedHeaders;
 
     public ParsedMethodRequestBuilder(String method, String accept, String contentType, UriComponentsBuilder uriBuilder,
             Function<Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap,
-            Map<Integer, String> queryMap, Map<String, List<String>> defaultHeaders) {
+            Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
+            Map<String, List<String>> reservedHeaders) {
         super();
         this.method = method;
         this.accept = accept;
@@ -40,7 +44,8 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
         this.authSupplierFn = authSupplierFn;
         this.pathMap = pathMap;
         this.queryMap = queryMap;
-        this.defaultHeaders = defaultHeaders;
+        this.headerMap = headerMap;
+        this.reservedHeaders = reservedHeaders;
     }
 
     @Override
@@ -81,7 +86,40 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
             }
         });
 
-        final var headers = new HashMap<String, List<String>>(defaultHeaders);
+        final var headers = new HashMap<String, List<String>>();
+        this.headerMap.entrySet().stream().forEach(new Consumer<Entry<Integer, String>>() {
+            @Override
+            public void accept(Entry<Integer, String> entry) {
+                final var arg = args[entry.getKey()];
+                newValue(entry.getValue(), arg);
+            }
+
+            private void newValue(final Object key, final Object newValue) {
+                if (newValue == null) {
+                    return;
+                }
+
+                if (newValue instanceof Iterable<?> iter) {
+                    iter.forEach(v -> newValue(key, v));
+                    return;
+                }
+
+                if (newValue instanceof Map<?, ?> map) {
+                    map.entrySet().forEach(entry -> {
+                        newValue(entry.getKey(), entry.getValue());
+                    });
+                    return;
+                }
+
+                getMapped(key).add(newValue.toString());
+            }
+
+            private List<String> getMapped(final Object key) {
+                return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
+            }
+        });
+        headers.putAll(reservedHeaders);
+
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(args);
 
         return new RestRequest() {
