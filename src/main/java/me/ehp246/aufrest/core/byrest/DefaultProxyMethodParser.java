@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -174,8 +175,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 };
             }).orElse(null);
         }
+        final var timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
+                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                .orElse(null);
 
         return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
-                headerMap, reservedHeaders);
+                headerMap, reservedHeaders, timeout);
     }
 }

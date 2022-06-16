@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,11 +32,12 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final Map<Integer, String> queryMap;
     private final Map<Integer, String> headerMap;
     private final Map<String, List<String>> reservedHeaders;
+    private final Duration timeout;
 
     public ParsedMethodRequestBuilder(String method, String accept, String contentType, UriComponentsBuilder uriBuilder,
             BiFunction<Object, Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap,
             Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
-            Map<String, List<String>> reservedHeaders) {
+            Map<String, List<String>> reservedHeaders, final Duration timeout) {
         super();
         this.method = method;
         this.accept = accept;
@@ -46,6 +48,7 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
         this.queryMap = queryMap;
         this.headerMap = headerMap;
         this.reservedHeaders = reservedHeaders;
+        this.timeout = timeout;
     }
 
     @Override
@@ -157,6 +160,11 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
             @Override
             public Supplier<String> authSupplier() {
                 return authSupplier;
+            }
+
+            @Override
+            public Duration timeout() {
+                return timeout;
             }
 
         };

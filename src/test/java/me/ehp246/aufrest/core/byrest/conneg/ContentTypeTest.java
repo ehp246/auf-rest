@@ -2,7 +2,6 @@ package me.ehp246.aufrest.core.byrest.conneg;
 
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
@@ -16,7 +15,6 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
-import me.ehp246.aufrest.core.byrest.ProxyMethodParser;
 
 /**
  * @author Lei Yang
@@ -30,12 +28,10 @@ class ContentTypeTest {
         return Mockito.mock(HttpResponse.class);
     };
     private final RestFnProvider restFnProvider = cfg -> restFn;
-    private final RestClientConfig clientConfig = new RestClientConfig(Duration.parse("PT123S"));
-    private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
-            name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
-
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, Object::toString,
-            parser);
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
+            Object::toString,
+            new DefaultProxyMethodParser(Object::toString, name -> null, name -> BodyHandlers.discarding(),
+                    binding -> BodyHandlers.discarding()));
 
     @BeforeEach
     void beforeEach() {
