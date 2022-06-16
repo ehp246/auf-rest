@@ -144,28 +144,29 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     if (auth.value().size() < 1) {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
-                    final var simple = auth.value().get(0);
+                    final var simple = propertyResolver.resolve(auth.value().get(0));
                     yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> simple::toString;
                 }
                 case BASIC -> {
                     if (auth.value().size() < 2) {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
-                    final var basic = new BasicAuth(auth.value().get(0), auth.value().get(1));
+                    final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
+                            propertyResolver.resolve(auth.value().get(1)));
                     yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> basic::value;
                 }
                 case BEARER -> {
                     if (auth.value().size() < 1) {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
-                    final var bearer = new BearerToken(auth.value().get(0));
+                    final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0)));
                     yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> bearer::value;
                 }
                 case BEAN -> {
                     if (auth.value().size() < 1) {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
-                    final var provider = methodAuthProviderMap.get(auth.value().get(0));
+                    final var provider = methodAuthProviderMap.get(propertyResolver.resolve(auth.value().get(0)));
                     yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> provider.get(null);
                 }
                 case NONE -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> null;

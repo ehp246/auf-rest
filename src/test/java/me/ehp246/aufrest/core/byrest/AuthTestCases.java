@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
 interface AuthTestCases {
     // Default scheme
     @ByRest("")
-    interface Case001 {
+    interface Case01 {
         void get();
 
         // AuthHeader overwrite
@@ -55,16 +55,19 @@ interface AuthTestCases {
     // Exception
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BASIC))
     interface Case007 {
+        void get();
     }
 
     // Exception
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEARER))
     interface Case008 {
+        void get();
     }
 
     // Exception
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE))
     interface Case009 {
+        void get();
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE))

@@ -609,7 +609,7 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_01() {
+    void authInvocation_01() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
@@ -632,7 +632,7 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_02() {
+    void authInvocation_02() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
@@ -647,7 +647,7 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_03() {
+    void authInvocation_03() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
@@ -663,7 +663,7 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_04() {
+    void authInvocation_04() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
@@ -679,7 +679,7 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_05() {
+    void authInvocation_05() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
@@ -695,7 +695,7 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void invocationAuth_06() {
+    void authInvocation_06() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
@@ -709,46 +709,161 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void simpleAuth_08() {
+    void authSimple_01() {
+        factory.newInstance(AuthTestCases.Case004.class).get();
+
+        Assertions.assertEquals("CustomKey custom.header.123", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authSimple_08() {
         factory.newInstance(SimpleAuthCase01.class).get();
 
         Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
     }
 
     @Test
-    void simpleAuth_10() {
+    void authSimple_10() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> factory.newInstance(SimpleAuthCase02.class).get());
     }
 
     @Test
-    void basicAuth_01() {
+    void authBasic_01() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(BasicAuthCase01.class).get());
     }
 
     @Test
-    void basicAuth_02() {
+    void authBasic_02() {
         factory.newInstance(BasicAuthCase02.class).get();
 
         Assertions.assertEquals("Basic dXNlcjpuYW1l", reqRef.get().authSupplier().get());
     }
 
     @Test
-    void bearerAuth_01() {
+    void authBasic_03() {
+        factory.newInstance(AuthTestCases.Case002.class).get();
+
+        Assertions.assertEquals("Basic cG9zdG1hbjpwYXNzd29yZA==", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authBearer_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> factory.newInstance(BearerAuthCase01.class).get());
     }
 
     @Test
-    void bearerAuth_02() {
+    void authBearer_02() {
         factory.newInstance(BearerAuthCase02.class).get();
 
         Assertions.assertEquals("Bearer token", reqRef.get().authSupplier().get());
     }
 
     @Test
-    void beanAuth_09() {
+    void authBearer_03() {
+        factory.newInstance(AuthTestCases.Case003.class).get();
+
+        Assertions.assertEquals("Bearer ec3fb099-7fa3-477b-82ce-05547babad95", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authBean_09() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(BeanAuthCase05.class).get());
     }
 
+    @Test
+    void defaultAuth_01() {
+        factory.newInstance(AuthTestCases.Case01.class).get();
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier(),
+                "Should have no supplier leaving it to the global provider");
+    }
+
+    @Test
+    void defaultAuth_02() {
+        factory.newInstance(AuthTestCases.Case01.class).get("");
+
+        Assertions.assertEquals("", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void defaultAuth_03() {
+        factory.newInstance(AuthTestCases.Case01.class).get(" ");
+
+        Assertions.assertEquals(" ", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_01() {
+        factory.newInstance(AuthTestCases.Case01.class).get(null);
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_02() {
+        factory.newInstance(AuthTestCases.Case003.class).get(null);
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_03() {
+        factory.newInstance(AuthTestCases.Case004.class).get("234");
+
+        Assertions.assertEquals("234", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_04() {
+        factory.newInstance(AuthTestCases.Case005.class).get("");
+
+        Assertions.assertEquals("", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_05() {
+        factory.newInstance(AuthTestCases.Case005.class).get("  ");
+
+        Assertions.assertEquals("  ", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_06() {
+        factory.newInstance(AuthTestCases.Case005.class).get(null);
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_07() {
+        factory.newInstance(AuthTestCases.Case010.class).get("null");
+
+        Assertions.assertEquals("null", reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authHeader_08() {
+        factory.newInstance(AuthTestCases.Case010.class).get(null);
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authNone_01() {
+        factory.newInstance(AuthTestCases.Case010.class).get();
+
+        Assertions.assertEquals(null, reqRef.get().authSupplier().get());
+    }
+
+    @Test
+    void authException_01() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> factory.newInstance(AuthTestCases.Case007.class).get());
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> factory.newInstance(AuthTestCases.Case008.class).get());
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> factory.newInstance(AuthTestCases.Case009.class).get());
+    }
 }
