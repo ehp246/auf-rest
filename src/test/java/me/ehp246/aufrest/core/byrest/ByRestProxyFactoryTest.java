@@ -21,13 +21,27 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.aufrest.mock.MockInvocationAuthProvider;
+import me.ehp246.aufrest.mock.MockInvocationAuthProviderResolver;
 
 /**
  * @author Lei Yang
@@ -48,6 +62,8 @@ class ByRestProxyFactoryTest {
     private final RestClientConfig clientConfig = new RestClientConfig(Duration.parse("PT123S"));
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(propertyResolver, name -> null,
             name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
+    private final BodyHandlerResolver bodyHandlerResolver = name -> BodyHandlers.discarding();
+    private final BindingBodyHandlerProvider bindingBodyHandlerProvider = binding -> BodyHandlers.discarding();
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver,
             parser);
@@ -589,25 +605,27 @@ class ByRestProxyFactoryTest {
     void exception_05() {
         Assertions.assertThrows(Exception.class,
                 new ByRestProxyFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()), clientConfig,
-                        propertyResolver, parser)
-                        .newInstance(ExceptionCase001.class)::post);
+                        propertyResolver, parser).newInstance(ExceptionCase001.class)::post);
     }
 
-    /*
     @Test
     void invocationAuth_01() {
-        final var nameHolder = new String[1];
-        final var invocationHolder = new Invocation[1];
-        final var auth = UUID.randomUUID().toString();
-        final var newInstance = new ByRestProxyFactory(restFnProvider, clientConfig,
-                propertyResolver, parser).newInstance(InvocationAuthCase01.class);
+        final var authResolver = new MockInvocationAuthProviderResolver(
+                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var newInstance = new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+                .newInstance(InvocationAuthCase01.class);
 
         newInstance.getOnInvocation();
 
-        // Auth supplier call is lazy.
-        Assertions.assertEquals(auth, reqRef.get().authSupplier().get());
-        Assertions.assertEquals("getOnInvocation", nameHolder[0]);
-        final var invocation = invocationHolder[0];
+        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get());
+        Assertions.assertEquals("getOnInvocation", authResolver.takeName());
+
+        final var invocation = authResolver.provider().takeInvocation();
+
         Assertions.assertEquals(InvocationAuthCase01.class, invocation.method().getDeclaringClass());
         Assertions.assertEquals(true, newInstance == invocation.target());
         Assertions.assertEquals(0, invocation.args().size());
@@ -615,150 +633,122 @@ class ByRestProxyFactoryTest {
 
     @Test
     void invocationAuth_02() {
-        final var nameHolder = new String[1];
-        final var invocationHolder = new Invocation[1];
-        final var auth = UUID.randomUUID().toString();
+        final var authResolver = new MockInvocationAuthProviderResolver(
+                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), propertyResolver, name -> {
-            nameHolder[0] = name;
-            return invocation -> {
-                invocationHolder[0] = invocation;
-                return auth;
-            };
-        }).newInstance(InvocationAuthCase01.class).get();
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+                .newInstance(InvocationAuthCase01.class).get();
 
         Assertions.assertEquals(null, reqRef.get().authSupplier(), "should follow the interface with no Auth");
-        Assertions.assertEquals(null, nameHolder[0], "should follow the interface with no Auth");
+        Assertions.assertEquals(0, authResolver.count(), "should follow the interface with no Auth");
     }
 
     @Test
     void invocationAuth_03() {
-        final var nameHolder = new String[1];
-        final var invocationHolder = new Invocation[1];
-        final var auth = UUID.randomUUID().toString();
+        final var authResolver = new MockInvocationAuthProviderResolver(
+                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
-            nameHolder[0] = name;
-            return invocation -> {
-                invocationHolder[0] = invocation;
-                return auth;
-            };
-        }).newInstance(InvocationAuthCase02.class).get();
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
 
-        Assertions.assertEquals(auth, reqRef.get().authSupplier().get(), "should follow the interface with Auth");
-        Assertions.assertEquals("getOnInterface", nameHolder[0], "should follow the interface with Auth");
+        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+                .newInstance(InvocationAuthCase02.class).get();
+
+        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
+                "should follow the interface with Auth");
+        Assertions.assertEquals("getOnInterface", authResolver.takeName(), "should follow the interface with Auth");
     }
 
     @Test
     void invocationAuth_04() {
-        final var nameHolder = new String[1];
-        final var invocationHolder = new Invocation[1];
-        final var auth = UUID.randomUUID().toString();
+        final var authResolver = new MockInvocationAuthProviderResolver(
+                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
-            nameHolder[0] = name;
-            return invocation -> {
-                invocationHolder[0] = invocation;
-                return auth;
-            };
-        }).newInstance(InvocationAuthCase02.class).getOnMethod();
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
 
-        Assertions.assertEquals(auth, reqRef.get().authSupplier().get(), "should follow the interface");
-        Assertions.assertEquals("getOnMethod", nameHolder[0], "should follow the method");
+        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+                .newInstance(InvocationAuthCase02.class).getOnMethod();
+
+        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
+                "should follow the interface");
+        Assertions.assertEquals("getOnMethod", authResolver.takeName(), "should follow the method");
     }
 
     @Test
     void invocationAuth_05() {
-        final var nameHolder = new String[1];
-        final var invocationHolder = new Invocation[1];
-        final var auth = UUID.randomUUID().toString();
+        final var authResolver = new MockInvocationAuthProviderResolver(
+                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
 
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders, name -> {
-            nameHolder[0] = name;
-            return invocation -> {
-                invocationHolder[0] = invocation;
-                return auth;
-            };
-        }).newInstance(InvocationAuthCase03.class).getOnMethod();
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
 
-        Assertions.assertEquals(auth, reqRef.get().authSupplier().get(), "should follow the method");
-        Assertions.assertEquals("getOnMethod", nameHolder[0]);
+        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+                .newInstance(InvocationAuthCase03.class).getOnMethod();
+
+        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
+                "should follow the method");
+        Assertions.assertEquals("getOnMethod", authResolver.takeName());
     }
 
     @Test
     void invocationAuth_06() {
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(InvocationAuthCase03.class).get();
+        final var authResolver = new MockInvocationAuthProviderResolver(
+                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+                .newInstance(InvocationAuthCase03.class).get();
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "should follow the interface");
     }
 
     @Test
-    void invocationAuth_07() {
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(SimpleAuthCase01.class).get();
+    void simpleAuth_08() {
+        factory.newInstance(SimpleAuthCase01.class).get();
 
         Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
     }
 
     @Test
-    void invocationAuth_08() {
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(SimpleAuthCase01.class).get();
-
-        Assertions.assertEquals("SIMPLE", reqRef.get().authSupplier().get(), "should follow the interface");
-    }
-
-    @Test
-    void invocationAuth_09() {
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(),
-                                env::resolveRequiredPlaceholders, name -> invocation -> null)
-                                        .newInstance(BeanAuthCase05.class));
-    }
-
-    @Test
-    void invocationAuth_10() {
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(),
-                                env::resolveRequiredPlaceholders, name -> invocation -> null)
-                                        .newInstance(SimpleAuthCase02.class));
+    void simpleAuth_10() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> factory.newInstance(SimpleAuthCase02.class).get());
     }
 
     @Test
     void basicAuth_01() {
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(),
-                                env::resolveRequiredPlaceholders, name -> invocation -> null)
-                                        .newInstance(BasicAuthCase01.class));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(BasicAuthCase01.class).get());
     }
 
     @Test
     void basicAuth_02() {
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(BasicAuthCase02.class).get();
+        factory.newInstance(BasicAuthCase02.class).get();
 
         Assertions.assertEquals("Basic dXNlcjpuYW1l", reqRef.get().authSupplier().get());
     }
 
     @Test
     void bearerAuth_01() {
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(),
-                                env::resolveRequiredPlaceholders, name -> invocation -> null)
-                                        .newInstance(BearerAuthCase01.class));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> factory.newInstance(BearerAuthCase01.class).get());
     }
 
     @Test
     void bearerAuth_02() {
-        new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env::resolveRequiredPlaceholders,
-                name -> invocation -> null).newInstance(BearerAuthCase02.class).get();
+        factory.newInstance(BearerAuthCase02.class).get();
 
         Assertions.assertEquals("Bearer token", reqRef.get().authSupplier().get());
     }
-    */
+
+    @Test
+    void beanAuth_09() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(BeanAuthCase05.class).get());
+    }
+
 }

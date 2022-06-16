@@ -4,13 +4,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
+import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
@@ -82,10 +84,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         });
 
         // Application headers
-        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream()
-                .collect(Collectors.toMap(ReflectedParameter::index,
-                        p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
-        
+        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream().collect(Collectors.toMap(
+                ReflectedParameter::index, p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
+
         // Set accept-encoding at a lower priority.
         final Map<String, List<String>> reservedHeaders = new HashMap<>();
         if (byRestConfig.acceptGZip()) {
@@ -105,15 +106,37 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
         }
 
-        final Function<Object[], Supplier<String>> authSupplierFn;
+        final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
         if (authHeaders.size() == 1) {
             final var param = authHeaders.get(0);
             final var index = param.index();
             if (Supplier.class.isAssignableFrom(param.parameter().getType())) {
-                authSupplierFn = args -> (Supplier<String>) (args[index]);
+                authSupplierFn = (target, args) -> (Supplier<String>) (args[index]);
             } else {
-                authSupplierFn = args -> args[index] == null ? () -> null : args[index]::toString;
+                authSupplierFn = (target, args) -> args[index] == null ? () -> null : args[index]::toString;
             }
+        } else if (optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue).isPresent()) {
+            final var provider = methodAuthProviderMap.get(optionalOfMapping.map(OfMapping::authProvider).get());
+            authSupplierFn = (target, args) -> () -> {
+                return provider.get(new Invocation() {
+                    private final List<?> list = args == null ? List.of() : Arrays.asList(args);
+
+                    @Override
+                    public Object target() {
+                        return target;
+                    }
+
+                    @Override
+                    public Method method() {
+                        return method;
+                    }
+
+                    @Override
+                    public List<?> args() {
+                        return list;
+                    }
+                });
+            };
         } else {
             authSupplierFn = Optional.ofNullable(byRestConfig.auth()).map(auth -> {
                 return switch (auth.scheme()) {
@@ -122,30 +145,36 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
                     final var simple = auth.value().get(0);
-                    yield (Supplier<String>) simple::toString;
+                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> simple::toString;
                 }
                 case BASIC -> {
                     if (auth.value().size() < 2) {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
                     final var basic = new BasicAuth(auth.value().get(0), auth.value().get(1));
-                    yield (Supplier<String>) basic::value;
+                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> basic::value;
                 }
                 case BEARER -> {
                     if (auth.value().size() < 1) {
                         throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                     }
                     final var bearer = new BearerToken(auth.value().get(0));
-                    yield (Supplier<String>) bearer::value;
+                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> bearer::value;
                 }
-                case NONE -> (Supplier<String>) () -> null;
-                default -> null;
+                case BEAN -> {
+                    if (auth.value().size() < 1) {
+                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                    }
+                    final var provider = methodAuthProviderMap.get(auth.value().get(0));
+                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> provider.get(null);
+                }
+                case NONE -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> null;
+                default -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> null;
                 };
-            }).map(supplier -> (Function<Object[], Supplier<String>>) args -> supplier).orElse(null);
+            }).orElse(null);
         }
 
         return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
-                headerMap,
-                reservedHeaders);
+                headerMap, reservedHeaders);
     }
 }

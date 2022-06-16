@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.web.util.UriComponentsBuilder;
@@ -26,14 +26,14 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final String accept;
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
-    private final Function<Object[], Supplier<String>> authSupplierFn;
+    private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
     private final Map<String, Integer> pathMap;
     private final Map<Integer, String> queryMap;
     private final Map<Integer, String> headerMap;
     private final Map<String, List<String>> reservedHeaders;
 
     public ParsedMethodRequestBuilder(String method, String accept, String contentType, UriComponentsBuilder uriBuilder,
-            Function<Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap,
+            BiFunction<Object, Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap,
             Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
             Map<String, List<String>> reservedHeaders) {
         super();
@@ -120,7 +120,7 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
         });
         headers.putAll(reservedHeaders);
 
-        final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(args);
+        final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
 
         return new RestRequest() {
 
