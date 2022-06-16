@@ -31,9 +31,9 @@ class TimeoutTest {
     private final PropertyResolver env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
             .withProperty("api.timeout.illegal", "5")::resolveRequiredPlaceholders;
     private final RestFnProvider restFnProvider = cfg -> restFn;
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
-            env, new DefaultProxyMethodParser(env, name -> null,
-                    name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding()));
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new RestClientConfig(), env,
+            new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
+                    binding -> BodyHandlers.discarding()));
 
     @Test
     void timeout_01() {
@@ -63,13 +63,12 @@ class TimeoutTest {
 
     @Test
     void timeout_05() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(TestCase005.class).get());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase05.class));
     }
 
     @Test
     void timeout_06() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase006.class));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(TestCase06.class));
     }
 
     @Test

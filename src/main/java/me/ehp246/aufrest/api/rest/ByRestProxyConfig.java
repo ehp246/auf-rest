@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.time.Duration;
 import java.util.List;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
@@ -15,9 +16,9 @@ import me.ehp246.aufrest.api.rest.ByRestProxyConfig.AuthConfig;
  * @author Lei Yang
  *
  */
-public record ByRestProxyConfig(String uri, AuthConfig auth, String timeout, String accept, String contentType,
+public record ByRestProxyConfig(String uri, AuthConfig auth, Duration timeout, String accept, String contentType,
         boolean acceptGZip, Class<?> errorType, String responseBodyHandler) {
-    public ByRestProxyConfig(String uri, String timeout, String accept, String contentType) {
+    public ByRestProxyConfig(String uri, Duration timeout, String accept, String contentType) {
         this(uri, new AuthConfig(), timeout, accept, contentType, true, Object.class, "");
     }
 

@@ -7,6 +7,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest(value = "", timeout = "${api.timeout.missing}")
-interface TestCase006 {
+interface TestCase06 {
 
 }

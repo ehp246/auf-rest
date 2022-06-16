@@ -172,6 +172,8 @@ public final class ByRestProxyFactory {
     public <T> T newInstance(final Class<T> byRestInterface) {
         final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
         final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
+                .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
                 .orElse(null);
 
         return this.newInstance(byRestInterface,
@@ -185,10 +187,7 @@ public final class ByRestProxyFactory {
     @SuppressWarnings("unchecked")
     private Function<ProxyInvocation, RestRequest> newRequestFn(final ByRestProxyConfig byRestConfig) {
         final InvocationAuthProviderResolver methodAuthProviderMap = null;
-        final var timeout = Optional.ofNullable(byRestConfig.timeout()).filter(OneUtil::hasValue)
-                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
-                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
-                .orElse(null);
+        final Duration timeout = null;
 
         final Optional<InvocationAuthProvider> byRestProxyAuthProvider = Optional.of(byRestConfig.auth()).map(auth -> {
             return switch (auth.scheme()) {
