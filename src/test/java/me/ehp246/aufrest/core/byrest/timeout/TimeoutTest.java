@@ -11,7 +11,6 @@ import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
-import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
@@ -30,8 +29,8 @@ class TimeoutTest {
     };
     private final PropertyResolver env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
             .withProperty("api.timeout.illegal", "5")::resolveRequiredPlaceholders;
-    private final RestFnProvider restFnProvider = cfg -> restFn;
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new RestClientConfig(), env,
+
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env,
             new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
                     binding -> BodyHandlers.discarding()));
 

@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.byrest.uri;
 
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -10,9 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
+import me.ehp246.aufrest.api.rest.RestClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
+import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
 
 /**
@@ -22,13 +26,16 @@ import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
 class UriTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final RestFn client = request -> {
+    private final RestFn restFn = request -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
+    private final PropertyResolver env = new MockEnvironment().withProperty("echo.base",
+            "http://localhost")::resolveRequiredPlaceholders;
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(clientCfg -> client,
-            new MockEnvironment().withProperty("echo.base", "http://localhost")::resolveRequiredPlaceholders);
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env,
+            new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
+                    binding -> BodyHandlers.discarding()));
 
     final TestCase001 case001 = factory.newInstance(TestCase001.class);
 
@@ -56,8 +63,7 @@ class UriTest {
          * Method-level annotation overwrites type-level. This behavior is different
          * from Spring's RequestMapping.
          */
-        Assertions.assertEquals("http://localhost/3/4", request.uri(),
-                "Should overwrite type-level annotation");
+        Assertions.assertEquals("http://localhost/3/4", request.uri(), "Should overwrite type-level annotation");
     }
 
     @Test
