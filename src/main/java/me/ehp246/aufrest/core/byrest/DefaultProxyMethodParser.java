@@ -49,7 +49,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final BodyHandlerResolver bodyHandlerResolver;
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
 
-    DefaultProxyMethodParser(final PropertyResolver propertyResolver,
+    public DefaultProxyMethodParser(final PropertyResolver propertyResolver,
             final InvocationAuthProviderResolver methodAuthProviderMap, final BodyHandlerResolver bodyHandlerResolver,
             final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;

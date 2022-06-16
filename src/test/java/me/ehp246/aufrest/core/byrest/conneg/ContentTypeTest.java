@@ -1,30 +1,41 @@
 package me.ehp246.aufrest.core.byrest.conneg;
 
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.env.MockEnvironment;
+import org.mockito.Mockito;
 
+import me.ehp246.aufrest.api.rest.RestClientConfig;
+import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
-import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
+import me.ehp246.aufrest.core.byrest.ProxyMethodParser;
 
 /**
  * @author Lei Yang
  *
  */
-@ExtendWith(MockitoExtension.class)
 class ContentTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> request -> {
+    private final RestFn restFn = request -> {
         reqRef.set(request);
-        return new MockHttpResponse<Object>();
-    }, new MockEnvironment()::resolveRequiredPlaceholders);
+        return Mockito.mock(HttpResponse.class);
+    };
+    private final RestFnProvider restFnProvider = cfg -> restFn;
+    private final RestClientConfig clientConfig = new RestClientConfig(Duration.parse("PT123S"));
+    private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
+            name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
+
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, Object::toString,
+            parser);
 
     @BeforeEach
     void beforeEach() {
