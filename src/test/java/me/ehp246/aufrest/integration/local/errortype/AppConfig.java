@@ -13,6 +13,6 @@ import me.ehp246.aufrest.mock.Jackson;
  */
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 @Import(Jackson.class)
-@EnableByRest(errorType = ErrorType.class)
+@EnableByRest()
 class AppConfig {
 }

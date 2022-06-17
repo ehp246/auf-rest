@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.configuration.AufRestConfiguration;
-import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
 import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
@@ -34,14 +33,4 @@ public @interface EnableByRest {
      * package of each class specified will be scanned.
      */
     Class<?>[] scan() default {};
-
-    /**
-     * Specifies the Java type to which the response body of an
-     * {@link ErrorResponseException} should be de-serialized to.
-     * <p>
-     * This is the global value that applies to all {@link ByRest} instances where
-     * the errorType is {@link Default}.
-     * 
-     */
-    Class<?> errorType() default Object.class;
 }

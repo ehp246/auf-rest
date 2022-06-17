@@ -88,7 +88,7 @@ public @interface ByRest {
      * The default value, {@link Default}, indicates to use the global errorType
      * specified by {@link EnableByRest}.
      */
-    Class<?> errorType() default Default.class;
+    Class<?> errorType() default Object.class;
 
     /**
      * Defines the Authorization type and value required by the endpoint.
