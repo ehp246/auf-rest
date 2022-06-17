@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +34,6 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
-import me.ehp246.aufrest.core.reflection.ProxyInvocation;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -88,15 +88,17 @@ public final class ByRestProxyFactory {
                         if (method.getName().equals("equals")) {
                             return proxy == args[0];
                         }
+                        final var returnType = method.getReturnType();
                         if (method.isDefault()) {
                             return MethodHandles.privateLookupIn(byRestInterface, MethodHandles.lookup())
                                     .findSpecial(byRestInterface, method.getName(),
-                                            MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+                                            MethodType.methodType(returnType, method.getParameterTypes()),
                                             byRestInterface)
                                     .bindTo(proxy).invokeWithArguments(args);
                         }
 
-                        final var req = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method, proxyConfig))
+                        final var req = parsedCache
+                                .computeIfAbsent(method, m -> methodParser.parse(method, proxyConfig))
                                 .apply(proxy, args);
                         final var outcome = RestFnOutcome.invoke(() -> {
                             ThreadContext.put(HttpUtils.REQUEST_ID, req.id());
@@ -107,13 +109,12 @@ public final class ByRestProxyFactory {
                             }
                         });
 
-                        // TODO: Remove
-                        final var invoked = new ProxyInvocation(byRestInterface, proxy, method, args);
-                        final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(invoked.getThrows());
+                        final var threws = List.of(method.getExceptionTypes());
+                        final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(threws);
 
                         // If the return type is HttpResponse, returns it as is without any processing
                         // regardless the status code.
-                        if (invoked.canReturn(HttpResponse.class)) {
+                        if (returnType.isAssignableFrom(HttpResponse.class)) {
                             return httpResponse;
                         }
 
@@ -130,7 +131,7 @@ public final class ByRestProxyFactory {
                         }
 
                         if (ex != null) {
-                            if (invoked.canThrow(ex.getClass())) {
+                            if (canThrow(threws, ex.getClass())) {
                                 throw ex;
                             }
 
@@ -138,11 +139,15 @@ public final class ByRestProxyFactory {
                         }
 
                         // Discard the response.
-                        if (!invoked.hasReturn()) {
+                        if (returnType == void.class && returnType == Void.class) {
                             return null;
                         }
 
                         return httpResponse.body();
+                    }
+
+                    private static boolean canThrow(List<Class<?>> threws, Class<?> type) {
+                        return threws.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
                     }
                 });
 

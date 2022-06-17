@@ -34,6 +34,7 @@ import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
@@ -205,13 +206,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         /*
          * Priority: BodyPublisher, @RequestBody, inferred
          */
-        final BiFunction<Object, Object[], Object> bodyFn = reflected.findArgumentsOfType(BodyPublisher.class).stream()
+        final var param = reflected.findArgumentsOfType(BodyPublisher.class).stream()
                 .findFirst().or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
-                .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst)
+                .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
+
+        final BiFunction<Object, Object[], Object> bodyFn = param
                 .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
+        final BodyAs bodyAs = param.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
 
         return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
-                headerMap, reservedHeaders, byRestConfig.timeout(), bodyHandlerFn, bodyFn, null);
+                headerMap, reservedHeaders, byRestConfig.timeout(), bodyHandlerFn, bodyFn, bodyAs);
     }
 
     private static BindingDescriptor bindingOf(final ReflectedMethod method, final ByRestProxyConfig byRestConfig) {
