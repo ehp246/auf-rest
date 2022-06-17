@@ -3,7 +3,9 @@ package me.ehp246.aufrest.core.byrest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -11,28 +13,33 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.Reifying;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
-import me.ehp246.aufrest.core.reflection.ReflectedProxyMethod;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -46,22 +53,22 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     private final PropertyResolver propertyResolver;
     private final InvocationAuthProviderResolver methodAuthProviderMap;
-    private final BodyHandlerResolver bodyHandlerResolver;
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
+    private final BodyHandlerResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver,
             final InvocationAuthProviderResolver methodAuthProviderMap, final BodyHandlerResolver bodyHandlerResolver,
             final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.methodAuthProviderMap = methodAuthProviderMap;
-        this.bodyHandlerResolver = bodyHandlerResolver;
         this.bindingBodyHandlerProvider = bindingBodyHandlerProvider;
+        this.bodyHandlerResolver = bodyHandlerResolver;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public ParsedMethodRequestBuilder parse(final Method method, final ByRestProxyConfig byRestConfig) {
-        final var reflected = new ReflectedProxyMethod(method);
+        final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
         final var verb = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue)
@@ -174,7 +181,59 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 };
             }).orElse(null);
         }
+
+        /**
+         * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig, default
+         * BindingBodyHandlerProvider
+         */
+        final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn = reflected
+                .findArgumentsOfType(BodyHandler.class).stream().findFirst()
+                .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
+                        args) -> (BodyHandler<?>) (args[p.index()]))
+                .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler)
+                        .filter(OneUtil::hasValue).map(bodyHandlerResolver::get)
+                        .map(handler -> (target, args) -> handler))
+                .or(() -> Optional.ofNullable(byRestConfig.responseBodyHandler())
+                        .map(handler -> (target, args) -> handler))
+                .orElseGet(() -> {
+                    final var bodyHandler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRestConfig));
+                    return (target, args) -> bodyHandler;
+                });
+
+        /*
+         * Priority: BodyPublisher, @RequestBody, inferred
+         */
+        final BiFunction<Object, Object[], Object> bodyFn = reflected
+                .findArgumentsOfType(BodyPublisher.class).stream().findFirst()
+                .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
+                .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst)
+                .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
+
         return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
-                headerMap, reservedHeaders, byRestConfig.timeout());
+                headerMap, reservedHeaders, byRestConfig.timeout(), bodyHandlerFn, bodyFn, null);
+    }
+
+    private static BindingDescriptor bindingOf(final ReflectedMethod method, final ByRestProxyConfig byRestConfig) {
+        final var returnTypes = returnTypes(Stream
+                .concat(Arrays.stream(new Class<?>[] { method.getReturnType() }),
+                        Arrays.stream(
+                                method.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
+                .collect(Collectors.toList()));
+
+        return new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
+                returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
+                method.getMethodDeclaredAnnotations());
+    }
+
+    private static List<Class<?>> returnTypes(final List<Class<?>> types) {
+        if (types.size() == 0) {
+            throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
+        }
+
+        final var head = types.get(0);
+        if (head.isAssignableFrom(HttpResponse.class) || head.isAssignableFrom(CompletableFuture.class)) {
+            return returnTypes(new ArrayList<>(types.subList(1, types.size())));
+        }
+        return types;
     }
 }

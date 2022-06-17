@@ -556,7 +556,8 @@ class ByRestProxyFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
-        }, clientConfig, propertyResolver, parser).newInstance(ExceptionCase001.class);
+        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
+                .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RestFnException.class, newInstance::get);
 
@@ -569,7 +570,8 @@ class ByRestProxyFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
-        }, clientConfig, propertyResolver, parser).newInstance(ExceptionCase001.class);
+        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
+                .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(IOException.class, newInstance::delete);
 
@@ -582,7 +584,8 @@ class ByRestProxyFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
-        }, clientConfig, propertyResolver, parser).newInstance(ExceptionCase001.class);
+        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
+                .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(InterruptedException.class, newInstance::delete);
 
@@ -594,7 +597,8 @@ class ByRestProxyFactoryTest {
         final var toBeThrown = new RuntimeException();
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw toBeThrown;
-        }, clientConfig, propertyResolver, parser).newInstance(ExceptionCase001.class);
+        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
+                .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
 
@@ -605,7 +609,8 @@ class ByRestProxyFactoryTest {
     void exception_05() {
         Assertions.assertThrows(Exception.class,
                 new ByRestProxyFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()), clientConfig,
-                        propertyResolver, parser).newInstance(ExceptionCase001.class)::post);
+                        propertyResolver, parser, name -> BodyHandlers.discarding())
+                                .newInstance(ExceptionCase001.class)::post);
     }
 
     @Test

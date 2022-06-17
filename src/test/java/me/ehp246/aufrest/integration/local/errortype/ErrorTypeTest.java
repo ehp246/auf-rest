@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.integration.local.errortype;
 
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.Map;
 
@@ -60,7 +61,8 @@ class ErrorTypeTest {
                 () -> restFactory
                         .newInstance(ErrorTypeCase.Case01.class,
                                 new ByRestProxyConfig("http://localhost:${local.server.port}/status-code/",
-                                        new AuthConfig(), null, null, null, true, Object.class, ""))
+                                        new AuthConfig(), null, null, null, true, Object.class,
+                                        BodyHandlers.discarding()))
                         .getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof Map);

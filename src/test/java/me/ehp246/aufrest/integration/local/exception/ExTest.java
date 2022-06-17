@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.integration.local.exception;
 
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -209,13 +210,11 @@ class ExTest {
     @Test
     void errorType_03() {
         final var now = Instant.now();
-        final var ex = Assertions.assertThrows(ErrorResponseException.class,
-                () -> restFactory
-                        .newInstance(ExCase.class,
-                                new ByRestProxyConfig("http://localhost:${local.server.port}/status-code/",
-                                        new AuthConfig(), null,
-                                        null, null, true, ErrorType.class, ""))
-                        .getBody(objectMapper.writeValueAsString(Map.of("now", now))));
+        final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> restFactory
+                .newInstance(ExCase.class,
+                        new ByRestProxyConfig("http://localhost:${local.server.port}/status-code/", new AuthConfig(),
+                                null, null, null, true, ErrorType.class, BodyHandlers.discarding()))
+                .getBody(objectMapper.writeValueAsString(Map.of("now", now))));
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof ErrorType);
 

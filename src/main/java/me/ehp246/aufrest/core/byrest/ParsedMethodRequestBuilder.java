@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -28,16 +30,21 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
     private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
+    private final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn;
     private final Map<String, Integer> pathMap;
     private final Map<Integer, String> queryMap;
     private final Map<Integer, String> headerMap;
     private final Map<String, List<String>> reservedHeaders;
     private final Duration timeout;
+    private final BiFunction<Object, Object[], Object> bodyFn;
+    private final BodyAs bodyAs;
 
     public ParsedMethodRequestBuilder(String method, String accept, String contentType, UriComponentsBuilder uriBuilder,
             BiFunction<Object, Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap,
             Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
-            Map<String, List<String>> reservedHeaders, final Duration timeout) {
+            Map<String, List<String>> reservedHeaders, final Duration timeout,
+            final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
+            final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
         super();
         this.method = method;
         this.accept = accept;
@@ -49,6 +56,9 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
         this.headerMap = headerMap;
         this.reservedHeaders = reservedHeaders;
         this.timeout = timeout;
+        this.bodyHandlerFn = bodyHandlerFn;
+        this.bodyFn = bodyFn;
+        this.bodyAs = bodyAs;
     }
 
     @Override
@@ -124,6 +134,8 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
         headers.putAll(reservedHeaders);
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
+        final var bodyHandler = bodyHandlerFn.apply(target, args);
+        final var body = bodyFn == null ? null : bodyFn.apply(target, args);
 
         return new RestRequest() {
 
@@ -167,6 +179,20 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
                 return timeout;
             }
 
+            @Override
+            public Object body() {
+                return body;
+            }
+
+            @Override
+            public BodyAs bodyAs() {
+                return bodyAs;
+            }
+
+            @Override
+            public BodyHandler<?> responseBodyHandler() {
+                return bodyHandler;
+            }
         };
     }
 }
