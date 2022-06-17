@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.enable.config04;
+package me.ehp246.aufrest.it.config04;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;

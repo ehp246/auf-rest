@@ -145,40 +145,43 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 });
             };
         } else {
-            authSupplierFn = Optional.ofNullable(byRestConfig.auth()).map(auth -> {
-                return switch (auth.scheme()) {
-                case SIMPLE -> {
-                    if (auth.value().size() < 1) {
-                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
-                    }
-                    final var simple = propertyResolver.resolve(auth.value().get(0));
-                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> simple::toString;
+            authSupplierFn = Optional.ofNullable(byRestConfig.auth()).map(auth -> switch (auth.scheme()) {
+            case SIMPLE -> {
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
-                case BASIC -> {
-                    if (auth.value().size() < 2) {
-                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
-                    }
-                    final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
-                            propertyResolver.resolve(auth.value().get(1)));
-                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> basic::value;
+                final var simple = propertyResolver.resolve(auth.value().get(0));
+                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> simple::toString;
+                yield fn;
+            }
+            case BASIC -> {
+                if (auth.value().size() < 2) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
-                case BEARER -> {
-                    if (auth.value().size() < 1) {
-                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
-                    }
-                    final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0)));
-                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> bearer::value;
+                final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
+                        propertyResolver.resolve(auth.value().get(1)));
+                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> basic::value;
+                yield fn;
+            }
+            case BEARER -> {
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
-                case BEAN -> {
-                    if (auth.value().size() < 1) {
-                        throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
-                    }
-                    final var provider = methodAuthProviderMap.get(propertyResolver.resolve(auth.value().get(0)));
-                    yield (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> provider.get(null);
+                final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0)));
+                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> bearer::value;
+                yield fn;
+            }
+            case BEAN -> {
+                if (auth.value().size() < 1) {
+                    throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
-                case NONE -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> null;
-                default -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> null;
-                };
+                final var provider = methodAuthProviderMap.get(propertyResolver.resolve(auth.value().get(0)));
+                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target,
+                        args) -> () -> provider.get(null);
+                yield fn;
+            }
+            case NONE -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> null;
+            default -> (BiFunction<Object, Object[], Supplier<String>>) ((target, args) -> null);
             }).orElse(null);
         }
 
@@ -190,9 +193,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
                         args) -> (BodyHandler<?>) (args[p.index()]))
-                .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler)
-                        .filter(OneUtil::hasValue).map(bodyHandlerResolver::get)
-                        .map(handler -> (target, args) -> handler))
+                .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler).filter(OneUtil::hasValue)
+                        .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .or(() -> Optional.ofNullable(byRestConfig.responseBodyHandler())
                         .map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
@@ -203,9 +205,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         /*
          * Priority: BodyPublisher, @RequestBody, inferred
          */
-        final BiFunction<Object, Object[], Object> bodyFn = reflected
-                .findArgumentsOfType(BodyPublisher.class).stream().findFirst()
-                .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
+        final BiFunction<Object, Object[], Object> bodyFn = reflected.findArgumentsOfType(BodyPublisher.class).stream()
+                .findFirst().or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst)
                 .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
 

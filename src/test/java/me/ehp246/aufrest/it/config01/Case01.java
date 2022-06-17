@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.enable.config01;
+package me.ehp246.aufrest.it.config01;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 
@@ -7,6 +7,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest("")
-public interface Case01 {
+interface Case01 {
 
 }

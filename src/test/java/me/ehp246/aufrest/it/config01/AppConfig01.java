@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.enable.config01;
+package me.ehp246.aufrest.it.config01;
 
 import org.springframework.context.annotation.Import;
 
@@ -11,6 +11,6 @@ import me.ehp246.aufrest.mock.Jackson;
  */
 @EnableByRest
 @Import(Jackson.class)
-public class AppConfig01 {
+class AppConfig01 {
 
 }

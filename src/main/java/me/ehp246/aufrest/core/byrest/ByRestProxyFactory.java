@@ -149,14 +149,17 @@ public final class ByRestProxyFactory {
     }
 
     public <T> T newInstance(final Class<T> byRestInterface) {
-        final var byRest = Optional.of(byRestInterface.getAnnotation(ByRest.class)).get();
+        final var byRest = byRestInterface.getAnnotation(ByRest.class);
         final var timeout = Optional.of(propertyResolver.resolve(byRest.timeout())).filter(OneUtil::hasValue)
                 .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
                         e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
                 .orElse(null);
 
+        /*
+         * Delayed URI resolution to accommodate ${local.server.port}.
+         */
         return this.newInstance(byRestInterface,
-                new ByRestProxyConfig(propertyResolver.resolve(byRest.value()),
+                new ByRestProxyConfig(byRest.value(),
                         new AuthConfig(Arrays.asList(byRest.auth().value()),
                                 AuthScheme.valueOf(byRest.auth().scheme().name())),
                         timeout, byRest.accept(), byRest.contentType(), byRest.acceptGZip(), byRest.errorType(),
