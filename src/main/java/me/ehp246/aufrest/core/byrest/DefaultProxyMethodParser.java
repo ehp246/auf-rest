@@ -68,7 +68,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ParsedMethodRequestBuilder parse(final Method method, final AnnotatedByRest byRestValues) {
+    public ReflectedMethodRequestBuilder parse(final Method method, final AnnotatedByRest byRestValues) {
         final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
@@ -210,13 +210,13 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         /*
          * Priority: BodyPublisher, @RequestBody, inferred
          */
-        final var param = reflected.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
+        final var bodyParam = reflected.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
                 .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
 
-        final BiFunction<Object, Object[], Object> bodyFn = param
+        final BiFunction<Object, Object[], Object> bodyFn = bodyParam
                 .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
-        final BodyAs bodyAs = param.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
+        final BodyAs bodyAs = bodyParam.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
 
         final var timeout = Optional.ofNullable(byRestValues.timeout()).filter(OneUtil::hasValue)
                 .map(propertyResolver::resolve)
@@ -224,8 +224,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
                 .orElse(null);
 
-        return new ParsedMethodRequestBuilder(verb, accept, byRestValues.acceptGZip(), contentType, uriBuilder,
-                authSupplierFn, pathMap, queryMap, headerMap, timeout, bodyHandlerFn, bodyFn, bodyAs);
+        return new ReflectedMethodRequestBuilder(verb, accept, byRestValues.acceptGZip(), contentType, timeout,
+                uriBuilder, pathMap, queryMap, headerMap, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
     }
 
     private static BindingDescriptor bindingOf(final ReflectedMethod method, final AnnotatedByRest byRestAnno) {

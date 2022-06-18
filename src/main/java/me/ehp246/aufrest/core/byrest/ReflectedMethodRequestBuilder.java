@@ -25,10 +25,10 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class ParsedMethodRequestBuilder implements ProxyToRestFn {
+final class ReflectedMethodRequestBuilder implements InvocationToRestFn {
     private final String method;
     private final String accept;
-    private final boolean acceptGZip;
+    private final String acceptEncoding;
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
     private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
@@ -40,15 +40,17 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final BodyAs bodyAs;
 
-    ParsedMethodRequestBuilder(String method, String accept, boolean acceptGZip, String contentType,
-            UriComponentsBuilder uriBuilder, BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
-            Map<String, Integer> pathMap, Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
-            final Duration timeout, final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
+    ReflectedMethodRequestBuilder(final String method, final String accept, final boolean acceptGZip,
+            final String contentType,
+            final Duration timeout,final UriComponentsBuilder uriBuilder,
+            final Map<String, Integer> pathMap,final Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
+            final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
+            final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
         super();
         this.method = method;
         this.accept = accept;
-        this.acceptGZip = acceptGZip;
+        this.acceptEncoding = acceptGZip ? "gzip" : null;
         this.contentType = contentType;
         this.uriBuilder = uriBuilder;
         this.authSupplierFn = authSupplierFn;
@@ -132,10 +134,9 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
             }
         });
 
-        final var acceptEncoding = acceptGZip ? "gzip" : null;
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
-        final var bodyHandler = bodyHandlerFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
+        final var bodyHandler = bodyHandlerFn.apply(target, args);
         final var id = UUID.randomUUID().toString();
 
         return new RestRequest() {
