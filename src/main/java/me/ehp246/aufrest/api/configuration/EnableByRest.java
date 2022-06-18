@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.annotation;
+package me.ehp246.aufrest.api.configuration;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import me.ehp246.aufrest.api.configuration.AufRestConfiguration;
+import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
 import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
@@ -25,7 +26,8 @@ import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-@Import({ ByRestRegistrar.class, AufRestConfiguration.class, ByRestProxyFactory.class, DefaultProxyMethodParser.class })
+@Import({ ByRestRegistrar.class, AufRestConfiguration.class, ByRestProxyFactory.class, DefaultProxyMethodParser.class,
+        ByRestProxyFactory.class })
 public @interface EnableByRest {
     /**
      * Specifies the packages to scan for annotated

@@ -52,13 +52,18 @@ public final class ByRestProxyFactory {
 
     @SuppressWarnings("unchecked")
     public <T> T newInstance(final Class<T> byRestInterface) {
-        final var byRest = byRestInterface.getAnnotation(ByRest.class);
-
         LOGGER.atDebug().log("Instantiating {}", byRestInterface::getCanonicalName);
+
+        final var byRest = byRestInterface.getAnnotation(ByRest.class);
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
                     private final RestFn httpFn = clientProvider.get(clientConfig);
+                    private final AnnotatedByRest byRestValues = new AnnotatedByRest(byRest.value(),
+                            new AuthConfig(Arrays.asList(byRest.auth().value()),
+                                    AuthScheme.valueOf(byRest.auth().scheme().name())),
+                            byRest.timeout(), byRest.accept(), byRest.contentType(), byRest.acceptGZip(),
+                            byRest.errorType(), byRest.responseBodyHandler());
 
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -81,12 +86,7 @@ public final class ByRestProxyFactory {
                         }
 
                         final var req = parsedCache
-                                .computeIfAbsent(method,
-                                        m -> methodParser.parse(method, new AnnotatedByRest(byRest.value(),
-                                                new AuthConfig(Arrays.asList(byRest.auth().value()),
-                                                        AuthScheme.valueOf(byRest.auth().scheme().name())),
-                                                byRest.timeout(), byRest.accept(), byRest.contentType(),
-                                                byRest.acceptGZip(), byRest.errorType(), byRest.responseBodyHandler())))
+                                .computeIfAbsent(method, m -> methodParser.parse(method, byRestValues))
                                 .apply(proxy, args);
                         final var outcome = RestFnOutcome.invoke(() -> {
                             ThreadContext.put(HttpUtils.REQUEST_ID, req.id());

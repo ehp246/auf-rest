@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.configuration;
+package me.ehp246.aufrest.core.byrest;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
+import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -32,11 +33,11 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * Registers infrastructure beans needed by the framework.
  *
  * <p>
- * Imported by {@link me.ehp246.aufrest.api.annotation.EnableByRest
+ * Imported by {@link me.ehp246.aufrest.api.configuration.EnableByRest
  * EnableByRest}.
  *
  * @author Lei Yang
- * @see me.ehp246.aufrest.api.annotation.EnableByRest
+ * @see me.ehp246.aufrest.api.configuration.EnableByRest
  * @since 1.0
  */
 @Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })

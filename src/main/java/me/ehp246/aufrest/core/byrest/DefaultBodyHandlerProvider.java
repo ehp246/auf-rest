@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.configuration;
+package me.ehp246.aufrest.core.byrest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
