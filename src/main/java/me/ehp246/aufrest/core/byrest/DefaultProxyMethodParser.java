@@ -73,8 +73,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
         final var verb = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue)
-                .or(() -> HttpUtils.METHOD_NAMES.stream()
-                        .filter(name -> method.getName().toUpperCase().startsWith(name)).findAny())
+                .or(HttpUtils.METHOD_NAMES.stream()
+                        .filter(name -> method.getName().toUpperCase().startsWith(name))::findAny)
                 .map(String::toUpperCase)
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
 
@@ -221,7 +221,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var timeout = Optional.ofNullable(byRestValues.timeout()).filter(OneUtil::hasValue)
                 .map(propertyResolver::resolve)
                 .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
-                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                        e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
                 .orElse(null);
 
         return new ReflectedMethodRequestBuilder(verb, accept, byRestValues.acceptGZip(), contentType, timeout,

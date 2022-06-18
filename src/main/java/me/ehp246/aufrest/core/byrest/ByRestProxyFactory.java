@@ -23,9 +23,9 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
-import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.HttpClientConfig;
+import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.HttpFnProvider;
 import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
 
 /**
@@ -38,11 +38,11 @@ public final class ByRestProxyFactory {
 
     private final Map<Method, InvocationToRestFn> parsedCache = new ConcurrentHashMap<>();
 
-    private final RestFnProvider clientProvider;
-    private final RestClientConfig clientConfig;
+    private final HttpFnProvider clientProvider;
+    private final HttpClientConfig clientConfig;
     private final ProxyMethodParser methodParser;
 
-    public ByRestProxyFactory(final RestFnProvider restFnProvider, final RestClientConfig clientConfig,
+    public ByRestProxyFactory(final HttpFnProvider restFnProvider, final HttpClientConfig clientConfig,
             final ProxyMethodParser methodParser) {
         super();
         this.clientProvider = restFnProvider;
@@ -58,7 +58,7 @@ public final class ByRestProxyFactory {
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
-                    private final RestFn httpFn = clientProvider.get(clientConfig);
+                    private final HttpFn httpFn = clientProvider.get(clientConfig);
                     private final AnnotatedByRest byRestValues = new AnnotatedByRest(byRest.value(),
                             new AuthConfig(Arrays.asList(byRest.auth().value()),
                                     AuthScheme.valueOf(byRest.auth().scheme().name())),

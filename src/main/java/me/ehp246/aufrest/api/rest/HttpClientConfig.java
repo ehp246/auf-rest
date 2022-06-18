@@ -7,8 +7,8 @@ import java.time.Duration;
  *
  * @author Lei Yang
  */
-public record RestClientConfig(Duration connectTimeout) {
-    public RestClientConfig() {
+public record HttpClientConfig(Duration connectTimeout) {
+    public HttpClientConfig() {
         this(null);
     }
 }

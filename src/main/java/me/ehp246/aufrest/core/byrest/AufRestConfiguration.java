@@ -15,18 +15,18 @@ import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
-import me.ehp246.aufrest.api.rest.RestClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
-import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.HttpClientConfig;
+import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.HttpFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.RestToHttpFn;
+import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
-import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
+import me.ehp246.aufrest.provider.httpclient.DefaultHttpFnProvider;
 import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
 /**
@@ -40,7 +40,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.configuration.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })
+@Import({ DefaultHttpFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })
 public final class AufRestConfiguration {
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER + ":false}") final boolean enabled,
@@ -49,9 +49,9 @@ public final class AufRestConfiguration {
     }
 
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
-    public RestClientConfig restClientConfig(
+    public HttpClientConfig restClientConfig(
             @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
-        return new RestClientConfig(
+        return new HttpClientConfig(
                 Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
                         .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
                                 e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
@@ -64,7 +64,7 @@ public final class AufRestConfiguration {
     }
 
     @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
-    public RestToHttpFn requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
+    public RestHttpRequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
             @Autowired(required = false) final AuthProvider authProvider, final ToJson toJson,
             @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
         return new DefaultHttpRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, toJson, requestTimeout);
@@ -76,7 +76,7 @@ public final class AufRestConfiguration {
     }
 
     @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")
-    public RestFn restFn(final RestFnProvider restFnProvider, final RestClientConfig clientConfig) {
+    public HttpFn restFn(final HttpFnProvider restFnProvider, final HttpClientConfig clientConfig) {
         return restFnProvider.get(clientConfig);
     }
 

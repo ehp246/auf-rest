@@ -19,7 +19,7 @@ import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestToHttpFn;
+import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
 import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.MockRequestBuilderSupplier;
@@ -50,7 +50,7 @@ class DefaultRequestBuilderTest {
         }
     };
 
-    private final RestToHttpFn defBuilder = new DefaultHttpRequestBuilder(null, null, null, null, null);
+    private final RestHttpRequestBuilder defBuilder = new DefaultHttpRequestBuilder(null, null, null, null, null);
 
     @BeforeEach
     void beforeEach() {

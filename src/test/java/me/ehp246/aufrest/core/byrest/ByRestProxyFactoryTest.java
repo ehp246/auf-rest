@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
-import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.api.rest.HttpClientConfig;
+import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.HttpFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
@@ -49,17 +49,17 @@ import me.ehp246.aufrest.mock.MockInvocationAuthProviderResolver;
  */
 class ByRestProxyFactoryTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final RestFn restFn = request -> {
+    private final HttpFn restFn = request -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
-    private final RestFnProvider restFnProvider = cfg -> restFn;
+    private final HttpFnProvider restFnProvider = cfg -> restFn;
     private final PropertyResolver propertyResolver = new MockEnvironment()
             .withProperty("echo.base", "https://postman-echo.com")
             .withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
             .withProperty("postman.username", "postman")
             .withProperty("postman.password", "password")::resolveRequiredPlaceholders;
-    private final RestClientConfig clientConfig = new RestClientConfig(Duration.parse("PT123S"));
+    private final HttpClientConfig clientConfig = new HttpClientConfig(Duration.parse("PT123S"));
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(propertyResolver, name -> null,
             name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
     private final BodyHandlerResolver bodyHandlerResolver = name -> BodyHandlers.discarding();
