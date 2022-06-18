@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
 
-import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -21,7 +21,7 @@ class RestFnTest {
     @LocalServerPort
     private int port;
     @Autowired
-    private HttpFn restFn;
+    private RestFn restFn;
 
     @Test
     void auth_001() {

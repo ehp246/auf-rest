@@ -9,8 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.HttpClientConfig;
-import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
@@ -21,11 +21,11 @@ import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
  */
 class ReturnTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final HttpFn restFn = request -> {
+    private final RestFn restFn = request -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new HttpClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
             new DefaultProxyMethodParser(Object::toString, name -> null, name -> BodyHandlers.discarding(),
                     binding -> BodyHandlers.discarding()));
 

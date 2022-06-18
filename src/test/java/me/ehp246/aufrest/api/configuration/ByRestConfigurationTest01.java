@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-import me.ehp246.aufrest.api.rest.HttpClientConfig;
+import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
 import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
@@ -51,7 +51,7 @@ class ByRestConfigurationTest01 {
 
     @Test
     void timeout_001() {
-        Assertions.assertEquals(null, beanFactory.getBean(HttpClientConfig.class).connectTimeout());
+        Assertions.assertEquals(null, beanFactory.getBean(ClientConfig.class).connectTimeout());
     }
 
     @Test

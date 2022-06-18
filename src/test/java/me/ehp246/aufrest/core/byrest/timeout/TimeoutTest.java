@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.HttpClientConfig;
-import me.ehp246.aufrest.api.rest.HttpFn;
+import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
@@ -23,14 +23,14 @@ import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
 class TimeoutTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final HttpFn restFn = request -> {
+    private final RestFn restFn = request -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
     private final PropertyResolver env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
             .withProperty("api.timeout.illegal", "5")::resolveRequiredPlaceholders;
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new HttpClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
             new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
                     binding -> BodyHandlers.discarding()));
 

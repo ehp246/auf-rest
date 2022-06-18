@@ -14,9 +14,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.HttpClientConfig;
-import me.ehp246.aufrest.api.rest.HttpFn;
-import me.ehp246.aufrest.api.rest.HttpFnProvider;
+import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
@@ -29,22 +29,22 @@ import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
  *
  * @author Lei Yang
  */
-public final class DefaultHttpFnProvider implements HttpFnProvider {
+public final class DefaultRestFnProvider implements RestFnProvider {
 
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
     private final RestHttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
 
-    public DefaultHttpFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
+    public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
         this(clientBuilderSupplier, req -> null, null);
     }
 
     @Autowired
-    public DefaultHttpFnProvider(final RestHttpRequestBuilder reqBuilder, final List<RestListener> listeners) {
+    public DefaultRestFnProvider(final RestHttpRequestBuilder reqBuilder, final List<RestListener> listeners) {
         this(HttpClient::newBuilder, reqBuilder, listeners);
     }
 
-    public DefaultHttpFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
+    public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
             final RestHttpRequestBuilder restToHttp, final List<RestListener> listeners) {
         this.clientBuilderSupplier = clientBuilderSupplier;
         this.reqBuilder = restToHttp;
@@ -53,14 +53,14 @@ public final class DefaultHttpFnProvider implements HttpFnProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public HttpFn get(final HttpClientConfig clientConfig) {
+    public RestFn get(final ClientConfig clientConfig) {
         final var clientBuilder = clientBuilderSupplier.get();
         if (clientConfig.connectTimeout() != null) {
             clientBuilder.connectTimeout(clientConfig.connectTimeout());
         }
 
-        return new HttpFn() {
-            private static final Logger LOGGER = LogManager.getLogger(HttpFn.class);
+        return new RestFn() {
+            private static final Logger LOGGER = LogManager.getLogger(RestFn.class);
 
             private final HttpClient client = clientBuilder.build();
 
