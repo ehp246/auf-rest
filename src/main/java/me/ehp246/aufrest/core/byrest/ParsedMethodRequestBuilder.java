@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -27,6 +28,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
 final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final String method;
     private final String accept;
+    private final boolean acceptGZip;
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
     private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
@@ -34,27 +36,25 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final Map<String, Integer> pathMap;
     private final Map<Integer, String> queryMap;
     private final Map<Integer, String> headerMap;
-    private final Map<String, List<String>> reservedHeaders;
     private final Duration timeout;
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final BodyAs bodyAs;
 
-    public ParsedMethodRequestBuilder(String method, String accept, String contentType, UriComponentsBuilder uriBuilder,
-            BiFunction<Object, Object[], Supplier<String>> authSupplierFn, Map<String, Integer> pathMap,
-            Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
-            Map<String, List<String>> reservedHeaders, final Duration timeout,
-            final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
+    public ParsedMethodRequestBuilder(String method, String accept, boolean acceptGZip, String contentType,
+            UriComponentsBuilder uriBuilder, BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
+            Map<String, Integer> pathMap, Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
+            final Duration timeout, final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
         super();
         this.method = method;
         this.accept = accept;
+        this.acceptGZip = acceptGZip;
         this.contentType = contentType;
         this.uriBuilder = uriBuilder;
         this.authSupplierFn = authSupplierFn;
         this.pathMap = pathMap;
         this.queryMap = queryMap;
         this.headerMap = headerMap;
-        this.reservedHeaders = reservedHeaders;
         this.timeout = timeout;
         this.bodyHandlerFn = bodyHandlerFn;
         this.bodyFn = bodyFn;
@@ -91,7 +91,7 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
                             o.add(p.get(0));
                             return o;
                         }));
-            } else {
+            } else if (arg != null) {
                 queryParams.merge(entry.getValue(), new ArrayList<>(Arrays.asList(OneUtil.toString(arg))), (o, p) -> {
                     o.add(p.get(0));
                     return o;
@@ -131,13 +131,19 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
                 return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
             }
         });
-        headers.putAll(reservedHeaders);
 
+        final var acceptEncoding = acceptGZip ? "gzip" : null;
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var bodyHandler = bodyHandlerFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
+        final var id = UUID.randomUUID().toString();
 
         return new RestRequest() {
+
+            @Override
+            public String id() {
+                return id;
+            }
 
             @Override
             public String method() {
@@ -167,6 +173,11 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
             @Override
             public String accept() {
                 return accept;
+            }
+
+            @Override
+            public String acceptEncoding() {
+                return acceptEncoding;
             }
 
             @Override

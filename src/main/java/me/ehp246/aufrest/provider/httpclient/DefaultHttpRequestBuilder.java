@@ -17,7 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,7 +66,9 @@ public final class DefaultHttpRequestBuilder implements RestToHttpFn {
     public HttpRequest apply(RestRequest req) {
         final var builder = reqBuilderSupplier.get();
         final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
-        // Provider headers, context headers, request headers in ascending priority.
+        /*
+         * Provider headers, context headers, request headers in ascending priority.
+         */
         Optional.ofNullable(Stream
                 .of(providedHeaders, HeaderContext.map(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
                 .map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
@@ -84,14 +85,21 @@ public final class DefaultHttpRequestBuilder implements RestToHttpFn {
         /**
          * Required headers. Null and blank not allowed.
          */
-        // Request id
-        builder.setHeader(HttpUtils.REQUEST_ID,
-                Optional.ofNullable(req.id()).orElseGet(() -> UUID.randomUUID().toString()));
+        /*
+         * Request id
+         */
+        Optional.ofNullable(req.id()).ifPresent(id -> builder.setHeader(HttpUtils.REQUEST_ID, id));
 
-        // Accept
+        /*
+         * accept, accept-encoding
+         */
         builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
+        Optional.ofNullable(req.acceptEncoding()).filter(OneUtil::hasValue)
+                .ifPresent(value -> builder.setHeader(HttpUtils.ACCEPT_ENCODING, value));
 
-        // Authentication in descending priority
+        /*
+         * Authentication in descending priority
+         */
         if (req.authSupplier() != null) {
             Optional.ofNullable(req.authSupplier().get()).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
@@ -107,11 +115,15 @@ public final class DefaultHttpRequestBuilder implements RestToHttpFn {
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
         }
 
-        // Timeout
+        /*
+         * Timeout
+         */
         Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout())
                 .ifPresent(timeout -> builder.timeout(timeout));
 
-        // URI
+        /*
+         * URI
+         */
         final URI uri;
         if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
             // Expecting this uri doesn't have query parameters on it.
@@ -124,7 +136,9 @@ public final class DefaultHttpRequestBuilder implements RestToHttpFn {
                     .toUriString());
         }
 
-        // Body
+        /*
+         * Body
+         */
         final var contentPublisher = getContentPublisher(req);
 
         builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType);

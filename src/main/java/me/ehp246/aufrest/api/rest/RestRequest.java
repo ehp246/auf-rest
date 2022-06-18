@@ -56,6 +56,10 @@ public interface RestRequest {
         return HttpUtils.APPLICATION_JSON;
     }
 
+    default String acceptEncoding() {
+        return null;
+    }
+
     /**
      * Defines the {@linkplain BodyHandler} that will be used to handle response for
      * the request.
@@ -80,6 +84,14 @@ public interface RestRequest {
         return () -> body().getClass();
     }
 
+    /**
+     * Defines application-custom headers.
+     * <p>
+     * The map should not include the reserved headers defined in
+     * {@linkplain HttpUtils#RESERVED_HEADERS}.
+     * <p>
+     * {@code null} accepted.
+     */
     default Map<String, List<String>> headers() {
         return null;
     }

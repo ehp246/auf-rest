@@ -91,15 +91,18 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             queryMap.put(p.index(), p.parameter().getAnnotation(RequestParam.class).value());
         });
 
-        // Application headers
-        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream().collect(Collectors.toMap(
-                ReflectedParameter::index, p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
-
-        // Set accept-encoding at a lower priority.
-        final Map<String, List<String>> reservedHeaders = new HashMap<>();
-        if (byRestConfig.acceptGZip()) {
-            reservedHeaders.put(HttpUtils.ACCEPT_ENCODING.toLowerCase(Locale.US), List.of("gzip"));
-        }
+        /*
+         * Parameter headers
+         */
+        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
+            final var name = p.parameter().getAnnotation(RequestHeader.class).value();
+            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
+                throw new IllegalArgumentException(
+                        "Un-supported header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
+            }
+            return p;
+        }).collect(Collectors.toMap(ReflectedParameter::index,
+                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
 
         final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
                 .orElse(byRestConfig.accept());
@@ -206,16 +209,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         /*
          * Priority: BodyPublisher, @RequestBody, inferred
          */
-        final var param = reflected.findArgumentsOfType(BodyPublisher.class).stream()
-                .findFirst().or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
+        final var param = reflected.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
+                .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
 
         final BiFunction<Object, Object[], Object> bodyFn = param
                 .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
         final BodyAs bodyAs = param.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
 
-        return new ParsedMethodRequestBuilder(verb, accept, contentType, uriBuilder, authSupplierFn, pathMap, queryMap,
-                headerMap, reservedHeaders, byRestConfig.timeout(), bodyHandlerFn, bodyFn, bodyAs);
+        return new ParsedMethodRequestBuilder(verb, accept, byRestConfig.acceptGZip(), contentType, uriBuilder,
+                authSupplierFn, pathMap, queryMap, headerMap, byRestConfig.timeout(), bodyHandlerFn, bodyFn, bodyAs);
     }
 
     private static BindingDescriptor bindingOf(final ReflectedMethod method, final ByRestProxyConfig byRestConfig) {

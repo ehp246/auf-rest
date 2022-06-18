@@ -278,15 +278,14 @@ class ByRestProxyFactoryTest {
     void acceptGzip_01() {
         factory.newInstance(HeaderTestCase01.class).get("1234");
 
-        Assertions.assertTrue(reqRef.get().headers().get("accept-encoding").get(0).equalsIgnoreCase("gzip"),
-                "should have the value");
+        Assertions.assertTrue(reqRef.get().acceptEncoding().equalsIgnoreCase("gzip"), "should have the value");
     }
 
     @Test
     void acceptGzip_02() {
         factory.newInstance(HeaderTestCase01.AcceptGZipTestCase002.class).get();
 
-        Assertions.assertTrue(reqRef.get().headers().get("accept-encoding") == null, "should have not the value");
+        Assertions.assertTrue(reqRef.get().acceptEncoding() == null, "should have not the value");
     }
 
     @Test
@@ -310,7 +309,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.get((String) null);
 
-        Assertions.assertEquals(1, reqRef.get().headers().size());
+        Assertions.assertEquals(0, reqRef.get().headers().size());
     }
 
     @Test
@@ -364,7 +363,7 @@ class ByRestProxyFactoryTest {
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(3, headers.size(), "should have both");
+        Assertions.assertEquals(2, headers.size(), "should have both");
         Assertions.assertEquals("1", headers.get("x-span-id").get(0));
         Assertions.assertEquals("2", headers.get("x-trace-id").get(0));
     }
@@ -391,7 +390,7 @@ class ByRestProxyFactoryTest {
 
         final var headers = reqRef.get().headers();
 
-        Assertions.assertEquals(3, headers.size(), "should have two headers");
+        Assertions.assertEquals(2, headers.size(), "should have two headers");
         Assertions.assertEquals(1, headers.get("CN").size());
         Assertions.assertEquals(1, headers.get("   ").size());
     }
