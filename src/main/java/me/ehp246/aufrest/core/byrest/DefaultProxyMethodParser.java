@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,7 +33,6 @@ import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
-import me.ehp246.aufrest.api.rest.ByRestProxyConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
@@ -68,7 +68,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ParsedMethodRequestBuilder parse(final Method method, final ByRestProxyConfig byRestConfig) {
+    public ParsedMethodRequestBuilder parse(final Method method, final AnnotatedByRest byRestValues) {
         final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
@@ -79,7 +79,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
 
         final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
-                byRestConfig.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
+                byRestValues.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
         final Map<String, Integer> pathMap = new HashMap<>();
         reflected.allParametersWith(PathVariable.class).forEach(p -> {
@@ -105,10 +105,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
 
         final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
-                .orElse(byRestConfig.accept());
+                .orElse(byRestValues.accept());
 
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
-                .or(() -> Optional.ofNullable(byRestConfig.contentType())).filter(OneUtil::hasValue)
+                .or(() -> Optional.ofNullable(byRestValues.contentType())).filter(OneUtil::hasValue)
                 .orElse(HttpUtils.APPLICATION_JSON);
 
         final var authHeaders = reflected.allParametersWith(AuthHeader.class);
@@ -149,7 +149,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 });
             };
         } else {
-            authSupplierFn = Optional.ofNullable(byRestConfig.auth()).map(auth -> switch (auth.scheme()) {
+            authSupplierFn = Optional.ofNullable(byRestValues.auth()).map(auth -> switch (auth.scheme()) {
             case SIMPLE -> {
                 if (auth.value().size() < 1) {
                     throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
@@ -199,10 +199,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         args) -> (BodyHandler<?>) (args[p.index()]))
                 .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
-                .or(() -> Optional.ofNullable(byRestConfig.responseBodyHandler())
+                .or(() -> Optional.ofNullable(byRestValues.responseBodyHandler())
+                        .filter(OneUtil::hasValue).map(bodyHandlerResolver::get)
                         .map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
-                    final var bodyHandler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRestConfig));
+                    final var bodyHandler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRestValues));
                     return (target, args) -> bodyHandler;
                 });
 
@@ -217,18 +218,24 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
         final BodyAs bodyAs = param.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
 
-        return new ParsedMethodRequestBuilder(verb, accept, byRestConfig.acceptGZip(), contentType, uriBuilder,
-                authSupplierFn, pathMap, queryMap, headerMap, byRestConfig.timeout(), bodyHandlerFn, bodyFn, bodyAs);
+        final var timeout = Optional.ofNullable(byRestValues.timeout()).filter(OneUtil::hasValue)
+                .map(propertyResolver::resolve)
+                .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid Timeout: " + text, e)))
+                .orElse(null);
+
+        return new ParsedMethodRequestBuilder(verb, accept, byRestValues.acceptGZip(), contentType, uriBuilder,
+                authSupplierFn, pathMap, queryMap, headerMap, timeout, bodyHandlerFn, bodyFn, bodyAs);
     }
 
-    private static BindingDescriptor bindingOf(final ReflectedMethod method, final ByRestProxyConfig byRestConfig) {
+    private static BindingDescriptor bindingOf(final ReflectedMethod method, final AnnotatedByRest byRestAnno) {
         final var returnTypes = returnTypes(Stream
                 .concat(Arrays.stream(new Class<?>[] { method.getReturnType() }),
                         Arrays.stream(
                                 method.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
                 .collect(Collectors.toList()));
 
-        return new BindingDescriptor(returnTypes.get(0), byRestConfig.errorType(),
+        return new BindingDescriptor(returnTypes.get(0), byRestAnno.errorType(),
                 returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
                 method.getMethodDeclaredAnnotations());
     }

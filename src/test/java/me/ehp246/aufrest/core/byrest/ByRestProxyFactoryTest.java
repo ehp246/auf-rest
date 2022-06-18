@@ -65,8 +65,7 @@ class ByRestProxyFactoryTest {
     private final BodyHandlerResolver bodyHandlerResolver = name -> BodyHandlers.discarding();
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider = binding -> BodyHandlers.discarding();
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver,
-            parser);
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, parser);
 
     @BeforeEach
     void beforeEach() {
@@ -555,8 +554,7 @@ class ByRestProxyFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
-        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
-                .newInstance(ExceptionCase001.class);
+        }, clientConfig, parser).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RestFnException.class, newInstance::get);
 
@@ -569,8 +567,7 @@ class ByRestProxyFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
-        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
-                .newInstance(ExceptionCase001.class);
+        }, clientConfig, parser).newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(IOException.class, newInstance::delete);
 
@@ -583,7 +580,7 @@ class ByRestProxyFactoryTest {
         final var restFnException = new RestFnException(checked);
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw restFnException;
-        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
+        }, clientConfig, parser)
                 .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(InterruptedException.class, newInstance::delete);
@@ -596,7 +593,7 @@ class ByRestProxyFactoryTest {
         final var toBeThrown = new RuntimeException();
         final var newInstance = new ByRestProxyFactory(config -> req -> {
             throw toBeThrown;
-        }, clientConfig, propertyResolver, parser, name -> BodyHandlers.discarding())
+        }, clientConfig, parser)
                 .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
@@ -608,7 +605,7 @@ class ByRestProxyFactoryTest {
     void exception_05() {
         Assertions.assertThrows(Exception.class,
                 new ByRestProxyFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()), clientConfig,
-                        propertyResolver, parser, name -> BodyHandlers.discarding())
+                        parser)
                                 .newInstance(ExceptionCase001.class)::post);
     }
 
@@ -620,7 +617,7 @@ class ByRestProxyFactoryTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        final var newInstance = new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+        final var newInstance = new ByRestProxyFactory(restFnProvider, clientConfig, parser)
                 .newInstance(InvocationAuthCase01.class);
 
         newInstance.getOnInvocation();
@@ -643,7 +640,7 @@ class ByRestProxyFactoryTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
                 .newInstance(InvocationAuthCase01.class).get();
 
         Assertions.assertEquals(null, reqRef.get().authSupplier(), "should follow the interface with no Auth");
@@ -658,7 +655,7 @@ class ByRestProxyFactoryTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
                 .newInstance(InvocationAuthCase02.class).get();
 
         Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
@@ -674,7 +671,7 @@ class ByRestProxyFactoryTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
                 .newInstance(InvocationAuthCase02.class).getOnMethod();
 
         Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
@@ -690,7 +687,7 @@ class ByRestProxyFactoryTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
                 .newInstance(InvocationAuthCase03.class).getOnMethod();
 
         Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
@@ -706,7 +703,7 @@ class ByRestProxyFactoryTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        new ByRestProxyFactory(restFnProvider, clientConfig, propertyResolver, parser)
+        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
                 .newInstance(InvocationAuthCase03.class).get();
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "should follow the interface");

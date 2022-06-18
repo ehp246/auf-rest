@@ -42,7 +42,7 @@ class BodyTest {
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
             bodyHandlerResolver, binding -> bindingBodyHandler);
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
-            Object::toString, parser);
+            parser);
 
     @BeforeEach
     void beforeEach() {
@@ -128,7 +128,7 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("named"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), Object::toString,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase01.class)
                                 .getOfMappingNamed();
@@ -141,7 +141,7 @@ class BodyTest {
         final var expected = Mockito.mock(BodyHandler.class);
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
 
-        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), Object::toString,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOnMethod(0, expected);
@@ -157,7 +157,7 @@ class BodyTest {
     void response_06() {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
 
-        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), Object::toString,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .get(null);
@@ -171,10 +171,8 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("interfaceNamed"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), Object::toString,
-                new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(BindingBodyHandlerProvider.class)),
-                namedResolver).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
+                Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
 
         Assertions.assertEquals(expected, reqRef.get().responseBodyHandler());
     }
@@ -185,7 +183,7 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("methodNamed"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFnProvider, new RestClientConfig(), Object::toString,
+        new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOfMappingNamed();

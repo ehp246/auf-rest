@@ -33,7 +33,7 @@ class UriTest {
     private final PropertyResolver env = new MockEnvironment().withProperty("echo.base",
             "http://localhost")::resolveRequiredPlaceholders;
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(), env,
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(),
             new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
                     binding -> BodyHandlers.discarding()));
 

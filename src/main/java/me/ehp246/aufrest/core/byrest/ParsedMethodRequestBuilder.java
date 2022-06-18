@@ -40,7 +40,7 @@ final class ParsedMethodRequestBuilder implements ProxyToRestFn {
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final BodyAs bodyAs;
 
-    public ParsedMethodRequestBuilder(String method, String accept, boolean acceptGZip, String contentType,
+    ParsedMethodRequestBuilder(String method, String accept, boolean acceptGZip, String contentType,
             UriComponentsBuilder uriBuilder, BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
             Map<String, Integer> pathMap, Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
             final Duration timeout, final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,

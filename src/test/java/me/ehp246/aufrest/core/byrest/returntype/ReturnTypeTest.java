@@ -26,8 +26,8 @@ class ReturnTypeTest {
         return Mockito.mock(HttpResponse.class);
     };
     private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new RestClientConfig(),
-            Object::toString, new DefaultProxyMethodParser(Object::toString, name -> null,
-                    name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding()));
+            new DefaultProxyMethodParser(Object::toString, name -> null, name -> BodyHandlers.discarding(),
+                    binding -> BodyHandlers.discarding()));
 
     @BeforeEach
     void beforeEach() {

@@ -29,7 +29,6 @@ class ContentTypeTest {
     };
     private final RestFnProvider restFnProvider = cfg -> restFn;
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new RestClientConfig(),
-            Object::toString,
             new DefaultProxyMethodParser(Object::toString, name -> null, name -> BodyHandlers.discarding(),
                     binding -> BodyHandlers.discarding()));
 
