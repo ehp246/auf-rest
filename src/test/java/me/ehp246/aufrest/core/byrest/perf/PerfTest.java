@@ -4,6 +4,7 @@ package me.ehp246.aufrest.core.byrest.perf;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import me.ehp246.aufrest.core.byrest.AnnotatedByRest;
@@ -18,6 +19,7 @@ import me.ehp246.test.TestUtil;
  *
  */
 @ExtendWith(TimingExtension.class)
+@EnabledIfEnvironmentVariable(named = "aufrest.perfTest", matches = "true")
 class PerfTest {
     private final int count = 1000_000;
     private final DefaultProxyMethodParser parser = new DefaultProxyMethodParser(p -> "http://localhost", name -> null,
