@@ -36,7 +36,7 @@ import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
 public final class ByRestProxyFactory {
     private final static Logger LOGGER = LogManager.getLogger(ByRestProxyFactory.class);
 
-    private final Map<Method, InvocationToRestFn> parsedCache = new ConcurrentHashMap<>();
+    private final Map<Method, InvocationRequestBuilder> parsedCache = new ConcurrentHashMap<>();
 
     private final RestFnProvider clientProvider;
     private final ClientConfig clientConfig;

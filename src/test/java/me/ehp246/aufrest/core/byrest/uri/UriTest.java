@@ -37,7 +37,7 @@ class UriTest {
             new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
                     binding -> BodyHandlers.discarding()));
 
-    final TestCase001 case001 = factory.newInstance(TestCase001.class);
+    private final TestCase001 case001 = factory.newInstance(TestCase001.class);
 
     @BeforeEach
     void beforeEach() {
@@ -50,6 +50,7 @@ class UriTest {
 
         final var request = reqRef.get();
 
+        Assertions.assertEquals(true, request.uri() == request.uri());
         Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
     }
 

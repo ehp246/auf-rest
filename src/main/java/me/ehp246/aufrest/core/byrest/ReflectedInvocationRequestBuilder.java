@@ -25,7 +25,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  *
  */
-final class ReflectedMethodRequestBuilder implements InvocationToRestFn {
+final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilder {
     private final String method;
     private final String accept;
     private final String acceptEncoding;
@@ -40,7 +40,7 @@ final class ReflectedMethodRequestBuilder implements InvocationToRestFn {
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final BodyAs bodyAs;
 
-    ReflectedMethodRequestBuilder(final String method, final String accept, final boolean acceptGZip,
+    ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
             final String contentType,
             final Duration timeout,final UriComponentsBuilder uriBuilder,
             final Map<String, Integer> pathMap,final Map<Integer, String> queryMap, final Map<Integer, String> headerMap,

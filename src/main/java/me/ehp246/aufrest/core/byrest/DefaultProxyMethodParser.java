@@ -8,10 +8,8 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -68,7 +66,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ReflectedMethodRequestBuilder parse(final Method method, final AnnotatedByRest byRestValues) {
+    public ReflectedInvocationRequestBuilder parse(final Method method, final AnnotatedByRest byRestValues) {
         final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
@@ -81,15 +79,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
                 byRestValues.uri() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
-        final Map<String, Integer> pathMap = new HashMap<>();
-        reflected.allParametersWith(PathVariable.class).forEach(p -> {
-            pathMap.put(p.parameter().getAnnotation(PathVariable.class).value(), p.index());
-        });
+        final var pathMap = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
+                .toMap(p -> p.parameter().getAnnotation(PathVariable.class).value(), ReflectedParameter::index));
 
-        final Map<Integer, String> queryMap = new HashMap<>();
-        reflected.allParametersWith(RequestParam.class).forEach(p -> {
-            queryMap.put(p.index(), p.parameter().getAnnotation(RequestParam.class).value());
-        });
+        final var queryMap = reflected.allParametersWith(RequestParam.class).stream()
+                .collect(Collectors.toMap(ReflectedParameter::index,
+                        p -> p.parameter().getAnnotation(RequestParam.class).value()));
 
         /*
          * Parameter headers
@@ -185,7 +180,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 yield fn;
             }
             case NONE -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> null;
-            default -> (BiFunction<Object, Object[], Supplier<String>>) ((target, args) -> null);
+            default -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> null;
             }).orElse(null);
         }
 
@@ -193,15 +188,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig, default
          * BindingBodyHandlerProvider
          */
-        final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn = reflected
+        final var bodyHandlerFn = reflected
                 .findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
                         args) -> (BodyHandler<?>) (args[p.index()]))
                 .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
-                .or(() -> Optional.ofNullable(byRestValues.responseBodyHandler())
-                        .filter(OneUtil::hasValue).map(bodyHandlerResolver::get)
-                        .map(handler -> (target, args) -> handler))
+                .or(() -> Optional.ofNullable(byRestValues.responseBodyHandler()).filter(OneUtil::hasValue)
+                        .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
                     final var bodyHandler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRestValues));
                     return (target, args) -> bodyHandler;
@@ -214,17 +208,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
 
-        final BiFunction<Object, Object[], Object> bodyFn = bodyParam
+        final var bodyFn = bodyParam
                 .map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()]).orElse(null);
-        final BodyAs bodyAs = bodyParam.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
+        final var bodyAs = bodyParam.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
 
         final var timeout = Optional.ofNullable(byRestValues.timeout()).filter(OneUtil::hasValue)
-                .map(propertyResolver::resolve)
-                .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
                         e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
                 .orElse(null);
 
-        return new ReflectedMethodRequestBuilder(verb, accept, byRestValues.acceptGZip(), contentType, timeout,
+        return new ReflectedInvocationRequestBuilder(verb, accept, byRestValues.acceptGZip(), contentType, timeout,
                 uriBuilder, pathMap, queryMap, headerMap, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
     }
 
