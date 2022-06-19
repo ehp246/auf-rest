@@ -6,6 +6,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-interface InvocationRequestBuilder {
+public interface InvocationRequestBuilder {
     RestRequest apply(Object target, Object[] args);
 }

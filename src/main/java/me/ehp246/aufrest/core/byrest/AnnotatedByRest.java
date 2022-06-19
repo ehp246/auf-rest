@@ -13,10 +13,10 @@ import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
  * 
  * @author Lei Yang
  */
-record AnnotatedByRest(String uri, AuthConfig auth, String timeout, String accept, String contentType,
+public record AnnotatedByRest(String uri, AuthConfig auth, String timeout, String accept, String contentType,
         boolean acceptGZip, Class<?> errorType, String responseBodyHandler) {
 
-    record AuthConfig(List<String> value, AuthScheme scheme) {
+    public record AuthConfig(List<String> value, AuthScheme scheme) {
         public AuthConfig() {
             this(List.of(), AuthScheme.DEFAULT);
         }
