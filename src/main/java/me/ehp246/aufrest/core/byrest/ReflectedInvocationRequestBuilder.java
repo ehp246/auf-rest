@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
@@ -41,10 +42,9 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final BodyAs bodyAs;
 
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
-            final String contentType,
-            final Duration timeout,final UriComponentsBuilder uriBuilder,
-            final Map<String, Integer> pathMap,final Map<Integer, String> queryMap, final Map<Integer, String> headerMap,
-            final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
+            final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
+            final Map<String, Integer> pathMap, final Map<Integer, String> queryMap,
+            final Map<Integer, String> headerMap, final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
         super();
@@ -66,9 +66,12 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     @Override
     public RestRequest apply(final Object target, final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
-        this.pathMap.entrySet().stream().forEach(entry -> {
+        this.pathMap.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
             if (arg instanceof Map<?, ?> map) {
+                pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
+                        e -> UriUtils.encode(e.getValue().toString(), StandardCharsets.UTF_8))));
+
                 map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(),
                         UriUtils.encode(e.getValue().toString(), StandardCharsets.UTF_8)));
             } else {
@@ -102,7 +105,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         });
 
         final var headers = new HashMap<String, List<String>>();
-        this.headerMap.entrySet().stream().forEach(new Consumer<Entry<Integer, String>>() {
+        this.headerMap.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
             @Override
             public void accept(Entry<Integer, String> entry) {
                 final var arg = args[entry.getKey()];
