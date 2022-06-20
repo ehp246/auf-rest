@@ -21,4 +21,7 @@ interface PerfTestCase01 {
     void get(@PathVariable("clockName") String clockName, @PathVariable("timeZone") String timeZone,
             @RequestParam("question-1") String query1, @RequestParam("question-2") String query2,
             @AuthHeader String auth, @RequestHeader Map<String, List<String>> headers, String payload);
+
+    @OfMapping("/${uri-context}/clock/clock-1/EST")
+    void get();
 }

@@ -31,13 +31,22 @@ class PerfTest {
                     .withProperty("uri-context", "api")::resolveRequiredPlaceholders, name -> null, name -> null,
                     binding -> null));
 
+
+    private final PerfTestCase01 proxy = factory.newInstance(PerfTestCase01.class);
+    
     @Test
     void perf_01() {
-        final var proxy = factory.newInstance(PerfTestCase01.class);
         final var headerMap = Map.of("header-1", List.of("value-1"));
 
         IntStream.range(0, count).forEach(i -> {
             proxy.get("clock-1", "EST", "asking-1", "asking-2", "auth token", headerMap, null);
+        });
+    }
+
+    @Test
+    void perf_02() {
+        IntStream.range(0, count).forEach(i -> {
+            proxy.get();
         });
     }
 }
