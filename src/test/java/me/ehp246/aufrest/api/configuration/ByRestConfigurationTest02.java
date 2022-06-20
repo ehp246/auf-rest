@@ -9,7 +9,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
 import me.ehp246.aufrest.mock.Jackson;
 
@@ -31,7 +31,7 @@ class ByRestConfigurationTest02 {
 
     @Test
     void timeout_002() {
-        Assertions.assertEquals("PT0.1S", beanFactory.getBean(RestHttpRequestBuilder.class).apply(new RestRequest() {
+        Assertions.assertEquals("PT0.1S", beanFactory.getBean(HttpRequestBuilder.class).apply(new RestRequest() {
 
             @Override
             public String uri() {

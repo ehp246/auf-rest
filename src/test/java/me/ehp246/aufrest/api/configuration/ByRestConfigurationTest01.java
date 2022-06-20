@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
 import me.ehp246.aufrest.mock.Jackson;
 
@@ -56,7 +56,7 @@ class ByRestConfigurationTest01 {
 
     @Test
     void timeout_002() {
-        Assertions.assertEquals(true, beanFactory.getBean(RestHttpRequestBuilder.class).apply(new RestRequest() {
+        Assertions.assertEquals(true, beanFactory.getBean(HttpRequestBuilder.class).apply(new RestRequest() {
 
             @Override
             public String uri() {

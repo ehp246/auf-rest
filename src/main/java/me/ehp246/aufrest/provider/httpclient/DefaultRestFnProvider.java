@@ -19,7 +19,7 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
@@ -32,7 +32,7 @@ import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
 public final class DefaultRestFnProvider implements RestFnProvider {
 
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
-    private final RestHttpRequestBuilder reqBuilder;
+    private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
@@ -40,12 +40,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     }
 
     @Autowired
-    public DefaultRestFnProvider(final RestHttpRequestBuilder reqBuilder, final List<RestListener> listeners) {
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final List<RestListener> listeners) {
         this(HttpClient::newBuilder, reqBuilder, listeners);
     }
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
-            final RestHttpRequestBuilder restToHttp, final List<RestListener> listeners) {
+            final HttpRequestBuilder restToHttp, final List<RestListener> listeners) {
         this.clientBuilderSupplier = clientBuilderSupplier;
         this.reqBuilder = restToHttp;
         this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
