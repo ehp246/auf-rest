@@ -13,7 +13,6 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.mock.MockHttpResponse;
-import me.ehp246.aufrest.mock.MockRestFnProvider;
 import me.ehp246.aufrest.provider.TimingExtension;
 
 /**
@@ -24,16 +23,16 @@ import me.ehp246.aufrest.provider.TimingExtension;
 @EnabledIfEnvironmentVariable(named = "aufrest.perfTest", matches = "true")
 class PerfTest {
     private final int count = 1_000_000;
-
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(new MockRestFnProvider(new MockHttpResponse<>()),
-            new ClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(clientConfig -> {
+        final var response = new MockHttpResponse<>();
+        return req -> response;
+    }, new ClientConfig(),
             new DefaultProxyMethodParser(new MockEnvironment().withProperty("uri", "http://localhost")
                     .withProperty("uri-context", "api")::resolveRequiredPlaceholders, name -> null, name -> null,
                     binding -> null));
 
-
     private final PerfTestCase01 proxy = factory.newInstance(PerfTestCase01.class);
-    
+
     @Test
     void perf_01() {
         final var headerMap = Map.of("header-1", List.of("value-1"));
