@@ -22,8 +22,8 @@ import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
@@ -100,7 +100,7 @@ public final class ByRestProxyFactory {
                         final var threws = List.of(method.getExceptionTypes());
                         final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(threws);
 
-                        // If the return type is HttpResponse, returns it as is without any processing
+                        // If the return type is HttpResponse, returns it as-is without any processing
                         // regardless the status code.
                         if (returnType.isAssignableFrom(HttpResponse.class)) {
                             return httpResponse;
@@ -126,7 +126,7 @@ public final class ByRestProxyFactory {
                             throw new UnhandledResponseException(ex);
                         }
 
-                        // Discard the response.
+                        // Discard the response which should be 2xx.
                         if (returnType == void.class && returnType == Void.class) {
                             return null;
                         }

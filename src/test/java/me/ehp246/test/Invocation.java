@@ -1,7 +1,6 @@
 package me.ehp246.test;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  * The abstraction of an invocation of a method.
@@ -26,5 +25,5 @@ public interface Invocation {
      * Arguments of the invocation.
      * 
      */
-    List<?> args();
+    Object[] args();
 }

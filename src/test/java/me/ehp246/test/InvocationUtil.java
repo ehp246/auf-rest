@@ -2,19 +2,16 @@ package me.ehp246.test;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.List;
 import java.util.function.Consumer;
-
-import org.assertj.core.util.Arrays;
 
 /**
  * @author Lei Yang
  *
  */
-public class TestUtil {
+public class InvocationUtil {
     @SuppressWarnings("unchecked")
     public static <T> T newProxy(final Class<T> t, final Consumer<Invocation> consumer) {
-        return (T) (Proxy.newProxyInstance(TestUtil.class.getClassLoader(), new Class[] { t },
+        return (T) (Proxy.newProxyInstance(InvocationUtil.class.getClassLoader(), new Class[] { t },
                 (proxy, method, args) -> {
                     consumer.accept(new Invocation() {
 
@@ -29,8 +26,8 @@ public class TestUtil {
                         }
 
                         @Override
-                        public List<?> args() {
-                            return args == null ? List.of() : Arrays.asList(args);
+                        public Object[] args() {
+                            return args;
                         }
                     });
                     return null;
@@ -40,7 +37,7 @@ public class TestUtil {
     @SuppressWarnings("unchecked")
     public static <T> InvocationCaptor<T> newCaptor(final Class<T> t) {
         final var captured = new Invocation[1];
-        final var proxy = (T) (Proxy.newProxyInstance(TestUtil.class.getClassLoader(), new Class[] { t },
+        final var proxy = (T) (Proxy.newProxyInstance(InvocationUtil.class.getClassLoader(), new Class[] { t },
                 (target, method, args) -> {
                     captured[0] = new Invocation() {
 
@@ -55,8 +52,8 @@ public class TestUtil {
                         }
 
                         @Override
-                        public List<?> args() {
-                            return args == null ? List.of() : Arrays.asList(args);
+                        public Object[] args() {
+                            return args;
                         }
                     };
                     return null;
@@ -96,8 +93,8 @@ public class TestUtil {
             }
 
             @Override
-            public List<?> args() {
-                return args == null ? List.of() : Arrays.asList(args);
+            public Object[] args() {
+                return args;
             }
         };
     }
