@@ -32,7 +32,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final String acceptEncoding;
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
-    private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
+    private final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
     private final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn;
     private final Map<String, Integer> pathMap;
     private final Map<Integer, String> queryMap;
@@ -44,7 +44,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
             final Map<String, Integer> pathMap, final Map<Integer, String> queryMap,
-            final Map<Integer, String> headerMap, final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
+            final Map<Integer, String> headerMap, final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
         super();
@@ -185,7 +185,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
 
             @Override
-            public Supplier<String> authSupplier() {
+            public Supplier<?> authSupplier() {
                 return authSupplier;
             }
 

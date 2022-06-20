@@ -112,7 +112,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
         }
 
-        final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
+        final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
         if (authHeaders.size() == 1) {
             final var param = authHeaders.get(0);
             final var index = param.index();
@@ -150,7 +150,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
                 final var simple = propertyResolver.resolve(auth.value().get(0));
-                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> simple::toString;
+                final var fn = (BiFunction<Object, Object[], Supplier<?>>) (target, args) -> simple::toString;
                 yield fn;
             }
             case BASIC -> {
@@ -159,7 +159,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 }
                 final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
                         propertyResolver.resolve(auth.value().get(1)));
-                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> basic::value;
+                final var fn = (BiFunction<Object, Object[], Supplier<?>>) (target, args) -> basic::value;
                 yield fn;
             }
             case BEARER -> {
@@ -167,7 +167,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
                 final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0)));
-                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> bearer::value;
+                final var fn = (BiFunction<Object, Object[], Supplier<?>>) (target, args) -> bearer::value;
                 yield fn;
             }
             case BEAN -> {
@@ -175,12 +175,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
                 }
                 final var provider = methodAuthProviderMap.get(propertyResolver.resolve(auth.value().get(0)));
-                final var fn = (BiFunction<Object, Object[], Supplier<String>>) (target,
+                final var fn = (BiFunction<Object, Object[], Supplier<?>>) (target,
                         args) -> () -> provider.get(null);
                 yield fn;
             }
-            case NONE -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> () -> null;
-            default -> (BiFunction<Object, Object[], Supplier<String>>) (target, args) -> null;
+            case NONE -> (BiFunction<Object, Object[], Supplier<?>>) (target, args) -> () -> null;
+            default -> (BiFunction<Object, Object[], Supplier<?>>) (target, args) -> null;
             }).orElse(null);
         }
 
