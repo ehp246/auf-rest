@@ -14,7 +14,7 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
  */
 interface ErrorTypeCase {
 
-    @ByRest("http://localhost:${local.server.port}/status-code/")
+    @ByRest(value = "http://localhost:${local.server.port}/status-code/")
     interface Case01 {
         @OfMapping("body")
         void getBody(@RequestParam("body") String body) throws ErrorResponseException;

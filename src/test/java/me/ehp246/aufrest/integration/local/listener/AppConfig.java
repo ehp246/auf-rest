@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
-import me.ehp246.aufrest.api.annotation.EnableByRest;
+import me.ehp246.aufrest.api.configuration.EnableByRest;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;

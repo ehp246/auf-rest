@@ -3,6 +3,9 @@ package me.ehp246.aufrest.core.byrest.requestbody;
 import java.io.InputStream;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse.BodyHandler;
+import java.time.Instant;
+
+import org.springframework.web.bind.annotation.RequestBody;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -19,14 +22,17 @@ interface BodyTestCases {
         void get(InputStream body);
 
         void get(int i, BodyPublisher publisher, InputStream stream);
+
+        void get(Instant now, int i);
+
+        void get(Instant now, @RequestBody String id);
+
+        void get(@RequestBody String id, Instant now, BodyPublisher body);
     }
 
     @ByRest("")
     interface ResponseCase01 {
         void getOnMethod(BodyHandler<?> handler);
-
-        @OfMapping("")
-        void getOfMapping(BodyHandler<?> handler);
 
         @OfMapping("")
         void getOfMapping();
@@ -40,7 +46,7 @@ interface BodyTestCases {
         void getOnMethod(int i, BodyHandler<?> handler);
 
         @OfMapping("")
-        void getOfMapping(BodyHandler<?> handler);
+        void get(BodyHandler<?> handler);
 
         @OfMapping("")
         void getOfMapping();

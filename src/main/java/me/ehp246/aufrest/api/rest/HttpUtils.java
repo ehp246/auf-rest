@@ -22,13 +22,15 @@ public final class HttpUtils {
     public final static String CONTENT_TYPE = "content-type";
     public final static String CONTENT_LENGTH = "content-length";
     public final static String ACCEPT = "accept";
+    public static final String ACCEPT_ENCODING = "accept-encoding";
     public static final String REQUEST_ID = "x-aufrest-request-id";
     public static final String TRACEPARENT = "traceparent";
 
     public final static String BEARER = "Bearer";
     public final static String BASIC = "Basic";
 
-    public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, REQUEST_ID);
+    public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, ACCEPT_ENCODING,
+            REQUEST_ID);
 
     // Media types
     public static final String APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";

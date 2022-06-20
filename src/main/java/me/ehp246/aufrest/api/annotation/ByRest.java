@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+import me.ehp246.aufrest.api.configuration.EnableByRest;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
@@ -83,12 +84,10 @@ public @interface ByRest {
 
     /**
      * Specifies the Java type to which the response body of an
-     * {@link ErrorResponseException} should be de-serialized to for the interface.
-     * <p>
-     * The default value, {@link Default}, indicates to use the global errorType
-     * specified by {@link EnableByRest}.
+     * {@link ErrorResponseException} should be de-serialized to for the proxy
+     * interface.
      */
-    Class<?> errorType() default Default.class;
+    Class<?> errorType() default Object.class;
 
     /**
      * Defines the Authorization type and value required by the endpoint.

@@ -5,9 +5,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 
-import me.ehp246.aufrest.api.annotation.EnableByRest;
+import me.ehp246.aufrest.api.configuration.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
@@ -21,6 +22,7 @@ import me.ehp246.aufrest.mock.Jackson;
 @SpringBootApplication
 @EnableByRest
 @Import(Jackson.class)
+@Lazy
 class AppConfig {
     final NullPointerException ex = new NullPointerException("What happened?");
 

@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import me.ehp246.aufrest.api.rest.RequestBuilder;
-import me.ehp246.aufrest.api.rest.RestClientConfig;
+import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
 import me.ehp246.aufrest.mock.Jackson;
 
 /**
@@ -25,12 +26,12 @@ class ByRestConfigurationTest02 {
 
     @Test
     void timeout_001() {
-        Assertions.assertEquals("PT0.01S", beanFactory.getBean(RestClientConfig.class).connectTimeout().toString());
+        Assertions.assertEquals("PT0.01S", beanFactory.getBean(ClientConfig.class).connectTimeout().toString());
     }
 
     @Test
     void timeout_002() {
-        Assertions.assertEquals("PT0.1S", beanFactory.getBean(RequestBuilder.class).apply(new RestRequest() {
+        Assertions.assertEquals("PT0.1S", beanFactory.getBean(HttpRequestBuilder.class).apply(new RestRequest() {
 
             @Override
             public String uri() {

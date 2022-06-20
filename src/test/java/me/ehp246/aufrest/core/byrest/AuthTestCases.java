@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.function.Supplier;
+
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
@@ -13,15 +15,17 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
 interface AuthTestCases {
     // Default scheme
     @ByRest("")
-    interface Case001 {
+    interface Case01 {
         void get();
 
         // AuthHeader overwrite
         void get(@AuthHeader String auth);
+
+        void get(@AuthHeader Supplier<Object> authSupplier);
     }
 
     @ByRest(value = "", auth = @Auth(value = { "postman", "password" }, scheme = AuthScheme.BASIC))
-    interface Case002 {
+    interface Case02 {
         void get();
 
         // AuthHeader overwrite
@@ -29,7 +33,7 @@ interface AuthTestCases {
     }
 
     @ByRest(value = "", auth = @Auth(value = "${api.bearer.token}"))
-    interface Case003 {
+    interface Case03 {
         void get();
 
         // AuthHeader overwrite
@@ -45,7 +49,7 @@ interface AuthTestCases {
     }
 
     @ByRest(value = "", auth = @Auth(value = { "${postman.username}", "${postman.password}" }, scheme = AuthScheme.BASIC))
-    interface Case005 {
+    interface Case05 {
         void get();
 
         // Overwriting annotation
@@ -54,21 +58,24 @@ interface AuthTestCases {
 
     // Exception
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BASIC))
-    interface Case007 {
+    interface Case07 {
+        void get();
     }
 
     // Exception
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEARER))
-    interface Case008 {
+    interface Case08 {
+        void get();
     }
 
     // Exception
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE))
-    interface Case009 {
+    interface Case09 {
+        void get();
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE))
-    interface Case010 {
+    interface Case10 {
         // AuthSupplier returns null.
         void get();
 
@@ -87,6 +94,8 @@ interface AuthTestCases {
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = "getOnInterface"))
     interface InvocationAuthCase02 {
         void get();
+
+        void getOnArgs(int keyId);
 
         @OfMapping(authProvider = "getOnMethod")
         void getOnMethod();

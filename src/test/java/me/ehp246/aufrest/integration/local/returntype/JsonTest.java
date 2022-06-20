@@ -217,13 +217,10 @@ class JsonTest {
     }
 
     @Test
-    void zip_001() {
-        final var person = case001.getZip(null);
-        Assertions.assertEquals(true, person.getDob() != null);
-    }
-
-    @Test
     void zip_002() {
-        Assertions.assertThrows(Exception.class, () -> case001.getZip("gzip"), "should not allow overwrite");
+        Assertions
+                .assertThrows(Exception.class, () -> case001.getZip("header not allowed"), "should not allow overwrite")
+                .printStackTrace();
+        ;
     }
 }
