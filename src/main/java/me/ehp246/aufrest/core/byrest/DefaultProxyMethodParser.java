@@ -34,7 +34,6 @@ import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
-import me.ehp246.aufrest.api.spi.Invocation;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
@@ -121,28 +120,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             } else {
                 authSupplierFn = (target, args) -> args[index] == null ? () -> null : args[index]::toString;
             }
-        } else if (optionalOfMapping.map(OfMapping::authProvider).filter(OneUtil::hasValue).isPresent()) {
-            final var provider = methodAuthProviderMap.get(optionalOfMapping.map(OfMapping::authProvider).get());
-            authSupplierFn = (target, args) -> () -> {
-                return provider.get(new Invocation() {
-                    private final List<?> list = args == null ? List.of() : Arrays.asList(args);
-
-                    @Override
-                    public Object target() {
-                        return target;
-                    }
-
-                    @Override
-                    public Method method() {
-                        return method;
-                    }
-
-                    @Override
-                    public List<?> args() {
-                        return list;
-                    }
-                });
-            };
         } else {
             authSupplierFn = Optional.ofNullable(byRestValues.auth()).map(auth -> switch (auth.scheme()) {
             case SIMPLE -> {

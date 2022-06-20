@@ -611,29 +611,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void authInvocation_01() {
-        final var authResolver = new MockInvocationAuthProviderResolver(
-                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
-
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
-                bindingBodyHandlerProvider);
-
-        final var newInstance = new ByRestProxyFactory(restFnProvider, clientConfig, parser)
-                .newInstance(InvocationAuthCase01.class);
-
-        newInstance.getOnInvocation();
-
-        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get());
-        Assertions.assertEquals("getOnInvocation", authResolver.takeName());
-
-        final var invocation = authResolver.provider().takeInvocation();
-
-        Assertions.assertEquals(InvocationAuthCase01.class, invocation.method().getDeclaringClass());
-        Assertions.assertEquals(true, newInstance == invocation.target());
-        Assertions.assertEquals(0, invocation.args().size());
-    }
-
-    @Test
     void authInvocation_02() {
         final var authResolver = new MockInvocationAuthProviderResolver(
                 new MockInvocationAuthProvider(UUID.randomUUID().toString()));
@@ -662,38 +639,6 @@ class ByRestProxyFactoryTest {
         Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
                 "should follow the interface with Auth");
         Assertions.assertEquals("getOnInterface", authResolver.takeName(), "should follow the interface with Auth");
-    }
-
-    @Test
-    void authInvocation_04() {
-        final var authResolver = new MockInvocationAuthProviderResolver(
-                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
-
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
-                bindingBodyHandlerProvider);
-
-        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
-                .newInstance(InvocationAuthCase02.class).getOnMethod();
-
-        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
-                "should follow the interface");
-        Assertions.assertEquals("getOnMethod", authResolver.takeName(), "should follow the method");
-    }
-
-    @Test
-    void authInvocation_05() {
-        final var authResolver = new MockInvocationAuthProviderResolver(
-                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
-
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
-                bindingBodyHandlerProvider);
-
-        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
-                .newInstance(InvocationAuthCase03.class).getOnMethod();
-
-        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
-                "should follow the method");
-        Assertions.assertEquals("getOnMethod", authResolver.takeName());
     }
 
     @Test

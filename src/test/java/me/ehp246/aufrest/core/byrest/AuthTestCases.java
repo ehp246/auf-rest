@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
-import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
@@ -86,9 +85,6 @@ interface AuthTestCases {
     @ByRest("")
     interface InvocationAuthCase01 {
         void get();
-
-        @OfMapping(authProvider = "getOnInvocation")
-        void getOnInvocation();
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = "getOnInterface"))
@@ -96,19 +92,12 @@ interface AuthTestCases {
         void get();
 
         void getOnArgs(int keyId);
-
-        @OfMapping(authProvider = "getOnMethod")
-        void getOnMethod();
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE, value = "getOnInterface"))
     interface InvocationAuthCase03 {
         // Should have no Auth
         void get();
-
-        // Should have Auth
-        @OfMapping(authProvider = "getOnMethod")
-        void getOnMethod();
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE, value = "SIMPLE"))

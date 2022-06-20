@@ -3,7 +3,6 @@ package me.ehp246.aufrest.integration.local.auth;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -88,43 +87,5 @@ class AuthTest {
     void method_auth_001() {
         // Should follow the interface
         factory.getBean(TestCases.MethodAuthCase001.class).get();
-    }
-
-    @Test
-    void method_auth_002() {
-        // Should use the pass through
-        final var ex = Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get("Basic nothing"));
-
-        Assertions.assertEquals(401, ex.statusCode());
-    }
-
-    @Test
-    void method_auth_003() {
-        // Should work now
-        factory.getBean(TestCases.MethodAuthCase001.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-    }
-
-    @Test
-    void method_auth_004() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get(null));
-    }
-
-    @Test
-    void method_auth_005() {
-        Assertions.assertThrows(NoSuchBeanDefinitionException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get004());
-    }
-
-    @Test
-    void method_auth_006() {
-        factory.getBean(TestCases.MethodAuthCase001.class).get005("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-    }
-
-    @Test
-    void method_auth_007() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get005(""));
     }
 }
