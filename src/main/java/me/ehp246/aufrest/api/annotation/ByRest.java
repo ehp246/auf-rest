@@ -84,10 +84,8 @@ public @interface ByRest {
 
     /**
      * Specifies the Java type to which the response body of an
-     * {@link ErrorResponseException} should be de-serialized to for the interface.
-     * <p>
-     * The default value, {@link Default}, indicates to use the global errorType
-     * specified by {@link EnableByRest}.
+     * {@link ErrorResponseException} should be de-serialized to for the proxy
+     * interface.
      */
     Class<?> errorType() default Object.class;
 
