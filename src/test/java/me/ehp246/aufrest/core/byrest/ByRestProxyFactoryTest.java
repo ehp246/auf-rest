@@ -744,7 +744,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authBasic_03() {
-        factory.newInstance(AuthTestCases.Case002.class).get();
+        factory.newInstance(AuthTestCases.Case02.class).get();
 
         Assertions.assertEquals("Basic cG9zdG1hbjpwYXNzd29yZA==", reqRef.get().authSupplier().get());
     }
@@ -764,7 +764,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authBearer_03() {
-        factory.newInstance(AuthTestCases.Case003.class).get();
+        factory.newInstance(AuthTestCases.Case03.class).get();
 
         Assertions.assertEquals("Bearer ec3fb099-7fa3-477b-82ce-05547babad95", reqRef.get().authSupplier().get());
     }
@@ -805,7 +805,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authHeader_02() {
-        factory.newInstance(AuthTestCases.Case003.class).get(null);
+        factory.newInstance(AuthTestCases.Case03.class).get(null);
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get());
     }
@@ -819,35 +819,35 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authHeader_04() {
-        factory.newInstance(AuthTestCases.Case005.class).get("");
+        factory.newInstance(AuthTestCases.Case05.class).get("");
 
         Assertions.assertEquals("", reqRef.get().authSupplier().get());
     }
 
     @Test
     void authHeader_05() {
-        factory.newInstance(AuthTestCases.Case005.class).get("  ");
+        factory.newInstance(AuthTestCases.Case05.class).get("  ");
 
         Assertions.assertEquals("  ", reqRef.get().authSupplier().get());
     }
 
     @Test
     void authHeader_06() {
-        factory.newInstance(AuthTestCases.Case005.class).get(null);
+        factory.newInstance(AuthTestCases.Case05.class).get(null);
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get());
     }
 
     @Test
     void authHeader_07() {
-        factory.newInstance(AuthTestCases.Case010.class).get("null");
+        factory.newInstance(AuthTestCases.Case10.class).get("null");
 
         Assertions.assertEquals("null", reqRef.get().authSupplier().get());
     }
 
     @Test
     void authHeader_08() {
-        factory.newInstance(AuthTestCases.Case010.class).get(null);
+        factory.newInstance(AuthTestCases.Case10.class).get(null);
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get());
     }
@@ -872,7 +872,7 @@ class ByRestProxyFactoryTest {
     
     @Test
     void authNone_01() {
-        factory.newInstance(AuthTestCases.Case010.class).get();
+        factory.newInstance(AuthTestCases.Case10.class).get();
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get());
     }
@@ -880,10 +880,10 @@ class ByRestProxyFactoryTest {
     @Test
     void authException_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(AuthTestCases.Case007.class).get());
+                () -> factory.newInstance(AuthTestCases.Case07.class).get());
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(AuthTestCases.Case008.class).get());
+                () -> factory.newInstance(AuthTestCases.Case08.class).get());
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(AuthTestCases.Case009.class).get());
+                () -> factory.newInstance(AuthTestCases.Case09.class).get());
     }
 }
