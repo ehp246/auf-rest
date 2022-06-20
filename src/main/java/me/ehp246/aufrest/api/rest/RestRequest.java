@@ -33,18 +33,23 @@ public interface RestRequest {
      * <p>
      * A non-<code>null</code> supplier indicates to the framework, it should use
      * the returned supplier for Authorization header ignoring the optional global
-     * {@link AuthProvider AuthorizationProvider} bean. The returned supplier can
-     * return <code>null</code>. In which case, Authorization header will not be
-     * set.
+     * {@link AuthProvider AuthorizationProvider} bean.
      * <p>
-     * If <code>null</code> is returned, i.e., there is no supplier, Authorization
-     * will be set by the global Authorization Provider if there is one.
+     * The returned object from the supplier is converted to {@linkplain String} via
+     * {@linkplain Object#toString()}.
+     * <p>
+     * The supplier can return <code>null</code>. In which case, Authorization
+     * header will not be set.
+     * <p>
+     * If the method returns <code>null</code>, i.e., there is no supplier,
+     * Authorization will be set by the global Authorization Provider if there is
+     * one.
      * <p>
      * 
      *
      * @return
      */
-    default Supplier<String> authSupplier() {
+    default Supplier<?> authSupplier() {
         return null;
     }
 

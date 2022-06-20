@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.util.function.Supplier;
+
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
@@ -18,6 +20,8 @@ interface AuthTestCases {
 
         // AuthHeader overwrite
         void get(@AuthHeader String auth);
+
+        void get(@AuthHeader Supplier<Object> authSupplier);
     }
 
     @ByRest(value = "", auth = @Auth(value = { "postman", "password" }, scheme = AuthScheme.BASIC))

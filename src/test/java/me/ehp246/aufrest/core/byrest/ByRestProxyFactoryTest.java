@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,8 +23,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -797,7 +798,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authHeader_01() {
-        factory.newInstance(AuthTestCases.Case01.class).get(null);
+        factory.newInstance(AuthTestCases.Case01.class).get((String) null);
 
         Assertions.assertEquals(null, reqRef.get().authSupplier().get());
     }
@@ -851,6 +852,24 @@ class ByRestProxyFactoryTest {
         Assertions.assertEquals(null, reqRef.get().authSupplier().get());
     }
 
+    @Test
+    void authSupplier_01() {
+        final Supplier<Object> expected = UUID::randomUUID;
+
+        factory.newInstance(AuthTestCases.Case01.class).get(expected);
+
+        Assertions.assertEquals(expected, reqRef.get().authSupplier());
+    }
+
+    @Test
+    void authSupplier_02() {
+        final Supplier<Object> expected = null;
+
+        factory.newInstance(AuthTestCases.Case01.class).get(expected);
+
+        Assertions.assertEquals(expected, reqRef.get().authSupplier());
+    }
+    
     @Test
     void authNone_01() {
         factory.newInstance(AuthTestCases.Case010.class).get();

@@ -32,8 +32,8 @@ import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestHttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -101,7 +101,7 @@ public final class DefaultHttpRequestBuilder implements RestHttpRequestBuilder {
          * Authentication in descending priority
          */
         if (req.authSupplier() != null) {
-            Optional.ofNullable(req.authSupplier().get()).filter(OneUtil::hasValue)
+            Optional.ofNullable(req.authSupplier().get()).map(Object::toString).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
         } else if (providedHeaders.get(HttpUtils.AUTHORIZATION) != null
                 && providedHeaders.get(HttpUtils.AUTHORIZATION).size() > 0) {
