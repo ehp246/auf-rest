@@ -3,6 +3,7 @@ package me.ehp246.aufrest.core.byrest;
 import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.annotation.AuthHeader;
+import me.ehp246.aufrest.api.annotation.AuthParam;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.rest.AuthScheme;
@@ -91,7 +92,8 @@ interface AuthTestCases {
     interface InvocationAuthCase02 {
         void get();
 
-        void getOnArgs(int keyId);
+        // TODO: What if not a BEAN auth?
+        void getOnArgs(@AuthParam String username, @AuthParam String password);
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE, value = "getOnInterface"))
