@@ -2,11 +2,12 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.util.function.Supplier;
 
+import me.ehp246.aufrest.api.annotation.AuthBeanParam;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
-import me.ehp246.aufrest.api.annotation.AuthParam;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.rest.AuthScheme;
+import me.ehp246.aufrest.api.rest.BasicAuth;
 
 /**
  * @author Lei Yang
@@ -88,15 +89,14 @@ interface AuthTestCases {
         void get();
     }
 
-    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = "getOnInterface"))
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = { "getOnInterface", "basic" }))
     interface InvocationAuthCase02 {
         void get();
 
-        // TODO: What if not a BEAN auth?
-        void getOnArgs(@AuthParam String username, @AuthParam String password);
+        void getOnArgs(@AuthBeanParam String username, @AuthBeanParam String password);
     }
 
-    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE, value = "getOnInterface"))
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE))
     interface InvocationAuthCase03 {
         // Should have no Auth
         void get();
@@ -135,5 +135,20 @@ interface AuthTestCases {
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEARER, value = "token"))
     interface BearerAuthCase02 {
         void get();
+    }
+
+    class MockAuthBean {
+        private int count = 0;
+
+        public String basic(String username, String password) {
+            count++;
+            return new BasicAuth(username, password).value();
+        }
+
+        int takeCount() {
+            final var now = count;
+            count = 0;
+            return now;
+        }
     }
 }

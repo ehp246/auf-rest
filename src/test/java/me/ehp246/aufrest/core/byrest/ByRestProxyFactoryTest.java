@@ -36,7 +36,6 @@ import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
@@ -623,22 +622,6 @@ class ByRestProxyFactoryTest {
 
         Assertions.assertEquals(null, reqRef.get().authSupplier(), "should follow the interface with no Auth");
         Assertions.assertEquals(0, authResolver.count(), "should follow the interface with no Auth");
-    }
-
-    @Test
-    void authInvocation_03() {
-        final var authResolver = new MockInvocationAuthProviderResolver(
-                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
-
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
-                bindingBodyHandlerProvider);
-
-        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
-                .newInstance(InvocationAuthCase02.class).get();
-
-        Assertions.assertEquals(authResolver.provider().header(), reqRef.get().authSupplier().get(),
-                "should follow the interface with Auth");
-        Assertions.assertEquals("getOnInterface", authResolver.takeName(), "should follow the interface with Auth");
     }
 
     @Test

@@ -13,13 +13,12 @@ import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.HeaderProvider;
-import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
@@ -72,7 +71,7 @@ public final class AufRestConfiguration {
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
     public InvocationAuthProviderResolver methodAuthProviderMap(final BeanFactory env) {
-        return name -> env.getBean(name, InvocationAuthProvider.class);
+        return name -> env.getBean(name);
     }
 
     @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")
