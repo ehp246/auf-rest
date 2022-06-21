@@ -35,9 +35,9 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
-import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
@@ -55,12 +55,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
 
     private final PropertyResolver propertyResolver;
-    private final InvocationAuthProviderResolver methodAuthProviderMap;
+    private final AuthBeanResolver methodAuthProviderMap;
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver,
-            final InvocationAuthProviderResolver methodAuthProviderMap, final BodyHandlerResolver bodyHandlerResolver,
+            final AuthBeanResolver methodAuthProviderMap, final BodyHandlerResolver bodyHandlerResolver,
             final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.methodAuthProviderMap = methodAuthProviderMap;
@@ -180,26 +180,30 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         switch (auth.scheme()) {
         case SIMPLE:
             if (auth.value().size() < 1) {
-                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
+                        + reflected.method().getDeclaringClass());
             }
             final var simple = propertyResolver.resolve(auth.value().get(0));
             return (target, args) -> simple::toString;
         case BASIC:
             if (auth.value().size() < 2) {
-                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
+                        + reflected.method().getDeclaringClass());
             }
             final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
                     propertyResolver.resolve(auth.value().get(1)));
             return (target, args) -> basic::value;
         case BEARER:
             if (auth.value().size() < 1) {
-                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
+                        + reflected.method().getDeclaringClass());
             }
             final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0)));
             return (target, args) -> bearer::value;
         case BEAN:
             if (auth.value().size() < 2) {
-                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme().name());
+                throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
+                        + reflected.method().getDeclaringClass());
             }
             final var beanName = auth.value().get(0);
             final var methodName = auth.value().get(1);
@@ -208,11 +212,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var methodHandle = new ReflectedObject(bean)
                     .findPublicMethod(methodName, String.class,
                             beanParams.stream().map(p -> p.parameter().getType()).collect(Collectors.toList()))
-                    .map(handle -> handle.bindTo(bean))
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Bean '" + beanName + "' does not have a method named '" + methodName
-                                    + "' with " + AuthBeanParam.class.getSimpleName() + " signature matching "
-                                    + reflected.method().toString()));
+                    .map(handle -> handle.bindTo(bean)).orElseThrow(
+                            () -> new IllegalArgumentException("Bean '" + beanName + "' does not have a method named '"
+                                    + methodName + "' with " + AuthBeanParam.class.getSimpleName()
+                                    + " signature matching " + reflected.method().toString()));
 
             return (target, args) -> {
                 final String header;

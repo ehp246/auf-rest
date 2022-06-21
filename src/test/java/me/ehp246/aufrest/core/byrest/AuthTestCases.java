@@ -84,20 +84,22 @@ interface AuthTestCases {
         void get(@AuthHeader String auth);
     }
 
-    @ByRest("")
-    interface InvocationAuthCase01 {
-        void get();
-    }
-
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = { "getOnInterface", "basic" }))
-    interface InvocationAuthCase02 {
+    interface BeanAuth01 {
         void get();
+
+        void get(@AuthHeader String header);
 
         void getOnArgs(@AuthBeanParam String username, @AuthBeanParam String password);
     }
 
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN))
+    interface BeanAuth02 {
+        void get();
+    }
+
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE))
-    interface InvocationAuthCase03 {
+    interface NoneAuth01 {
         // Should have no Auth
         void get();
     }
@@ -109,11 +111,6 @@ interface AuthTestCases {
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.SIMPLE))
     interface SimpleAuthCase02 {
-        void get();
-    }
-
-    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN))
-    interface BeanAuthCase05 {
         void get();
     }
 

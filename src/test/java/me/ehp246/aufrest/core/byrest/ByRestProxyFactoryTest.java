@@ -32,16 +32,11 @@ import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase02;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuthCase05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase01;
-import me.ehp246.aufrest.core.byrest.AuthTestCases.InvocationAuthCase03;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.mock.MockHttpResponse;
-import me.ehp246.aufrest.mock.MockInvocationAuthProvider;
-import me.ehp246.aufrest.mock.MockInvocationAuthProviderResolver;
 
 /**
  * @author Lei Yang
@@ -610,35 +605,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void authInvocation_02() {
-        final var authResolver = new MockInvocationAuthProviderResolver(
-                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
-
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
-                bindingBodyHandlerProvider);
-
-        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
-                .newInstance(InvocationAuthCase01.class).get();
-
-        Assertions.assertEquals(null, reqRef.get().authSupplier(), "should follow the interface with no Auth");
-        Assertions.assertEquals(0, authResolver.count(), "should follow the interface with no Auth");
-    }
-
-    @Test
-    void authInvocation_06() {
-        final var authResolver = new MockInvocationAuthProviderResolver(
-                new MockInvocationAuthProvider(UUID.randomUUID().toString()));
-
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
-                bindingBodyHandlerProvider);
-
-        new ByRestProxyFactory(restFnProvider, clientConfig, parser)
-                .newInstance(InvocationAuthCase03.class).get();
-
-        Assertions.assertEquals(null, reqRef.get().authSupplier().get(), "should follow the interface");
-    }
-
-    @Test
     void authSimple_01() {
         factory.newInstance(AuthTestCases.Case004.class).get();
 
@@ -695,11 +661,6 @@ class ByRestProxyFactoryTest {
         factory.newInstance(AuthTestCases.Case03.class).get();
 
         Assertions.assertEquals("Bearer ec3fb099-7fa3-477b-82ce-05547babad95", reqRef.get().authSupplier().get());
-    }
-
-    @Test
-    void authBean_09() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(BeanAuthCase05.class).get());
     }
 
     @Test
