@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 
 import me.ehp246.aufrest.api.configuration.EnableByRest;
@@ -20,7 +19,6 @@ import me.ehp246.aufrest.mock.Jackson;
 @SpringBootApplication
 @EnableByRest
 @Import(Jackson.class)
-@Lazy
 class AppConfig {
     final NullPointerException ex = new NullPointerException("What happened?");
 
@@ -45,5 +43,21 @@ class AppConfig {
         return req -> {
             throw ex;
         };
+    }
+
+    @Bean("basicAuthBean")
+    public BasicAuth basicAuth() {
+        return new BasicAuth("basicuser", "password");
+    }
+
+    @Bean("dynamicAuthBean")
+    public BasicAuthHeaderBuilder dynamicAuthBean() {
+        return new BasicAuthHeaderBuilder();
+    }
+
+    public class BasicAuthHeaderBuilder {
+        public String apply(String username, String password) {
+            return new BasicAuth(username, password).value();
+        }
     }
 }

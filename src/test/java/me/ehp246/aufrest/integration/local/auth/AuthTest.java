@@ -10,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.integration.local.auth.TestCases.BeanAuth01;
+import me.ehp246.aufrest.integration.local.auth.TestCases.BeanAuth02;
 
 /**
  * @author Lei Yang
@@ -87,5 +89,15 @@ class AuthTest {
     void method_auth_001() {
         // Should follow the interface
         factory.getBean(TestCases.MethodAuthCase001.class).get();
+    }
+
+    @Test
+    void authBean_01() {
+        factory.getBean(BeanAuth01.class).get();
+    }
+
+    @Test
+    void authBean_02() {
+        factory.getBean(BeanAuth02.class).get("basicuser", "password");
     }
 }
