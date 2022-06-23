@@ -34,7 +34,7 @@ public class BasicAuth {
 
     }
 
-    public String value() {
+    public String header() {
         return value;
     }
 

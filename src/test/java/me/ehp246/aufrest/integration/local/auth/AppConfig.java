@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.configuration.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
@@ -26,7 +27,7 @@ class AppConfig {
     @Profile("authProvider")
     public AuthProvider authProvider() {
         final var countRef = new AtomicReference<Integer>(0);
-        final var value = new BasicAuth("basicuser", "password").value();
+        final var value = new BasicAuth("basicuser", "password").header();
         return req -> {
             // Only allow one call.
             if (req.uri().contains("/auth/basic") && countRef.get() == 0) {
@@ -51,13 +52,14 @@ class AppConfig {
     }
 
     @Bean("dynamicAuthBean")
-    public BasicAuthHeaderBuilder dynamicAuthBean() {
-        return new BasicAuthHeaderBuilder();
+    public AuthHeaderBuilder dynamicAuthBean() {
+        return new AuthHeaderBuilder();
     }
 
-    public class BasicAuthHeaderBuilder {
-        public String apply(String username, String password) {
-            return new BasicAuth(username, password).value();
+    public class AuthHeaderBuilder {
+        @AuthBean.Method
+        public String basic(String username, String password) {
+            return new BasicAuth(username, password).header();
         }
     }
 }

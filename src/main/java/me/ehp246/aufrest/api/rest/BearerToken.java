@@ -18,7 +18,7 @@ public class BearerToken {
         value = "Bearer " + token;
     }
 
-    public String value() {
+    public String header() {
         return value;
     }
 

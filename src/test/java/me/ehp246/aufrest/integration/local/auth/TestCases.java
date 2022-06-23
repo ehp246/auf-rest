@@ -55,14 +55,8 @@ interface TestCases {
         void get();
     }
 
-    @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "basicAuthBean",
-            "value" }, scheme = AuthScheme.BEAN))
-    interface BeanAuth01 {
-        void get();
-    }
-
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "dynamicAuthBean",
-            "apply" }, scheme = AuthScheme.BEAN))
+            "basic" }, scheme = AuthScheme.BEAN))
     interface BeanAuth02 {
         void get(@AuthBean.Param String username, @AuthBean.Param String password);
     }

@@ -2,6 +2,7 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
@@ -41,8 +42,8 @@ import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
-import me.ehp246.aufrest.core.reflection.ReflectedObject;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
+import me.ehp246.aufrest.core.reflection.ReflectedType;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -192,14 +193,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             }
             final var basic = new BasicAuth(propertyResolver.resolve(auth.value().get(0)),
                     propertyResolver.resolve(auth.value().get(1)));
-            return (target, args) -> basic::value;
+            return (target, args) -> basic::header;
         case BEARER:
             if (auth.value().size() < 1) {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
                         + reflected.method().getDeclaringClass());
             }
             final var bearer = new BearerToken(propertyResolver.resolve(auth.value().get(0)));
-            return (target, args) -> bearer::value;
+            return (target, args) -> bearer::header;
         case BEAN:
             if (auth.value().size() < 2) {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
@@ -209,21 +210,23 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var methodName = auth.value().get(1);
             final var bean = methodAuthProviderMap.get(beanName);
             final var beanParams = reflected.allParametersWith(AuthBean.Param.class);
-            final var methodHandle = new ReflectedObject(bean)
-                    .findPublicMethod(methodName, String.class,
-                            beanParams.stream().map(p -> p.parameter().getType()).collect(Collectors.toList()))
-                    .map(handle -> handle.bindTo(bean)).orElseThrow(
-                            () -> new IllegalArgumentException("Bean '" + beanName + "' does not have a method named '"
-                                    + methodName + "' with " + AuthBean.Param.class.getSimpleName()
-                                    + " signature matching " + reflected.method().toString()));
+            final var methodSignature = beanParams.stream().map(ReflectedParameter::parameter).map(Parameter::getType)
+                    .toList().toArray(new Class<?>[] {});
+            final var reflectedType = new ReflectedType(bean.getClass());
+            final var method = reflectedType.streamMethodsWith(AuthBean.Method.class)
+                    .filter(m -> Optional.ofNullable(m.getAnnotation(AuthBean.Method.class).value())
+                            .filter(OneUtil::hasValue).orElseGet(m::getName).equals(methodName))
+                    .findFirst().or(() -> {
+                        return reflectedType.findMethod(methodName, methodSignature);
+                    }).get();
 
             return (target, args) -> {
                 final String header;
                 try {
-                    header = (String) methodHandle.invokeWithArguments(
-                            beanParams.stream().map(p -> args[p.index()]).collect(Collectors.toList()));
+                    header = (String) method.invoke(bean,
+                            beanParams.stream().map(p -> args[p.index()]).collect(Collectors.toList()).toArray());
                 } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    throw e instanceof RuntimeException re ? re : new RuntimeException(e);
                 }
                 return () -> header;
             };

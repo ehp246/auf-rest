@@ -15,9 +15,13 @@ import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth02;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth03;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth04;
+import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth05;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.MockAuthBean;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.NoneAuth01;
 import me.ehp246.aufrest.core.byrest.requestbody.BodyTestCases;
+import me.ehp246.test.Invocation;
 import me.ehp246.test.InvocationUtil;
 
 /**
@@ -82,12 +86,12 @@ class DefaultProxyMethodParserTest {
         final var authSupplier = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args())
                 .authSupplier();
 
-        final var expected = new BasicAuth("username", "password").value();
+        final var expected = new BasicAuth("username", "password").header();
 
         Assertions.assertEquals(expected, authSupplier.get());
         Assertions.assertEquals(expected, authSupplier.get());
         Assertions.assertEquals(expected, authSupplier.get());
-        Assertions.assertEquals(1, authBean.takeCount());
+        Assertions.assertEquals(1, authBean.takeBasicCount());
     }
 
     @Test
@@ -131,13 +135,65 @@ class DefaultProxyMethodParserTest {
         final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
-        final var captor = InvocationUtil.newCaptor(BeanAuth01.class);
-        captor.proxy().get();
-        final var invocation = captor.invocation();
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuth01.class, captRef).get();
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(invocation.method()))
+        Assertions
+                .assertThrows(IllegalArgumentException.class,
+                        () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()))
                 .printStackTrace();
-        ;
+    }
+
+    @Test
+    void authBean_method_01() {
+        final var authBean = new MockAuthBean();
+        final var resolver = Mockito.mock(AuthBeanResolver.class);
+        Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, resolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuth03.class, captRef).get(UUID.randomUUID().toString());
+
+        parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
+
+        Assertions.assertEquals(1, authBean.takeBearerTokenCount());
+    }
+
+    @Test
+    void authBean_method_02() {
+        final var authBean = new MockAuthBean();
+        final var resolver = Mockito.mock(AuthBeanResolver.class);
+        Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, resolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuth04.class, captRef).get();
+
+        parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
+
+        Assertions.assertEquals(1, authBean.takeRandomCount());
+    }
+
+    @Test
+    void authBean_08() {
+        final var authBean = new BasicAuth(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        final var resolver = Mockito.mock(AuthBeanResolver.class);
+        Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, resolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuth05.class, captRef).get();
+
+        final var req = parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
+
+        Assertions.assertEquals(authBean.header(), req.authSupplier().get(),
+                "should call the un-annotated named method");
     }
 
     @Test
