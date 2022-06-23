@@ -210,24 +210,30 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var methodName = auth.value().get(1);
             final var bean = methodAuthProviderMap.get(beanName);
             final var beanParams = reflected.allParametersWith(AuthBean.Param.class);
-            final var methodSignature = beanParams.stream().map(ReflectedParameter::parameter).map(Parameter::getType)
-                    .toList().toArray(new Class<?>[] {});
             final var reflectedType = new ReflectedType(bean.getClass());
             final var method = reflectedType.streamMethodsWith(AuthBean.Method.class)
                     .filter(m -> Optional.ofNullable(m.getAnnotation(AuthBean.Method.class).value())
                             .filter(OneUtil::hasValue).orElseGet(m::getName).equals(methodName))
-                    .findFirst().or(() -> {
-                        return reflectedType.findMethod(methodName, methodSignature);
-                    }).get();
+                    .findFirst().or(
+                            () -> reflectedType
+                                    .findMethod(methodName,
+                                            beanParams.stream().map(ReflectedParameter::parameter)
+                                                    .map(Parameter::getType).toList().toArray(new Class<?>[] {})))
+                    .get();
+            final var beanArgs = new Object[beanParams.size()];
 
             return (target, args) -> {
+                for (int i = 0; i < beanArgs.length; i++) {
+                    beanArgs[i] = args[beanParams.get(i).index()];
+                }
+
                 final String header;
                 try {
-                    header = (String) method.invoke(bean,
-                            beanParams.stream().map(p -> args[p.index()]).collect(Collectors.toList()).toArray());
+                    header = OneUtil.toString(method.invoke(bean, beanArgs));
                 } catch (Throwable e) {
                     throw e instanceof RuntimeException re ? re : new RuntimeException(e);
                 }
+
                 return () -> header;
             };
         case NONE:
