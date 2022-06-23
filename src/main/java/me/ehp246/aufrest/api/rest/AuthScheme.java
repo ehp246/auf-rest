@@ -2,7 +2,7 @@ package me.ehp246.aufrest.api.rest;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
-import me.ehp246.aufrest.api.annotation.AuthBeanParam;
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**

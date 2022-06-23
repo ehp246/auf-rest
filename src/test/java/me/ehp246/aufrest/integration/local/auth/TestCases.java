@@ -2,7 +2,7 @@ package me.ehp246.aufrest.integration.local.auth;
 
 import java.net.http.HttpResponse;
 
-import me.ehp246.aufrest.api.annotation.AuthBeanParam;
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
@@ -64,6 +64,6 @@ interface TestCases {
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "dynamicAuthBean",
             "apply" }, scheme = AuthScheme.BEAN))
     interface BeanAuth02 {
-        void get(@AuthBeanParam String username, @AuthBeanParam String password);
+        void get(@AuthBean.Param String username, @AuthBean.Param String password);
     }
 }

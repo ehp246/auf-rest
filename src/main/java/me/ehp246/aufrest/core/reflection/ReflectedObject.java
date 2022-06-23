@@ -13,11 +13,9 @@ import java.util.Optional;
 public final class ReflectedObject {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
-    private final Object target;
     private final Class<?> type;
 
     public ReflectedObject(Object target) {
-        this.target = target;
         this.type = target.getClass();
     }
 

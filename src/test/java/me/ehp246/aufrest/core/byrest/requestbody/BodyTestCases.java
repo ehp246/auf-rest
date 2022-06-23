@@ -7,7 +7,7 @@ import java.time.Instant;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
-import me.ehp246.aufrest.api.annotation.AuthBeanParam;
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 
@@ -31,9 +31,9 @@ public interface BodyTestCases {
         // Annotated has the highest priority
         void get(@RequestBody String id, Instant now, BodyPublisher body);
 
-        void getWithAuthParam(@AuthBeanParam String id);
+        void getWithAuthParam(@AuthBean.Param String id);
 
-        void getWithAuthParam(@AuthBeanParam String id, String body);
+        void getWithAuthParam(@AuthBean.Param String id, String body);
     }
 
     @ByRest("")

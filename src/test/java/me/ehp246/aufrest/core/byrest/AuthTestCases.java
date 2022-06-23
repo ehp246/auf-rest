@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.util.function.Supplier;
 
-import me.ehp246.aufrest.api.annotation.AuthBeanParam;
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
@@ -90,7 +90,7 @@ interface AuthTestCases {
 
         void get(@AuthHeader String header);
 
-        void getOnArgs(@AuthBeanParam String username, @AuthBeanParam String password);
+        void getOnArgs(@AuthBean.Param String username, @AuthBean.Param String password);
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN))

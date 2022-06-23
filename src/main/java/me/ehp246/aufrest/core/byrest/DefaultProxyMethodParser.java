@@ -24,18 +24,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import me.ehp246.aufrest.api.annotation.AuthBeanParam;
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.Reifying;
+import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
@@ -51,7 +51,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
-            RequestParam.class, RequestHeader.class, AuthHeader.class, AuthBeanParam.class);
+            RequestParam.class, RequestHeader.class, AuthHeader.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
 
     private final PropertyResolver propertyResolver;
@@ -208,13 +208,13 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var beanName = auth.value().get(0);
             final var methodName = auth.value().get(1);
             final var bean = methodAuthProviderMap.get(beanName);
-            final var beanParams = reflected.allParametersWith(AuthBeanParam.class);
+            final var beanParams = reflected.allParametersWith(AuthBean.Param.class);
             final var methodHandle = new ReflectedObject(bean)
                     .findPublicMethod(methodName, String.class,
                             beanParams.stream().map(p -> p.parameter().getType()).collect(Collectors.toList()))
                     .map(handle -> handle.bindTo(bean)).orElseThrow(
                             () -> new IllegalArgumentException("Bean '" + beanName + "' does not have a method named '"
-                                    + methodName + "' with " + AuthBeanParam.class.getSimpleName()
+                                    + methodName + "' with " + AuthBean.Param.class.getSimpleName()
                                     + " signature matching " + reflected.method().toString()));
 
             return (target, args) -> {

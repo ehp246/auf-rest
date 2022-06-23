@@ -11,7 +11,17 @@ import java.lang.annotation.Target;
  *
  */
 @Retention(RUNTIME)
-@Target(PARAMETER)
-public @interface AuthBeanParam {
+@Target({})
+public @interface AuthBean {
 
+    @Retention(RUNTIME)
+    @Target(PARAMETER)
+    @interface Param {
+    }
+
+    @Retention(RUNTIME)
+    @Target(PARAMETER)
+    @interface Method {
+        String value();
+    }
 }
