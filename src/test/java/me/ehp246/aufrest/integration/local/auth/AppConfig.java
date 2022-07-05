@@ -57,9 +57,14 @@ class AppConfig {
     }
 
     public class AuthHeaderBuilder {
-        @AuthBean.Method
+        @AuthBean.Invoking
         public String basic(String username, String password) {
             return new BasicAuth(username, password).header();
+        }
+
+        @AuthBean.Invoking("wrongName")
+        public String basic1(String username, String password) {
+            return new BasicAuth(username + "1", password).header();
         }
     }
 }

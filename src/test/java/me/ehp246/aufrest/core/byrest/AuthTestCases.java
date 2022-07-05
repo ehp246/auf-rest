@@ -157,19 +157,19 @@ interface AuthTestCases {
         private int bearerTokenCount = 0;
         private int randomCount = 0;
 
-        @AuthBean.Method
+        @AuthBean.Invoking
         public String basic(String username, String password) {
             basiCount++;
             return new BasicAuth(username, password).header();
         }
 
-        @AuthBean.Method
+        @AuthBean.Invoking
         public String bearerToken(String token) {
             bearerTokenCount++;
             return new BearerToken(token).header();
         }
 
-        @AuthBean.Method("uuid")
+        @AuthBean.Invoking("uuid")
         public String random() {
             randomCount++;
             return UUID.randomUUID().toString();

@@ -132,7 +132,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 authSupplierFn = (target, args) -> args[index] == null ? () -> null : args[index]::toString;
             }
         } else {
-            authSupplierFn = authSupplierFn(byRestValues, reflected);
+            authSupplierFn = authSupplierFn(byRestValues.auth(), reflected);
         }
 
         /**
@@ -171,13 +171,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 uriBuilder, pathMap, queryMap, headerMap, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
     }
 
-    private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final AnnotatedByRest byRestValues,
+    private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final AuthConfig auth,
             final ReflectedMethod reflected) {
-        final var auth = byRestValues.auth();
-        if (auth == null) {
-            return null;
-        }
-
         switch (auth.scheme()) {
         case SIMPLE:
             if (auth.value().size() < 1) {
@@ -211,8 +206,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var bean = methodAuthProviderMap.get(beanName);
             final var beanParams = reflected.allParametersWith(AuthBean.Param.class);
             final var reflectedType = new ReflectedType(bean.getClass());
-            final var method = reflectedType.streamMethodsWith(AuthBean.Method.class)
-                    .filter(m -> Optional.ofNullable(m.getAnnotation(AuthBean.Method.class).value())
+            final var method = reflectedType.streamMethodsWith(AuthBean.Invoking.class)
+                    .filter(m -> Optional.ofNullable(m.getAnnotation(AuthBean.Invoking.class).value())
                             .filter(OneUtil::hasValue).orElseGet(m::getName).equals(methodName))
                     .findFirst().or(
                             () -> reflectedType

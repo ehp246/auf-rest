@@ -2,7 +2,6 @@ package me.ehp246.aufrest.api.rest;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
-import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
@@ -61,11 +60,14 @@ public enum AuthScheme {
      * Indicates the value of Authorization header for the endpoint is to be
      * provided by the named Spring bean and its method.
      * <p>
-     * The first value defines the bean name used for lookup.
+     * The first value defines the bean name to look up.
      * <p>
-     * The second value defines the method name. The method must be {@code public},
-     * its parameter signature must match {@linkplain AuthBeanParam}-annotated
-     * parameters exactly. Its return type must be {@linkplain String}.
+     * The second value defines the method to invoke. The method must be
+     * {@code public}, its parameter signature must match
+     * {@linkplain AuthBeanParam}-annotated parameters exactly. Its return value
+     * must be assignable to {@linkplain Object} which will be converted to
+     * {@linkplain String} as the header value by {@linkplain Object#toString}. If
+     * {@code null} is returned, the header value will be {@code null}.
      * <p>
      * If no bean as such can be found at invocation,
      * {@link NoSuchBeanDefinitionException} will be thrown.

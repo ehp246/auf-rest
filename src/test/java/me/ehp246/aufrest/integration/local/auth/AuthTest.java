@@ -8,9 +8,11 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
+import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.integration.local.auth.TestCases.BeanAuth02;
+import me.ehp246.aufrest.integration.local.auth.TestCases.BeanAuth03;
 
 /**
  * @author Lei Yang
@@ -93,5 +95,13 @@ class AuthTest {
     @Test
     void authBean_02() {
         factory.getBean(BeanAuth02.class).get("basicuser", "password");
+    }
+
+    @Test
+    void authBean_03() {
+        final var actual = Assertions.assertThrows(ClientErrorResponseException.class,
+                () -> factory.getBean(BeanAuth03.class).get("basicuser", "password"));
+
+        Assertions.assertEquals(401, actual.statusCode());
     }
 }

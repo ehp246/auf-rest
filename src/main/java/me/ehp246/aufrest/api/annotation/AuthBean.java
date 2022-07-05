@@ -22,7 +22,7 @@ public @interface AuthBean {
 
     @Retention(RUNTIME)
     @Target(ElementType.METHOD)
-    @interface Method {
+    @interface Invoking {
         String value() default "";
     }
 }
