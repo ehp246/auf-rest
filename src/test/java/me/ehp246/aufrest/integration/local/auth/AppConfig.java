@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.configuration.EnableByRest;
+import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.mock.Jackson;

@@ -32,11 +32,11 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * Registers infrastructure beans needed by the framework.
  *
  * <p>
- * Imported by {@link me.ehp246.aufrest.api.configuration.EnableByRest
+ * Imported by {@link me.ehp246.aufrest.api.annotation.EnableByRest
  * EnableByRest}.
  *
  * @author Lei Yang
- * @see me.ehp246.aufrest.api.configuration.EnableByRest
+ * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
 @Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })

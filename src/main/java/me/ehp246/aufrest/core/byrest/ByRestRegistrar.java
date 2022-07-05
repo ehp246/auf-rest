@@ -12,7 +12,7 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.configuration.EnableByRest;
+import me.ehp246.aufrest.api.annotation.EnableByRest;
 
 public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
     private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
