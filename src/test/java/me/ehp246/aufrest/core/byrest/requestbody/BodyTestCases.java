@@ -7,6 +7,7 @@ import java.time.Instant;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
+import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 
@@ -14,7 +15,7 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  * @author Lei Yang
  *
  */
-interface BodyTestCases {
+public interface BodyTestCases {
     @ByRest("")
     interface RequestCase01 {
         void get(BodyPublisher body);
@@ -27,7 +28,12 @@ interface BodyTestCases {
 
         void get(Instant now, @RequestBody String id);
 
+        // Annotated has the highest priority
         void get(@RequestBody String id, Instant now, BodyPublisher body);
+
+        void getWithAuthParam(@AuthBean.Param String id);
+
+        void getWithAuthParam(@AuthBean.Param String id, String body);
     }
 
     @ByRest("")

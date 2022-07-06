@@ -13,15 +13,14 @@ import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.HeaderProvider;
-import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HeaderProvider;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
-import me.ehp246.aufrest.api.spi.InvocationAuthProviderResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -33,11 +32,11 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * Registers infrastructure beans needed by the framework.
  *
  * <p>
- * Imported by {@link me.ehp246.aufrest.api.configuration.EnableByRest
+ * Imported by {@link me.ehp246.aufrest.api.annotation.EnableByRest
  * EnableByRest}.
  *
  * @author Lei Yang
- * @see me.ehp246.aufrest.api.configuration.EnableByRest
+ * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
 @Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })
@@ -71,8 +70,8 @@ public final class AufRestConfiguration {
     }
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
-    public InvocationAuthProviderResolver methodAuthProviderMap(final BeanFactory env) {
-        return name -> env.getBean(name, InvocationAuthProvider.class);
+    public AuthBeanResolver methodAuthProviderMap(final BeanFactory env) {
+        return name -> env.getBean(name);
     }
 
     @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")

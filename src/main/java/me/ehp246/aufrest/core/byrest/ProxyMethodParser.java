@@ -8,5 +8,5 @@ import java.lang.reflect.Method;
  */
 @FunctionalInterface
 public interface ProxyMethodParser {
-    InvocationRequestBuilder parse(Method method, AnnotatedByRest byRestValues);
+    InvocationRequestBuilder parse(Method method);
 }

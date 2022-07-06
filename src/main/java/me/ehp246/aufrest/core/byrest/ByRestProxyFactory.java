@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,18 +14,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 
-import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
-import me.ehp246.aufrest.core.byrest.AnnotatedByRest.AuthConfig;
 
 /**
  *
@@ -54,16 +50,9 @@ public final class ByRestProxyFactory {
     public <T> T newInstance(final Class<T> byRestInterface) {
         LOGGER.atDebug().log("Instantiating {}", byRestInterface::getCanonicalName);
 
-        final var byRest = byRestInterface.getAnnotation(ByRest.class);
-
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
                     private final RestFn httpFn = clientProvider.get(clientConfig);
-                    private final AnnotatedByRest byRestValues = new AnnotatedByRest(byRest.value(),
-                            new AuthConfig(Arrays.asList(byRest.auth().value()),
-                                    AuthScheme.valueOf(byRest.auth().scheme().name())),
-                            byRest.timeout(), byRest.accept(), byRest.contentType(), byRest.acceptGZip(),
-                            byRest.errorType(), byRest.responseBodyHandler());
 
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -86,7 +75,7 @@ public final class ByRestProxyFactory {
                         }
 
                         final var req = parsedCache
-                                .computeIfAbsent(method, m -> methodParser.parse(method, byRestValues))
+                                .computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
                         final var outcome = RestFnOutcome.invoke(() -> {
                             ThreadContext.put(HttpUtils.REQUEST_ID, req.id());

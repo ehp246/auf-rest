@@ -35,6 +35,33 @@ public class InvocationUtil {
     }
 
     @SuppressWarnings("unchecked")
+    public static <T> T newInvocation(final Class<T> t, final Invocation[] captured) {
+        final var proxy = (T) (Proxy.newProxyInstance(InvocationUtil.class.getClassLoader(), new Class[] { t },
+                (target, method, args) -> {
+                    captured[0] = new Invocation() {
+
+                        @Override
+                        public Object target() {
+                            return target;
+                        }
+
+                        @Override
+                        public Method method() {
+                            return method;
+                        }
+
+                        @Override
+                        public Object[] args() {
+                            return args;
+                        }
+                    };
+                    return null;
+                }));
+
+        return proxy;
+    }
+
+    @SuppressWarnings("unchecked")
     public static <T> InvocationCaptor<T> newCaptor(final Class<T> t) {
         final var captured = new Invocation[1];
         final var proxy = (T) (Proxy.newProxyInstance(InvocationUtil.class.getClassLoader(), new Class[] { t },

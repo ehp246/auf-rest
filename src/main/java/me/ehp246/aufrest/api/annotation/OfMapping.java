@@ -8,11 +8,6 @@ import java.lang.annotation.Target;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-
-import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
-
 /**
  * Instructs the framework on how to construct HTTP requests from method
  * invocations.
@@ -56,20 +51,7 @@ public @interface OfMapping {
     /**
      * Defines the Accept header. Usually derived by the return type of the method.
      */
-    String accept() default HttpUtils.APPLICATION_JSON;
-
-    /**
-     * Defines the name of a Spring bean of {@link InvocationAuthProvider} type that
-     * would provide the Authorization header for the invocations on the method.
-     * <p>
-     * Empty string indicates there is no bean for the method.
-     * <p>
-     * When a name is specified but no bean of the type can be found at invocation,
-     * {@link NoSuchBeanDefinitionException} will be thrown.
-     * 
-     * @return a bean name
-     */
-    String authProvider() default "";
+    String accept() default "application/json";
 
     /**
      * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type

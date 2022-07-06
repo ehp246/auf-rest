@@ -5,14 +5,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 
-import me.ehp246.aufrest.api.configuration.EnableByRest;
+import me.ehp246.aufrest.api.annotation.AuthBean;
+import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
-import me.ehp246.aufrest.api.rest.InvocationAuthProvider;
-import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.mock.Jackson;
 
 /**
@@ -22,7 +20,6 @@ import me.ehp246.aufrest.mock.Jackson;
 @SpringBootApplication
 @EnableByRest
 @Import(Jackson.class)
-@Lazy
 class AppConfig {
     final NullPointerException ex = new NullPointerException("What happened?");
 
@@ -30,7 +27,7 @@ class AppConfig {
     @Profile("authProvider")
     public AuthProvider authProvider() {
         final var countRef = new AtomicReference<Integer>(0);
-        final var value = new BasicAuth("basicuser", "password").value();
+        final var value = new BasicAuth("basicuser", "password").header();
         return req -> {
             // Only allow one call.
             if (req.uri().contains("/auth/basic") && countRef.get() == 0) {
@@ -49,8 +46,25 @@ class AppConfig {
         };
     }
 
-    @Bean("passThrough")
-    public InvocationAuthProvider passThrough() {
-        return (invokedOn) -> OneUtil.toString(invokedOn.args().get(0));
+    @Bean("basicAuthBean")
+    public BasicAuth basicAuth() {
+        return new BasicAuth("basicuser", "password");
+    }
+
+    @Bean("dynamicAuthBean")
+    public AuthHeaderBuilder dynamicAuthBean() {
+        return new AuthHeaderBuilder();
+    }
+
+    public class AuthHeaderBuilder {
+        @AuthBean.Invoking
+        public String basic(String username, String password) {
+            return new BasicAuth(username, password).header();
+        }
+
+        @AuthBean.Invoking("wrongName")
+        public String basic1(String username, String password) {
+            return new BasicAuth(username + "1", password).header();
+        }
     }
 }

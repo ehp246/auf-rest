@@ -3,14 +3,16 @@ package me.ehp246.aufrest.integration.local.auth;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
+import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.integration.local.auth.TestCases.BeanAuth02;
+import me.ehp246.aufrest.integration.local.auth.TestCases.BeanAuth03;
 
 /**
  * @author Lei Yang
@@ -91,40 +93,15 @@ class AuthTest {
     }
 
     @Test
-    void method_auth_002() {
-        // Should use the pass through
-        final var ex = Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get("Basic nothing"));
-
-        Assertions.assertEquals(401, ex.statusCode());
+    void authBean_02() {
+        factory.getBean(BeanAuth02.class).get("basicuser", "password");
     }
 
     @Test
-    void method_auth_003() {
-        // Should work now
-        factory.getBean(TestCases.MethodAuthCase001.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-    }
+    void authBean_03() {
+        final var actual = Assertions.assertThrows(ClientErrorResponseException.class,
+                () -> factory.getBean(BeanAuth03.class).get("basicuser", "password"));
 
-    @Test
-    void method_auth_004() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get(null));
-    }
-
-    @Test
-    void method_auth_005() {
-        Assertions.assertThrows(NoSuchBeanDefinitionException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get004());
-    }
-
-    @Test
-    void method_auth_006() {
-        factory.getBean(TestCases.MethodAuthCase001.class).get005("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
-    }
-
-    @Test
-    void method_auth_007() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.MethodAuthCase001.class).get005(""));
+        Assertions.assertEquals(401, actual.statusCode());
     }
 }

@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.configuration;
+package me.ehp246.aufrest.api.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
