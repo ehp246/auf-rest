@@ -22,13 +22,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BasicAuthCase02;
@@ -57,8 +55,6 @@ class ByRestProxyFactoryTest {
     private final ClientConfig clientConfig = new ClientConfig(Duration.parse("PT123S"));
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(propertyResolver, name -> null,
             name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
-    private final BodyHandlerResolver bodyHandlerResolver = name -> BodyHandlers.discarding();
-    private final BindingBodyHandlerProvider bindingBodyHandlerProvider = binding -> BodyHandlers.discarding();
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, parser);
 
@@ -270,21 +266,21 @@ class ByRestProxyFactoryTest {
 
     @Test
     void acceptGzip_01() {
-        factory.newInstance(HeaderTestCase01.class).get("1234");
+        factory.newInstance(HeaderTestCases.HeaderCase01.class).get("1234");
 
         Assertions.assertTrue(reqRef.get().acceptEncoding().equalsIgnoreCase("gzip"), "should have the value");
     }
 
     @Test
     void acceptGzip_02() {
-        factory.newInstance(HeaderTestCase01.AcceptGZipTestCase002.class).get();
+        factory.newInstance(HeaderTestCases.AcceptGZipCase01.class).get();
 
         Assertions.assertTrue(reqRef.get().acceptEncoding() == null, "should have not the value");
     }
 
     @Test
     void header_01() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get("1234");
 
@@ -293,7 +289,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_02() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get("   ");
 
@@ -308,7 +304,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_03() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get((String) null);
 
@@ -317,7 +313,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_04() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.getBlank("1234");
 
@@ -326,7 +322,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_05() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         final var uuid = UUID.randomUUID();
 
@@ -338,7 +334,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_06() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.getRepeated("1", "2");
 
@@ -351,7 +347,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_07() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.getMultiple("1", "2");
 
@@ -364,7 +360,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_08() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get(List.of("CN", "EN", "   "));
 
@@ -378,7 +374,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_09() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get(Map.of("CN", "EN", "   ", ""));
 
@@ -391,7 +387,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_10() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), "uuid");
 
@@ -404,7 +400,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_11() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get(CollectionUtils
                 .toMultiValueMap(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid"))));
@@ -418,7 +414,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_12() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.getMapOfList(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid")));
 
@@ -431,7 +427,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_13() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.getListOfList(List.of(List.of("DE"), List.of("CN", "EN"), List.of("JP")));
 
@@ -443,7 +439,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_14() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         final var nullList = new ArrayList<String>();
         nullList.add("EN");
@@ -460,7 +456,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void header_15() {
-        final var newInstance = factory.newInstance(HeaderTestCase01.class);
+        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 
         newInstance.get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), null);
 

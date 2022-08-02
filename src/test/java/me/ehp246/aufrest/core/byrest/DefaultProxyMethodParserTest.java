@@ -220,4 +220,64 @@ class DefaultProxyMethodParserTest {
         Assertions.assertEquals(null, req.authSupplier().get(), "should follow the interface");
     }
 
+    @Test
+    void headers_byRest_01() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+                .get("x-api-key");
+
+        Assertions.assertEquals(1, apiKey.size());
+        Assertions.assertEquals("api.key", apiKey.get(0));
+    }
+
+    @Test
+    void headers_byRest_02() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
+        final var expected = new String[] { UUID.randomUUID().toString(), UUID.randomUUID().toString() };
+        captor.proxy().get(expected[0], expected[1]);
+
+        final var invocation = captor.invocation();
+
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+                .get("x-api-key");
+
+        // The order is defined.
+        Assertions.assertEquals(3, apiKey.size());
+        Assertions.assertEquals(expected[1], apiKey.get(0));
+        Assertions.assertEquals(expected[0], apiKey.get(1));
+        Assertions.assertEquals("api.key", apiKey.get(2));
+    }
+
+    @Test
+    void headers_byRest_03() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase03.class);
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        Assertions
+                .assertThrows(IllegalArgumentException.class,
+                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
+                .printStackTrace();
+    }
+
+    @Test
+    void headers_byRest_04() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase04.class);
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+
+        Assertions.assertEquals(1, headers.get("x-api-key-1").size());
+        Assertions.assertEquals("api.key.1", headers.get("x-api-key-1").get(0));
+
+        Assertions.assertEquals(1, headers.get("x-api-key-2").size());
+        Assertions.assertEquals("api.key.2", headers.get("x-api-key-2").get(0));
+    }
 }

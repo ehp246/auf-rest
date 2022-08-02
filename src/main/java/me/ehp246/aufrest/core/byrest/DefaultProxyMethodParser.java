@@ -9,8 +9,10 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -84,16 +86,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
                 byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
-        final var pathMap = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
+        final var pathParams = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
                 .toMap(p -> p.parameter().getAnnotation(PathVariable.class).value(), ReflectedParameter::index));
 
-        final var queryMap = reflected.allParametersWith(RequestParam.class).stream().collect(Collectors
+        final var queryParams = reflected.allParametersWith(RequestParam.class).stream().collect(Collectors
                 .toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(RequestParam.class).value()));
 
         /*
          * Parameter headers
          */
-        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
+        final var headerParams = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
             final var name = p.parameter().getAnnotation(RequestHeader.class).value();
             if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
                 throw new IllegalArgumentException(
@@ -102,6 +104,25 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             return p;
         }).collect(Collectors.toMap(ReflectedParameter::index,
                 p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
+
+        /*
+         * Static headers
+         */
+        final var headers = byRest.headers();
+        if ((headers.length & 1) != 0) {
+            throw new IllegalArgumentException("Wrong headers");
+        }
+        final Map<String, List<String>> headerStatic = new HashMap<>();
+        for (int i = 0; i < headers.length; i++) {
+            i++;
+            final var key = headers[i - 1];
+            final var value = new ArrayList<String>();
+            value.add(propertyResolver.resolve(headers[i]));
+            headerStatic.merge(key, value, (l, r) -> {
+                l.addAll(r);
+                return r;
+            });
+        }
 
         final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
                 .orElse(byRest.accept());
@@ -162,7 +183,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
 
         return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                uriBuilder, pathMap, queryMap, headerMap, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
+                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
     }
 
     private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final ByRest.Auth auth,

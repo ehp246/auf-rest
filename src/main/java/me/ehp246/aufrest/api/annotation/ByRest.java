@@ -111,6 +111,8 @@ public @interface ByRest {
      */
     String responseBodyHandler() default "";
 
+    String[] headers() default {};
+
     /**
      * Defines the Authorization types supported.
      */
@@ -131,5 +133,4 @@ public @interface ByRest {
          */
         String[] value() default {};
     }
-
 }
