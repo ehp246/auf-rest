@@ -42,11 +42,8 @@ interface HeaderTestCases {
          */
         void get(@RequestHeader("x-uuid") UUID correlId);
 
-        /**
-         * Same Header repeated are concatenated
-         */
         void getRepeated(@RequestHeader("x-correl-id") String correlId1,
-                @RequestHeader("x-correl-id") String correlId2);
+                @RequestHeader("x-correl-Id") String correlId2);
 
         void getMultiple(@RequestHeader("x-span-id") String spanId, @RequestHeader("x-trace-id") String traceId);
 
@@ -67,7 +64,7 @@ interface HeaderTestCases {
     interface HeaderCase02 {
         void get();
 
-        void get(@RequestHeader("x-api-key") String key, @RequestHeader("x-api-key") String key2);
+        void get(@RequestHeader("x-api-key") String key);
     }
 
     @ByRest(value = "", headers = { "x-api-key", "${api.key}" })

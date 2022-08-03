@@ -333,19 +333,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void header_06() {
-        final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
-
-        newInstance.getRepeated("1", "2");
-
-        final var headers = reqRef.get().headers().get("x-correl-id");
-
-        Assertions.assertEquals(2, headers.size(), "should concate");
-        Assertions.assertEquals("1", headers.get(0));
-        Assertions.assertEquals("2", headers.get(1));
-    }
-
-    @Test
     void header_07() {
         final var newInstance = factory.newInstance(HeaderTestCases.HeaderCase01.class);
 

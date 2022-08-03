@@ -221,6 +221,19 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
+    void header_01() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
+        captor.proxy().getRepeated("", "");
+
+        final var invocation = captor.invocation();
+
+        Assertions
+                .assertThrows(IllegalArgumentException.class,
+                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
+                .printStackTrace();
+    }
+
+    @Test
     void headers_byRest_01() {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
         captor.proxy().get();
@@ -237,8 +250,8 @@ class DefaultProxyMethodParserTest {
     @Test
     void headers_byRest_02_01() {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
-        final var expected = new String[] { UUID.randomUUID().toString(), UUID.randomUUID().toString() };
-        captor.proxy().get(expected[0], expected[1]);
+        final var expected = new String[] { UUID.randomUUID().toString() };
+        captor.proxy().get(expected[0]);
 
         final var invocation = captor.invocation();
 
@@ -246,44 +259,22 @@ class DefaultProxyMethodParserTest {
                 .get("x-api-key");
 
         // No order is defined.
-        Assertions.assertEquals(3, apiKey.size());
-        Assertions.assertEquals(true, apiKey.contains(expected[1]));
+        Assertions.assertEquals(1, apiKey.size());
         Assertions.assertEquals(true, apiKey.contains(expected[0]));
-        Assertions.assertEquals(true, apiKey.contains("api.key"));
     }
 
     @Test
     void headers_byRest_02_02() {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
-        final var expected = new String[] { UUID.randomUUID().toString(), null };
-        captor.proxy().get(expected[0], expected[1]);
+
+        captor.proxy().get(null);
 
         final var invocation = captor.invocation();
 
         final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
                 .get("x-api-key");
 
-        Assertions.assertEquals(2, apiKey.size());
-        Assertions.assertEquals(true, apiKey.contains(expected[0]));
-        Assertions.assertEquals(true, apiKey.contains("api.key"));
-    }
-
-    @Test
-    void headers_byRest_02_03() {
-        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
-        final var expected = new String[] { UUID.randomUUID().toString(), "" };
-        captor.proxy().get(expected[0], expected[1]);
-
-        final var invocation = captor.invocation();
-
-        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
-                .get("x-api-key");
-
-        // No order is defined.
-        Assertions.assertEquals(3, apiKey.size());
-        Assertions.assertEquals(true, apiKey.contains(expected[1]));
-        Assertions.assertEquals(true, apiKey.contains(expected[0]));
-        Assertions.assertEquals(true, apiKey.contains("api.key"));
+        Assertions.assertEquals(0, apiKey.size());
     }
 
     @Test
@@ -335,11 +326,11 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
-                .get("x-api-key-1");
-
-        Assertions.assertEquals(2, apiKey.size(), "should take them as is");
-        Assertions.assertEquals(true, apiKey.contains("api.key.1"));
+        Assertions
+                .assertThrows(IllegalArgumentException.class,
+                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()),
+                        "should not allow duplicate names")
+                .printStackTrace();
     }
 
     @Test

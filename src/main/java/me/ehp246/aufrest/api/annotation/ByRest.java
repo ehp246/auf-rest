@@ -9,6 +9,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
@@ -111,6 +113,23 @@ public @interface ByRest {
      */
     String responseBodyHandler() default "";
 
+    /**
+     * Defines request header names and values for the interface. The header names
+     * and values are to be defined in pairs as following:
+     * <p>
+     * <code>
+     *     { "x-header-1", "value.1", "x-header-2", "value.2" }
+     * </code>
+     * <p>
+     * Header names are accepted in lower case and can not be repeated. Values are
+     * accepted as-is.
+     * <p>
+     * If the header is defined by a {@linkplain RequestHeader} parameter as well,
+     * the parameter argument takes the precedence and is accepted.
+     * <p>
+     * Spring property placeholder is supported on values but not on names.
+     * 
+     */
     String[] headers() default {};
 
     /**

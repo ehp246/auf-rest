@@ -31,8 +31,8 @@ import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -71,10 +71,11 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
          */
         Optional.ofNullable(Stream
                 .of(providedHeaders, HeaderContext.map(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
-                .map(Map::entrySet).flatMap(Set::stream).collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(),
-                        Map.Entry::getValue, (left, right) -> right)))
+                .map(Map::entrySet).flatMap(Set::stream)
+                .collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(Locale.ROOT),
+                        Map.Entry::getValue, (o, n) -> n)))
                 .map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
-                    final var key = entry.getKey().toLowerCase(Locale.US);
+                    final var key = entry.getKey();
                     final var values = entry.getValue();
                     if (HttpUtils.RESERVED_HEADERS.contains(key) || values == null || values.isEmpty()) {
                         return;

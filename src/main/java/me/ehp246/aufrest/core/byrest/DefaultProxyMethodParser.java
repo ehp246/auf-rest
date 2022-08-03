@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -97,13 +98,19 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          */
         final var headerParams = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
             final var name = p.parameter().getAnnotation(RequestHeader.class).value();
-            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
+            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.ROOT))) {
                 throw new IllegalArgumentException(
                         "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
             }
             return p;
         }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
+                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString().toLowerCase(Locale.ROOT)));
+
+        final var namesOnParam = headerParams.values();
+        if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
+            throw new IllegalArgumentException(
+                    "Duplicate header names on " + reflected.method());
+        }
 
         /*
          * Static headers
@@ -114,17 +121,13 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
         final Map<String, List<String>> headerStatic = new HashMap<>();
         for (int i = 0; i < headers.size(); i += 2) {
-            final var key = headers.get(i);
-            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.US))) {
-                throw new IllegalArgumentException(
-                        "Illegal header '" + key + "' in " + headers + " on " + reflected.method().getDeclaringClass());
+            final var key = headers.get(i).toLowerCase(Locale.ROOT);
+            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.ROOT)) || headerStatic.containsKey(key)) {
+                throw new IllegalArgumentException("Illegal header '" + headers.get(i) + "' in " + headers + " on "
+                        + reflected.method().getDeclaringClass());
             }
-            final var value = new ArrayList<String>();
-            value.add(propertyResolver.resolve(headers.get(i + 1)));
-            headerStatic.merge(key, value, (o, n) -> {
-                o.addAll(n);
-                return o;
-            });
+            headerStatic.compute(key, (k, v) -> new ArrayList<String>())
+                    .add(propertyResolver.resolve(headers.get(i + 1)));
         }
 
         final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElse(byRest.accept());
