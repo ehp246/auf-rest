@@ -132,7 +132,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
                     return;
                 }
 
-                getMapped(key).add(0, newValue.toString());
+                getMapped(key).add(newValue.toString());
             }
 
             private List<String> getMapped(final Object key) {

@@ -60,8 +60,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
-    public DefaultProxyMethodParser(final PropertyResolver propertyResolver,
-            final AuthBeanResolver authBeanResolver, final BodyHandlerResolver bodyHandlerResolver,
+    public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
+            final BodyHandlerResolver bodyHandlerResolver,
             final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
@@ -99,7 +99,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var name = p.parameter().getAnnotation(RequestHeader.class).value();
             if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
                 throw new IllegalArgumentException(
-                        "Un-supported header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
+                        "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
             }
             return p;
         }).collect(Collectors.toMap(ReflectedParameter::index,
@@ -108,24 +108,26 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         /*
          * Static headers
          */
-        final var headers = byRest.headers();
-        if ((headers.length & 1) != 0) {
-            throw new IllegalArgumentException("Wrong headers");
+        final var headers = Arrays.asList(byRest.headers());
+        if ((headers.size() & 1) != 0) {
+            throw new IllegalArgumentException("Headers should be name/value pair: " + headers);
         }
         final Map<String, List<String>> headerStatic = new HashMap<>();
-        for (int i = 0; i < headers.length; i++) {
-            i++;
-            final var key = headers[i - 1];
+        for (int i = 0; i < headers.size(); i += 2) {
+            final var key = headers.get(i);
+            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.US))) {
+                throw new IllegalArgumentException(
+                        "Illegal header '" + key + "' in " + headers + " on " + reflected.method().getDeclaringClass());
+            }
             final var value = new ArrayList<String>();
-            value.add(propertyResolver.resolve(headers[i]));
-            headerStatic.merge(key, value, (l, r) -> {
-                l.addAll(r);
-                return r;
+            value.add(propertyResolver.resolve(headers.get(i + 1)));
+            headerStatic.merge(key, value, (o, n) -> {
+                o.addAll(n);
+                return o;
             });
         }
 
-        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
-                .orElse(byRest.accept());
+        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElse(byRest.accept());
 
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                 .or(() -> Optional.ofNullable(byRest.contentType())).filter(OneUtil::hasValue)
@@ -183,7 +185,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
 
         return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
+                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, bodyHandlerFn, bodyFn,
+                bodyAs);
     }
 
     private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final ByRest.Auth auth,

@@ -80,17 +80,17 @@ interface HeaderTestCases {
         void get();
     }
 
-    @ByRest(value = "", headers = { "x-api-key-1", "${api.key.1}", "x-api-key-2" })
+    @ByRest(value = "", headers = { "x-api-key-1", "api.key.1", "x-api-key-2" })
     interface HeaderCase05 {
         void get();
     }
 
-    @ByRest(value = "", headers = { "x-api-key-1", "${api.key.1}", "x-api-key-1", "${api.key.2}" })
+    @ByRest(value = "", headers = { "x-api-key-1", "api.key.1", "x-api-key-1", "api.key.1" })
     interface HeaderCase06 {
         void get();
     }
 
-    @ByRest(value = "", headers = { "authentication", "${api.key.1}" })
+    @ByRest(value = "", headers = { "Authorization", "api.key" })
     interface HeaderCase07 {
         void get();
     }

@@ -235,7 +235,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_byRest_02() {
+    void headers_byRest_02_01() {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
         final var expected = new String[] { UUID.randomUUID().toString(), UUID.randomUUID().toString() };
         captor.proxy().get(expected[0], expected[1]);
@@ -245,11 +245,45 @@ class DefaultProxyMethodParserTest {
         final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
                 .get("x-api-key");
 
-        // The order is defined.
+        // No order is defined.
         Assertions.assertEquals(3, apiKey.size());
-        Assertions.assertEquals(expected[1], apiKey.get(0));
-        Assertions.assertEquals(expected[0], apiKey.get(1));
-        Assertions.assertEquals("api.key", apiKey.get(2));
+        Assertions.assertEquals(true, apiKey.contains(expected[1]));
+        Assertions.assertEquals(true, apiKey.contains(expected[0]));
+        Assertions.assertEquals(true, apiKey.contains("api.key"));
+    }
+
+    @Test
+    void headers_byRest_02_02() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
+        final var expected = new String[] { UUID.randomUUID().toString(), null };
+        captor.proxy().get(expected[0], expected[1]);
+
+        final var invocation = captor.invocation();
+
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+                .get("x-api-key");
+
+        Assertions.assertEquals(2, apiKey.size());
+        Assertions.assertEquals(true, apiKey.contains(expected[0]));
+        Assertions.assertEquals(true, apiKey.contains("api.key"));
+    }
+
+    @Test
+    void headers_byRest_02_03() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
+        final var expected = new String[] { UUID.randomUUID().toString(), "" };
+        captor.proxy().get(expected[0], expected[1]);
+
+        final var invocation = captor.invocation();
+
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+                .get("x-api-key");
+
+        // No order is defined.
+        Assertions.assertEquals(3, apiKey.size());
+        Assertions.assertEquals(true, apiKey.contains(expected[1]));
+        Assertions.assertEquals(true, apiKey.contains(expected[0]));
+        Assertions.assertEquals(true, apiKey.contains("api.key"));
     }
 
     @Test
@@ -279,5 +313,45 @@ class DefaultProxyMethodParserTest {
 
         Assertions.assertEquals(1, headers.get("x-api-key-2").size());
         Assertions.assertEquals("api.key.2", headers.get("x-api-key-2").get(0));
+    }
+
+    @Test
+    void headers_byRest_05() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase05.class);
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        Assertions
+                .assertThrows(IllegalArgumentException.class,
+                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
+                .printStackTrace();
+    }
+
+    @Test
+    void headers_byRest_06() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase06.class);
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+                .get("x-api-key-1");
+
+        Assertions.assertEquals(2, apiKey.size(), "should take them as is");
+        Assertions.assertEquals(true, apiKey.contains("api.key.1"));
+    }
+
+    @Test
+    void headers_byRest_07() {
+        final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase07.class);
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        Assertions
+                .assertThrows(IllegalArgumentException.class,
+                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
+                .printStackTrace();
     }
 }
