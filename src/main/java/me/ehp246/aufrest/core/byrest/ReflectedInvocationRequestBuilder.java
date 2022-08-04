@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -34,17 +35,19 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final UriComponentsBuilder uriBuilder;
     private final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
     private final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn;
-    private final Map<String, Integer> pathMap;
-    private final Map<Integer, String> queryMap;
-    private final Map<Integer, String> headerMap;
+    private final Map<String, Integer> pathParams;
+    private final Map<Integer, String> queryParams;
+    private final Map<Integer, String> headerParams;
+    private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final BodyAs bodyAs;
 
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
-            final Map<String, Integer> pathMap, final Map<Integer, String> queryMap,
-            final Map<Integer, String> headerMap, final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
+            final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
+            final Map<Integer, String> headerParams, final Map<String, List<String>> headerStatic,
+            final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
         super();
@@ -54,9 +57,10 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         this.contentType = contentType;
         this.uriBuilder = uriBuilder;
         this.authSupplierFn = authSupplierFn;
-        this.pathMap = pathMap;
-        this.queryMap = queryMap;
-        this.headerMap = headerMap;
+        this.pathParams = pathParams;
+        this.queryParams = queryParams;
+        this.headerParams = headerParams;
+        this.headerStatic = headerStatic;
         this.timeout = timeout;
         this.bodyHandlerFn = bodyHandlerFn;
         this.bodyFn = bodyFn;
@@ -66,7 +70,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     @Override
     public RestRequest apply(final Object target, final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
-        this.pathMap.entrySet().forEach(entry -> {
+        this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
             if (arg instanceof Map<?, ?> map) {
                 pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
@@ -82,7 +86,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         final var uri = this.uriBuilder.buildAndExpand(pathArgs).toUriString();
 
         final var queryParams = new HashMap<String, List<String>>();
-        this.queryMap.entrySet().forEach(entry -> {
+        this.queryParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getKey()];
             if (arg instanceof Map<?, ?> map) {
                 map.entrySet().stream().forEach(e -> queryParams.merge(e.getKey().toString(),
@@ -104,15 +108,18 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
         });
 
+        final var copyStatic = new HashMap<String, List<String>>(this.headerStatic);
         final var headers = new HashMap<String, List<String>>();
-        this.headerMap.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
+        this.headerParams.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
             @Override
             public void accept(Entry<Integer, String> entry) {
                 final var arg = args[entry.getKey()];
-                newValue(entry.getValue(), arg);
+                final var name = entry.getValue();
+                copyStatic.remove(name);
+                newValue(name, arg);
             }
 
-            private void newValue(final Object key, final Object newValue) {
+            private void newValue(final String key, final Object newValue) {
                 if (newValue == null) {
                     return;
                 }
@@ -122,20 +129,19 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
                     return;
                 }
 
+                // One level only. No recursive yet.
                 if (newValue instanceof Map<?, ?> map) {
                     map.entrySet().forEach(entry -> {
-                        newValue(entry.getKey(), entry.getValue());
+                        newValue(entry.getKey().toString().toLowerCase(Locale.ROOT), entry.getValue());
                     });
                     return;
                 }
 
-                getMapped(key).add(newValue.toString());
-            }
-
-            private List<String> getMapped(final Object key) {
-                return headers.computeIfAbsent(key.toString(), k -> new ArrayList<String>());
+                headers.computeIfAbsent(key, v -> new ArrayList<String>()).add(newValue.toString());
             }
         });
+
+        copyStatic.entrySet().stream().forEach(entry -> headers.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);

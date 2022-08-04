@@ -9,8 +9,11 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -58,8 +61,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
-    public DefaultProxyMethodParser(final PropertyResolver propertyResolver,
-            final AuthBeanResolver authBeanResolver, final BodyHandlerResolver bodyHandlerResolver,
+    public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
+            final BodyHandlerResolver bodyHandlerResolver,
             final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
@@ -84,27 +87,50 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
                 byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
-        final var pathMap = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
+        final var pathParams = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
                 .toMap(p -> p.parameter().getAnnotation(PathVariable.class).value(), ReflectedParameter::index));
 
-        final var queryMap = reflected.allParametersWith(RequestParam.class).stream().collect(Collectors
+        final var queryParams = reflected.allParametersWith(RequestParam.class).stream().collect(Collectors
                 .toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(RequestParam.class).value()));
 
         /*
          * Parameter headers
          */
-        final var headerMap = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
+        final var headerParams = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
             final var name = p.parameter().getAnnotation(RequestHeader.class).value();
             if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
                 throw new IllegalArgumentException(
-                        "Un-supported header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
+                        "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
             }
             return p;
         }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString()));
+                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString().toLowerCase(Locale.US)));
 
-        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue)
-                .orElse(byRest.accept());
+        final var namesOnParam = headerParams.values();
+        if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
+            throw new IllegalArgumentException(
+                    "Duplicate header names on " + reflected.method());
+        }
+
+        /*
+         * Static headers
+         */
+        final var headers = Arrays.asList(byRest.headers());
+        if ((headers.size() & 1) != 0) {
+            throw new IllegalArgumentException("Headers should be name/value pair: " + headers);
+        }
+        final Map<String, List<String>> headerStatic = new HashMap<>();
+        for (int i = 0; i < headers.size(); i += 2) {
+            final var key = headers.get(i).toLowerCase(Locale.US);
+            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.US)) || headerStatic.containsKey(key)) {
+                throw new IllegalArgumentException("Illegal header '" + headers.get(i) + "' in " + headers + " on "
+                        + reflected.method().getDeclaringClass());
+            }
+            headerStatic.compute(key, (k, v) -> new ArrayList<String>())
+                    .add(propertyResolver.resolve(headers.get(i + 1)));
+        }
+
+        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElse(byRest.accept());
 
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                 .or(() -> Optional.ofNullable(byRest.contentType())).filter(OneUtil::hasValue)
@@ -162,7 +188,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
 
         return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                uriBuilder, pathMap, queryMap, headerMap, authSupplierFn, bodyHandlerFn, bodyFn, bodyAs);
+                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, bodyHandlerFn, bodyFn,
+                bodyAs);
     }
 
     private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final ByRest.Auth auth,

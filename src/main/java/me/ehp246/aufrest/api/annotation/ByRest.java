@@ -9,6 +9,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
@@ -112,6 +114,32 @@ public @interface ByRest {
     String responseBodyHandler() default "";
 
     /**
+     * Defines request header names and values in pairs. E.g.,
+     * <p>
+     * <code>
+     *     { "x-app-name", "AufRest", "x-app-version", "1.0", ... }
+     * </code>
+     * <p>
+     * Missing value will trigger an exception. E.g., the following is missing value
+     * for header 'x-app-version' and will result an exception.
+     * <p>
+     * <code>
+     *     { "x-app-name", "AufRest", "x-app-version" }
+     * </code>
+     * <p>
+     * Header names are converted to lower case and can not be repeated. Values are
+     * accepted as-is.
+     * <p>
+     * If the same header is defined by a {@linkplain RequestHeader} parameter as
+     * well, the parameter argument takes the precedence and is accepted. The value
+     * defined here is ignored.
+     * <p>
+     * Spring property placeholder is supported on values but not on names.
+     * 
+     */
+    String[] headers() default {};
+
+    /**
      * Defines the Authorization types supported.
      */
     @interface Auth {
@@ -131,5 +159,4 @@ public @interface ByRest {
          */
         String[] value() default {};
     }
-
 }
