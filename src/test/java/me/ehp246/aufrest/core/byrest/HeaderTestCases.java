@@ -65,6 +65,8 @@ interface HeaderTestCases {
         void get();
 
         void get(@RequestHeader("x-api-key") String key);
+
+        void getCasing(@RequestHeader("x-API-key") String key);
     }
 
     @ByRest(value = "", headers = { "x-api-key", "${api.key}" })

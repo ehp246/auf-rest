@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -107,15 +108,18 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
         });
 
-        final var headers = new HashMap<String, List<String>>(this.headerStatic);
+        final var copyStatic = new HashMap<String, List<String>>(this.headerStatic);
+        final var headers = new HashMap<String, List<String>>();
         this.headerParams.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
             @Override
             public void accept(Entry<Integer, String> entry) {
                 final var arg = args[entry.getKey()];
-                newValue(entry.getValue(), arg);
+                final var name = entry.getValue();
+                copyStatic.remove(name);
+                newValue(name, arg);
             }
 
-            private void newValue(final Object key, final Object newValue) {
+            private void newValue(final String key, final Object newValue) {
                 if (newValue == null) {
                     return;
                 }
@@ -125,16 +129,19 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
                     return;
                 }
 
+                // One level only. No recursive yet.
                 if (newValue instanceof Map<?, ?> map) {
                     map.entrySet().forEach(entry -> {
-                        newValue(entry.getKey(), entry.getValue());
+                        newValue(entry.getKey().toString().toLowerCase(Locale.ROOT), entry.getValue());
                     });
                     return;
                 }
 
-                headers.compute(key.toString(), (k, v) -> new ArrayList<String>()).add(newValue.toString());
+                headers.computeIfAbsent(key, v -> new ArrayList<String>()).add(newValue.toString());
             }
         });
+
+        copyStatic.entrySet().stream().forEach(entry -> headers.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);

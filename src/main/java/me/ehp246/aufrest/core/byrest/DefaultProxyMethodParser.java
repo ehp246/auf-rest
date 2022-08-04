@@ -98,13 +98,13 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          */
         final var headerParams = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
             final var name = p.parameter().getAnnotation(RequestHeader.class).value();
-            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.ROOT))) {
+            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
                 throw new IllegalArgumentException(
                         "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
             }
             return p;
         }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString().toLowerCase(Locale.ROOT)));
+                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString().toLowerCase(Locale.US)));
 
         final var namesOnParam = headerParams.values();
         if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
@@ -121,8 +121,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
         final Map<String, List<String>> headerStatic = new HashMap<>();
         for (int i = 0; i < headers.size(); i += 2) {
-            final var key = headers.get(i).toLowerCase(Locale.ROOT);
-            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.ROOT)) || headerStatic.containsKey(key)) {
+            final var key = headers.get(i).toLowerCase(Locale.US);
+            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.US)) || headerStatic.containsKey(key)) {
                 throw new IllegalArgumentException("Illegal header '" + headers.get(i) + "' in " + headers + " on "
                         + reflected.method().getDeclaringClass());
             }

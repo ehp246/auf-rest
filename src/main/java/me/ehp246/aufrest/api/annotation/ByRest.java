@@ -114,18 +114,25 @@ public @interface ByRest {
     String responseBodyHandler() default "";
 
     /**
-     * Defines request header names and values for the interface. The header names
-     * and values are to be defined in pairs as following:
+     * Defines request header names and values in pairs. E.g.,
      * <p>
      * <code>
-     *     { "x-header-1", "value.1", "x-header-2", "value.2" }
+     *     { "x-app-name", "AufRest", "x-app-version", "1.0", ... }
      * </code>
      * <p>
-     * Header names are accepted in lower case and can not be repeated. Values are
+     * Missing value will trigger an exception. E.g., the following is missing value
+     * for header 'x-app-version' and will result an exception.
+     * <p>
+     * <code>
+     *     { "x-app-name", "AufRest", "x-app-version" }
+     * </code>
+     * <p>
+     * Header names are converted to lower case and can not be repeated. Values are
      * accepted as-is.
      * <p>
-     * If the header is defined by a {@linkplain RequestHeader} parameter as well,
-     * the parameter argument takes the precedence and is accepted.
+     * If the same header is defined by a {@linkplain RequestHeader} parameter as
+     * well, the parameter argument takes the precedence and is accepted. The value
+     * defined here is ignored.
      * <p>
      * Spring property placeholder is supported on values but not on names.
      * 
