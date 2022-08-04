@@ -68,7 +68,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             public HttpResponse<?> apply(RestRequest req) {
                 final var httpReq = reqBuilder.apply(req);
 
-                listeners.stream().forEach(obs -> obs.onRequest(httpReq, req));
+                listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 
                 final HttpResponse<Object> httpResponse;
                 // Try/catch on send only.
@@ -79,12 +79,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 } catch (IOException | InterruptedException e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
 
-                    listeners.stream().forEach(obs -> obs.onException(e, httpReq, req));
+                    listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
 
                     throw new RestFnException(e);
                 }
 
-                listeners.stream().forEach(obs -> obs.onResponse(httpResponse, req));
+                listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
 
                 return httpResponse;
             }

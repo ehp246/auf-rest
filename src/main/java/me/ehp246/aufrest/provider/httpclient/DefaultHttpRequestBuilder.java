@@ -85,13 +85,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         /**
          * Required headers. Null and blank not allowed.
-         */
-        /*
-         * Request id
-         */
-        Optional.ofNullable(req.id()).ifPresent(id -> builder.setHeader(HttpUtils.REQUEST_ID, id));
-
-        /*
+         * 
          * accept, accept-encoding
          */
         builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());

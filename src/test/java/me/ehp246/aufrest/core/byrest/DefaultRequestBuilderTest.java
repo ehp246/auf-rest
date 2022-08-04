@@ -17,9 +17,9 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.MockRequestBuilderSupplier;
@@ -55,23 +55,6 @@ class DefaultRequestBuilderTest {
     @BeforeEach
     void beforeEach() {
         HeaderContext.clear();
-    }
-
-    @Test
-    void id_001() {
-        final var id = UUID.randomUUID().toString();
-        Assertions.assertEquals(id, defBuilder.apply(new RestRequest() {
-
-            @Override
-            public String id() {
-                return id;
-            }
-
-            @Override
-            public String uri() {
-                return "http://w.w.w";
-            }
-        }).headers().firstValue(HttpUtils.REQUEST_ID).get());
     }
 
     @Test

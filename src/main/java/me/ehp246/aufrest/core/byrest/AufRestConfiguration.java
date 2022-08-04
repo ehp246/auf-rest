@@ -4,6 +4,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +13,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
+import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
-import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
@@ -43,8 +44,9 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 public final class AufRestConfiguration {
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER + ":false}") final boolean enabled,
+            @Value("${" + AufRestConstants.REST_LOGGER_MASKED + ":authorization}") final Set<String> masked,
             final ToJson toJson) {
-        return enabled ? new RestLogger(toJson) : null;
+        return enabled ? new RestLogger(toJson, masked) : null;
     }
 
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")

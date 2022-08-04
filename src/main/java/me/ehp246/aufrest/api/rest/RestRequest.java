@@ -20,10 +20,6 @@ public interface RestRequest {
         return "GET";
     }
 
-    default String id() {
-        return null;
-    }
-
     default Duration timeout() {
         return null;
     }
