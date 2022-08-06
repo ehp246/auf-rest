@@ -12,14 +12,16 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
+import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
@@ -34,14 +36,19 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
     private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
+    private final RestLogger restLogger;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
         this(clientBuilderSupplier, req -> null, null);
     }
 
     @Autowired
-    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final List<RestListener> listeners) {
-        this(HttpClient::newBuilder, reqBuilder, listeners);
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final List<RestListener> listeners,
+            @Nullable final RestLogger restLogger) {
+        this.clientBuilderSupplier = HttpClient::newBuilder;
+        this.reqBuilder = reqBuilder;
+        this.listeners = listeners;
+        this.restLogger = restLogger;
     }
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
@@ -49,6 +56,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         this.clientBuilderSupplier = clientBuilderSupplier;
         this.reqBuilder = restToHttp;
         this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
+        this.restLogger = null;
     }
 
     @SuppressWarnings("unchecked")
@@ -69,6 +77,10 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 final var httpReq = reqBuilder.apply(req);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
+
+                if (restLogger != null) {
+                    restLogger.onRequest(httpReq, req);
+                }
 
                 final HttpResponse<Object> httpResponse;
                 // Try/catch on send only.

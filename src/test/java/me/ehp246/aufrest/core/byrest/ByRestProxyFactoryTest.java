@@ -189,7 +189,7 @@ class ByRestProxyFactoryTest {
 
         final var request = reqRef.get();
 
-        Assertions.assertEquals(HttpUtils.APPLICATION_JSON, request.contentType());
+        Assertions.assertEquals("", request.contentType());
         Assertions.assertEquals("https://postman-echo.com/get", request.uri());
 
         final var queryParams = request.queryParams();

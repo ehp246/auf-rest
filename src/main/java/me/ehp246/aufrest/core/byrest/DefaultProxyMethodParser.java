@@ -130,11 +130,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     .add(propertyResolver.resolve(headers.get(i + 1)));
         }
 
-        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElse(byRest.accept());
+        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElseGet(byRest::accept);
 
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
-                .or(() -> Optional.ofNullable(byRest.contentType())).filter(OneUtil::hasValue)
-                .orElse(HttpUtils.APPLICATION_JSON);
+                .orElseGet(byRest::contentType);
 
         final var authHeaders = reflected.allParametersWith(AuthHeader.class);
         if (authHeaders.size() > 1) {

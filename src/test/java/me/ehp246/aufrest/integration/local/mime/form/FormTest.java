@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = "me.ehp246.aufrest.restLogger:true")
 class FormTest {
     @Autowired
     private FormCase formCase;

@@ -23,7 +23,7 @@ interface StreamCase {
         @Reifying(InputStream.class)
         HttpResponse<InputStream> get002(@RequestParam("name") String name);
 
-        @OfMapping("/person")
+        @OfMapping(value = "/inputstream")
         Integer post(InputStream in);
     }
 

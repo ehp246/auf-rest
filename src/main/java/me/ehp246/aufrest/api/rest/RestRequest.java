@@ -50,7 +50,7 @@ public interface RestRequest {
     }
 
     default String contentType() {
-        return HttpUtils.APPLICATION_JSON;
+        return "";
     }
 
     default String accept() {

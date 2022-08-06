@@ -71,9 +71,8 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
          */
         Optional.ofNullable(Stream
                 .of(providedHeaders, HeaderContext.map(), Optional.ofNullable(req.headers()).orElseGet(HashMap::new))
-                .map(Map::entrySet).flatMap(Set::stream)
-                .collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(Locale.ROOT),
-                        Map.Entry::getValue, (o, n) -> n)))
+                .map(Map::entrySet).flatMap(Set::stream).collect(Collectors
+                        .toMap(entry -> entry.getKey().toLowerCase(Locale.US), Map.Entry::getValue, (o, n) -> n)))
                 .map(Map::entrySet).stream().flatMap(Set::stream).forEach(entry -> {
                     final var key = entry.getKey();
                     final var values = entry.getValue();
@@ -146,29 +145,12 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     private ContentPublisher getContentPublisher(RestRequest req) {
         final var body = req.body();
 
-        // Short-circuit for a few low-level types.
-        // In these cases, the content type is ignored.
+        final var contentType = Optional.of(req.contentType()).filter(OneUtil::hasValue)
+                .orElse(HttpUtils.APPLICATION_JSON);
+
         if (body instanceof BodyPublisher publisher) {
-            return new ContentPublisher(req.contentType(), publisher);
+            return new ContentPublisher(contentType, publisher);
         }
-
-        if (body instanceof InputStream stream) {
-            return new ContentPublisher(req.contentType(), BodyPublishers.ofInputStream(() -> stream));
-        }
-
-        if (body instanceof Path path) {
-            final var boundry = new String(MimeTypeUtils.generateMultipartBoundary(), StandardCharsets.UTF_8);
-
-            return new ContentPublisher(HttpUtils.MULTIPART_FORM_DATA + ";boundary=" + boundry,
-                    ofMimeMultipartData(Map.of("file", path), boundry));
-        }
-
-        // The rest needs the content type. No content type, no content.
-        if (!OneUtil.hasValue(req.contentType())) {
-            return new ContentPublisher(req.contentType(), BodyPublishers.noBody());
-        }
-
-        final var contentType = req.contentType().toLowerCase();
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
             // Encode query parameters as the body ignoring the body object.
@@ -180,13 +162,29 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             return new ContentPublisher(contentType, BodyPublishers.noBody());
         }
 
+        // The rest requires a body.
+        if (body instanceof InputStream stream) {
+            return new ContentPublisher(contentType, BodyPublishers.ofInputStream(() -> stream));
+        }
+
+        if (body instanceof Path path) {
+            final var boundry = new String(MimeTypeUtils.generateMultipartBoundary(), StandardCharsets.UTF_8);
+
+            return new ContentPublisher(HttpUtils.MULTIPART_FORM_DATA + ";boundary=" + boundry,
+                    ofMimeMultipartData(Map.of("file", path), boundry));
+        }
+
         if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
             return new ContentPublisher(contentType, BodyPublishers.ofString(body.toString()));
         }
 
-        // Default to JSON.
-        return new ContentPublisher(contentType,
-                BodyPublishers.ofString(toJson.apply(new ToJson.From(body, req.bodyAs().type()))));
+        if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
+            return new ContentPublisher(contentType,
+                    BodyPublishers.ofString(toJson.apply(new ToJson.From(body, req.bodyAs().type()))));
+        }
+
+        throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
+                + body.toString() + "' of type '" + req.bodyAs().type() + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {
