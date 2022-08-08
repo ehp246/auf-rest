@@ -37,7 +37,7 @@ public final class AufRestConstants {
     /**
      * To configure a built-in logger.
      */
-    public static final String REST_LOGGER = "me.ehp246.aufrest.restLogger";
+    public static final String REST_LOGGER = "me.ehp246.aufrest.restLogger.enabled";
     public static final String REST_LOGGER_MASKED = "me.ehp246.aufrest.restLogger.maskedHeaders";
 
     private AufRestConstants() {

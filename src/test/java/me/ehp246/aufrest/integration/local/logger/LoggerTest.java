@@ -16,7 +16,7 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restLogger=true" })
+        "me.ehp246.aufrest.restLogger.enabled=true" })
 class LoggerTest {
     @Autowired
     private LoggerCases.LoggerCase01 case01;

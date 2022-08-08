@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restLogger=true",
+        "me.ehp246.aufrest.restLogger.enabled=true",
         "me.ehp246.aufrest.restLogger.maskedHeaders=accept, authorization, Content-length" })
 class LoggerHeaders1Test {
     @Autowired

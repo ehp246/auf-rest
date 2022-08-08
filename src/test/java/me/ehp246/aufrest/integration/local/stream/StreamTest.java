@@ -22,7 +22,7 @@ import me.ehp246.aufrest.integration.model.Person;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restLogger:true" })
+        "me.ehp246.aufrest.restLogger.enabled:true" })
 class StreamTest {
     @Autowired
     private StreamCase.Case001 case001;
