@@ -3,12 +3,12 @@
 	<Appenders>
 		<Console name="console" target="SYSTEM_OUT">
 			<PatternLayout
-				pattern="%d{HH:mm:ss.SSS} [%-5level] [%X] [%t] %c{1} - %msg%n" />
+				pattern="%d{HH:mm:ss.SSS} [%-5level] [%X] [%t] [%marker] %c{1} - %msg%n" />
 		</Console>
 	</Appenders>
 	<Loggers>
 		<Logger name="me.ehp246" level="trace" additivity="false">
-            <AppenderRef ref="console" />
+			<AppenderRef ref="console" />
 		</Logger>
 		<Root level="info" additivity="false">
 			<AppenderRef ref="console" />
