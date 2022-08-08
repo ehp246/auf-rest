@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -146,14 +145,8 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
         final var bodyHandler = bodyHandlerFn.apply(target, args);
-        final var id = UUID.randomUUID().toString();
 
         return new RestRequest() {
-
-            @Override
-            public String id() {
-                return id;
-            }
 
             @Override
             public String method() {

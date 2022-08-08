@@ -121,7 +121,7 @@ public @interface ByRest {
      * </code>
      * <p>
      * Missing value will trigger an exception. E.g., the following is missing value
-     * for header 'x-app-version' and will result an exception.
+     * for header '{@code x-app-version}' and will result an exception.
      * <p>
      * <code>
      *     { "x-app-name", "AufRest", "x-app-version" }

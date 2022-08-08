@@ -24,7 +24,8 @@ import me.ehp246.aufrest.mock.MockResponseBodyHandler;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+        "me.ehp246.aufrest.restLogger.enabled:true" })
 class BodyTest {
     @Autowired
     private BodyPublisherCase publisherCase;

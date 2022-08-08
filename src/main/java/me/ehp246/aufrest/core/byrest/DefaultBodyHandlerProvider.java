@@ -12,9 +12,11 @@ import java.util.zip.GZIPInputStream;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
 
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.FromJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -24,10 +26,12 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
     private final FromJson fromJson;
+    private final RestLogger restLogger;
 
-    public DefaultBodyHandlerProvider(FromJson jsonFn) {
+    public DefaultBodyHandlerProvider(final FromJson jsonFn, @Nullable final RestLogger restLogger) {
         super();
         this.fromJson = jsonFn;
+        this.restLogger = restLogger;
     }
 
     @Override
@@ -43,6 +47,11 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
             // header.
             final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
                     .orElse(MediaType.APPLICATION_JSON_VALUE);
+
+            // Log headers
+            if (restLogger != null) {
+                this.restLogger.onResponseInfo(responseInfo);
+            }
 
             // Short-circuit the content-type.
             if (type.isAssignableFrom(InputStream.class)) {
@@ -61,6 +70,10 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
                     throw new RuntimeException(e);
                 }
             }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                if (restLogger != null) {
+                    restLogger.onResponseBody(text);
+                }
+
                 if ((statusCode == 204) || (statusCode < 300
                         && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
                     return null;

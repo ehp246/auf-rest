@@ -21,7 +21,8 @@ import me.ehp246.aufrest.integration.model.Person;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+        "me.ehp246.aufrest.restLogger.enabled:true" })
 class StreamTest {
     @Autowired
     private StreamCase.Case001 case001;
@@ -71,6 +72,7 @@ class StreamTest {
     @Test
     void json_003() {
         final var count = (int) (Math.random() * 100);
-        Assertions.assertTrue(case001.post(new ByteArrayInputStream(new byte[count])) == count);
+
+        Assertions.assertEquals(count, case001.post(new ByteArrayInputStream(new byte[count])).intValue());
     }
 }

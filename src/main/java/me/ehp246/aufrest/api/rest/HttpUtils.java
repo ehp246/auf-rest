@@ -23,14 +23,12 @@ public final class HttpUtils {
     public final static String CONTENT_LENGTH = "content-length";
     public final static String ACCEPT = "accept";
     public static final String ACCEPT_ENCODING = "accept-encoding";
-    public static final String REQUEST_ID = "x-aufrest-request-id";
     public static final String TRACEPARENT = "traceparent";
 
     public final static String BEARER = "Bearer";
     public final static String BASIC = "Basic";
 
-    public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, ACCEPT_ENCODING,
-            REQUEST_ID);
+    public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, ACCEPT_ENCODING);
 
     // Media types
     public static final String APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
@@ -38,6 +36,7 @@ public final class HttpUtils {
     public static final String APPLICATION_XML = "application/xml";
     public static final String MULTIPART_FORM_DATA = "multipart/form-data";
     public static final String TEXT_PLAIN = "text/plain";
+    public static final String OCTET_STREAM = "application/octet-stream";
 
     private HttpUtils() {
         super();

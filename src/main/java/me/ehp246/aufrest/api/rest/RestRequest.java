@@ -20,10 +20,6 @@ public interface RestRequest {
         return "GET";
     }
 
-    default String id() {
-        return null;
-    }
-
     default Duration timeout() {
         return null;
     }
@@ -54,7 +50,7 @@ public interface RestRequest {
     }
 
     default String contentType() {
-        return HttpUtils.APPLICATION_JSON;
+        return "";
     }
 
     default String accept() {

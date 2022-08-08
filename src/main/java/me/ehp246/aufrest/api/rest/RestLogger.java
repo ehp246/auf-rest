@@ -2,19 +2,24 @@ package me.ehp246.aufrest.api.rest;
 
 import java.io.InputStream;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import me.ehp246.aufrest.api.spi.ToJson;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 /**
  * Helper bean for the convenience of the application.
@@ -22,10 +27,19 @@ import me.ehp246.aufrest.api.spi.ToJson;
  * @author Lei Yang
  *
  */
-public final class RestLogger implements RestListener {
+public final class RestLogger {
     private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
 
-    private final static Subscriber<ByteBuffer> subscriber = new Subscriber<>() {
+    private final static List<String> MASKED = List.of("*");
+    private final static Marker REQUEST = MarkerManager.getMarker("AUFREST_REQUEST");
+    private final static Marker REQUEST_HEADERS = MarkerManager.getMarker("AUFREST_REQUEST_HEADERS");
+    private final static Marker REQUEST_BODY = MarkerManager.getMarker("AUFREST_REQUEST_BODY");
+
+    private final static Marker RESPONSE = MarkerManager.getMarker("AUFREST_RESPONSE");
+    private final static Marker RESPONSE_HEADERS = MarkerManager.getMarker("AUFREST_RESPONSE_HEADERS");
+    private final static Marker RESPONSE_BODY = MarkerManager.getMarker("AUFREST_RESPONSE_BODY");
+
+    private final static Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
 
         @Override
         public void onSubscribe(final Subscription subscription) {
@@ -34,12 +48,13 @@ public final class RestLogger implements RestListener {
 
         @Override
         public void onNext(final ByteBuffer item) {
-            LOGGER.atTrace().log("{}", () -> new String(item.array(), StandardCharsets.UTF_8));
+            LOGGER.atTrace().withMarker(REQUEST_BODY).log("{}", () -> new String(item.array(), StandardCharsets.UTF_8));
         }
 
         @Override
         public void onError(final Throwable throwable) {
-            LOGGER.atError().withThrowable(throwable).log("Failed to log body: {}", throwable::getMessage);
+            LOGGER.atTrace().withMarker(REQUEST_BODY).withThrowable(throwable).log("Failed to log body: {}",
+                    throwable::getMessage);
         }
 
         @Override
@@ -47,52 +62,53 @@ public final class RestLogger implements RestListener {
         }
     };
 
-    private final ToJson toJson;
+    private final Set<String> maskedHeaders = new HashSet<>();
 
-    public RestLogger(final ToJson toJson) {
+    public RestLogger(final Set<String> maskedHeaders) {
         super();
-        this.toJson = toJson;
+        if (maskedHeaders != null) {
+            maskedHeaders.stream().forEach(name -> this.maskedHeaders.add(name.toLowerCase(Locale.US)));
+        }
     }
 
-    @Override
-    public void onRequest(final HttpRequest httpRequest, final RestRequest request) {
-        LOGGER.atInfo().log(httpRequest.method() + " " + httpRequest.uri());
+    public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
+        LOGGER.atInfo().withMarker(REQUEST).log("{}", () -> httpRequest.method() + " " + httpRequest.uri());
 
-        LOGGER.atDebug().log(maskHeaders(httpRequest.headers().map()));
+        LOGGER.atDebug().withMarker(REQUEST_HEADERS).log("{}", () -> maskHeaders(httpRequest.headers().map()));
 
-        // Logging body only on TRACE.
-        if (request.body() instanceof InputStream) {
-            LOGGER.atTrace().log(request.body().toString());
+        final var body = req.body();
+
+        if (body instanceof BodyPublisher || body instanceof InputStream || body instanceof Path) {
+            LOGGER.atTrace().withMarker(REQUEST_BODY).log("");
             return;
         }
 
-        httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(subscriber), () -> LOGGER.atTrace().log("-"));
+        httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(REQUEST_BODY_SUBSCRIBER),
+                () -> LOGGER.atTrace().withMarker(REQUEST_BODY).log(""));
     }
 
-    @Override
-    public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
-        LOGGER.atInfo().log(httpResponse.statusCode());
+    public void onResponseInfo(HttpResponse.ResponseInfo responseInfo) {
+        LOGGER.atInfo().withMarker(RESPONSE).log("{}", responseInfo::statusCode);
 
-        LOGGER.atDebug().log(maskHeaders(httpResponse.headers().map()));
-
-        // Logging response body only on TRACE.
-        try {
-            LOGGER.atTrace().log("{}", () -> this.toJson.apply(httpResponse.body()));
-        } catch (Exception e) {
-            LOGGER.atWarn().withThrowable(e).log("Failed to log response body: {}", e::getMessage);
-        }
+        LOGGER.atDebug().withMarker(RESPONSE_HEADERS).log("{}", () -> maskHeaders(responseInfo.headers().map()));
     }
 
-    @Override
-    public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
-        LOGGER.atInfo().withThrowable(exception).log("Request failed: {}", exception::getMessage);
+    public void onResponseBody(String text) {
+        LOGGER.atTrace().withMarker(RESPONSE_BODY).log(text);
     }
 
-    private static Map<String, List<String>> maskHeaders(Map<String, List<String>> headers) {
-        final var masked = new HashMap<>(headers);
+    private String maskHeaders(Map<String, List<String>> headers) {
+        final var workingMap = new HashMap<>(headers.size());
 
-        masked.computeIfPresent(HttpUtils.AUTHORIZATION, (key, values) -> List.of("*"));
+        headers.entrySet().forEach(entry -> {
+            final var key = entry.getKey();
+            if (this.maskedHeaders.contains(key.toLowerCase(Locale.US))) {
+                workingMap.put(key, MASKED);
+            } else {
+                workingMap.put(key, entry.getValue());
+            }
+        });
 
-        return masked;
+        return workingMap.toString();
     }
 }

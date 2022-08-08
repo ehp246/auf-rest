@@ -42,7 +42,7 @@ class ContentTypeTest {
         factory.newInstance(TestCase001.class).get();
 
         Assertions.assertEquals("application/json", reqRef.get().accept());
-        Assertions.assertEquals("application/json", reqRef.get().contentType());
+        Assertions.assertEquals("", reqRef.get().contentType());
     }
 
     @Test
