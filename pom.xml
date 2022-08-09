@@ -41,10 +41,10 @@
 
 		<mockito.version>4.3.1</mockito.version>
 
-		<jackson.version>2.13.1</jackson.version>
+		<jackson.version>2.13.3</jackson.version>
 
-		<spring-framework.version>5.3.9</spring-framework.version>
-		<spring-boot.version>2.5.3</spring-boot.version>
+		<spring-framework.version>5.3.22</spring-framework.version>
+		<spring-boot.version>2.7.2</spring-boot.version>
 
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
@@ -258,7 +258,7 @@
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
 					<systemPropertyVariables>
-						<me.ehp246.aufrest.restLogger>true</me.ehp246.aufrest.restLogger>
+						<me.ehp246.aufrest.restLogger.enabled>true</me.ehp246.aufrest.restLogger.enabled>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
