@@ -21,7 +21,7 @@ class ClientApplication {
 }
 ```
 
-**Define a ``ObjectMapper`` Bean**
+**Define a `ObjectMapper` Bean**
 
 The library requires a ``com.fasterxml.jackson.databind.ObjectMapper`` bean in the application context. Such a bean is often available from Spring Boot dependencies, there is no need to define one explicitly. An optional built-in definition can be imported as such:
 
