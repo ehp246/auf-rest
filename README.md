@@ -99,15 +99,12 @@ public interface TimeServer {
 
 Details can be found at the project's [Wiki](https://github.com/ehp246/auf-rest/wiki).
 
-## Dependency
+## Runtime
 The latest version requires the following to run:
 * Log4j 2
-* Jackson: core and databind
-* Spring: beans, context and web
-* JDK 17 for v3
-* JDK 11 for v2 and below
-
-It should work on Spring 4 but it's not been tested.
+* Jackson 2: core and databind
+* Spring 5: beans, context, and web
+* JDK 17
 
 ## Release
 The release binaries can be found on [Maven Central](https://mvnrepository.com/artifact/me.ehp246/auf-rest).
