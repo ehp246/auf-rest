@@ -3,7 +3,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/me.ehp246/auf-rest)
 
 ## Introduction
-Auf REST is aimed at Spring-based applications that need to implement REST clients of dependent services/applications. It offers an annotation-driven and declarative implementation approach similar to what Spring Data Repository offers. It abstracts away most underline HTTP/REST concerns by offering a set of annotations and conventions with which the developers declare the intentions at an application level via plain Java interfaces. They don't need to dictate in an imperative way the details on how a HTTP client should be created, requests sent, responses processed, and exceptions handled. The framework takes care of these chores for the developers so they can focus on application logic. The library can reduce the code base of an application significantly by removing commonly-seen HttpClient/RestTemplate-based helper/utility classes that are largely repetitive to implement, difficult to test and error prone. Because of the declarative approach based on plain Java interfaces, the library also makes implementing unit tests much easier as it removes the need for heavy and brittle mocking.
+Auf REST is aimed at Spring-based applications that need to implement REST clients to dependent services/applications. It offers an annotation-driven and declarative programming approach similar to  Spring Data Repository. It abstracts away underline HTTP/REST concerns by offering a set of annotations and conventions with which the developers declare the intentions via plain Java interfaces. The developers don't need to dictate in an imperative way the details on how a HTTP client should be created, requests sent, responses processed, and exceptions handled. The library takes care of these low-level details for the developers so they can focus on application logic. The library can reduce the code base of an application significantly by removing commonly-seen HttpClient/RestTemplate-based helper/utility classes that are largely repetitive in implementation, difficult to test and error prone. Because the programming is based on straight Java interfaces, the library also makes implementing unit tests much easier as it removes the need for heavy and brittle mocking.
 
 ## Quick Start
 
@@ -21,80 +21,86 @@ class ClientApplication {
 }
 ```
 
+**Define a ``ObjectMapper`` Bean**
+
+The library requires a ``com.fasterxml.jackson.databind.ObjectMapper`` bean in the application context. Such a bean is often available from Spring Boot dependencies, there is no need to define one explicitly. An optional built-in definition can be imported as such:
+
+```
+@Import(me.ehp246.aufjms.api.spi.JacksonConfig.class)
+```
+
+
 **Declare an interface using `@ByRest`.**
 
 ```
 @ByRest("${api.base}")
-public interface GetProxy {
-    EchoResponseBody get();
+public interface TimeServer {
+    Instant get();
 }
 ```
+At this point, you have a REST client that when invoked
+* performs GET
+* has the URL defined by a Spring property
+* takes no parameter
+* returns the response body as a Java ``Instant`` object
+
+The client won't do anything by itself, so the next step is to...
 
 **Inject and enjoy.**
 
 ```
 @Service
-public class ProxyService {
+public class AppService {
     // Do something with it
     @Autowired
-    private GetProxy get;
+    private TimeServer timeServer;
     ...
 }
 ```
-By this point, you have implemented a GET request that
-* has the URL defined by a Spring property
-* takes no parameter
-* returns the response body as a de-serialized Java object
 
 <br>
 The following are a few more examples.
 
 **POST a JSON body from an object**
+
 ```
 @ByRest("${api.base}")
-public interface PostProxy {
-    EchoResponseBody post(NewBorn newBorn);
+public interface TimeServer {
+    void post(Instant newTime);
 }
 ```
 
 **PATCH with query parameters**
+
 ```
 @ByRest("${api.base}")
-public interface PatchProxy {
-    EchoResponseBody patch(@RequestParam("firstName") String firstName, 
-        @RequestParam("lastName") String lastName);
+public interface TimeServer {
+    void patch(@RequestParam("timeUnit") String timeUnit, @RequestParam("timeDelta") int timeAmount);
 }
 ```
+
 **DELETE**
+
 ```
 @ByRest("${api.base}")
-public interface DeleteProxy {
-    EchoResponseBody delete(@RequestParam("firstName") String firstName, 
-        @RequestParam("lastName") String lastName);
+public interface TimeServer {
+   void delete(@RequestParam("timerName") String timerName);
 }
 ```
 
 **PUT**
+
 ```
 @ByRest("${api.base}")
-public interface PutProxy {
-    EchoResponseBody put(@RequestParam("firstName") String firstName, 
-        @RequestParam("lastName") String lastName,
-	NewBorn newBorn);
+public interface TimeServer {
+    void put(@RequestParam("timerName") String timerName);
 }
 ```
-For detailed documents, please see the project's Wiki.
+
+Details can be found at the project's [Wiki](https://github.com/ehp246/auf-rest/wiki).
 
 ## Dependency
-Auf REST is developed and tested on top of these:
-* Log4j 2
-* Jackson
-* Spring 5
-* Spring Boot 2
-* JDK 17 for v3
-* JDK 11 for v2 and below
-
-It requires the following to run:
+The latest version requires the following to run:
 * Log4j 2
 * Jackson: core and databind
 * Spring: beans, context and web
