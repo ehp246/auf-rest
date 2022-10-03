@@ -67,8 +67,8 @@ public @interface ByRest {
      * The default, empty string, indicates to the framework to infer the
      * serialization strategy by the request body type.
      * <p>
-     * For all un-recognized types, the contentType is set to application/json and
-     * body is serialized as JSON.
+     * For all un-recognized types, the content type is set to
+     * <code>application/json</code and body is serialized as JSON.
      */
     String contentType() default "";
 
@@ -120,8 +120,9 @@ public @interface ByRest {
      *     { "x-app-name", "AufRest", "x-app-version", "1.0", ... }
      * </code>
      * <p>
-     * Missing value will trigger an exception. E.g., the following is missing value
-     * for header '{@code x-app-version}' and will result an exception.
+     * Must be in pairs. Missing value will trigger an exception. E.g., the
+     * following is missing value for header '{@code x-app-version}' and will result
+     * an exception.
      * <p>
      * <code>
      *     { "x-app-name", "AufRest", "x-app-version" }
