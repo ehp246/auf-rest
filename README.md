@@ -9,7 +9,7 @@ Auf REST is aimed at Spring-based applications that need to implement REST clien
 
 **Add [Maven dependency](https://mvnrepository.com/artifact/me.ehp246/auf-rest).**
 
-**Enable the library using `@EnableByRest`.**
+**Enable by `@EnableByRest`.**
 
 ```
 @EnableByRest
@@ -21,7 +21,7 @@ class ClientApplication {
 }
 ```
 
-**Define a `ObjectMapper` Bean**
+**Import `ObjectMapper` optionally**
 
 The library requires a ``com.fasterxml.jackson.databind.ObjectMapper`` bean in the application context. Such a bean is often available from Spring Boot dependencies, there is no need to define one explicitly. An optional built-in definition can be imported as such:
 
@@ -30,7 +30,7 @@ The library requires a ``com.fasterxml.jackson.databind.ObjectMapper`` bean in t
 ```
 
 
-**Declare an interface using `@ByRest`.**
+**Declare by `@ByRest`.**
 
 ```
 @ByRest("${api.base}")
