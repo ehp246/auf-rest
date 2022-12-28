@@ -39,7 +39,8 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
+import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.ValueDescriptor;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
@@ -48,8 +49,11 @@ import me.ehp246.aufrest.core.reflection.ReflectedType;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
+ * Parses a proxy method to internal data structure that is ready for turning an
+ * invocation to a {@linkplain RestRequest}.
+ * 
  * @author Lei Yang
- *
+ * @see ReflectedInvocationRequestBuilder
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
@@ -179,7 +183,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyFn = bodyParam.map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()])
                 .orElse(null);
-        final var bodyAs = bodyParam.map(p -> (BodyAs) p.parameter()::getType).orElse(null);
+        final var bodyInfo = bodyParam
+                .map(p -> {
+                    final var parameter = p.parameter();
+                    return new ValueDescriptor(parameter.getType(), parameter.getAnnotations());
+                }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
                 .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
@@ -188,7 +196,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
                 uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, bodyHandlerFn, bodyFn,
-                bodyAs);
+                bodyInfo);
     }
 
     private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final ByRest.Auth auth,

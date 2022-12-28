@@ -19,12 +19,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestRequest.BodyAs;
+import me.ehp246.aufrest.api.rest.ValueDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
+ * Builds a {@linkplain RestRequest} from an invocation on a parsed proxy
+ * method.
+ * 
  * @author Lei Yang
- *
+ * @see DefaultProxyMethodParser
  */
 final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilder {
     private final String method;
@@ -39,8 +42,9 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final Map<Integer, String> headerParams;
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
+    // Body/payload related.
     private final BiFunction<Object, Object[], Object> bodyFn;
-    private final BodyAs bodyAs;
+    private final ValueDescriptor bodyInfo;
 
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
@@ -48,7 +52,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             final Map<Integer, String> headerParams, final Map<String, List<String>> headerStatic,
             final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
-            final BiFunction<Object, Object[], Object> bodyFn, final BodyAs bodyAs) {
+            final BiFunction<Object, Object[], Object> bodyFn, final ValueDescriptor bodyInfo) {
         super();
         this.method = method;
         this.accept = accept;
@@ -63,7 +67,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         this.timeout = timeout;
         this.bodyHandlerFn = bodyHandlerFn;
         this.bodyFn = bodyFn;
-        this.bodyAs = bodyAs;
+        this.bodyInfo = bodyInfo;
     }
 
     @Override
@@ -199,8 +203,8 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
 
             @Override
-            public BodyAs bodyAs() {
-                return bodyAs;
+            public ValueDescriptor bodyDescriptor() {
+                return bodyInfo;
             }
 
             @Override

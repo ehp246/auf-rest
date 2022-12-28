@@ -57,7 +57,7 @@ class DefaultProxyMethodParserTest {
         final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
         Assertions.assertEquals(null, req.body());
-        Assertions.assertEquals(null, req.bodyAs());
+        Assertions.assertEquals(null, req.bodyDescriptor());
     }
 
     @Test
@@ -71,7 +71,7 @@ class DefaultProxyMethodParserTest {
         final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
         Assertions.assertEquals(expected, req.body());
-        Assertions.assertEquals(String.class, req.bodyAs().type());
+        Assertions.assertEquals(String.class, req.bodyDescriptor().type());
     }
 
     @Test

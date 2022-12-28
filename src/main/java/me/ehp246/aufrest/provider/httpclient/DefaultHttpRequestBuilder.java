@@ -38,6 +38,8 @@ import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
+ * Builds a {@linkplain HttpRequest} from a {@linkplain RestRequest}.
+ * 
  * @author Lei Yang
  *
  */
@@ -180,11 +182,11 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
             return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(toJson.apply(new ToJson.From(body, req.bodyAs().type()))));
+                    BodyPublishers.ofString(toJson.apply(body, req.bodyDescriptor())));
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + req.bodyAs().type() + "'");
+                + body.toString() + "' of type '" + req.bodyDescriptor().type() + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {

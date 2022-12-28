@@ -8,9 +8,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.ValueDescriptor;
 import me.ehp246.aufrest.api.spi.FromJson;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -30,13 +32,22 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value) {
+    public String apply(final Object value, final ValueDescriptor valueInfo) {
         if (value == null) {
             return null;
         }
 
-        if (value instanceof From from) {
-            return OneUtil.orThrow(() -> this.objectMapper.writerFor(from.type()).writeValueAsString(from.value()));
+        if (valueInfo != null) {
+            return OneUtil.orThrow(() -> {
+                final var view = valueInfo.firstJsonViewValue();
+                ObjectWriter writer = null;
+                if (view != null) {
+                    writer = this.objectMapper.writerWithView(view);
+                } else {
+                    writer = this.objectMapper.writerFor(valueInfo.type());
+                }
+                return writer.writeValueAsString(value);
+            });
         }
 
         return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
