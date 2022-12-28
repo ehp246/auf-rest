@@ -10,15 +10,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Indicates the annotated parameter should be used as Authorization header
- * value. The argument is converted to a String by Object::toString.
+ * Indicates the annotated parameter should be used as Authorization header. The
+ * argument is converted to {@linkplain String} by
+ * {@linkplain Object#toString()} and set as the value as-is.
  * <p>
  * The annotation has the highest priority on Authorization header. It
  * overwrites all other sources.
  * <p>
- * AufRest does not validate the value. Blank string will be accepted.
+ * There is no validation on the value. Blank string will be accepted.
  * <p>
- * <code>null</code> is accepted as no Authorization.
+ * <code>null</code> is accepted and means no header.
  * 
  * @author Lei Yang
  *

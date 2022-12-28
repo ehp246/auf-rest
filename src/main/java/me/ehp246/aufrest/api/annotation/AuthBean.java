@@ -32,14 +32,24 @@ public @interface AuthBean {
     }
 
     /**
-     * Indicates which method to invoke.
+     * Indicates the method is part of a {@linkplain AuthScheme#BEAN}.
      * <p>
-     * The annotation is to be applied to the bean that provides the Authorization
+     * The annotation is to be applied to the bean's method that provides the
+     * Authorization header.
+     * <p>
+     * The return value from the method is converted to {@linkplain String} via
+     * {@linkplain Object#toString()}. <code>null</code> is accepted and means no
      * header.
      */
     @Retention(RUNTIME)
     @Target(ElementType.METHOD)
     @interface Invoking {
+        /**
+         * Specifies the name for method lookup. This value should match the second
+         * value for {@linkplain AuthScheme#BEAN} scheme on {@linkplain ByRest#auth()}
+         * <p>
+         * The default is to use the declared method name.
+         */
         String value() default "";
     }
 }
