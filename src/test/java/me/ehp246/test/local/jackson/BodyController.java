@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "body", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 class BodyController {
     @PostMapping(value = "login")
-    Login login(@RequestBody Login payload) {
+    Logins.Login login(@RequestBody final Logins.Login payload) {
         return payload;
     }
 }

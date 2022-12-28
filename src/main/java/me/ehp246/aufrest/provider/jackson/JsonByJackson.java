@@ -63,11 +63,13 @@ public final class JsonByJackson implements FromJson, ToJson {
             return json;
         }
 
+        final var jsonView = receiver.firstJsonViewValue();
+
         try {
             final var reifying = Optional.ofNullable(receiver.reifying()).orElseGet(ArrayList::new);
 
             if (reifying.size() == 0) {
-                return objectMapper.readValue(json, receiver.type());
+                return objectMapper.readerWithView(jsonView).forType(receiver.type()).readValue(json);
             }
 
             if (reifying.size() == 1) {
