@@ -162,7 +162,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig, default
          * BindingBodyHandlerProvider
          */
-        final var bodyHandlerFn = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
+        final var responseBodyHandlerFn = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
                         args) -> (BodyHandler<?>) (args[p.index()]))
                 .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler).filter(OneUtil::hasValue)
@@ -195,7 +195,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
 
         return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, bodyHandlerFn, bodyFn,
+                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, responseBodyHandlerFn, bodyFn,
                 bodyInfo);
     }
 

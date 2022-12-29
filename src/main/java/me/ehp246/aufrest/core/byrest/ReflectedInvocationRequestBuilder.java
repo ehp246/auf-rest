@@ -25,7 +25,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
 /**
  * Builds a {@linkplain RestRequest} from an invocation on a parsed proxy
  * method.
- * 
+ *
  * @author Lei Yang
  * @see DefaultProxyMethodParser
  */
@@ -36,15 +36,15 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
     private final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
-    private final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn;
     private final Map<String, Integer> pathParams;
     private final Map<Integer, String> queryParams;
     private final Map<Integer, String> headerParams;
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
-    // Body/payload related.
+    // Request body related.
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final ValueDescriptor bodyInfo;
+    private final BiFunction<Object, Object[], BodyHandler<?>> responseBodyHandlerFn;
 
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
@@ -65,7 +65,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
         this.timeout = timeout;
-        this.bodyHandlerFn = bodyHandlerFn;
+        this.responseBodyHandlerFn = bodyHandlerFn;
         this.bodyFn = bodyFn;
         this.bodyInfo = bodyInfo;
     }
@@ -75,7 +75,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         final var pathArgs = new HashMap<String, Object>();
         this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
-            if (arg instanceof Map<?, ?> map) {
+            if (arg instanceof final Map<?, ?> map) {
                 pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
                         e -> UriUtils.encode(e.getValue().toString(), StandardCharsets.UTF_8))));
 
@@ -91,13 +91,13 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         final var queryParams = new HashMap<String, List<String>>();
         this.queryParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getKey()];
-            if (arg instanceof Map<?, ?> map) {
+            if (arg instanceof final Map<?, ?> map) {
                 map.entrySet().stream().forEach(e -> queryParams.merge(e.getKey().toString(),
                         new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue()))), (o, p) -> {
                             o.add(p.get(0));
                             return o;
                         }));
-            } else if (arg instanceof List<?> list) {
+            } else if (arg instanceof final List<?> list) {
                 list.stream().forEach(v -> queryParams.merge(entry.getValue(),
                         new ArrayList<>(Arrays.asList(OneUtil.toString(v))), (o, p) -> {
                             o.add(p.get(0));
@@ -115,7 +115,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         final var headers = new HashMap<String, List<String>>();
         this.headerParams.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
             @Override
-            public void accept(Entry<Integer, String> entry) {
+            public void accept(final Entry<Integer, String> entry) {
                 final var arg = args[entry.getKey()];
                 final var name = entry.getValue();
                 copyStatic.remove(name);
@@ -127,13 +127,13 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
                     return;
                 }
 
-                if (newValue instanceof Iterable<?> iter) {
+                if (newValue instanceof final Iterable<?> iter) {
                     iter.forEach(v -> newValue(key, v));
                     return;
                 }
 
                 // One level only. No recursive yet.
-                if (newValue instanceof Map<?, ?> map) {
+                if (newValue instanceof final Map<?, ?> map) {
                     map.entrySet().forEach(entry -> {
                         newValue(entry.getKey().toString().toLowerCase(Locale.ROOT), entry.getValue());
                     });
@@ -148,7 +148,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
-        final var bodyHandler = bodyHandlerFn.apply(target, args);
+        final var responseBodyHandler = responseBodyHandlerFn.apply(target, args);
 
         return new RestRequest() {
 
@@ -209,7 +209,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
 
             @Override
             public BodyHandler<?> responseBodyHandler() {
-                return bodyHandler;
+                return responseBodyHandler;
             }
         };
     }

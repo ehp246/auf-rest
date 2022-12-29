@@ -6,24 +6,31 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.test.TimingExtension;
 
 /**
  * @author Lei Yang
  *
  */
-public class JsonByJacksonTest {
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule())
+@ExtendWith(TimingExtension.class)
+class JsonByJacksonTest {
+    public static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
+            .setSerializationInclusion(Include.NON_NULL).registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
             .registerModule(new ParameterNamesModule());
 
@@ -81,5 +88,10 @@ public class JsonByJacksonTest {
             Assertions.assertEquals(true, value.getDob() instanceof Instant);
             Assertions.assertEquals(true, value.getFirstName() instanceof String);
         });
+    }
+
+    @Test
+    void perf_001() {
+
     }
 }

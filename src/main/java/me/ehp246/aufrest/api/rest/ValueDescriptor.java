@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * body of a {@linkplain RestRequest}. Used to support serialization features.
  * E.g., {@linkplain JsonView} support, and declared type recognition for
  * {@linkplain ObjectMapper#writerFor(Class)}.
- * 
+ *
  * @author Lei Yang
  * @since 3.1.2
  *
@@ -30,7 +30,7 @@ public final class ValueDescriptor {
         this.type = type;
         this.annotationMap = annotations == null ? Map.of()
                 : Arrays.asList(annotations).stream()
-                        .collect(Collectors.toUnmodifiableMap(Annotation::annotationType, Function.identity()));
+                .collect(Collectors.toUnmodifiableMap(Annotation::annotationType, Function.identity()));
         this.firstJsonViewValue = Optional.ofNullable(annotationMap.get(JsonView.class)).map(ann -> (JsonView) ann)
                 .map(JsonView::value).filter(value -> value.length > 0).map(value -> value[0]).orElse(null);
     }
