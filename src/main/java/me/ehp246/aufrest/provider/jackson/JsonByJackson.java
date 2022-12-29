@@ -8,7 +8,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
@@ -37,20 +36,16 @@ public final class JsonByJackson implements FromJson, ToJson {
             return null;
         }
 
-        if (valueInfo != null) {
-            return OneUtil.orThrow(() -> {
-                final var view = valueInfo.firstJsonViewValue();
-                ObjectWriter writer = null;
-                if (view != null) {
-                    writer = this.objectMapper.writerWithView(view);
-                } else {
-                    writer = this.objectMapper.writerFor(valueInfo.type());
-                }
-                return writer.writeValueAsString(value);
-            });
+        try {
+            final var view = valueInfo.firstJsonViewValue();
+            if (view == null) {
+                return this.objectMapper.writerFor(valueInfo.type()).writeValueAsString(value);
+            } else {
+                return this.objectMapper.writerFor(valueInfo.type()).withView(view).writeValueAsString(value);
+            }
+        } catch (final JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
-
-        return OneUtil.orThrow(() -> this.objectMapper.writeValueAsString(value));
     }
 
     @Override

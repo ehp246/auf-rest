@@ -2,10 +2,13 @@ package me.ehp246.aufrest.provider.jackson;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -19,6 +22,8 @@ import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.ValueDescriptor;
+import me.ehp246.aufrest.core.reflection.ReflectedType;
 import me.ehp246.test.TimingExtension;
 
 /**
@@ -33,6 +38,8 @@ class JsonByJacksonTest {
             .setSerializationInclusion(Include.NON_NULL).registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
             .registerModule(new ParameterNamesModule());
+
+    private static final int PERF_COUNT = 1000_000;
 
     private final JsonByJackson jackson = new JsonByJackson(OBJECT_MAPPER);
 
@@ -91,7 +98,15 @@ class JsonByJacksonTest {
     }
 
     @Test
+    @EnabledIfSystemProperty(named = "me.ehp246.aufrest.perf", matches = "true")
     void perf_001() {
+        final var annotations = new ReflectedType(TestCases.class).findMethod("toJson01", Person.class)
+                .map(m -> m.getParameters()[0].getAnnotations()).orElse(null);
+        final var value = new Person(Instant.now(), UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        final var valueInfo = new ValueDescriptor(Person.class, annotations);
 
+        IntStream.range(0, PERF_COUNT).forEach(i -> {
+            jackson.apply(value, valueInfo);
+        });
     }
 }
