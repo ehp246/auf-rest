@@ -254,9 +254,13 @@ class ByRestProxyFactoryTest {
 
         final var queryParams = reqRef.get().queries();
 
+        Assertions.assertEquals(1, queryParams.get("query1").size());
         Assertions.assertEquals(query1, queryParams.get("query1").get(0));
-        Assertions.assertEquals("ec3fb099-7fa3-477b-82ce-05547babad95", queryParams.get("query2").get(0));
-        Assertions.assertEquals(query2, queryParams.get("query2").get(1));
+
+        Assertions.assertEquals(1, queryParams.get("query2").size(), "should take in the argument only");
+        Assertions.assertEquals(query2, queryParams.get("query2").get(0));
+
+        Assertions.assertEquals(2, queryParams.get("query3").size());
         Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8352", queryParams.get("query3").get(0));
         Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8353", queryParams.get("query3").get(1));
     }

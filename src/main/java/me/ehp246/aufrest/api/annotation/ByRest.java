@@ -143,16 +143,21 @@ public @interface ByRest {
     String[] headers() default {};
 
     /**
-     * Defines queries in name and value pairs.
+     * Defines queries in name and value pairs to be applied to all HTTP requests
+     * from the interface.
      * <p>
      * Must be specified in pairs. Missing value will trigger an exception.
      * <p>
      * Both names and values are accepted as-is. I.e., they would be case-sensitive.
      * <p>
-     * All values for the same parameter name are collected into a {@linkplain List}
-     * including those from {@linkplain RequestParam} parameters.
+     * Parameter names can be repeated on the annotation. All the values on the
+     * annotation are collected into a {@linkplain List} and applied to HTTP
+     * requests.
      * <p>
-     * Spring property placeholder is supported on values.
+     * If the same parameter name is specified by a {@linkplain RequestParam}, the
+     * parameter argument takes the precedence and the annotation will be ignored.
+     * <p>
+     * Spring property placeholder is supported on values, not on names.
      *
      */
     String[] queries() default {};

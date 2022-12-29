@@ -91,7 +91,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
 
         final var uri = this.uriBuilder.buildAndExpand(pathArgs).toUriString();
 
-        final var queryBound = new HashMap<String, List<String>>(this.queryStatic);
+        final var queryBound = new HashMap<String, List<String>>();
         this.queryParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getKey()];
             if (arg instanceof final Map<?, ?> map) {
@@ -113,6 +113,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
                 });
             }
         });
+        this.queryStatic.entrySet().forEach(entry -> queryBound.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var headerStaticCopy = new HashMap<String, List<String>>(this.headerStatic);
         final var headerBound = new HashMap<String, List<String>>();
