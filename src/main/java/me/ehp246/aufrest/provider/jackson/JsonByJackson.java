@@ -8,10 +8,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
-import me.ehp246.aufrest.api.rest.ValueDescriptor;
 import me.ehp246.aufrest.api.spi.FromJson;
 import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -31,7 +31,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final ValueDescriptor valueInfo) {
+    public String apply(final Object value, final Descriptor valueInfo) {
         if (value == null) {
             return null;
         }
@@ -59,17 +59,21 @@ public final class JsonByJackson implements FromJson, ToJson {
         }
 
         final var jsonView = receiver.firstJsonViewValue();
+        final var reifying = Optional.ofNullable(receiver.reifying()).orElseGet(ArrayList::new);
 
         try {
-            final var reifying = Optional.ofNullable(receiver.reifying()).orElseGet(ArrayList::new);
-
             if (reifying.size() == 0) {
                 return objectMapper.readerWithView(jsonView).forType(receiver.type()).readValue(json);
             }
 
             if (reifying.size() == 1) {
-                return objectMapper.readValue(json, objectMapper.getTypeFactory()
-                        .constructParametricType(receiver.type(), reifying.toArray(new Class<?>[] {})));
+                ObjectReader reader =
+                        objectMapper.readerFor(objectMapper.getTypeFactory().constructParametricType(receiver.type(),
+                                reifying.toArray(new Class<?>[] {})));
+                if (jsonView != null) {
+                    reader = reader.withView(jsonView);
+                }
+                return reader.readValue(json);
             } else {
                 final var typeFactory = objectMapper.getTypeFactory();
                 final var types = new ArrayList<Class<?>>();
@@ -81,7 +85,12 @@ public final class JsonByJackson implements FromJson, ToJson {
                 for (int i = size - 3; i >= 0; i--) {
                     type = typeFactory.constructParametricType(types.get(i), type);
                 }
-                return objectMapper.readValue(json, type);
+
+                ObjectReader reader = this.objectMapper.readerFor(type);
+                if (jsonView != null) {
+                    reader = reader.withView(jsonView);
+                }
+                return reader.readValue(json);
             }
         } catch (final JsonProcessingException e) {
             LOGGER.atTrace().withThrowable(e).log("Failed to de-serialize: {}", e::getMessage);

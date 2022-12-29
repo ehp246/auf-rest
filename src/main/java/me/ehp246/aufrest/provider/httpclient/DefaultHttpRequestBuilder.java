@@ -128,7 +128,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             // Add query parameters
             uri = URI.create(UriComponentsBuilder.fromUriString(req.uri())
                     .queryParams(
-                            CollectionUtils.toMultiValueMap(Optional.ofNullable(req.queryParams()).orElseGet(Map::of)))
+                            CollectionUtils.toMultiValueMap(Optional.ofNullable(req.queries()).orElseGet(Map::of)))
                     .toUriString());
         }
 
@@ -157,7 +157,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
             // Encode query parameters as the body ignoring the body object.
             return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queryParams())));
+                    BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queries())));
         }
 
         if (body == null) {

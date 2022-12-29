@@ -32,6 +32,7 @@ import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.SimpleAuthCase02;
+import me.ehp246.aufrest.core.byrest.QueryParamCases.QueryParamCase01;
 import me.ehp246.aufrest.mock.MockHttpResponse;
 
 /**
@@ -185,14 +186,14 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParams_01() {
-        factory.newInstance(RequestParamCase01.class).queryByParams("q1", "q2");
+        factory.newInstance(QueryParamCase01.class).queryByParams("q1", "q2");
 
         final var request = reqRef.get();
 
         Assertions.assertEquals("", request.contentType());
         Assertions.assertEquals("https://postman-echo.com/get", request.uri());
 
-        final var queryParams = request.queryParams();
+        final var queryParams = request.queries();
         Assertions.assertEquals(2, queryParams.size());
 
         Assertions.assertEquals(1, queryParams.get("query1").size());
@@ -204,16 +205,16 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParams_02() {
-        factory.newInstance(RequestParamCase01.class).queryEncoded("1 + 1 = 2");
+        factory.newInstance(QueryParamCase01.class).queryEncoded("1 + 1 = 2");
 
-        Assertions.assertEquals("1 + 1 = 2", reqRef.get().queryParams().get("query 1").get(0), "Should not encode");
+        Assertions.assertEquals("1 + 1 = 2", reqRef.get().queries().get("query 1").get(0), "Should not encode");
     }
 
     @Test
     void queryParams_03() {
-        factory.newInstance(RequestParamCase01.class).getByMultiple("1 + 1 = 2", "3");
+        factory.newInstance(QueryParamCase01.class).getByMultiple("1 + 1 = 2", "3");
 
-        final var queryParams = reqRef.get().queryParams();
+        final var queryParams = reqRef.get().queries();
 
         Assertions.assertEquals(1, queryParams.size());
 
@@ -222,10 +223,55 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void queryParamList_01() {
-        factory.newInstance(RequestParamCase01.class).getByList(List.of("1 + 1 = 2", "3"));
+    void queryParams_04() {
+        factory.newInstance(QueryParamCases.Case02.class).get();
 
-        final var queryParams = reqRef.get().queryParams();
+        final var queryParams = reqRef.get().queries();
+
+        Assertions.assertEquals("ec3fb099-7fa3-477b-82ce-05547babad95", queryParams.get("query2").get(0));
+        Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8352", queryParams.get("query3").get(0));
+        Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8353", queryParams.get("query3").get(1));
+    }
+
+    @Test
+    void queryParams_05() {
+        final var query1 = UUID.randomUUID().toString();
+        factory.newInstance(QueryParamCases.Case02.class).getByParams(query1);
+
+        final var queryParams = reqRef.get().queries();
+
+        Assertions.assertEquals(query1, queryParams.get("query1").get(0));
+        Assertions.assertEquals("ec3fb099-7fa3-477b-82ce-05547babad95", queryParams.get("query2").get(0));
+        Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8352", queryParams.get("query3").get(0));
+        Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8353", queryParams.get("query3").get(1));
+    }
+
+    @Test
+    void queryParams_06() {
+        final var query1 = UUID.randomUUID().toString();
+        final var query2 = UUID.randomUUID().toString();
+        factory.newInstance(QueryParamCases.Case02.class).getByMap(Map.of("query1", query1, "query2", query2));
+
+        final var queryParams = reqRef.get().queries();
+
+        Assertions.assertEquals(query1, queryParams.get("query1").get(0));
+        Assertions.assertEquals("ec3fb099-7fa3-477b-82ce-05547babad95", queryParams.get("query2").get(0));
+        Assertions.assertEquals(query2, queryParams.get("query2").get(1));
+        Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8352", queryParams.get("query3").get(0));
+        Assertions.assertEquals("08dda6c5-e80f-44ef-b0cb-d9c261bf8353", queryParams.get("query3").get(1));
+    }
+
+    @Test
+    void queryParams_07() {
+        Assertions.assertThrows(IllegalArgumentException.class, factory.newInstance(QueryParamCases.Case03.class)::get)
+                .printStackTrace();
+    }
+
+    @Test
+    void queryParamList_01() {
+        factory.newInstance(QueryParamCase01.class).getByList(List.of("1 + 1 = 2", "3"));
+
+        final var queryParams = reqRef.get().queries();
 
         Assertions.assertEquals(1, queryParams.size());
 
@@ -235,31 +281,31 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParamMap_01() {
-        final var newInstance = factory.newInstance(RequestParamCase01.class);
+        final var newInstance = factory.newInstance(QueryParamCase01.class);
 
         newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2"));
 
         final var request = reqRef.get();
 
-        Assertions.assertEquals(2, request.queryParams().size());
-        Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
-        Assertions.assertEquals("q2", request.queryParams().get("query2").get(0));
+        Assertions.assertEquals(2, request.queries().size());
+        Assertions.assertEquals("1 + 1 = 2", request.queries().get("query 1").get(0));
+        Assertions.assertEquals("q2", request.queries().get("query2").get(0));
     }
 
     @Test
     void queryParamMap_02() {
-        final var newInstance = factory.newInstance(RequestParamCase01.class);
+        final var newInstance = factory.newInstance(QueryParamCase01.class);
 
         newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2-a"), "q2-b");
 
         final var request = reqRef.get();
 
-        Assertions.assertEquals(2, request.queryParams().size());
-        Assertions.assertEquals("1 + 1 = 2", request.queryParams().get("query 1").get(0));
+        Assertions.assertEquals(2, request.queries().size());
+        Assertions.assertEquals("1 + 1 = 2", request.queries().get("query 1").get(0));
 
-        Assertions.assertEquals(2, request.queryParams().get("query2").size(), "Should collect all");
-        Assertions.assertEquals("q2-a", request.queryParams().get("query2").get(0), "Should be determinstic in order");
-        Assertions.assertEquals("q2-b", request.queryParams().get("query2").get(1));
+        Assertions.assertEquals(2, request.queries().get("query2").size(), "Should collect all");
+        Assertions.assertEquals("q2-a", request.queries().get("query2").get(0), "Should be determinstic in order");
+        Assertions.assertEquals("q2-b", request.queries().get("query2").get(1));
     }
 
     @Test
@@ -349,7 +395,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.get1();
 
-        var req = reqRef.get();
+        final var req = reqRef.get();
 
         Assertions.assertEquals("i-type", req.contentType());
         Assertions.assertEquals("i-accept", req.accept());
@@ -373,7 +419,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.get3();
 
-        var req = reqRef.get();
+        final var req = reqRef.get();
 
         Assertions.assertEquals("m-type", req.contentType());
         Assertions.assertEquals("m-accept", req.accept());
@@ -385,7 +431,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.get1();
 
-        var req = reqRef.get();
+        final var req = reqRef.get();
 
         Assertions.assertEquals("i-type", req.contentType());
         Assertions.assertEquals(HttpUtils.APPLICATION_JSON, req.accept());
@@ -409,7 +455,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.get3();
 
-        var req = reqRef.get();
+        final var req = reqRef.get();
 
         Assertions.assertEquals("m-type", req.contentType());
         Assertions.assertEquals("m-accept", req.accept());
@@ -473,7 +519,7 @@ class ByRestProxyFactoryTest {
         Assertions.assertThrows(Exception.class,
                 new ByRestProxyFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()), clientConfig,
                         parser)
-                                .newInstance(ExceptionCase001.class)::post);
+                .newInstance(ExceptionCase001.class)::post);
     }
 
     @Test
@@ -630,7 +676,7 @@ class ByRestProxyFactoryTest {
 
         Assertions.assertEquals(expected, reqRef.get().authSupplier());
     }
-    
+
     @Test
     void authNone_01() {
         factory.newInstance(AuthTestCases.Case10.class).get();

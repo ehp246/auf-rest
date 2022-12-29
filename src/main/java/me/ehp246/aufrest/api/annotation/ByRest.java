@@ -8,8 +8,10 @@ import java.lang.annotation.Target;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
@@ -41,7 +43,7 @@ public @interface ByRest {
      * Defines an optional bean name by which the proxy interface can be injected.
      * <p>
      * The default name is {@link Class#getSimpleName()}.
-     * 
+     *
      * @return the bean name of the proxy interface.
      */
     String name() default "";
@@ -106,7 +108,7 @@ public @interface ByRest {
      * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
      * that would be called to handle the response on the methods that do not
      * specify its own handler.
-     * 
+     *
      * @return a bean name
      * @see HttpClient#send(java.net.http.HttpRequest,
      *      java.net.http.HttpResponse.BodyHandler)
@@ -120,9 +122,9 @@ public @interface ByRest {
      *     { "x-app-name", "AufRest", "x-app-version", "1.0", ... }
      * </code>
      * <p>
-     * Must be in pairs. Missing value will trigger an exception. E.g., the
-     * following is missing value for header '{@code x-app-version}' and will result
-     * an exception.
+     * Must be specified in pairs. Missing value will trigger an exception. E.g.,
+     * the following is missing value for header '{@code x-app-version}' and will
+     * result an exception.
      * <p>
      * <code>
      *     { "x-app-name", "AufRest", "x-app-version" }
@@ -136,9 +138,24 @@ public @interface ByRest {
      * defined here is ignored.
      * <p>
      * Spring property placeholder is supported on values but not on names.
-     * 
+     *
      */
     String[] headers() default {};
+
+    /**
+     * Defines queries in name and value pairs.
+     * <p>
+     * Must be specified in pairs. Missing value will trigger an exception.
+     * <p>
+     * Both names and values are accepted as-is. I.e., they would be case-sensitive.
+     * <p>
+     * All values for the same parameter name are collected into a {@linkplain List}
+     * including those from {@linkplain RequestParam} parameters.
+     * <p>
+     * Spring property placeholder is supported on values.
+     *
+     */
+    String[] queries() default {};
 
     /**
      * Defines the Authorization types supported.

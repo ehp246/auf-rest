@@ -40,9 +40,9 @@ import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BindingDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.ValueDescriptor;
 import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
@@ -51,7 +51,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
 /**
  * Parses a proxy method to internal data structure that is ready for turning an
  * invocation to a {@linkplain RestRequest}.
- * 
+ *
  * @author Lei Yang
  * @see ReflectedInvocationRequestBuilder
  */
@@ -94,11 +94,28 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var pathParams = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
                 .toMap(p -> p.parameter().getAnnotation(PathVariable.class).value(), ReflectedParameter::index));
 
+        /*
+         * Query parameters
+         */
         final var queryParams = reflected.allParametersWith(RequestParam.class).stream().collect(Collectors
                 .toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(RequestParam.class).value()));
 
         /*
-         * Parameter headers
+         * Query static
+         */
+        final var queries = Arrays.asList(byRest.queries());
+        if ((queries.size() & 1) != 0) {
+            throw new IllegalArgumentException("Queries should be in name/value pairs: " + queries);
+        }
+
+        final Map<String, List<String>> queryStatic = new HashMap<>();
+        for (int i = 0; i < queries.size(); i += 2) {
+            queryStatic.computeIfAbsent(queries.get(i), k -> new ArrayList<String>())
+                    .add(propertyResolver.resolve(queries.get(i + 1)));
+        }
+
+        /*
+         * Header parameters
          */
         final var headerParams = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
             final var name = p.parameter().getAnnotation(RequestHeader.class).value();
@@ -112,16 +129,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var namesOnParam = headerParams.values();
         if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
-            throw new IllegalArgumentException(
-                    "Duplicate header names on " + reflected.method());
+            throw new IllegalArgumentException("Duplicate header names on " + reflected.method());
         }
 
         /*
-         * Static headers
+         * Headers static
          */
         final var headers = Arrays.asList(byRest.headers());
         if ((headers.size() & 1) != 0) {
-            throw new IllegalArgumentException("Headers should be name/value pair: " + headers);
+            throw new IllegalArgumentException("Headers should be in name/value pairs: " + headers);
         }
         final Map<String, List<String>> headerStatic = new HashMap<>();
         for (int i = 0; i < headers.size(); i += 2) {
@@ -183,11 +199,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyFn = bodyParam.map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()])
                 .orElse(null);
-        final var bodyInfo = bodyParam
-                .map(p -> {
-                    final var parameter = p.parameter();
-                    return new ValueDescriptor(parameter.getType(), parameter.getAnnotations());
-                }).orElse(null);
+        final var bodyInfo = bodyParam.map(p -> {
+            final var parameter = p.parameter();
+            return new ToJson.Descriptor(parameter.getType(), parameter.getAnnotations());
+        }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
                 .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
@@ -195,8 +210,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
 
         return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                uriBuilder, pathParams, queryParams, headerParams, headerStatic, authSupplierFn, responseBodyHandlerFn, bodyFn,
-                bodyInfo);
+                uriBuilder, pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn,
+                responseBodyHandlerFn, bodyFn, bodyInfo);
     }
 
     private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final ByRest.Auth auth,
@@ -254,8 +269,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 final String header;
                 try {
                     header = OneUtil.toString(method.invoke(bean, beanArgs));
-                } catch (Throwable e) {
-                    throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+                } catch (final Throwable e) {
+                    throw e instanceof final RuntimeException re ? re : new RuntimeException(e);
                 }
 
                 return () -> header;

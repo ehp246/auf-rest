@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.ValueDescriptor;
+import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -38,21 +38,23 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
     private final Map<String, Integer> pathParams;
     private final Map<Integer, String> queryParams;
+    private final Map<String, List<String>> queryStatic;
     private final Map<Integer, String> headerParams;
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     // Request body related.
     private final BiFunction<Object, Object[], Object> bodyFn;
-    private final ValueDescriptor bodyInfo;
+    private final ToJson.Descriptor bodyInfo;
     private final BiFunction<Object, Object[], BodyHandler<?>> responseBodyHandlerFn;
 
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
-            final Map<Integer, String> headerParams, final Map<String, List<String>> headerStatic,
+            final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
+            final Map<String, List<String>> headerStatic,
             final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
-            final BiFunction<Object, Object[], Object> bodyFn, final ValueDescriptor bodyInfo) {
+            final BiFunction<Object, Object[], Object> bodyFn, final ToJson.Descriptor bodyInfo) {
         super();
         this.method = method;
         this.accept = accept;
@@ -62,6 +64,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
         this.authSupplierFn = authSupplierFn;
         this.pathParams = pathParams;
         this.queryParams = queryParams;
+        this.queryStatic = queryStatic;
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
         this.timeout = timeout;
@@ -88,37 +91,37 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
 
         final var uri = this.uriBuilder.buildAndExpand(pathArgs).toUriString();
 
-        final var queryParams = new HashMap<String, List<String>>();
+        final var queryBound = new HashMap<String, List<String>>(this.queryStatic);
         this.queryParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getKey()];
             if (arg instanceof final Map<?, ?> map) {
-                map.entrySet().stream().forEach(e -> queryParams.merge(e.getKey().toString(),
+                map.entrySet().stream().forEach(e -> queryBound.merge(e.getKey().toString(),
                         new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue()))), (o, p) -> {
                             o.add(p.get(0));
                             return o;
                         }));
             } else if (arg instanceof final List<?> list) {
-                list.stream().forEach(v -> queryParams.merge(entry.getValue(),
+                list.stream().forEach(v -> queryBound.merge(entry.getValue(),
                         new ArrayList<>(Arrays.asList(OneUtil.toString(v))), (o, p) -> {
                             o.add(p.get(0));
                             return o;
                         }));
             } else if (arg != null) {
-                queryParams.merge(entry.getValue(), new ArrayList<>(Arrays.asList(OneUtil.toString(arg))), (o, p) -> {
+                queryBound.merge(entry.getValue(), new ArrayList<>(Arrays.asList(OneUtil.toString(arg))), (o, p) -> {
                     o.add(p.get(0));
                     return o;
                 });
             }
         });
 
-        final var copyStatic = new HashMap<String, List<String>>(this.headerStatic);
-        final var headers = new HashMap<String, List<String>>();
+        final var headerStaticCopy = new HashMap<String, List<String>>(this.headerStatic);
+        final var headerBound = new HashMap<String, List<String>>();
         this.headerParams.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
             @Override
             public void accept(final Entry<Integer, String> entry) {
                 final var arg = args[entry.getKey()];
                 final var name = entry.getValue();
-                copyStatic.remove(name);
+                headerStaticCopy.remove(name);
                 newValue(name, arg);
             }
 
@@ -140,11 +143,11 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
                     return;
                 }
 
-                headers.computeIfAbsent(key, v -> new ArrayList<String>()).add(newValue.toString());
+                headerBound.computeIfAbsent(key, v -> new ArrayList<String>()).add(newValue.toString());
             }
         });
 
-        copyStatic.entrySet().stream().forEach(entry -> headers.putIfAbsent(entry.getKey(), entry.getValue()));
+        headerStaticCopy.entrySet().stream().forEach(entry -> headerBound.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
@@ -163,13 +166,13 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
 
             @Override
-            public Map<String, List<String>> queryParams() {
-                return queryParams;
+            public Map<String, List<String>> queries() {
+                return queryBound;
             }
 
             @Override
             public Map<String, List<String>> headers() {
-                return headers;
+                return headerBound;
             }
 
             @Override
@@ -203,7 +206,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
 
             @Override
-            public ValueDescriptor bodyDescriptor() {
+            public ToJson.Descriptor bodyDescriptor() {
                 return bodyInfo;
             }
 

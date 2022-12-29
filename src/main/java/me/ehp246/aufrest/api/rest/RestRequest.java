@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import me.ehp246.aufrest.api.spi.ToJson;
+
 /**
  * The abstraction of a REST request that expects a response.
  *
  * @author Lei Yang
- * @since 1.0
+ *
  */
 public interface RestRequest {
     String uri();
@@ -41,7 +43,7 @@ public interface RestRequest {
      * Authorization will be set by the global Authorization Provider if there is
      * one.
      * <p>
-     * 
+     *
      *
      * @return
      */
@@ -77,7 +79,7 @@ public interface RestRequest {
         return null;
     }
 
-    default ValueDescriptor bodyDescriptor() {
+    default ToJson.Descriptor bodyDescriptor() {
         return null;
     }
 
@@ -97,7 +99,7 @@ public interface RestRequest {
      * The values should NOT be encoded. Encoding will be taken care of by the HTTP
      * client.
      */
-    default Map<String, List<String>> queryParams() {
+    default Map<String, List<String>> queries() {
         return null;
     }
 }
