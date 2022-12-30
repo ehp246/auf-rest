@@ -25,7 +25,7 @@ class PerfTest {
     private final int count = 1_000_000;
     private final ByRestProxyFactory factory = new ByRestProxyFactory(clientConfig -> {
         final var response = new MockHttpResponse<>();
-        return req -> response;
+        return (req, pub, con) -> response;
     }, new ClientConfig(),
             new DefaultProxyMethodParser(new MockEnvironment().withProperty("uri", "http://localhost")
                     .withProperty("uri-context", "api")::resolveRequiredPlaceholders, name -> null, name -> null,

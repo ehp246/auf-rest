@@ -1,7 +1,5 @@
 package me.ehp246.aufrest.api.rest;
 
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +43,7 @@ public interface RestRequest {
      *
      * @return
      */
-    default Supplier<?> authSupplier() {
+    default Supplier<String> authSupplier() {
         return null;
     }
 
@@ -59,18 +57,6 @@ public interface RestRequest {
 
     default String acceptEncoding() {
         return null;
-    }
-
-    /**
-     * Defines the {@linkplain BodyHandler} that will be used to handle response for
-     * the request.
-     * <p>
-     * Default is {@linkplain BodyHandlers#discarding()}.
-     * <p>
-     * Should not be {@code null}.
-     */
-    default BodyHandler<?> responseBodyHandler() {
-        return BodyHandlers.discarding();
     }
 
     default Object body() {

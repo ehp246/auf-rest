@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.core.byrest.timeout;
 
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
@@ -23,16 +22,15 @@ import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
 class TimeoutTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final RestFn restFn = request -> {
-        reqRef.set(request);
+    private final RestFn restFn = (req, pub, con) -> {
+        reqRef.set(req);
         return Mockito.mock(HttpResponse.class);
     };
     private final PropertyResolver env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
             .withProperty("api.timeout.illegal", "5")::resolveRequiredPlaceholders;
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
-            new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
-                    binding -> BodyHandlers.discarding()));
+            new DefaultProxyMethodParser(env, name -> null, name -> r -> null, binding -> r -> null));
 
     @Test
     void timeout_01() {

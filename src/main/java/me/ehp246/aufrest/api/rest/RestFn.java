@@ -7,9 +7,9 @@ import java.net.http.HttpResponse;
  * response synchronously.
  *
  * @author Lei Yang
- * 
+ *
  */
 @FunctionalInterface
 public interface RestFn {
-    HttpResponse<?> apply(RestRequest request);
+    HttpResponse<Object> apply(RestRequest request, RequestPublisher publisher, ResponseConsumer consumer);
 }

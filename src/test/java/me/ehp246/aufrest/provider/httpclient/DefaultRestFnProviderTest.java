@@ -3,6 +3,8 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -15,15 +17,31 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RequestPublisher;
+import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 
 /**
  * @author Lei Yang
  *
  */
 class DefaultRestFnProviderTest {
+    private final static RequestPublisher publisher = new RequestPublisher() {
+
+        @Override
+        public BodyPublisher publisher() {
+            return BodyPublishers.ofString(null);
+        }
+
+        @Override
+        public String contentType() {
+            return HttpUtils.APPLICATION_JSON;
+        }
+    };
+    private final static ResponseConsumer consumer = () -> r -> null;
     /**
      * For each get call on the client provider, the provider should ask
      * client-builder supplier for a new builder. It should not re-use
@@ -74,7 +92,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_001() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final HttpRequestBuilder reqBuilder = req -> mockedReq;
+        final HttpRequestBuilder reqBuilder = (req, pub) -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
 
@@ -84,7 +102,7 @@ class DefaultRestFnProviderTest {
         final var obs = List.of(new RestListener() {
 
             @Override
-            public void onRequest(HttpRequest httpRequest, RestRequest req) {
+            public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
                 map.put("1", httpRequest);
                 map.put("2", req);
             }
@@ -92,14 +110,14 @@ class DefaultRestFnProviderTest {
         }, new RestListener() {
 
             @Override
-            public void onRequest(HttpRequest httpRequest, RestRequest req) {
+            public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
                 map.put("3", httpRequest);
                 map.put("4", req);
             }
         });
 
         new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig())
-                .apply(req);
+                .apply(req, publisher, consumer);
 
         Assertions.assertEquals(true, map.get("1") == mockedReq);
         Assertions.assertEquals(true, map.get("1") == map.get("3"));
@@ -109,7 +127,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_002() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final HttpRequestBuilder reqBuilder = req -> mockedReq;
+        final HttpRequestBuilder reqBuilder = (req, pub) -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
 
@@ -122,11 +140,11 @@ class DefaultRestFnProviderTest {
                     List.of(new RestListener() {
 
                         @Override
-                        public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+                        public void onException(final Exception exception, final HttpRequest httpRequest, final RestRequest req) {
                             map.put("5", exception);
                         }
-                    })).get(new ClientConfig()).apply(req);
-        } catch (Exception e) {
+                    })).get(new ClientConfig()).apply(req, publisher, consumer);
+        } catch (final Exception e) {
             ex = e;
         }
 
@@ -137,7 +155,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_003() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final HttpRequestBuilder reqBuilder = req -> mockedReq;
+        final HttpRequestBuilder reqBuilder = (req, pub) -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
 
@@ -150,11 +168,11 @@ class DefaultRestFnProviderTest {
                     List.of(new RestListener() {
 
                         @Override
-                        public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+                        public void onException(final Exception exception, final HttpRequest httpRequest, final RestRequest req) {
                             map.put("5", exception);
                         }
-                    })).get(new ClientConfig()).apply(req);
-        } catch (Exception e) {
+                    })).get(new ClientConfig()).apply(req, publisher, consumer);
+        } catch (final Exception e) {
             ex = e;
         }
 
@@ -165,7 +183,7 @@ class DefaultRestFnProviderTest {
     @Test
     void listener_004() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
-        final HttpRequestBuilder reqBuilder = req -> mockedReq;
+        final HttpRequestBuilder reqBuilder = (req, pub) -> mockedReq;
 
         final var req = (RestRequest) () -> "http://nowhere";
         final var orig = new IllegalArgumentException("This is a test");
@@ -176,11 +194,11 @@ class DefaultRestFnProviderTest {
                     List.of(new RestListener() {
 
                         @Override
-                        public void onRequest(HttpRequest httpRequest, RestRequest req) {
+                        public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
                             throw orig;
                         }
-                    })).get(new ClientConfig()).apply(req);
-        } catch (Exception e) {
+                    })).get(new ClientConfig()).apply(req, publisher, consumer);
+        } catch (final Exception e) {
             ex = e;
         }
 
@@ -193,8 +211,8 @@ class DefaultRestFnProviderTest {
 
         final var ex = Assertions.assertThrows(RestFnException.class, () ->
             new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
-                    req -> Mockito.mock(HttpRequest.class), null).get(new ClientConfig())
-                            .apply(() -> "http://nowhere"));
+                    (req, pub) -> Mockito.mock(HttpRequest.class), null).get(new ClientConfig())
+                            .apply(() -> "http://nowhere", publisher, consumer));
 
         Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }
@@ -205,8 +223,8 @@ class DefaultRestFnProviderTest {
 
         final var ex = Assertions.assertThrows(RestFnException.class,
                 () -> new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
-                        req -> Mockito.mock(HttpRequest.class), null).get(new ClientConfig())
-                                .apply(() -> "http://nowhere"));
+                        (req, pub) -> Mockito.mock(HttpRequest.class), null).get(new ClientConfig())
+                                .apply(() -> "http://nowhere", publisher, consumer));
 
         Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }

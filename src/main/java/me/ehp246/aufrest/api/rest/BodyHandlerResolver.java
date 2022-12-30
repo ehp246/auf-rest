@@ -2,11 +2,15 @@ package me.ehp246.aufrest.api.rest;
 
 import java.net.http.HttpResponse.BodyHandler;
 
+import me.ehp246.aufrest.api.annotation.ByRest;
+
 /**
- * @author Lei Yang
+ * Resolves a named {@linkplain BodyHandler}.
  *
+ * @author Lei Yang
+ * @see ByRest#responseBodyHandler()
  */
 @FunctionalInterface
 public interface BodyHandlerResolver {
-    BodyHandler<?> get(String name);
+    BodyHandler<Object> get(String name);
 }

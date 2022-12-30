@@ -30,7 +30,7 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
 public final class ByRestProxyFactory {
     private final static Logger LOGGER = LogManager.getLogger(ByRestProxyFactory.class);
 
-    private final Map<Method, InvocationRequestBuilder> parsedCache = new ConcurrentHashMap<>();
+    private final Map<Method, InvocationRequestBinder> parsedCache = new ConcurrentHashMap<>();
 
     private final RestFnProvider clientProvider;
     private final ClientConfig clientConfig;
@@ -53,7 +53,7 @@ public final class ByRestProxyFactory {
                     private final RestFn httpFn = clientProvider.get(clientConfig);
 
                     @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                         if (method.getName().equals("toString")) {
                             return ByRestProxyFactory.this.toString();
                         }
@@ -72,11 +72,13 @@ public final class ByRestProxyFactory {
                                     .bindTo(proxy).invokeWithArguments(args);
                         }
 
-                        final var req = parsedCache
+                        final var bound = parsedCache
                                 .computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
+                        final var req = bound.request();
 
-                        final var outcome = RestFnOutcome.invoke(() -> httpFn.apply(req));
+                        final var outcome = RestFnOutcome
+                                .invoke(() -> httpFn.apply(req, bound.publisher(), bound.consumer()));
 
                         final var threws = List.of(method.getExceptionTypes());
 
@@ -116,7 +118,7 @@ public final class ByRestProxyFactory {
                         return httpResponse.body();
                     }
 
-                    private static boolean canThrow(List<Class<?>> threws, Class<?> type) {
+                    private static boolean canThrow(final List<Class<?>> threws, final Class<?> type) {
                         return threws.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
                     }
                 });

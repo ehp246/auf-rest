@@ -34,7 +34,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
     }
 
     @Override
-    public BodyHandler<?> get(final FromJsonDescriptor binding) {
+    public BodyHandler<Object> get(final FromJsonDescriptor binding) {
         final Class<?> type = binding == null ? void.class : binding.type();
 
         // Declared return type requires de-serialization.
@@ -65,7 +65,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
                         final var byteOs = new ByteArrayOutputStream()) {
                     gis.transferTo(byteOs);
                     return byteOs.toString(StandardCharsets.UTF_8);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new RuntimeException(e);
                 }
             }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {

@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
+import me.ehp246.aufrest.api.rest.RequestPublisher;
+import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
@@ -30,13 +32,13 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @author Lei Yang
  * @see DefaultProxyMethodParser
  */
-final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilder {
+final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final String method;
     private final String accept;
     private final String acceptEncoding;
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
-    private final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
+    private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
     private final Map<String, Integer> pathParams;
     private final Map<Integer, String> queryParams;
     private final Map<String, List<String>> queryStatic;
@@ -46,15 +48,15 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     // Request body related.
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final DefaultToJsonDescriptor bodyInfo;
-    private final BiFunction<Object, Object[], BodyHandler<?>> responseBodyHandlerFn;
+    private final BiFunction<Object, Object[], BodyHandler<Object>> responseBodyHandlerFn;
 
-    ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
+    DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic,
-            final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
-            final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
+            final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
+            final BiFunction<Object, Object[], BodyHandler<Object>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final DefaultToJsonDescriptor bodyInfo) {
         super();
         this.method = method;
@@ -75,7 +77,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     }
 
     @Override
-    public RestRequest apply(final Object target, final Object[] args) {
+    public BoundRequest apply(final Object target, final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
         this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
@@ -149,72 +151,99 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
         });
 
-        headerStaticCopy.entrySet().stream().forEach(entry -> headerBound.putIfAbsent(entry.getKey(), entry.getValue()));
+        headerStaticCopy.entrySet().stream()
+                .forEach(entry -> headerBound.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
-        final var responseBodyHandler = responseBodyHandlerFn.apply(target, args);
 
-        return new RestRequest() {
+        return new BoundRequest() {
+            final RestRequest req = new RestRequest() {
+
+                @Override
+                public String method() {
+                    return method;
+                }
+
+                @Override
+                public String uri() {
+                    return uri;
+                }
+
+                @Override
+                public Map<String, List<String>> queries() {
+                    return queryBound;
+                }
+
+                @Override
+                public Map<String, List<String>> headers() {
+                    return headerBound;
+                }
+
+                @Override
+                public String contentType() {
+                    return contentType;
+                }
+
+                @Override
+                public String accept() {
+                    return accept;
+                }
+
+                @Override
+                public String acceptEncoding() {
+                    return acceptEncoding;
+                }
+
+                @Override
+                public Supplier<String> authSupplier() {
+                    return authSupplier;
+                }
+
+                @Override
+                public Duration timeout() {
+                    return timeout;
+                }
+
+                @Override
+                public Object body() {
+                    return body;
+                }
+
+                @Override
+                public ToJsonDescriptor toJsonDescriptor() {
+                    return bodyInfo;
+                }
+
+                @Override
+                public BodyHandler<?> responseBodyHandler() {
+                    return null;
+                }
+            };
+
+            final ResponseConsumer consumer = new ResponseConsumer() {
+                final BodyHandler<Object> responseBodyHandler = responseBodyHandlerFn.apply(target, args);
+
+                @Override
+                public BodyHandler<Object> handler() {
+                    return responseBodyHandler;
+                }
+            };
 
             @Override
-            public String method() {
-                return method;
+            public RestRequest request() {
+                return req;
             }
 
             @Override
-            public String uri() {
-                return uri;
+            public RequestPublisher publisher() {
+                // TODO Auto-generated method stub
+                return null;
             }
 
             @Override
-            public Map<String, List<String>> queries() {
-                return queryBound;
-            }
-
-            @Override
-            public Map<String, List<String>> headers() {
-                return headerBound;
-            }
-
-            @Override
-            public String contentType() {
-                return contentType;
-            }
-
-            @Override
-            public String accept() {
-                return accept;
-            }
-
-            @Override
-            public String acceptEncoding() {
-                return acceptEncoding;
-            }
-
-            @Override
-            public Supplier<?> authSupplier() {
-                return authSupplier;
-            }
-
-            @Override
-            public Duration timeout() {
-                return timeout;
-            }
-
-            @Override
-            public Object body() {
-                return body;
-            }
-
-            @Override
-            public ToJsonDescriptor toJsonDescriptor() {
-                return bodyInfo;
-            }
-
-            @Override
-            public BodyHandler<?> responseBodyHandler() {
-                return responseBodyHandler;
+            public ResponseConsumer consumer() {
+                return consumer;
             }
         };
     }

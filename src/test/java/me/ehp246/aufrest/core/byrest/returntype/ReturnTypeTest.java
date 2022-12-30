@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.core.byrest.returntype;
 
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
@@ -21,13 +20,13 @@ import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
  */
 class ReturnTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final RestFn restFn = request -> {
-        reqRef.set(request);
+    private final RestFn restFn = (req, pub, con) -> {
+        reqRef.set(req);
         return Mockito.mock(HttpResponse.class);
     };
     private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
-            new DefaultProxyMethodParser(Object::toString, name -> null, name -> BodyHandlers.discarding(),
-                    binding -> BodyHandlers.discarding()));
+            new DefaultProxyMethodParser(Object::toString, name -> null, name -> r -> null,
+                    binding -> r -> null));
 
     @BeforeEach
     void beforeEach() {

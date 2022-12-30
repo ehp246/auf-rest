@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.core.byrest.uri;
 
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -26,16 +25,15 @@ import me.ehp246.aufrest.core.byrest.uri.TestCase001.PathObject;
 class UriTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
 
-    private final RestFn restFn = request -> {
-        reqRef.set(request);
+    private final RestFn restFn = (req, pub, con) -> {
+        reqRef.set(req);
         return Mockito.mock(HttpResponse.class);
     };
     private final PropertyResolver env = new MockEnvironment().withProperty("echo.base",
             "http://localhost")::resolveRequiredPlaceholders;
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
-            new DefaultProxyMethodParser(env, name -> null, name -> BodyHandlers.discarding(),
-                    binding -> BodyHandlers.discarding()));
+            new DefaultProxyMethodParser(env, name -> null, name -> r -> null, binding -> r -> null));
 
     private final TestCase001 case001 = factory.newInstance(TestCase001.class);
 

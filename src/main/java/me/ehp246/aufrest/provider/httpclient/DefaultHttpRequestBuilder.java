@@ -33,13 +33,14 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RequestPublisher;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * Builds a {@linkplain HttpRequest} from a {@linkplain RestRequest}.
- * 
+ *
  * @author Lei Yang
  *
  */
@@ -65,7 +66,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     }
 
     @Override
-    public HttpRequest apply(RestRequest req) {
+    public HttpRequest apply(final RestRequest req, final RequestPublisher publisher) {
         final var builder = reqBuilderSupplier.get();
         final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
         /*
@@ -86,7 +87,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         /**
          * Required headers. Null and blank not allowed.
-         * 
+         *
          * accept, accept-encoding
          */
         builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
@@ -144,13 +145,13 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         return builder.build();
     }
 
-    private ContentPublisher getContentPublisher(RestRequest req) {
+    private ContentPublisher getContentPublisher(final RestRequest req) {
         final var body = req.body();
 
         final var contentType = Optional.of(req.contentType()).filter(OneUtil::hasValue)
                 .orElse(HttpUtils.APPLICATION_JSON);
 
-        if (body instanceof BodyPublisher publisher) {
+        if (body instanceof final BodyPublisher publisher) {
             return new ContentPublisher(contentType, publisher);
         }
 
@@ -165,11 +166,11 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         }
 
         // The rest requires a body.
-        if (body instanceof InputStream stream) {
+        if (body instanceof final InputStream stream) {
             return new ContentPublisher(contentType, BodyPublishers.ofInputStream(() -> stream));
         }
 
-        if (body instanceof Path path) {
+        if (body instanceof final Path path) {
             final var boundry = new String(MimeTypeUtils.generateMultipartBoundary(), StandardCharsets.UTF_8);
 
             return new ContentPublisher(HttpUtils.MULTIPART_FORM_DATA + ";boundary=" + boundry,
@@ -195,12 +196,12 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
                 .getBytes(StandardCharsets.UTF_8);
 
         try {
-            for (Map.Entry<Object, Object> entry : data.entrySet()) {
+            for (final Map.Entry<Object, Object> entry : data.entrySet()) {
                 byteArrays.add(separator);
 
                 final var key = entry.getKey();
                 final var value = entry.getValue();
-                if (value instanceof Path path) {
+                if (value instanceof final Path path) {
                     final var mimeType = Files.probeContentType(path);
 
                     byteArrays.add(("\"" + key + "\"; filename=\"" + path.getFileName() + "\"\r\ncontent-type: "
@@ -211,7 +212,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
                     byteArrays.add(("\"" + key + "\"\r\n\r\n" + value + "\r\n").getBytes(StandardCharsets.UTF_8));
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RestFnException(e);
         }
 

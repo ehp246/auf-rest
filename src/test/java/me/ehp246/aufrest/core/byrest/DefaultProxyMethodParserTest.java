@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.core.byrest;
 
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +32,8 @@ import me.ehp246.test.InvocationUtil;
  *
  */
 class DefaultProxyMethodParserTest {
-    private final BodyHandlerResolver bodyHandlerResolver = name -> BodyHandlers.discarding();
-    private final BindingBodyHandlerProvider bindingBodyHandlerProvider = binding -> BodyHandlers.discarding();
+    private final BodyHandlerResolver bodyHandlerResolver = name -> r -> null;
+    private final BindingBodyHandlerProvider bindingBodyHandlerProvider = binding -> r -> null;
     private final PropertyResolver propertyResolver = new MockEnvironment()::resolveRequiredPlaceholders;
     private final MockAuthBean authBean = new MockAuthBean();
     private final AuthBeanResolver beanResolver = name -> {
@@ -54,7 +53,7 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+        final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request();
 
         Assertions.assertEquals(null, req.body());
         Assertions.assertEquals(null, req.toJsonDescriptor());
@@ -68,7 +67,7 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+        final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request();
 
         Assertions.assertEquals(expected, req.body());
         Assertions.assertEquals(String.class, req.toJsonDescriptor().type());
@@ -87,7 +86,7 @@ class DefaultProxyMethodParserTest {
         captor.proxy().getOnArgs("username", "password");
         final var invocation = captor.invocation();
 
-        final var authSupplier = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args())
+        final var authSupplier = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
                 .authSupplier();
 
         final var expected = new BasicAuth("username", "password").header();
@@ -109,6 +108,7 @@ class DefaultProxyMethodParserTest {
 
         final var authSupplier = new DefaultProxyMethodParser(propertyResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
+                        .request()
                         .authSupplier();
 
         Assertions.assertEquals(expected, authSupplier.get(), "should have the AuthHeader value");
@@ -125,6 +125,7 @@ class DefaultProxyMethodParserTest {
 
         final var authSupplier = new DefaultProxyMethodParser(propertyResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
+                        .request()
                         .authSupplier();
 
         Assertions.assertEquals(expected, authSupplier.get(), "should have the AuthHeader value");
@@ -194,7 +195,7 @@ class DefaultProxyMethodParserTest {
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuth05.class, captRef).get();
 
-        final var req = parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
+        final var req = parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()).request();
 
         Assertions.assertEquals(authBean.header(), req.authSupplier().get(),
                 "should call the un-annotated named method");
@@ -219,7 +220,7 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+        final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request();
 
         Assertions.assertEquals(null, req.authSupplier().get(), "should follow the interface");
     }
@@ -245,7 +246,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var header = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+        final var header = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers()
                 .get("accept-language");
 
         Assertions.assertEquals(3, header.size());
@@ -262,7 +264,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals(true, headers.size() >= 2, "should have two headers at minimum");
         Assertions.assertEquals(2, headers.get("x-correl-id").size(), "should collect every value");
@@ -280,7 +283,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals(true, headers.size() >= 2, "should have two headers");
         Assertions.assertEquals(1, headers.get("x-correl-id").size());
@@ -295,7 +299,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals(true, headers.size() >= 2);
         Assertions.assertEquals(1, headers.get("x-correl-id").size());
@@ -310,7 +315,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals(true, headers.size() >= 1);
         Assertions.assertEquals(4, headers.get("accept-language").size());
@@ -329,7 +335,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertTrue(headers.size() >= 1, "should filter out all nulls");
         Assertions.assertEquals(4, headers.get("accept-language").size());
@@ -343,7 +350,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals("id from map", headers.get("x-correl-id").get(0));
         Assertions.assertEquals(1, headers.get("accept-language").size());
@@ -357,7 +365,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals(2, headers.size(), "should have two headers");
         Assertions.assertEquals(1, headers.get("cn").size());
@@ -371,7 +380,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers()
                 .get("x-api-key");
 
         Assertions.assertEquals(1, apiKey.size());
@@ -386,7 +396,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers()
                 .get("x-api-key");
 
         // No order is defined.
@@ -403,7 +414,8 @@ class DefaultProxyMethodParserTest {
         final var invocation = captor.invocation();
 
         Assertions.assertEquals(null,
-                parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers().get("x-api-key"));
+                parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request().headers()
+                        .get("x-api-key"));
     }
 
     @Test
@@ -414,7 +426,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers()
                 .get("x-api-key");
 
         Assertions.assertEquals(null, apiKey);
@@ -429,7 +442,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers()
+        final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers()
                 .get("x-api-key");
 
         Assertions.assertEquals(1, apiKey.size());
@@ -456,7 +470,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).headers();
+        final var headers = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers();
 
         Assertions.assertEquals(1, headers.get("x-api-key-1").size());
         Assertions.assertEquals("api.key.1", headers.get("x-api-key-1").get(0));

@@ -2,7 +2,6 @@ package me.ehp246.aufrest.core.byrest;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -41,7 +40,7 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  */
 class ByRestProxyFactoryTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final RestFn restFn = request -> {
+    private final RestFn restFn = (request, publisher, consumer) -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
@@ -53,7 +52,7 @@ class ByRestProxyFactoryTest {
             .withProperty("postman.password", "password")::resolveRequiredPlaceholders;
     private final ClientConfig clientConfig = new ClientConfig(Duration.parse("PT123S"));
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(propertyResolver, name -> null,
-            name -> BodyHandlers.discarding(), binding -> BodyHandlers.discarding());
+            name -> r -> null, binding -> r -> null);
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, clientConfig, parser);
 
@@ -469,7 +468,7 @@ class ByRestProxyFactoryTest {
     void exception_01() {
         final var checked = new IOException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestProxyFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> (req, pub, con) -> {
             throw restFnException;
         }, clientConfig, parser).newInstance(ExceptionCase001.class);
 
@@ -482,7 +481,7 @@ class ByRestProxyFactoryTest {
     void exception_02() {
         final var checked = new IOException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestProxyFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> (req, pub, con) -> {
             throw restFnException;
         }, clientConfig, parser).newInstance(ExceptionCase001.class);
 
@@ -495,7 +494,7 @@ class ByRestProxyFactoryTest {
     void exception_03() {
         final var checked = new InterruptedException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestProxyFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> (req, pub, con) -> {
             throw restFnException;
         }, clientConfig, parser)
                 .newInstance(ExceptionCase001.class);
@@ -508,7 +507,7 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_04() {
         final var toBeThrown = new RuntimeException();
-        final var newInstance = new ByRestProxyFactory(config -> req -> {
+        final var newInstance = new ByRestProxyFactory(config -> (req, pub, con) -> {
             throw toBeThrown;
         }, clientConfig, parser)
                 .newInstance(ExceptionCase001.class);
@@ -521,7 +520,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_05() {
         Assertions.assertThrows(Exception.class,
-                new ByRestProxyFactory(config -> req -> new MockHttpResponse<Instant>(200, Instant.now()), clientConfig,
+                new ByRestProxyFactory(config -> (req, pub, con) -> new MockHttpResponse<Object>(200, Instant.now()),
+                        clientConfig,
                         parser)
                 .newInstance(ExceptionCase001.class)::post);
     }

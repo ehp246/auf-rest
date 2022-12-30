@@ -3,8 +3,6 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -17,6 +15,8 @@ import org.springframework.lang.Nullable;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.RequestPublisher;
+import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
@@ -32,14 +32,13 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  */
 public final class DefaultRestFnProvider implements RestFnProvider {
-
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
     private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
     private final RestLogger restLogger;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
-        this(clientBuilderSupplier, req -> null, null);
+        this(clientBuilderSupplier, (req, publisher) -> null, null);
     }
 
     @Autowired
@@ -59,7 +58,6 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         this.restLogger = null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public RestFn get(final ClientConfig clientConfig) {
         final var clientBuilder = clientBuilderSupplier.get();
@@ -72,9 +70,11 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             private final HttpClient client = clientBuilder.build();
 
+            @SuppressWarnings("unchecked")
             @Override
-            public HttpResponse<?> apply(RestRequest req) {
-                final var httpReq = reqBuilder.apply(req);
+            public HttpResponse<Object> apply(final RestRequest req, final RequestPublisher publisher,
+                    final ResponseConsumer consumer) {
+                final var httpReq = reqBuilder.apply(req, publisher);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 
@@ -85,9 +85,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 final HttpResponse<Object> httpResponse;
                 // Try/catch on send only.
                 try {
-                    httpResponse = (HttpResponse<Object>) client.send(httpReq,
-                            (BodyHandler<?>) (req.responseBodyHandler() == null ? BodyHandlers.discarding()
-                                    : req.responseBodyHandler()));
+                    httpResponse = (HttpResponse<Object>) client.send(httpReq, consumer.handler());
                 } catch (IOException | InterruptedException e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
 

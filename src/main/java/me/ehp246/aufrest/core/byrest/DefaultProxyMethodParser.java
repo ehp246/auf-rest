@@ -42,10 +42,10 @@ import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
-import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -53,7 +53,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * invocation to a {@linkplain RestRequest}.
  *
  * @author Lei Yang
- * @see ReflectedInvocationRequestBuilder
+ * @see DefaultInvocationRequestBinder
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
@@ -76,7 +76,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ReflectedInvocationRequestBuilder parse(final Method method) {
+    public DefaultInvocationRequestBinder parse(final Method method) {
         final var byRest = method.getDeclaringClass().getAnnotation(ByRest.class);
 
         final var reflected = new ReflectedMethod(method);
@@ -161,7 +161,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
         }
 
-        final BiFunction<Object, Object[], Supplier<?>> authSupplierFn;
+        final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
         if (authHeaders.size() == 1) {
             final var param = authHeaders.get(0);
             final var index = param.index();
@@ -179,8 +179,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * BindingBodyHandlerProvider
          */
         final var responseBodyHandlerFn = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
-                .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
-                        args) -> (BodyHandler<?>) (args[p.index()]))
+                .map(p -> (BiFunction<Object, Object[], BodyHandler<Object>>) (target,
+                        args) -> (BodyHandler<Object>) (args[p.index()]))
                 .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .or(() -> Optional.ofNullable(byRest.responseBodyHandler()).filter(OneUtil::hasValue)
@@ -209,12 +209,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
                 .orElse(null);
 
-        return new ReflectedInvocationRequestBuilder(verb, accept, byRest.acceptGZip(), contentType, timeout,
+        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout,
                 uriBuilder, pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn,
                 responseBodyHandlerFn, bodyFn, bodyInfo);
     }
 
-    private BiFunction<Object, Object[], Supplier<?>> authSupplierFn(final ByRest.Auth auth,
+    private BiFunction<Object, Object[], Supplier<String>> authSupplierFn(final ByRest.Auth auth,
             final ReflectedMethod reflected) {
         final var value = List.of(auth.value());
         switch (auth.scheme()) {

@@ -12,17 +12,17 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  *
  */
 public class MockRestFnProvider implements RestFnProvider {
-    private final HttpResponse<?> response;
+    private final HttpResponse<Object> response;
     private RestRequest req;
 
-    public MockRestFnProvider(HttpResponse<?> response) {
+    public MockRestFnProvider(final HttpResponse<Object> response) {
         super();
         this.response = response;
     }
 
     @Override
-    public RestFn get(ClientConfig clientConfig) {
-        return req -> {
+    public RestFn get(final ClientConfig clientConfig) {
+        return (req, pub, con) -> {
             this.req = req;
             return response;
         };
