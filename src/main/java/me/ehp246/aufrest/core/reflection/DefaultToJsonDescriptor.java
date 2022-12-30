@@ -24,12 +24,12 @@ import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
  * @since 3.2.0
  *
  */
-public final class DefaultJsonPublishingDescriptor implements ToJsonDescriptor {
+public final class DefaultToJsonDescriptor implements ToJsonDescriptor {
     private final Class<?> type;
     private final Map<Class<? extends Annotation>, Annotation> annotationMap;
     private final Class<?> firstJsonViewValue;
 
-    public DefaultJsonPublishingDescriptor(final Class<?> type, final Annotation[] annotations) {
+    public DefaultToJsonDescriptor(final Class<?> type, final Annotation[] annotations) {
         this.type = type;
         this.annotationMap = annotations == null ? Map.of()
                 : Arrays.asList(annotations).stream()

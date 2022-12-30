@@ -45,7 +45,7 @@ import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
-import me.ehp246.aufrest.core.reflection.DefaultJsonPublishingDescriptor;
+import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -201,7 +201,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
-            return new DefaultJsonPublishingDescriptor(parameter.getType(), parameter.getAnnotations());
+            return new DefaultToJsonDescriptor(parameter.getType(), parameter.getAnnotations());
         }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)

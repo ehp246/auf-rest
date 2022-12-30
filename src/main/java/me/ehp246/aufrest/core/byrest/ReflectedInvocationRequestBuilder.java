@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.reflection.DefaultJsonPublishingDescriptor;
+import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -44,7 +44,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
     private final Duration timeout;
     // Request body related.
     private final BiFunction<Object, Object[], Object> bodyFn;
-    private final DefaultJsonPublishingDescriptor bodyInfo;
+    private final DefaultToJsonDescriptor bodyInfo;
     private final BiFunction<Object, Object[], BodyHandler<?>> responseBodyHandlerFn;
 
     ReflectedInvocationRequestBuilder(final String method, final String accept, final boolean acceptGZip,
@@ -54,7 +54,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             final Map<String, List<String>> headerStatic,
             final BiFunction<Object, Object[], Supplier<?>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
-            final BiFunction<Object, Object[], Object> bodyFn, final DefaultJsonPublishingDescriptor bodyInfo) {
+            final BiFunction<Object, Object[], Object> bodyFn, final DefaultToJsonDescriptor bodyInfo) {
         super();
         this.method = method;
         this.accept = accept;
@@ -207,7 +207,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
 
             @Override
-            public DefaultJsonPublishingDescriptor toJsonDescriptor() {
+            public DefaultToJsonDescriptor toJsonDescriptor() {
                 return bodyInfo;
             }
 
