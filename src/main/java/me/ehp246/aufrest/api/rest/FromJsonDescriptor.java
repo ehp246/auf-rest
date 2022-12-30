@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Lei Yang
  * @since 3.0
  */
-public record BindingDescriptor(Class<?> type, Class<?> errorType, List<Class<?>> reifying,
+public record FromJsonDescriptor(Class<?> type, Class<?> errorType, List<Class<?>> reifying,
         List<? extends Annotation> annotations) {
-    public BindingDescriptor(final Class<?> type) {
+    public FromJsonDescriptor(final Class<?> type) {
         this(type, Object.class, List.of(), List.of());
     }
 

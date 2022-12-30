@@ -17,7 +17,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.util.MultiValueMapAdapter;
 
-import me.ehp246.aufrest.api.spi.ToJson;
+import me.ehp246.aufrest.core.byrest.ToJson;
 import me.ehp246.aufrest.mock.MockResponseBodyHandler;
 
 /**

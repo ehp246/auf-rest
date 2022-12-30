@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import me.ehp246.aufrest.api.spi.ToJson;
-
 /**
  * The abstraction of a REST request that expects a response.
  *
@@ -79,8 +77,8 @@ public interface RestRequest {
         return null;
     }
 
-    default ToJson.Descriptor bodyDescriptor() {
-        return null;
+    default ToJsonDescriptor toJsonDescriptor() {
+        return this.body() == null ? null : this.body()::getClass;
     }
 
     /**

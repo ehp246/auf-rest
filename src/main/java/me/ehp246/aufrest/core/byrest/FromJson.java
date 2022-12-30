@@ -1,12 +1,16 @@
-package me.ehp246.aufrest.api.spi;
+package me.ehp246.aufrest.core.byrest;
 
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 
 /**
+ * Internal abstraction for {@linkplain ObjectMapper} operations.
+ *
  * @author Lei Yang
  *
  */
 @FunctionalInterface
 public interface FromJson {
-    Object apply(final String json, final BindingDescriptor receiver);
+    Object apply(final String json, final FromJsonDescriptor receiver);
 }

@@ -15,7 +15,7 @@ import org.springframework.util.CollectionUtils;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
-import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth01;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth02;
@@ -57,7 +57,7 @@ class DefaultProxyMethodParserTest {
         final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
         Assertions.assertEquals(null, req.body());
-        Assertions.assertEquals(null, req.bodyDescriptor());
+        Assertions.assertEquals(null, req.toJsonDescriptor());
     }
 
     @Test
@@ -71,7 +71,7 @@ class DefaultProxyMethodParserTest {
         final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
         Assertions.assertEquals(expected, req.body());
-        Assertions.assertEquals(String.class, req.bodyDescriptor().type());
+        Assertions.assertEquals(String.class, req.toJsonDescriptor().type());
     }
 
     @Test

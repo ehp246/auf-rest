@@ -11,12 +11,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
-import me.ehp246.aufrest.api.spi.FromJson;
-import me.ehp246.aufrest.api.spi.ToJson;
+import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
+import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
+import me.ehp246.aufrest.core.byrest.FromJson;
+import me.ehp246.aufrest.core.byrest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
+ * Implements internal JSON operations on {@linkplain ObjectMapper}.
+ *
  * @author Lei Yang
  *
  */
@@ -31,13 +34,13 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final Descriptor valueInfo) {
+    public String apply(final Object value, final ToJsonDescriptor valueInfo) {
         if (value == null) {
             return null;
         }
 
         try {
-            final var view = valueInfo.firstJsonViewValue();
+            final var view = valueInfo.view();
             if (view == null) {
                 return this.objectMapper.writerFor(valueInfo.type()).writeValueAsString(value);
             } else {
@@ -49,7 +52,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public Object apply(final String json, final BindingDescriptor receiver) {
+    public Object apply(final String json, final FromJsonDescriptor receiver) {
         if (receiver == null || json == null || json.isBlank()) {
             return null;
         }

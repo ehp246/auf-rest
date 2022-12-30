@@ -24,10 +24,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.spi.RestView;
-import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
+import me.ehp246.aufrest.core.reflection.DefaultJsonPublishingDescriptor;
 import me.ehp246.test.TimingExtension;
 
 /**
@@ -65,7 +65,7 @@ class JsonByJacksonTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new BindingDescriptor(Instants.class));
+                new FromJsonDescriptor(Instants.class));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -76,7 +76,7 @@ class JsonByJacksonTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new BindingDescriptor(List.class, null, List.of(Instant.class), List.of()));
+                new FromJsonDescriptor(List.class, null, List.of(Instant.class), List.of()));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -87,7 +87,7 @@ class JsonByJacksonTest {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
         final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
-                new BindingDescriptor(List.class, null, List.of(List.class, Instant.class), List.of()));
+                new FromJsonDescriptor(List.class, null, List.of(List.class, Instant.class), List.of()));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -104,7 +104,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
-                new BindingDescriptor(List.class, null, List.of(Person.class), List.of()));
+                new FromJsonDescriptor(List.class, null, List.of(Person.class), List.of()));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -120,7 +120,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
-                new BindingDescriptor(List.class, null, List.of(TestCases.Person01.class), List.of(jsonView)));
+                new FromJsonDescriptor(List.class, null, List.of(TestCases.Person01.class), List.of(jsonView)));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());
@@ -136,7 +136,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
-                new BindingDescriptor(Set.class, null,
+                new FromJsonDescriptor(Set.class, null,
                         List.of(List.class, TestCases.Person01.class),
                         List.of(jsonView)));
 
@@ -157,7 +157,7 @@ class JsonByJacksonTest {
         final var annotations = new ReflectedType(TestCases.class).findMethod("toJson01", Person.class)
                 .map(m -> m.getParameters()[0].getAnnotations()).orElse(null);
         final var value = new Person(Instant.now(), UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        final var valueInfo = new ToJson.Descriptor(Person.class, annotations);
+        final var valueInfo = new DefaultJsonPublishingDescriptor(Person.class, annotations);
 
         IntStream.range(0, PERF_COUNT).forEach(i -> {
             jackson.apply(value, valueInfo);

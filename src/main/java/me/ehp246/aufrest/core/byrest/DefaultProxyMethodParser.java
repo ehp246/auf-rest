@@ -37,15 +37,15 @@ import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
+import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
-import me.ehp246.aufrest.api.spi.ToJson;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
+import me.ehp246.aufrest.core.reflection.DefaultJsonPublishingDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -201,7 +201,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
-            return new ToJson.Descriptor(parameter.getType(), parameter.getAnnotations());
+            return new DefaultJsonPublishingDescriptor(parameter.getType(), parameter.getAnnotations());
         }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
@@ -282,14 +282,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
     }
 
-    private static BindingDescriptor bindingOf(final ReflectedMethod method, final ByRest byRest) {
+    private static FromJsonDescriptor bindingOf(final ReflectedMethod method, final ByRest byRest) {
         final var returnTypes = returnTypes(Stream
                 .concat(Arrays.stream(new Class<?>[] { method.getReturnType() }),
                         Arrays.stream(
                                 method.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
                 .collect(Collectors.toList()));
 
-        return new BindingDescriptor(returnTypes.get(0), byRest.errorType(),
+        return new FromJsonDescriptor(returnTypes.get(0), byRest.errorType(),
                 returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
                 method.getMethodDeclaredAnnotations());
     }

@@ -17,10 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.BodyHandlerResolver;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.core.byrest.ProxyMethodParser;

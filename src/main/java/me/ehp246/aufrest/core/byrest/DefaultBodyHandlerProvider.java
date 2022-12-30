@@ -15,9 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.BindingDescriptor;
+import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.spi.FromJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -35,7 +34,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
     }
 
     @Override
-    public BodyHandler<?> get(final BindingDescriptor binding) {
+    public BodyHandler<?> get(final FromJsonDescriptor binding) {
         final Class<?> type = binding == null ? void.class : binding.type();
 
         // Declared return type requires de-serialization.
@@ -86,7 +85,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
 
                 if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
                     return fromJson.apply(text,
-                            statusCode < 300 ? binding : new BindingDescriptor(binding.errorType()));
+                            statusCode < 300 ? binding : new FromJsonDescriptor(binding.errorType()));
                 }
 
                 // Returns the raw text for anything that is not JSON for now.
