@@ -19,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -207,7 +208,7 @@ final class ReflectedInvocationRequestBuilder implements InvocationRequestBuilde
             }
 
             @Override
-            public DefaultToJsonDescriptor toJsonDescriptor() {
+            public ToJsonDescriptor toJsonDescriptor() {
                 return bodyInfo;
             }
 
