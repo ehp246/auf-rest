@@ -68,9 +68,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             private final HttpClient client = clientBuilder.build();
 
-            @SuppressWarnings("unchecked")
             @Override
-            public HttpResponse<Object> apply(final RestRequest req, final ResponseConsumer consumer) {
+            public HttpResponse<?> apply(final RestRequest req, final ResponseConsumer consumer) {
                 final var httpReq = reqBuilder.apply(req);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
@@ -79,10 +78,10 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     restLogger.onRequest(httpReq, req);
                 }
 
-                final HttpResponse<Object> httpResponse;
+                final HttpResponse<?> httpResponse;
                 // Try/catch on send only.
                 try {
-                    httpResponse = (HttpResponse<Object>) client.send(httpReq, consumer.handler());
+                    httpResponse = client.send(httpReq, consumer.handler());
                 } catch (IOException | InterruptedException e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
 

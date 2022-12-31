@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -37,7 +36,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final String acceptEncoding;
     private final String contentType;
     private final UriComponentsBuilder uriBuilder;
-    private final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
+    private final ArgBinder<Object, Supplier<String>> authSupplierFn;
     private final Map<String, Integer> pathParams;
     private final Map<Integer, String> queryParams;
     private final Map<String, List<String>> queryStatic;
@@ -47,15 +46,15 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
     private final DefaultToJsonDescriptor bodyInfo;
-    private final BiFunction<Object, Object[], BodyHandler<?>> consumerHandlerFn;
+    private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
 
     DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic,
-            final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
-            final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
+            final ArgBinder<Object, Supplier<String>> authSupplierFn,
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder,
             final ArgBinder<Object, Object> bodyArgBinder, final DefaultToJsonDescriptor bodyInfo) {
         super();
         this.method = method;
@@ -70,7 +69,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
         this.timeout = timeout;
-        this.consumerHandlerFn = bodyHandlerFn;
+        this.consumerBinder = consumerBinder;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyInfo = bodyInfo;
     }
@@ -156,7 +155,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyArgBinder == null ? null : bodyArgBinder.apply(target, args);
 
-        final BodyHandler<?> handler = consumerHandlerFn.apply(target, args);
+        final var handler = consumerBinder.apply(target, args);
 
         return new Bound(new RestRequest() {
 

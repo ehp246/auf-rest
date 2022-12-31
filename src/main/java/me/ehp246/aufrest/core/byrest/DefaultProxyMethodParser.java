@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,7 +60,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
-    private final static ArgBinderProvider<?, ?> ArgBinderProvider = p -> (target, args) -> args[p.index()];
+    private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
@@ -164,7 +163,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
         }
 
-        final BiFunction<Object, Object[], Supplier<String>> authSupplierFn;
+        final ArgBinder<Object, Supplier<String>> authSupplierFn;
         if (authHeaders.size() == 1) {
             final var param = authHeaders.get(0);
             final var index = param.index();
@@ -181,9 +180,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig, default
          * BindingBodyHandlerProvider
          */
-        final var consumerHandlerFn = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
-                .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
-                        args) -> (BodyHandler<?>) (args[p.index()]))
+        final var consumerBinder = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
+                .map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p))
                 .or(() -> optionalOfMapping.map(OfMapping::consumerHandler).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
@@ -204,7 +202,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
 
-        final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ArgBinderProvider::apply).orElse(null);
+        final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
@@ -217,11 +215,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElse(null);
 
         return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout, uriBuilder,
-                pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn, consumerHandlerFn,
+                pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn, consumerBinder,
                 bodyArgBinder, bodyInfo);
     }
 
-    private BiFunction<Object, Object[], Supplier<String>> authSupplierFn(final ByRest.Auth auth,
+    private ArgBinder<Object, Supplier<String>> authSupplierFn(final ByRest.Auth auth,
             final ReflectedMethod reflected) {
         final var value = List.of(auth.value());
         switch (auth.scheme()) {
