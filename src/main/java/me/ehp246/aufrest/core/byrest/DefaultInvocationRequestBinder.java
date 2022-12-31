@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import me.ehp246.aufrest.api.rest.RequestPublisher;
-import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
@@ -48,7 +46,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     // Request body related.
     private final BiFunction<Object, Object[], Object> bodyFn;
     private final DefaultToJsonDescriptor bodyInfo;
-    private final BiFunction<Object, Object[], BodyHandler<Object>> responseBodyHandlerFn;
+    private final BiFunction<Object, Object[], BodyHandler<?>> consumerHandlerFn;
 
     DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
@@ -56,7 +54,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic,
             final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
-            final BiFunction<Object, Object[], BodyHandler<Object>> bodyHandlerFn,
+            final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
             final BiFunction<Object, Object[], Object> bodyFn, final DefaultToJsonDescriptor bodyInfo) {
         super();
         this.method = method;
@@ -71,13 +69,13 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
         this.timeout = timeout;
-        this.responseBodyHandlerFn = bodyHandlerFn;
+        this.consumerHandlerFn = bodyHandlerFn;
         this.bodyFn = bodyFn;
         this.bodyInfo = bodyInfo;
     }
 
     @Override
-    public BoundRequest apply(final Object target, final Object[] args) {
+    public Bound apply(final Object target, final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
         this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
@@ -157,94 +155,64 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
         final var body = bodyFn == null ? null : bodyFn.apply(target, args);
 
-        return new BoundRequest() {
-            final RestRequest req = new RestRequest() {
+        final BodyHandler<?> handler = consumerHandlerFn.apply(target, args);
 
-                @Override
-                public String method() {
-                    return method;
-                }
-
-                @Override
-                public String uri() {
-                    return uri;
-                }
-
-                @Override
-                public Map<String, List<String>> queries() {
-                    return queryBound;
-                }
-
-                @Override
-                public Map<String, List<String>> headers() {
-                    return headerBound;
-                }
-
-                @Override
-                public String contentType() {
-                    return contentType;
-                }
-
-                @Override
-                public String accept() {
-                    return accept;
-                }
-
-                @Override
-                public String acceptEncoding() {
-                    return acceptEncoding;
-                }
-
-                @Override
-                public Supplier<String> authSupplier() {
-                    return authSupplier;
-                }
-
-                @Override
-                public Duration timeout() {
-                    return timeout;
-                }
-
-                @Override
-                public Object body() {
-                    return body;
-                }
-
-                @Override
-                public ToJsonDescriptor toJsonDescriptor() {
-                    return bodyInfo;
-                }
-
-                @Override
-                public BodyHandler<?> responseBodyHandler() {
-                    return null;
-                }
-            };
-
-            final ResponseConsumer consumer = new ResponseConsumer() {
-                final BodyHandler<Object> responseBodyHandler = responseBodyHandlerFn.apply(target, args);
-
-                @Override
-                public BodyHandler<Object> handler() {
-                    return responseBodyHandler;
-                }
-            };
+        return new Bound(new RestRequest() {
 
             @Override
-            public RestRequest request() {
-                return req;
+            public String method() {
+                return method;
             }
 
             @Override
-            public RequestPublisher publisher() {
-                // TODO Auto-generated method stub
-                return null;
+            public String uri() {
+                return uri;
             }
 
             @Override
-            public ResponseConsumer consumer() {
-                return consumer;
+            public Map<String, List<String>> queries() {
+                return queryBound;
             }
-        };
+
+            @Override
+            public Map<String, List<String>> headers() {
+                return headerBound;
+            }
+
+            @Override
+            public String contentType() {
+                return contentType;
+            }
+
+            @Override
+            public String accept() {
+                return accept;
+            }
+
+            @Override
+            public String acceptEncoding() {
+                return acceptEncoding;
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                return authSupplier;
+            }
+
+            @Override
+            public Duration timeout() {
+                return timeout;
+            }
+
+            @Override
+            public Object body() {
+                return body;
+            }
+
+            @Override
+            public ToJsonDescriptor toJsonDescriptor() {
+                return bodyInfo;
+            }
+        }, null, () -> handler);
     }
 }

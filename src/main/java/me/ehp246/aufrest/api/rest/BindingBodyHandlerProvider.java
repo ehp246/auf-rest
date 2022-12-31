@@ -8,5 +8,5 @@ import java.net.http.HttpResponse.BodyHandler;
  */
 @FunctionalInterface
 public interface BindingBodyHandlerProvider {
-    BodyHandler<Object> get(FromJsonDescriptor binding);
+    BodyHandler<?> get(FromJsonDescriptor binding);
 }

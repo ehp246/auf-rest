@@ -8,9 +8,9 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * Resolves a named {@linkplain BodyHandler}.
  *
  * @author Lei Yang
- * @see ByRest#responseBodyHandler()
+ * @see ByRest#consumerHandler()
  */
 @FunctionalInterface
 public interface BodyHandlerResolver {
-    BodyHandler<Object> get(String name);
+    BodyHandler<?> get(String name);
 }

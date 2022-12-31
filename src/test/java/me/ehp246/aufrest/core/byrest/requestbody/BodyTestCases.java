@@ -43,11 +43,11 @@ public interface BodyTestCases {
         @OfMapping("")
         void getOfMapping();
 
-        @OfMapping(value = "", responseBodyHandler = "named")
+        @OfMapping(value = "", consumerHandler = "named")
         String getOfMappingNamed();
     }
     
-    @ByRest(value = "", responseBodyHandler = "interfaceNamed")
+    @ByRest(value = "", consumerHandler = "interfaceNamed")
     interface ResponseCase02 {
         void getOnMethod(int i, BodyHandler<?> handler);
 
@@ -57,7 +57,7 @@ public interface BodyTestCases {
         @OfMapping("")
         void getOfMapping();
 
-        @OfMapping(value = "", responseBodyHandler = "methodNamed")
+        @OfMapping(value = "", consumerHandler = "methodNamed")
         String getOfMappingNamed();
     }
 }

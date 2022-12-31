@@ -9,13 +9,8 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  *
  */
 public interface InvocationRequestBinder {
-    BoundRequest apply(Object target, Object[] args);
+    Bound apply(Object target, Object[] args);
 
-    interface BoundRequest {
-        RestRequest request();
-
-        RequestPublisher publisher();
-
-        ResponseConsumer consumer();
+    record Bound(RestRequest request, RequestPublisher publisher, ResponseConsumer consumer) {
     }
 }

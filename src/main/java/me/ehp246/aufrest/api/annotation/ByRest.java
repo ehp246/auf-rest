@@ -113,7 +113,7 @@ public @interface ByRest {
      * @see HttpClient#send(java.net.http.HttpRequest,
      *      java.net.http.HttpResponse.BodyHandler)
      */
-    String responseBodyHandler() default "";
+    String consumerHandler() default "";
 
     /**
      * Defines request header names and values in pairs. E.g.,

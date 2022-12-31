@@ -178,16 +178,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig, default
          * BindingBodyHandlerProvider
          */
-        final var responseBodyHandlerFn = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
-                .map(p -> (BiFunction<Object, Object[], BodyHandler<Object>>) (target,
-                        args) -> (BodyHandler<Object>) (args[p.index()]))
-                .or(() -> optionalOfMapping.map(OfMapping::responseBodyHandler).filter(OneUtil::hasValue)
+        final var consumerHandlerFn = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
+                .map(p -> (BiFunction<Object, Object[], BodyHandler<?>>) (target,
+                        args) -> (BodyHandler<?>) (args[p.index()]))
+                .or(() -> optionalOfMapping.map(OfMapping::consumerHandler).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
-                .or(() -> Optional.ofNullable(byRest.responseBodyHandler()).filter(OneUtil::hasValue)
+                .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
-                    final var bodyHandler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRest));
-                    return (target, args) -> bodyHandler;
+                    final var handler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRest));
+                    return (target, args) -> handler;
                 });
 
         /*
@@ -211,7 +211,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout,
                 uriBuilder, pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn,
-                responseBodyHandlerFn, bodyFn, bodyInfo);
+                consumerHandlerFn, bodyFn, bodyInfo);
     }
 
     private BiFunction<Object, Object[], Supplier<String>> authSupplierFn(final ByRest.Auth auth,

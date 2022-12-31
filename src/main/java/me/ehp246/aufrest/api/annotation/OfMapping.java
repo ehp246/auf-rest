@@ -61,5 +61,5 @@ public @interface OfMapping {
      * @see HttpClient#send(java.net.http.HttpRequest,
      *      java.net.http.HttpResponse.BodyHandler)
      */
-    String responseBodyHandler() default "";
+    String consumerHandler() default "";
 }

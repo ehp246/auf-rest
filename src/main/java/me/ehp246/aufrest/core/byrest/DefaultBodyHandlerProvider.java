@@ -34,7 +34,7 @@ final class DefaultBodyHandlerProvider implements BindingBodyHandlerProvider {
     }
 
     @Override
-    public BodyHandler<Object> get(final FromJsonDescriptor binding) {
+    public BodyHandler<?> get(final FromJsonDescriptor binding) {
         final Class<?> type = binding == null ? void.class : binding.type();
 
         // Declared return type requires de-serialization.
