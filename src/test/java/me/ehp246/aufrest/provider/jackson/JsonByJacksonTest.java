@@ -25,9 +25,9 @@ import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
+import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
-import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.test.TimingExtension;
 
 /**
@@ -157,7 +157,7 @@ class JsonByJacksonTest {
         final var annotations = new ReflectedType(TestCases.class).findMethod("toJson01", Person.class)
                 .map(m -> m.getParameters()[0].getAnnotations()).orElse(null);
         final var value = new Person(Instant.now(), UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        final var valueInfo = new DefaultToJsonDescriptor(Person.class, annotations);
+        final var valueInfo = new JsonBodyDescriptor(Person.class, annotations);
 
         IntStream.range(0, PERF_COUNT).forEach(i -> {
             jackson.apply(value, valueInfo);

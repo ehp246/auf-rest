@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,16 @@ public interface RestRequest {
         return null;
     }
 
-    default ToJsonDescriptor toJsonDescriptor() {
-        return this.body() == null ? null : this.body()::getClass;
+    /**
+     * Optional metadata used to help publish the body.
+     * <p>
+     * By default, the {@linkplain RestFn} inspects the type of the body value and
+     * creates a suitable {@linkplain HttpRequest.BodyPublisher}.
+     *
+     * @see {@link JsonBodyDescriptor}, {@link HttpRequest.BodyPublisher}
+     */
+    default BodyDescriptor bodyDescriptor() {
+        return null;
     }
 
     /**

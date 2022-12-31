@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
-import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
+import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
 import me.ehp246.aufrest.core.byrest.FromJson;
 import me.ehp246.aufrest.core.byrest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -34,7 +34,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final ToJsonDescriptor valueInfo) {
+    public String apply(final Object value, final JsonBodyDescriptor valueInfo) {
         if (value == null) {
             return null;
         }

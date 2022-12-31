@@ -56,7 +56,7 @@ class DefaultProxyMethodParserTest {
         final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request();
 
         Assertions.assertEquals(null, req.body());
-        Assertions.assertEquals(null, req.toJsonDescriptor());
+        Assertions.assertEquals(null, req.bodyDescriptor());
     }
 
     @Test
@@ -70,7 +70,7 @@ class DefaultProxyMethodParserTest {
         final var req = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request();
 
         Assertions.assertEquals(expected, req.body());
-        Assertions.assertEquals(String.class, req.toJsonDescriptor().type());
+        Assertions.assertEquals(String.class, req.bodyDescriptor().type());
     }
 
     @Test

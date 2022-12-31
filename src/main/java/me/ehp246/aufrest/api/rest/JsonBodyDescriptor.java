@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.core.reflection;
+package me.ehp246.aufrest.api.rest;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
-
 /**
  * Defines the details of a value object outside of the value itself. It could
  * include the declared type, annotations, and etc. Most often the object is the
@@ -21,15 +18,14 @@ import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
  * {@linkplain ObjectMapper#writerFor(Class)}.
  *
  * @author Lei Yang
- * @since 3.2.0
  *
  */
-public final class DefaultToJsonDescriptor implements ToJsonDescriptor {
+public final class JsonBodyDescriptor implements BodyDescriptor {
     private final Class<?> type;
     private final Map<Class<? extends Annotation>, Annotation> annotationMap;
     private final Class<?> firstJsonViewValue;
 
-    public DefaultToJsonDescriptor(final Class<?> type, final Annotation[] annotations) {
+    public JsonBodyDescriptor(final Class<?> type, final Annotation[] annotations) {
         this.type = type;
         this.annotationMap = annotations == null ? Map.of()
                 : Arrays.asList(annotations).stream()
@@ -43,11 +39,12 @@ public final class DefaultToJsonDescriptor implements ToJsonDescriptor {
         return this.type;
     }
 
-    public Map<Class<? extends Annotation>, Annotation> annotationMap() {
+    @Override
+    public Map<Class<? extends Annotation>, Annotation> annotations() {
         return this.annotationMap;
     }
 
-    @Override
+
     public Class<?> view() {
         return this.firstJsonViewValue;
     }

@@ -33,6 +33,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -182,11 +183,11 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
             return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(toJson.apply(body, req.toJsonDescriptor())));
+                    BodyPublishers.ofString(toJson.apply(body, (JsonBodyDescriptor) req.bodyDescriptor())));
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + req.toJsonDescriptor().type() + "'");
+                + body.toString() + "' of type '" + req.bodyDescriptor().type() + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {

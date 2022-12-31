@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
+import me.ehp246.aufrest.api.rest.BodyDescriptor;
+import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
-import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -45,7 +45,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final DefaultToJsonDescriptor bodyInfo;
+    private final JsonBodyDescriptor bodyInfo;
     private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
 
     DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
@@ -55,7 +55,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final Map<String, List<String>> headerStatic,
             final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final ArgBinder<Object, Object> bodyArgBinder, final DefaultToJsonDescriptor bodyInfo) {
+            final ArgBinder<Object, Object> bodyArgBinder, final JsonBodyDescriptor bodyInfo) {
         super();
         this.method = method;
         this.accept = accept;
@@ -210,7 +210,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             }
 
             @Override
-            public ToJsonDescriptor toJsonDescriptor() {
+            public BodyDescriptor bodyDescriptor() {
                 return bodyInfo;
             }
         }, () -> handler);

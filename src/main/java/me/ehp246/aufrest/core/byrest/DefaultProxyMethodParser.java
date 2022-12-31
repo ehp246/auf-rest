@@ -39,11 +39,11 @@ import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
-import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
@@ -193,8 +193,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         /*
          * Body value and publisher Priority: BodyPublisher, @RequestBody, inferred
-         */
-        /*
+         *
          * If there is a body publisher on the parameters, take it and ignore everything
          * else.
          */
@@ -206,7 +205,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
-            return new DefaultToJsonDescriptor(parameter.getType(), parameter.getAnnotations());
+            return new JsonBodyDescriptor(parameter.getType(), parameter.getAnnotations());
         }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
