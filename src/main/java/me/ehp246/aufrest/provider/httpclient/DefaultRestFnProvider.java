@@ -15,8 +15,6 @@ import org.springframework.lang.Nullable;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
-import me.ehp246.aufrest.api.rest.RequestPublisher;
-import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
@@ -38,7 +36,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final RestLogger restLogger;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
-        this(clientBuilderSupplier, (req, publisher) -> null, null);
+        this(clientBuilderSupplier, req -> null, null);
     }
 
     @Autowired
@@ -72,9 +70,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public HttpResponse<Object> apply(final RestRequest req, final RequestPublisher publisher,
-                    final ResponseConsumer consumer) {
-                final var httpReq = reqBuilder.apply(req, publisher);
+            public HttpResponse<Object> apply(final RestRequest req, final ResponseConsumer consumer) {
+                final var httpReq = reqBuilder.apply(req);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 

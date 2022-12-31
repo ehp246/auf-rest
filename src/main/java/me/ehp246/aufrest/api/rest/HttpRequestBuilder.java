@@ -11,9 +11,5 @@ import java.net.http.HttpRequest;
  */
 @FunctionalInterface
 public interface HttpRequestBuilder {
-    HttpRequest apply(RestRequest req, RequestPublisher publisher);
-
-    default HttpRequest apply(final RestRequest req) {
-        return this.apply(req, null);
-    }
+    HttpRequest apply(RestRequest req);
 }

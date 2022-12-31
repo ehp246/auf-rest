@@ -20,7 +20,7 @@ import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
  */
 class ReturnTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final RestFn restFn = (req, pub, con) -> {
+    private final RestFn restFn = (req, con) -> {
         reqRef.set(req);
         return Mockito.mock(HttpResponse.class);
     };

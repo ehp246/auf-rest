@@ -214,6 +214,6 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             public ToJsonDescriptor toJsonDescriptor() {
                 return bodyInfo;
             }
-        }, null, () -> handler);
+        }, () -> handler);
     }
 }

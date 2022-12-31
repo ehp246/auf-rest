@@ -19,8 +19,7 @@ import org.mockito.Mockito;
 import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RequestPublisher;
-import me.ehp246.aufrest.api.rest.ResponseConsumer;
+import me.ehp246.aufrest.api.rest.RestFn.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
@@ -34,11 +33,9 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  */
 class BodyTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final AtomicReference<RequestPublisher> pubRef = new AtomicReference<>();
     private final AtomicReference<ResponseConsumer> conRef = new AtomicReference<>();
-    private final RestFnProvider restFnProvider = cfg -> (req, pub, con) -> {
+    private final RestFnProvider restFnProvider = cfg -> (req, con) -> {
         reqRef.set(req);
-        pubRef.set(pub);
         conRef.set(con);
         return new MockHttpResponse<Object>();
     };
@@ -55,7 +52,6 @@ class BodyTest {
     @BeforeEach
     void beforeEach() {
         reqRef.set(null);
-        pubRef.set(null);
         conRef.set(null);
     }
 

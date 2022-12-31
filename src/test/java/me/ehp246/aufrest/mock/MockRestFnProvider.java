@@ -22,7 +22,7 @@ public class MockRestFnProvider implements RestFnProvider {
 
     @Override
     public RestFn get(final ClientConfig clientConfig) {
-        return (req, pub, con) -> {
+        return (req, con) -> {
             this.req = req;
             return response;
         };

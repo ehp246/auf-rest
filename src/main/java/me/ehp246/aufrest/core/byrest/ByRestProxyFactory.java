@@ -78,7 +78,7 @@ public final class ByRestProxyFactory {
                         final var req = bound.request();
 
                         final var outcome = RestFnOutcome
-                                .invoke(() -> httpFn.apply(req, bound.publisher(), bound.consumer()));
+                                .invoke(() -> httpFn.apply(req, bound.consumer()));
 
                         final var threws = List.of(method.getExceptionTypes());
 

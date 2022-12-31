@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 
 /**
  * The abstraction of a HttpClient that takes in a request and returns a
@@ -11,5 +12,9 @@ import java.net.http.HttpResponse;
  */
 @FunctionalInterface
 public interface RestFn {
-    HttpResponse<Object> apply(RestRequest request, RequestPublisher publisher, ResponseConsumer consumer);
+    HttpResponse<?> apply(RestRequest request, ResponseConsumer consumer);
+
+    public interface ResponseConsumer {
+        BodyHandler<?> handler();
+    }
 }
