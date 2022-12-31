@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestPublisher;
 import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -29,11 +28,6 @@ class RestFnTest {
         @Override
         public BodyPublisher publisher() {
             return BodyPublishers.ofString(null);
-        }
-
-        @Override
-        public String contentType() {
-            return HttpUtils.APPLICATION_JSON;
         }
     };
     private final static ResponseConsumer consumer = BodyHandlers::discarding;

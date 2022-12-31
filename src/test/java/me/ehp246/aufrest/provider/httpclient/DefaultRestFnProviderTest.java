@@ -18,7 +18,6 @@ import org.mockito.Mockito;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RequestPublisher;
 import me.ehp246.aufrest.api.rest.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestListener;
@@ -36,10 +35,6 @@ class DefaultRestFnProviderTest {
             return BodyPublishers.ofString(null);
         }
 
-        @Override
-        public String contentType() {
-            return HttpUtils.APPLICATION_JSON;
-        }
     };
     private final static ResponseConsumer consumer = () -> r -> null;
     /**

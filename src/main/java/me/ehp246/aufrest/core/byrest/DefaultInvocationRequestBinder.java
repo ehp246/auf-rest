@@ -20,6 +20,7 @@ import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.ToJsonDescriptor;
+import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -44,7 +45,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     // Request body related.
-    private final BiFunction<Object, Object[], Object> bodyFn;
+    private final ArgBinder<Object, Object> bodyArgBinder;
     private final DefaultToJsonDescriptor bodyInfo;
     private final BiFunction<Object, Object[], BodyHandler<?>> consumerHandlerFn;
 
@@ -55,7 +56,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final Map<String, List<String>> headerStatic,
             final BiFunction<Object, Object[], Supplier<String>> authSupplierFn,
             final BiFunction<Object, Object[], BodyHandler<?>> bodyHandlerFn,
-            final BiFunction<Object, Object[], Object> bodyFn, final DefaultToJsonDescriptor bodyInfo) {
+            final ArgBinder<Object, Object> bodyArgBinder, final DefaultToJsonDescriptor bodyInfo) {
         super();
         this.method = method;
         this.accept = accept;
@@ -70,7 +71,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         this.headerStatic = headerStatic;
         this.timeout = timeout;
         this.consumerHandlerFn = bodyHandlerFn;
-        this.bodyFn = bodyFn;
+        this.bodyArgBinder = bodyArgBinder;
         this.bodyInfo = bodyInfo;
     }
 
@@ -153,7 +154,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
                 .forEach(entry -> headerBound.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
-        final var body = bodyFn == null ? null : bodyFn.apply(target, args);
+        final var body = bodyArgBinder == null ? null : bodyArgBinder.apply(target, args);
 
         final BodyHandler<?> handler = consumerHandlerFn.apply(target, args);
 

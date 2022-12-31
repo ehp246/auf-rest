@@ -42,6 +42,8 @@ import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.core.reflection.ArgBinder;
+import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
 import me.ehp246.aufrest.core.reflection.DefaultToJsonDescriptor;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
 import me.ehp246.aufrest.core.reflection.ReflectedParameter;
@@ -59,6 +61,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
             RequestParam.class, RequestHeader.class, AuthHeader.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
+    private final static ArgBinderProvider<?, ?> ArgBinderProvider = p -> (target, args) -> args[p.index()];
 
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
@@ -191,14 +194,18 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 });
 
         /*
-         * Priority: BodyPublisher, @RequestBody, inferred
+         * Body value and publisher Priority: BodyPublisher, @RequestBody, inferred
+         */
+        /*
+         * If there is a body publisher on the parameters, take it and ignore everything
+         * else.
          */
         final var bodyParam = reflected.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
                 .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
 
-        final var bodyFn = bodyParam.map(p -> (BiFunction<Object, Object[], Object>) (target, args) -> args[p.index()])
-                .orElse(null);
+        final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ArgBinderProvider::apply).orElse(null);
+
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
             return new DefaultToJsonDescriptor(parameter.getType(), parameter.getAnnotations());
@@ -209,9 +216,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
                 .orElse(null);
 
-        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                uriBuilder, pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn,
-                consumerHandlerFn, bodyFn, bodyInfo);
+        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout, uriBuilder,
+                pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn, consumerHandlerFn,
+                bodyArgBinder, bodyInfo);
     }
 
     private BiFunction<Object, Object[], Supplier<String>> authSupplierFn(final ByRest.Auth auth,
