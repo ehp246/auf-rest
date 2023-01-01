@@ -3,9 +3,11 @@ package me.ehp246.aufrest.core.byrest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -177,8 +179,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
 
         /**
-         * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig, default
-         * BindingBodyHandlerProvider
+         * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig,
+         * built-in recognized types, default BindingBodyHandlerProvider
          */
         final var consumerBinder = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p))
@@ -186,6 +188,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
+                .or(() -> {
+                    if (reflected.getReturnType().isAssignableFrom(HttpHeaders.class)) {
+                        return Optional.of((target, args) -> BodyHandlers.discarding());
+                    }
+                    return Optional.ofNullable(null);
+                })
                 .orElseGet(() -> {
                     final var handler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRest));
                     return (target, args) -> handler;

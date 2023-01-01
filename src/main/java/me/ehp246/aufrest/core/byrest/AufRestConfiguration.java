@@ -42,7 +42,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 @Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })
 public final class AufRestConfiguration {
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
-    public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER + ":false}") final boolean enabled,
+    public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
             @Value("${" + AufRestConstants.REST_LOGGER_MASKED + ":authorization}") final Set<String> masked) {
         return enabled ? new RestLogger(masked) : null;
     }

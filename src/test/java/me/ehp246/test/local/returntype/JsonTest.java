@@ -32,7 +32,7 @@ class JsonTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private JsonCase001 case001;
+    private JsonTestCase case001;
 
     @Test
     void test_001() {

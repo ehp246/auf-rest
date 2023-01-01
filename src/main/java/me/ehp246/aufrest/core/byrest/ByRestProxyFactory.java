@@ -5,6 +5,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public final class ByRestProxyFactory {
 
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
-                    private final RestFn httpFn = clientProvider.get(clientConfig);
+                    private final RestFn restFn = clientProvider.get(clientConfig);
 
                     @Override
                     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
@@ -78,7 +79,7 @@ public final class ByRestProxyFactory {
                         final var req = bound.request();
 
                         final var outcome = RestFnOutcome
-                                .invoke(() -> httpFn.apply(req, bound.consumer()));
+                                .invoke(() -> restFn.apply(req, bound.consumer()));
 
                         final var threws = List.of(method.getExceptionTypes());
 
@@ -113,6 +114,10 @@ public final class ByRestProxyFactory {
                         // Discard the response which should be 2xx.
                         if (returnType == void.class && returnType == Void.class) {
                             return null;
+                        }
+
+                        if (returnType.isAssignableFrom(HttpHeaders.class)) {
+                            return httpResponse.headers();
                         }
 
                         return httpResponse.body();

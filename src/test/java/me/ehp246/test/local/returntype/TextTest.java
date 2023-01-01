@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class TextTest {
     @Autowired
-    private TextTestCase001 textCase001;
+    private TextTestCase textCase001;
 
     @Test
     void text_test_001() {

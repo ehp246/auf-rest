@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
@@ -19,23 +19,35 @@ import me.ehp246.aufrest.integration.model.Person;
  *
  */
 @SuppressWarnings("rawtypes")
-@ByRest(value = "http://localhost:${local.server.port}/xml/")
-interface XmlTestCase001 {
-    @OfMapping(value = "instants", accept = "application/xml")
+@ByRest("http://localhost:${local.server.port}/json/")
+interface JsonTestCase {
+    @OfMapping("instants")
     @Reifying(Instant.class)
     List<Instant> get001(@RequestParam("count") int count);
 
-    @OfMapping(value = "text/{text}", accept = "application/xml")
-    String getText(@PathVariable("text") String text);
-
-    // Accept XML, return as String
-    @OfMapping(value = "instants", accept = "application/xml")
+    @OfMapping("instants")
+    @AsIs
     String get006(@RequestParam("count") int count);
 
-    @OfMapping(value = "person", accept = "application/xml")
-    String getPerson(@RequestParam("name") String name);
+    @OfMapping("person")
+    Person get007();
 
-    @OfMapping(value = "persons", contentType = "application/xml", accept = "application/xml")
+    @OfMapping("person")
+    Person getZip(@RequestHeader("accept-encoding") String acceptEncoding);
+
+    @OfMapping("null")
+    Person getNull();
+
+    @OfMapping("double")
+    double getDouble001();
+
+    @OfMapping("double")
+    Double getDouble002();
+
+    @OfMapping("204")
+    Person getStatus204();
+
+    @OfMapping("persons")
     @Reifying(Person.class)
     List<Person> get008();
 
