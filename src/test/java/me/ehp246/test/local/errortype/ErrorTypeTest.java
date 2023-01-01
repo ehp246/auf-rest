@@ -18,7 +18,8 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+        "me.ehp246.aufrest.rest-logger.enabled=true" })
 class ErrorTypeTest {
     @Autowired
     private ObjectMapper objectMapper;

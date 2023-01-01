@@ -5,7 +5,6 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,8 @@ public final class ByRestProxyFactory {
                     private final RestFn restFn = clientProvider.get(clientConfig);
 
                     @Override
-                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                    public Object invoke(final Object proxy, final Method method, final Object[] args)
+                            throws Throwable {
                         if (method.getName().equals("toString")) {
                             return ByRestProxyFactory.this.toString();
                         }
@@ -73,13 +73,12 @@ public final class ByRestProxyFactory {
                                     .bindTo(proxy).invokeWithArguments(args);
                         }
 
-                        final var bound = parsedCache
-                                .computeIfAbsent(method, m -> methodParser.parse(method))
+                        final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
+
                         final var req = bound.request();
 
-                        final var outcome = RestFnOutcome
-                                .invoke(() -> restFn.apply(req, bound.consumer()));
+                        final var outcome = RestFnOutcome.invoke(() -> restFn.apply(req, bound.consumer()));
 
                         final var threws = List.of(method.getExceptionTypes());
 
@@ -111,16 +110,7 @@ public final class ByRestProxyFactory {
                             throw new UnhandledResponseException(ex);
                         }
 
-                        // Discard the response which should be 2xx.
-                        if (returnType == void.class && returnType == Void.class) {
-                            return null;
-                        }
-
-                        if (returnType.isAssignableFrom(HttpHeaders.class)) {
-                            return httpResponse.headers();
-                        }
-
-                        return httpResponse.body();
+                        return bound.returnMapper().apply(httpResponse);
                     }
 
                     private static boolean canThrow(final List<Class<?>> threws, final Class<?> type) {

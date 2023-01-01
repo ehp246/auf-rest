@@ -1,6 +1,6 @@
-package me.ehp246.test.local.returntype.controller;
+package me.ehp246.test.local.returns.controller;
 
-import java.util.UUID;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/header", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 class HeaderController {
     @GetMapping
-    String get(@RequestParam() final String value, final HttpServletResponse response) {
+    Map<String, String> get(@RequestParam() final String value, final HttpServletResponse response) {
         response.setHeader("x-aufrest-header", value);
-        return UUID.randomUUID().toString();
+        return Map.of("x-aufrest-header", value);
     }
 }

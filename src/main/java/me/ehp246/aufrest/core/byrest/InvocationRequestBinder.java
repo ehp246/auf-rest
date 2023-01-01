@@ -1,5 +1,8 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.net.http.HttpResponse;
+import java.util.function.Function;
+
 import me.ehp246.aufrest.api.rest.RestFn.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
@@ -10,6 +13,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 public interface InvocationRequestBinder {
     Bound apply(Object target, Object[] args);
 
-    record Bound(RestRequest request, ResponseConsumer consumer) {
+    record Bound(RestRequest request, ResponseConsumer consumer, Function<HttpResponse<?>, ?> returnMapper) {
     }
 }

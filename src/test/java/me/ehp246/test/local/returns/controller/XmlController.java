@@ -1,4 +1,4 @@
-package me.ehp246.test.local.returntype.controller;
+package me.ehp246.test.local.returns.controller;
 
 import java.time.Instant;
 import java.util.List;

@@ -1,4 +1,4 @@
-package me.ehp246.test.local.returntype;
+package me.ehp246.test.local.returns;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package me.ehp246.test.local.returntype;
+package me.ehp246.test.local.returns;
 
 import java.util.UUID;
 

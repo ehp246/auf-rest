@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.byrest;
 
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -11,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -46,7 +48,10 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
     private final JsonViewDescriptor bodyInfo;
+    // Response body
     private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
+    private final Function<HttpResponse<?>, ?> returnMapper;
+
 
     DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
@@ -54,8 +59,9 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic,
             final ArgBinder<Object, Supplier<String>> authSupplierFn,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final ArgBinder<Object, Object> bodyArgBinder, final JsonViewDescriptor bodyInfo) {
+            final ArgBinder<Object, Object> bodyArgBinder,
+            final JsonViewDescriptor bodyInfo, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
+            final Function<HttpResponse<?>, ?> returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -69,9 +75,10 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
         this.timeout = timeout;
-        this.consumerBinder = consumerBinder;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyInfo = bodyInfo;
+        this.consumerBinder = consumerBinder;
+        this.returnMapper = returnMapper;
     }
 
     @Override
@@ -213,6 +220,6 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             public DeclarationDescriptor bodyDescriptor() {
                 return bodyInfo;
             }
-        }, () -> handler);
+        }, () -> handler, returnMapper);
     }
 }

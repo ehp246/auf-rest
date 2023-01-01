@@ -16,9 +16,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestFn.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -125,7 +125,8 @@ class BodyTest {
     void response_03() {
         factory.newInstance(BodyTestCases.ResponseCase01.class).getOfMapping();
 
-        Assertions.assertEquals(bindingBodyHandler, conRef.get().handler());
+        // The response body is irrelevant.
+        Assertions.assertEquals(BodyHandlers.discarding(), conRef.get().handler());
     }
 
     @Test
