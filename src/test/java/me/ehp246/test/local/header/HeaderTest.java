@@ -3,12 +3,10 @@ package me.ehp246.test.local.header;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -117,29 +115,6 @@ class HeaderTest {
 
         Assertions.assertEquals(1, values.size());
         Assertions.assertEquals(value, values.get(0));
-    }
-
-    /**
-     * Context should propagate to the execution thread and be sent with the
-     * request, then cleared from the execution thread before the invocation
-     * returns;
-     */
-    @Disabled
-    @Test
-    void header_007() throws Exception {
-        final var name = UUID.randomUUID().toString();
-        HeaderContext.set(name, UUID.randomUUID().toString());
-
-        final var ref = new AtomicReference<Map<String, List<String>>>();
-
-        final var returned = case001.getAsFuture().thenApply(headers -> {
-            // The context should be cleared when the invocation is finished.
-            ref.set(HeaderContext.map());
-            return headers;
-        }).get();
-
-        Assertions.assertEquals(0, ref.get().size());
-        Assertions.assertEquals(HeaderContext.values(name).get(0), returned.get(name).get(0));
     }
 
     @Test

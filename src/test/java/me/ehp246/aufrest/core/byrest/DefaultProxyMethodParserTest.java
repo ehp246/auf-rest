@@ -13,7 +13,7 @@ import org.springframework.util.CollectionUtils;
 
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
-import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.byrest.AuthTestCases.BeanAuth01;
@@ -33,7 +33,7 @@ import me.ehp246.test.InvocationUtil;
  */
 class DefaultProxyMethodParserTest {
     private final BodyHandlerResolver bodyHandlerResolver = name -> r -> null;
-    private final BindingBodyHandlerProvider bindingBodyHandlerProvider = binding -> r -> null;
+    private final JsonBodyHandlerProvider bindingBodyHandlerProvider = binding -> r -> null;
     private final PropertyResolver propertyResolver = new MockEnvironment()::resolveRequiredPlaceholders;
     private final MockAuthBean authBean = new MockAuthBean();
     private final AuthBeanResolver beanResolver = name -> {

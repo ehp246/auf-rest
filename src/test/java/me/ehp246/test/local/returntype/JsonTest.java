@@ -3,12 +3,10 @@ package me.ehp246.test.local.returntype;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,22 +56,6 @@ class JsonTest {
         Assertions.assertEquals(true, returned instanceof HttpResponse);
 
         final var body = returned.body();
-
-        Assertions.assertEquals(count, body.size());
-        body.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
-    }
-
-    @Disabled
-    @Test
-    void test_003() throws Exception {
-        final var count = (int) (Math.random() * 10);
-        final var returned = case001.get003(count);
-
-        Assertions.assertEquals(true, returned instanceof CompletableFuture);
-
-        final var response = returned.get();
-
-        final var body = response.body();
 
         Assertions.assertEquals(count, body.size());
         body.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
@@ -139,27 +121,6 @@ class JsonTest {
         Assertions.assertEquals(null, case001.getNull());
     }
 
-    @SuppressWarnings("unchecked")
-    @Disabled
-    @Test
-    void test_008() throws Exception {
-        final var count = (int) (Math.random() * 10);
-        final var returned = case001.get008(count).get().body();
-
-        Assertions.assertEquals(true, returned instanceof String);
-
-        final var list = objectMapper.readValue(returned, List.class);
-        Assertions.assertEquals(count, list.size());
-
-        list.stream().forEach(instant -> {
-            try {
-                objectMapper.readValue("\"" + instant + "\"", Instant.class);
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
     @Test
     void test_009() {
         Assertions.assertEquals(true, case001.get007().getDob() instanceof Instant);
@@ -181,28 +142,6 @@ class JsonTest {
 
         Assertions.assertEquals(true, response instanceof HttpResponse);
         Assertions.assertEquals(true, response.body() instanceof Person);
-    }
-
-    @Test
-    @Disabled
-    void test_012() throws Exception {
-        final var future = case001.get010();
-
-        Assertions.assertEquals(true, future instanceof CompletableFuture);
-        Assertions.assertEquals(true, future.get() instanceof Person);
-    }
-
-    @Disabled
-    @Test
-    void test_013() throws Exception {
-        final var future = case001.get009();
-
-        Assertions.assertEquals(true, future instanceof CompletableFuture);
-
-        final var list = future.get();
-        Assertions.assertEquals(true, list instanceof List);
-
-        list.forEach(person -> Assertions.assertEquals(true, person instanceof Person));
     }
 
     @Test

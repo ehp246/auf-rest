@@ -18,10 +18,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,16 +31,16 @@ import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.Reifying;
+import me.ehp246.aufrest.api.annotation.ReifyingBody;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
-import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
+import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
+import me.ehp246.aufrest.api.spi.DeclarationDescriptor.ReifyingBodyDescriptor;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -66,12 +64,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
-    private final BindingBodyHandlerProvider bindingBodyHandlerProvider;
+    private final JsonBodyHandlerProvider bindingBodyHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerResolver bodyHandlerResolver,
-            final BindingBodyHandlerProvider bindingBodyHandlerProvider) {
+            final BodyHandlerResolver bodyHandlerResolver, final JsonBodyHandlerProvider bindingBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
         this.bindingBodyHandlerProvider = bindingBodyHandlerProvider;
@@ -193,9 +190,13 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         return Optional.of((target, args) -> BodyHandlers.discarding());
                     }
                     return Optional.ofNullable(null);
-                })
-                .orElseGet(() -> {
-                    final var handler = bindingBodyHandlerProvider.get(bindingOf(reflected, byRest));
+                }).orElseGet(() -> {
+                    final var descriptor = new ReifyingBodyDescriptor(reflected.getReturnType(), byRest.errorType(),
+                            reflected.method().getDeclaredAnnotations());
+                    if (descriptor.type().isAssignableFrom(HttpResponse.class) && descriptor.reifying() == null) {
+                        throw new IllegalArgumentException("Missing required " + ReifyingBody.class);
+                    }
+                    final var handler = bindingBodyHandlerProvider.get(descriptor);
                     return (target, args) -> handler;
                 });
 
@@ -213,7 +214,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
-            return new JsonBodyDescriptor(parameter.getType(), parameter.getAnnotations());
+            return new JsonViewDescriptor(parameter.getType(), parameter.getAnnotations());
         }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
@@ -292,29 +293,5 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         default:
             return (target, args) -> null;
         }
-    }
-
-    private static FromJsonDescriptor bindingOf(final ReflectedMethod method, final ByRest byRest) {
-        final var returnTypes = returnTypes(Stream
-                .concat(Arrays.stream(new Class<?>[] { method.getReturnType() }),
-                        Arrays.stream(
-                                method.getMethodValueOf(Reifying.class, Reifying::value, () -> new Class<?>[] {})))
-                .collect(Collectors.toList()));
-
-        return new FromJsonDescriptor(returnTypes.get(0), byRest.errorType(),
-                returnTypes.size() == 0 ? List.of() : returnTypes.subList(1, returnTypes.size()),
-                method.getMethodDeclaredAnnotations());
-    }
-
-    private static List<Class<?>> returnTypes(final List<Class<?>> types) {
-        if (types.size() == 0) {
-            throw new IllegalArgumentException("Missing required " + Reifying.class.getName());
-        }
-
-        final var head = types.get(0);
-        if (head.isAssignableFrom(HttpResponse.class) || head.isAssignableFrom(CompletableFuture.class)) {
-            return returnTypes(new ArrayList<>(types.subList(1, types.size())));
-        }
-        return types;
     }
 }

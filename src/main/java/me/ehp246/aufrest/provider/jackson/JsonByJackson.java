@@ -11,11 +11,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.api.rest.FromJsonDescriptor;
-import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
+import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
+import me.ehp246.aufrest.api.spi.DeclarationDescriptor.ReifyingBodyDescriptor;
 import me.ehp246.aufrest.core.byrest.FromJson;
 import me.ehp246.aufrest.core.byrest.ToJson;
-import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * Implements internal JSON operations on {@linkplain ObjectMapper}.
@@ -34,7 +33,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final JsonBodyDescriptor valueInfo) {
+    public String apply(final Object value, final JsonViewDescriptor valueInfo) {
         if (value == null) {
             return null;
         }
@@ -52,27 +51,25 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public Object apply(final String json, final FromJsonDescriptor receiver) {
-        if (receiver == null || json == null || json.isBlank()) {
+    public Object apply(final String json, final ReifyingBodyDescriptor descriptor) {
+        if (descriptor == null || json == null || json.isBlank()) {
             return null;
         }
 
-        if (OneUtil.isPresent(receiver.annotations(), AsIs.class)) {
+        if (descriptor.get(AsIs.class) != null) {
             return json;
         }
 
-        final var jsonView = receiver.firstJsonViewValue();
-        final var reifying = Optional.ofNullable(receiver.reifying()).orElseGet(ArrayList::new);
+        final var jsonView = descriptor.view();
+        final var reifying = Optional.ofNullable(descriptor.reifying()).orElseGet(ArrayList::new);
 
         try {
             if (reifying.size() == 0) {
-                return objectMapper.readerWithView(jsonView).forType(receiver.type()).readValue(json);
+                return objectMapper.readerWithView(jsonView).forType(descriptor.type()).readValue(json);
             }
 
             if (reifying.size() == 1) {
-                ObjectReader reader =
-                        objectMapper.readerFor(objectMapper.getTypeFactory().constructParametricType(receiver.type(),
-                                reifying.toArray(new Class<?>[] {})));
+                ObjectReader reader = objectMapper.readerFor(reifying.get(0));
                 if (jsonView != null) {
                     reader = reader.withView(jsonView);
                 }
@@ -80,7 +77,6 @@ public final class JsonByJackson implements FromJson, ToJson {
             } else {
                 final var typeFactory = objectMapper.getTypeFactory();
                 final var types = new ArrayList<Class<?>>();
-                types.add(receiver.type());
                 types.addAll(reifying);
 
                 final var size = types.size();

@@ -11,11 +11,10 @@ import java.lang.annotation.Target;
  * framework and JSON provider to construct generic types.
  *
  * @author Lei Yang
- * @since 2.0
- * @version 2.0
+ * @since 3.2
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface Reifying {
+public @interface ReifyingBody {
     Class<?>[] value();
 }

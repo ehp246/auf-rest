@@ -25,8 +25,7 @@ class ReturnTypeTest {
         return Mockito.mock(HttpResponse.class);
     };
     private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
-            new DefaultProxyMethodParser(Object::toString, name -> null, name -> r -> null,
-                    binding -> r -> null));
+            new DefaultProxyMethodParser(Object::toString, name -> null, name -> r -> null, binding -> r -> null));
 
     @BeforeEach
     void beforeEach() {
@@ -34,22 +33,12 @@ class ReturnTypeTest {
     }
 
     @Test
-    void return_type_001() {
-        Assertions.assertThrows(IllegalArgumentException.class, factory.newInstance(ReturnTypeCase001.class)::get001);
-    }
-
-    @Test
-    void return_type_002() {
-        Assertions.assertThrows(IllegalArgumentException.class, factory.newInstance(ReturnTypeCase001.class)::get002);
-    }
-
-    @Test
     void return_type_003() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase001.class)::get004);
+        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase01.class)::get01).printStackTrace();
     }
 
     @Test
     void return_type_004() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase001.class)::get005);
+        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase01.class)::get02).printStackTrace();
     }
 }

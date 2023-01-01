@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.byrest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
+import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
 
 /**
  * Internal abstraction for {@linkplain ObjectMapper} operations.
@@ -12,9 +12,9 @@ import me.ehp246.aufrest.api.rest.JsonBodyDescriptor;
  */
 @FunctionalInterface
 public interface ToJson {
-    String apply(Object value, JsonBodyDescriptor descriptor);
+    String apply(Object value, JsonViewDescriptor descriptor);
 
     default String apply(final Object value) {
-        return this.apply(value, value == null ? null : new JsonBodyDescriptor(value.getClass(), null));
+        return this.apply(value, value == null ? null : new JsonViewDescriptor(value.getClass(), null));
     }
 }

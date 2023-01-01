@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.Reifying;
+import me.ehp246.aufrest.api.annotation.ReifyingBody;
 
 /**
  * @author Lei Yang
@@ -20,7 +20,7 @@ interface StreamCase {
         InputStream get(@RequestParam("name") String name);
 
         @OfMapping("/person")
-        @Reifying(InputStream.class)
+        @ReifyingBody(InputStream.class)
         HttpResponse<InputStream> get002(@RequestParam("name") String name);
 
         @OfMapping(value = "/inputstream")

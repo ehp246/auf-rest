@@ -9,8 +9,8 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Lei Yang
  * @since 3.1.2
  */
-public class RestView {
-    private RestView() {
+public class RestPayload {
+    private RestPayload() {
         super();
     }
 }

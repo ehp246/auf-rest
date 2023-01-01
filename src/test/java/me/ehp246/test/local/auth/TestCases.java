@@ -7,7 +7,7 @@ import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.Reifying;
+import me.ehp246.aufrest.api.annotation.ReifyingBody;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
@@ -22,7 +22,7 @@ interface TestCases {
 
         void get(@AuthHeader String basic);
 
-        @Reifying(Void.class)
+        @ReifyingBody(Void.class)
         HttpResponse<Void> getAsResponse();
     }
 

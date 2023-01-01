@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.BindingBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn.ResponseConsumer;
@@ -136,7 +136,7 @@ class BodyTest {
 
         new ByRestProxyFactory(restFnProvider, new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase01.class)
+                        Mockito.mock(JsonBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase01.class)
                                 .getOfMappingNamed();
 
         Assertions.assertEquals(expected, conRef.get().handler());
@@ -149,7 +149,7 @@ class BodyTest {
 
         new ByRestProxyFactory(restFnProvider, new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
+                        Mockito.mock(JsonBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOnMethod(0, expected);
 
         /*
@@ -165,7 +165,7 @@ class BodyTest {
 
         new ByRestProxyFactory(restFnProvider, new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
+                        Mockito.mock(JsonBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .get(null);
 
         Assertions.assertEquals(null, conRef.get().handler());
@@ -178,7 +178,7 @@ class BodyTest {
         Mockito.when(namedResolver.get(Mockito.eq("interfaceNamed"))).thenReturn(expected);
 
         new ByRestProxyFactory(restFnProvider, new ClientConfig(), new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
+                Mockito.mock(JsonBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
 
         Assertions.assertEquals(expected, conRef.get().handler());
     }
@@ -191,7 +191,7 @@ class BodyTest {
 
         new ByRestProxyFactory(restFnProvider, new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(BindingBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
+                        Mockito.mock(JsonBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOfMappingNamed();
 
         Assertions.assertEquals(expected, conRef.get().handler());

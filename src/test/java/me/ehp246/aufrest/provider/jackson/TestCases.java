@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-import me.ehp246.aufrest.api.spi.RestView;
+import me.ehp246.aufrest.api.spi.RestPayload;
 
 /**
  * @author Lei Yang
@@ -17,10 +17,10 @@ class TestCases {
     public static interface Person01 {
         Instant getDob();
 
-        @JsonView(RestView.class)
+        @JsonView(RestPayload.class)
         String getFirstName();
 
-        @JsonView(RestView.class)
+        @JsonView(RestPayload.class)
         String getLastName();
     }
 }
