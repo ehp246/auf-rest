@@ -17,15 +17,12 @@ import me.ehp246.aufrest.api.annotation.OfHeader;
 interface OfHeaderTestCase {
     HttpHeaders get(@RequestParam("value") String value);
 
-    @OfHeader("value")
+    @OfHeader("x-aufrest-header")
     String getNamed(@RequestParam("value") String value);
 
     @OfHeader
-    Map<String, String> getMap();
+    Map<String, List<String>> getMap(@RequestParam("value") String value);
 
-    @OfHeader({ "value", "content-length" })
-    Map<String, String> getAllMap();
-
-    @OfHeader({ "value" })
+    @OfHeader("x-aufrest-header")
     List<String> getList(@RequestParam("value") String value);
 }

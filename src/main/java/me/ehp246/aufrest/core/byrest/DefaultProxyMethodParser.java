@@ -203,6 +203,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * Returns and response body handlers are coupled.
          */
         final var returnType = reflected.getReturnType();
+        final var ofHeader = reflected.findOnMethod(OfHeader.class).orElse(null);
         /**
          * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig,
          * built-in recognized types, default BindingBodyHandlerProvider
@@ -217,7 +218,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     // The return types that the response body is irrelevant to. Discarding.
                     if (returnType.isAssignableFrom(HttpHeaders.class)
                             || returnType == void.class || returnType == Void.class
-                            || reflected.findOnMethod(OfHeader.class).isPresent()) {
+                            || ofHeader != null) {
                         return Optional.of((target, args) -> BodyHandlers.discarding());
                     }
                     return Optional.ofNullable(null);
@@ -235,9 +236,19 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         // Defaults to return the body.
         Function<HttpResponse<?>, ?> returnMapper = HttpResponse::body;
 
-        if (returnType == HttpHeaders.class) {
+        if (returnType.isAssignableFrom(HttpHeaders.class)) {
             returnMapper = HttpResponse::headers;
-        } else if (returnType.isAssignableFrom(HttpResponse.class)) {
+        } else if (ofHeader != null) {
+            final var name = ofHeader.value();
+            if (returnType == String.class) {
+                returnMapper = response -> response.headers().firstValue(name).orElse(null);
+            } else if (returnType.isAssignableFrom(Map.class)) {
+                returnMapper = response -> response.headers().map();
+            } else if (returnType.isAssignableFrom(List.class)) {
+                returnMapper = response -> response.headers().allValues(name);
+            }
+        }
+        else if (returnType.isAssignableFrom(HttpResponse.class)) {
             returnMapper = Function.identity();
         } else if (returnType == void.class && returnType == Void.class) {
             returnMapper = response -> null;

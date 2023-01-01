@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface OfHeader {
     /**
-     * The names of the headers.
+     * The name of the headers.
      *
      */
-    String[] value() default {};
+    String value() default "";
 }
