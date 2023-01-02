@@ -3,20 +3,21 @@ package me.ehp246.aufrest.api.annotation;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Used to define the typing information of the body.
+ * When used on a parameter of a {@linkplain ByRest} method, it specifies the
+ * body object for the out-going HTTP request.
  * <p>
  * When used on a {@linkplain ByRest} method, it specifies the full type
- * including the type parameters that are erased by Java compiler but needed to
- * re-construct generic types.
+ * including the type parameters needed to de-serialize response body.
  *
  * @author Lei Yang
  */
 @Retention(RUNTIME)
-@Target(METHOD)
+@Target({ METHOD, ElementType.PARAMETER })
 public @interface OfBody {
-    Class<?>[] value();
+    Class<?>[] value() default {};
 }

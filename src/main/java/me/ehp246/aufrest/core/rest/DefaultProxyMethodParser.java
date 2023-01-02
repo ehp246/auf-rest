@@ -22,26 +22,25 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
-import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
@@ -182,7 +181,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * else.
          */
         final var bodyParam = reflected.findArgumentsOfType(BodyPublisher.class).stream().findFirst()
-                .or(reflected.allParametersWith(RequestBody.class).stream()::findFirst)
+                .or(reflected.allParametersWith(OfBody.class).stream()::findFirst)
                 .or(reflected.filterParametersWith(PARAMETER_ANNOTATED, PARAMETER_RECOGNIZED).stream()::findFirst);
 
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
