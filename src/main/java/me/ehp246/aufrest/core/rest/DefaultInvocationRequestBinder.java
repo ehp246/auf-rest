@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.rest;
 
+import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ValueDescriptor;
@@ -88,12 +88,12 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final var arg = args[entry.getValue()];
             if (arg instanceof final Map<?, ?> map) {
                 pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
-                        e -> UriUtils.encode(e.getValue().toString(), StandardCharsets.UTF_8))));
+                        e -> URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))));
 
                 map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(),
-                        UriUtils.encode(e.getValue().toString(), StandardCharsets.UTF_8)));
+                        URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8)));
             } else {
-                pathArgs.put(entry.getKey(), UriUtils.encode(arg.toString(), StandardCharsets.UTF_8));
+                pathArgs.put(entry.getKey(), URLEncoder.encode(arg.toString(), StandardCharsets.UTF_8));
             }
         });
 

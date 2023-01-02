@@ -21,6 +21,7 @@ public final class HttpUtils {
     public final static String AUTHORIZATION = "authorization";
     public final static String CONTENT_TYPE = "content-type";
     public final static String CONTENT_LENGTH = "content-length";
+    public static final String CONTENT_ENCODING = "content-encoding";
     public final static String ACCEPT = "accept";
     public static final String ACCEPT_ENCODING = "accept-encoding";
     public static final String TRACEPARENT = "traceparent";

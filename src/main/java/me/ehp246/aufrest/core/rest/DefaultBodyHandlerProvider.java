@@ -10,12 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -45,12 +44,12 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
         // Declared return type requires de-serialization.
         return responseInfo -> {
             final var statusCode = responseInfo.statusCode();
-            final var gzipped = responseInfo.headers().firstValue(HttpHeaders.CONTENT_ENCODING).orElse("")
+            final var gzipped = responseInfo.headers().firstValue(HttpUtils.CONTENT_ENCODING).orElse("")
                     .equalsIgnoreCase("gzip");
             // The server might not set the header. Assuming JSON. Otherwise, follow the
             // header.
-            final var contentType = responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
-                    .orElse(MediaType.APPLICATION_JSON_VALUE);
+            final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
+                    .orElse(HttpUtils.APPLICATION_JSON);
 
             // Log headers
             if (restLogger != null) {
@@ -87,7 +86,7 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
                     return text;
                 }
 
-                if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
+                if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
                     return fromJson.apply(text,
                             statusCode < 300 ? descriptor : new ReturnValue(descriptor.errorType()));
                 }
