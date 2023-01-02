@@ -4,7 +4,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.annotation.OfAuth;
+import me.ehp246.aufrest.api.annotation.AuthHeader;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.rest.AuthScheme;
@@ -22,9 +22,9 @@ interface AuthTestCases {
         void get();
 
         // AuthHeader overwrite
-        void get(@OfAuth String auth);
+        void get(@AuthHeader String auth);
 
-        void get(@OfAuth Supplier<Object> authSupplier);
+        void get(@AuthHeader Supplier<Object> authSupplier);
     }
 
     @ByRest(value = "", auth = @Auth(value = { "postman", "password" }, scheme = AuthScheme.BASIC))
@@ -32,7 +32,7 @@ interface AuthTestCases {
         void get();
 
         // AuthHeader overwrite
-        void get(@OfAuth String auth);
+        void get(@AuthHeader String auth);
     }
 
     @ByRest(value = "", auth = @Auth(value = "${api.bearer.token}"))
@@ -40,7 +40,7 @@ interface AuthTestCases {
         void get();
 
         // AuthHeader overwrite
-        void get(@OfAuth String auth);
+        void get(@AuthHeader String auth);
     }
 
     @ByRest(value = "", auth = @Auth(value = "CustomKey custom.header.123", scheme = AuthScheme.SIMPLE))
@@ -48,7 +48,7 @@ interface AuthTestCases {
         void get();
 
         // AuthHeader overwrite
-        void get(@OfAuth String auth);
+        void get(@AuthHeader String auth);
     }
 
     @ByRest(value = "", auth = @Auth(value = { "${postman.username}",
@@ -57,7 +57,7 @@ interface AuthTestCases {
         void get();
 
         // Overwriting annotation
-        void get(@OfAuth String auth);
+        void get(@AuthHeader String auth);
     }
 
     // Exception
@@ -84,14 +84,14 @@ interface AuthTestCases {
         void get();
 
         // AuthHeader overwrite
-        void get(@OfAuth String auth);
+        void get(@AuthHeader String auth);
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = { "getOnInterface", "basic" }))
     interface BeanAuth01 {
         void get();
 
-        void get(@OfAuth String header);
+        void get(@AuthHeader String header);
 
         void getOnArgs(@AuthBean.Param String username, @AuthBean.Param String password);
     }
