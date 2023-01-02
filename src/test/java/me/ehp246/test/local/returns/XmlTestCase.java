@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.ReifyingBody;
+import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.integration.model.Person;
 
 /**
@@ -32,44 +32,44 @@ interface XmlTestCase {
     String getPerson(@RequestParam("name") String name);
 
     @OfMapping(value = "persons", contentType = "application/xml", accept = "application/xml")
-    @ReifyingBody(Person.class)
+    @OfBody(Person.class)
     List<Person> get008();
 
     // Response types
 
     @OfMapping("person")
-    @ReifyingBody(Person.class)
+    @OfBody(Person.class)
     HttpResponse<Person> get011();
 
     @OfMapping("instants")
-    @ReifyingBody({ List.class, Instant.class })
+    @OfBody({ List.class, Instant.class })
     HttpResponse<List<Instant>> get002(@RequestParam("count") int count);
 
     @OfMapping("instants")
-    @ReifyingBody({ List.class, Instant.class })
+    @OfBody({ List.class, Instant.class })
     HttpResponse get004(@RequestParam("count") int count);
 
     @OfMapping("instants")
     @AsIs
-    @ReifyingBody(String.class)
+    @OfBody(String.class)
     HttpResponse<String> get007(@RequestParam("count") int count);
 
     // Future types
 
     @OfMapping("person")
-    @ReifyingBody(Person.class)
+    @OfBody(Person.class)
     CompletableFuture<Person> get010();
 
     @OfMapping("persons")
-    @ReifyingBody({ List.class, Person.class })
+    @OfBody({ List.class, Person.class })
     CompletableFuture<List<Person>> get009();
 
     @OfMapping("instants")
-    @ReifyingBody({ HttpResponse.class, List.class, Instant.class })
+    @OfBody({ HttpResponse.class, List.class, Instant.class })
     CompletableFuture<HttpResponse<List<Instant>>> get003(@RequestParam("count") int count);
 
     @OfMapping("instants")
     @AsIs
-    @ReifyingBody({ HttpResponse.class, String.class })
+    @OfBody({ HttpResponse.class, String.class })
     CompletableFuture<HttpResponse<String>> get008(@RequestParam("count") int count);
 }

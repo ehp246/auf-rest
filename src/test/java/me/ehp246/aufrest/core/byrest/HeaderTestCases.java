@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfHeader;
 
 /**
  * Test cases for RequestHeader support.
@@ -33,40 +33,40 @@ interface HeaderTestCases {
     @ByRest("")
     interface HeaderCase01 {
 
-        void get(@RequestHeader("x-correl-id") String correlId);
+        void get(@OfHeader("x-correl-id") String correlId);
 
-        void getBlank(@RequestHeader("") String correlId);
+        void getBlank(@OfHeader("") String correlId);
 
         /**
          * Object::toString
          */
-        void get(@RequestHeader("x-uuid") UUID correlId);
+        void get(@OfHeader("x-uuid") UUID correlId);
 
-        void getRepeated(@RequestHeader("x-correl-id") String correlId1,
-                @RequestHeader("x-correl-Id") String correlId2);
+        void getRepeated(@OfHeader("x-correl-id") String correlId1,
+                @OfHeader("x-correl-Id") String correlId2);
 
-        void getMultiple(@RequestHeader("x-span-id") String spanId, @RequestHeader("x-trace-id") String traceId);
+        void getMultiple(@OfHeader("x-span-id") String spanId, @OfHeader("x-trace-id") String traceId);
 
-        void get(@RequestHeader("accept-language") List<String> accepted);
+        void get(@OfHeader("accept-language") List<String> accepted);
 
-        void get(@RequestHeader Map<String, String> headers);
+        void get(@OfHeader Map<String, String> headers);
 
-        void get(@RequestHeader Map<String, String> headers, @RequestHeader("x-correl-id") String correlId);
+        void get(@OfHeader Map<String, String> headers, @OfHeader("x-correl-id") String correlId);
 
-        void get(@RequestHeader MultiValueMap<String, String> headers);
+        void get(@OfHeader MultiValueMap<String, String> headers);
 
-        void getMapOfList(@RequestHeader Map<String, List<String>> headers);
+        void getMapOfList(@OfHeader Map<String, List<String>> headers);
 
-        void getListOfList(@RequestHeader("accept-language") List<List<String>> accepted);
+        void getListOfList(@OfHeader("accept-language") List<List<String>> accepted);
     }
 
     @ByRest(value = "", headers = { "x-api-key", "api.key" })
     interface HeaderCase02 {
         void get();
 
-        void get(@RequestHeader("x-api-key") String key);
+        void get(@OfHeader("x-api-key") String key);
 
-        void getCasing(@RequestHeader("x-API-key") String key);
+        void getCasing(@OfHeader("x-API-key") String key);
     }
 
     @ByRest(value = "", headers = { "x-api-key", "${api.key}" })

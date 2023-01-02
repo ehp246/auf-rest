@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.ReifyingBodyDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
 import me.ehp246.aufrest.core.byrest.FromJson;
 import me.ehp246.aufrest.core.byrest.ToJson;
 
@@ -33,7 +33,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final JsonViewDescriptor valueInfo) {
+    public String apply(final Object value, final JsonViewValue valueInfo) {
         if (value == null) {
             return null;
         }
@@ -51,7 +51,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public Object apply(final String json, final ReifyingBodyDescriptor descriptor) {
+    public Object apply(final String json, final ReturnValue descriptor) {
         if (descriptor == null || json == null || json.isBlank()) {
             return null;
         }

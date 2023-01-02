@@ -34,7 +34,7 @@ import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 import me.ehp246.aufrest.core.byrest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -183,7 +183,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
             return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(toJson.apply(body, (JsonViewDescriptor) req.bodyDescriptor())));
+                    BodyPublishers.ofString(toJson.apply(body, (JsonViewValue) req.bodyDescriptor())));
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"

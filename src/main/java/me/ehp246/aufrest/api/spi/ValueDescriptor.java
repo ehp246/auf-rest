@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.ReifyingBody;
+import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -26,11 +26,11 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-public sealed class DeclarationDescriptor {
+public sealed class ValueDescriptor {
     protected final Class<?> type;
     protected final Map<Class<? extends Annotation>, Annotation> map;
 
-    public DeclarationDescriptor(final Class<?> type, final Annotation[] annotations) {
+    public ValueDescriptor(final Class<?> type, final Annotation[] annotations) {
         this.type = type;
         this.map = annotations == null ? Map.of()
                 : Arrays.asList(annotations).stream()
@@ -54,10 +54,10 @@ public sealed class DeclarationDescriptor {
         return (T) this.map.get(annotationType);
     }
 
-    public sealed static class JsonViewDescriptor extends DeclarationDescriptor {
+    public sealed static class JsonViewValue extends ValueDescriptor {
         private final Class<?> viewValue;
 
-        public JsonViewDescriptor(final Class<?> type, final Annotation[] annotations) {
+        public JsonViewValue(final Class<?> type, final Annotation[] annotations) {
             super(type, annotations);
             this.viewValue = Optional.ofNullable(map.get(JsonView.class)).map(ann -> (JsonView) ann)
                     .map(JsonView::value).filter(value -> value.length > 0).map(value -> value[0]).orElse(null);
@@ -72,30 +72,29 @@ public sealed class DeclarationDescriptor {
      * Defines the type information needed for de-serialization of the response
      * body. Mostly to be used to support a generic container, e.g., {@link List}.
      * <p>
-     * The {@linkplain DeclarationDescriptor#type} might not be the de-serialization
+     * The {@linkplain ValueDescriptor#type} might not be the de-serialization
      * target type. E.g., it could be {@linkplain HttpResponse} from the return of a
      * {@linkplain ByRest} method. In such cases, the
-     * {@linkplain ReifyingBodyDescriptor#reifying} must define the actual response
+     * {@linkplain ReturnValue#reifying} must define the actual response
      * body type.
      *
      * @author Lei Yang
-     * @since 3.2
      */
-    public final static class ReifyingBodyDescriptor extends JsonViewDescriptor {
+    public final static class ReturnValue extends JsonViewValue {
         // Could be null
         private final Class<?> errorType;
         // null if annotation is missing
         private final List<Class<?>> reifying;
         private final Class<?> bodyType;
 
-        public ReifyingBodyDescriptor(final Class<?> type) {
+        public ReturnValue(final Class<?> type) {
             this(type, null, null);
         }
 
-        public ReifyingBodyDescriptor(final Class<?> type, final Class<?> errorType, final Annotation[] annotations) {
+        public ReturnValue(final Class<?> type, final Class<?> errorType, final Annotation[] annotations) {
             super(type, annotations);
             this.errorType = errorType;
-            this.reifying = Optional.ofNullable(this.get(ReifyingBody.class)).map(ReifyingBody::value).map(List::of)
+            this.reifying = Optional.ofNullable(this.get(OfBody.class)).map(OfBody::value).map(List::of)
                     .orElse(null);
             this.bodyType = this.reifying == null ? this.type : this.reifying.get(0);
         }
@@ -105,11 +104,11 @@ public sealed class DeclarationDescriptor {
         }
 
         /**
-         * Returns un-modifiable list of the value of {@linkplain ReifyingBody} or
+         * Returns un-modifiable list of the value of {@linkplain OfBody} or
          * <code>null</code> if there is no such annotation.
          * <p>
          * If the list is not <code>null</code>, it should contain at least one value
-         * defining the {@linkplain ReifyingBodyDescriptor#bodyType}.
+         * defining the {@linkplain ReturnValue#bodyType}.
          */
         public List<Class<?>> reifying() {
             return this.reifying;

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  * request/response body. Holds no significance on its own.
  *
  * @author Lei Yang
- * @since 3.1.2
+ *
  */
 public class RestPayload {
     private RestPayload() {

@@ -7,7 +7,6 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,25 +23,24 @@ import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.annotation.AuthHeader;
+import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.ReifyingBody;
+import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.ReifyingBodyDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -59,18 +57,18 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @see DefaultInvocationRequestBinder
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
-    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(PathVariable.class,
-            RequestParam.class, RequestHeader.class, AuthHeader.class, AuthBean.Param.class);
+    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class,
+            PathVariable.class, RequestParam.class, OfAuth.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
     private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
-    private final JsonBodyHandlerProvider jsonBodyHandlerProvider;
-    private final BodyHandlerResolver bodyHandlerResolver;
+    private final BodyHandlerProvider jsonBodyHandlerProvider;
+    private final BodyHandlerBeanResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerResolver bodyHandlerResolver, final JsonBodyHandlerProvider jsonBodyHandlerProvider) {
+            final BodyHandlerBeanResolver bodyHandlerResolver, final BodyHandlerProvider jsonBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
         this.jsonBodyHandlerProvider = jsonBodyHandlerProvider;
@@ -120,15 +118,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         /*
          * Header parameters
          */
-        final var headerParams = reflected.allParametersWith(RequestHeader.class).stream().map(p -> {
-            final var name = p.parameter().getAnnotation(RequestHeader.class).value();
+        final var headerParams = reflected.allParametersWith(OfHeader.class).stream().map(p -> {
+            final var name = p.parameter().getAnnotation(OfHeader.class).value();
             if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
                 throw new IllegalArgumentException(
                         "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
             }
             return p;
         }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(RequestHeader.class).value().toString().toLowerCase(Locale.US)));
+                p -> p.parameter().getAnnotation(OfHeader.class).value().toString().toLowerCase(Locale.US)));
 
         final var namesOnParam = headerParams.values();
         if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
@@ -158,10 +156,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                 .orElseGet(byRest::contentType);
 
-        final var authHeaders = reflected.allParametersWith(AuthHeader.class);
+        final var authHeaders = reflected.allParametersWith(OfAuth.class);
         if (authHeaders.size() > 1) {
             throw new IllegalArgumentException(
-                    "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
+                    "Too many " + OfAuth.class.getSimpleName() + " found on " + method.getName());
         }
 
         final ArgBinder<Object, Supplier<String>> authSupplierFn;
@@ -191,7 +189,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyInfo = bodyParam.map(p -> {
             final var parameter = p.parameter();
-            return new JsonViewDescriptor(parameter.getType(), parameter.getAnnotations());
+            return new JsonViewValue(parameter.getType(), parameter.getAnnotations());
         }).orElse(null);
 
         final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
@@ -214,20 +212,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
-                .or(() -> {
-                    // The return types that the response body is irrelevant to. Discarding.
-                    if (returnType.isAssignableFrom(HttpHeaders.class)
-                            || returnType == void.class || returnType == Void.class
-                            || ofHeader != null) {
-                        return Optional.of((target, args) -> BodyHandlers.discarding());
-                    }
-                    return Optional.ofNullable(null);
-                })
                 .orElseGet(() -> {
-                    final var descriptor = new ReifyingBodyDescriptor(returnType, byRest.errorType(),
+                    final var descriptor = new ReturnValue(returnType, byRest.errorType(),
                             reflected.method().getDeclaredAnnotations());
                     if (descriptor.type().isAssignableFrom(HttpResponse.class) && descriptor.reifying() == null) {
-                        throw new IllegalArgumentException("Missing required " + ReifyingBody.class);
+                        throw new IllegalArgumentException("Missing required " + OfBody.class);
                     }
                     final var handler = jsonBodyHandlerProvider.get(descriptor);
                     return (target, args) -> handler;
@@ -247,8 +236,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             } else if (returnType.isAssignableFrom(List.class)) {
                 returnMapper = response -> response.headers().allValues(name);
             }
-        }
-        else if (returnType.isAssignableFrom(HttpResponse.class)) {
+        } else if (returnType.isAssignableFrom(HttpResponse.class)) {
             returnMapper = Function.identity();
         } else if (returnType == void.class && returnType == Void.class) {
             returnMapper = response -> null;

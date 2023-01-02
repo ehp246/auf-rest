@@ -5,13 +5,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.ReifyingBody;
+import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.integration.model.Person;
 
 /**
@@ -22,7 +22,7 @@ import me.ehp246.aufrest.integration.model.Person;
 @ByRest("http://localhost:${local.server.port}/json/")
 interface JsonTestCase {
     @OfMapping("instants")
-    @ReifyingBody({ ArrayList.class, Instant.class })
+    @OfBody({ ArrayList.class, Instant.class })
     List<Instant> get001(@RequestParam("count") int count);
 
     @OfMapping("instants")
@@ -33,7 +33,7 @@ interface JsonTestCase {
     Person get007();
 
     @OfMapping("person")
-    Person getZip(@RequestHeader("accept-encoding") String acceptEncoding);
+    Person getZip(@OfHeader("accept-encoding") String acceptEncoding);
 
     @OfMapping("null")
     Person getNull();
@@ -48,25 +48,25 @@ interface JsonTestCase {
     Person getStatus204();
 
     @OfMapping("persons")
-    @ReifyingBody({ ArrayList.class, Person.class })
+    @OfBody({ ArrayList.class, Person.class })
     List<Person> get008();
 
     // Response types
 
     @OfMapping("person")
-    @ReifyingBody(Person.class)
+    @OfBody(Person.class)
     HttpResponse<Person> get011();
 
     @OfMapping("instants")
-    @ReifyingBody({ List.class, Instant.class })
+    @OfBody({ List.class, Instant.class })
     HttpResponse<List<Instant>> get002(@RequestParam("count") int count);
 
     @OfMapping("instants")
-    @ReifyingBody({ List.class, Instant.class })
+    @OfBody({ List.class, Instant.class })
     HttpResponse get004(@RequestParam("count") int count);
 
     @OfMapping("instants")
     @AsIs
-    @ReifyingBody(String.class)
+    @OfBody(String.class)
     HttpResponse<String> get007(@RequestParam("count") int count);
 }

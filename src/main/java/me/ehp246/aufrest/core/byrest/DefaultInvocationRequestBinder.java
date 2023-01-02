@@ -20,8 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -47,7 +47,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final JsonViewDescriptor bodyInfo;
+    private final JsonViewValue bodyInfo;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
     private final Function<HttpResponse<?>, ?> returnMapper;
@@ -60,7 +60,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final Map<String, List<String>> headerStatic,
             final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder,
-            final JsonViewDescriptor bodyInfo, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
+            final JsonViewValue bodyInfo, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
             final Function<HttpResponse<?>, ?> returnMapper) {
         super();
         this.method = method;
@@ -217,7 +217,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             }
 
             @Override
-            public DeclarationDescriptor bodyDescriptor() {
+            public ValueDescriptor bodyDescriptor() {
                 return bodyInfo;
             }
         }, () -> handler, returnMapper);

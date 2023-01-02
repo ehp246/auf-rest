@@ -14,16 +14,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 
-import me.ehp246.aufrest.api.rest.JsonBodyHandlerProvider;
+import me.ehp246.aufrest.api.annotation.OfHeader;
+import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.ReifyingBodyDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-final class DefaultBodyHandlerProvider implements JsonBodyHandlerProvider {
+final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
     private final FromJson fromJson;
     private final RestLogger restLogger;
 
@@ -34,8 +35,12 @@ final class DefaultBodyHandlerProvider implements JsonBodyHandlerProvider {
     }
 
     @Override
-    public BodyHandler<?> get(final ReifyingBodyDescriptor descriptor) {
+    public BodyHandler<?> get(final ReturnValue descriptor) {
         final Class<?> type = descriptor == null ? void.class : descriptor.bodyType();
+        // A few return types that don't need the body on successful responses.
+        final var dischardBody = type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)
+                || type.isAssignableFrom(java.net.http.HttpHeaders.class)
+                || descriptor.map().containsKey(OfHeader.class);
 
         // Declared return type requires de-serialization.
         return responseInfo -> {
@@ -60,6 +65,10 @@ final class DefaultBodyHandlerProvider implements JsonBodyHandlerProvider {
                         : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
             }
 
+            if ((statusCode == 204) || (statusCode < 300 && dischardBody)) {
+                return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
+            }
+
             return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
                 try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
                         final var byteOs = new ByteArrayOutputStream()) {
@@ -73,11 +82,6 @@ final class DefaultBodyHandlerProvider implements JsonBodyHandlerProvider {
                     restLogger.onResponseBody(text);
                 }
 
-                if ((statusCode == 204) || (statusCode < 300
-                        && (type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)))) {
-                    return null;
-                }
-
                 // This means a JSON string will not be de-serialized.
                 if (statusCode >= 300 && descriptor.errorType() == String.class) {
                     return text;
@@ -85,7 +89,7 @@ final class DefaultBodyHandlerProvider implements JsonBodyHandlerProvider {
 
                 if (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)) {
                     return fromJson.apply(text,
-                            statusCode < 300 ? descriptor : new ReifyingBodyDescriptor(descriptor.errorType()));
+                            statusCode < 300 ? descriptor : new ReturnValue(descriptor.errorType()));
                 }
 
                 // Returns the raw text for anything that is not JSON for now.

@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor;
-import me.ehp246.aufrest.api.spi.DeclarationDescriptor.JsonViewDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor;
+import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 
 /**
  * The abstraction of a REST request that expects a response.
@@ -73,9 +73,9 @@ public interface RestRequest {
      * By default, the {@linkplain RestFn} inspects the type of the body value and
      * creates a suitable {@linkplain HttpRequest.BodyPublisher}.
      *
-     * @see {@link JsonViewDescriptor}, {@link HttpRequest.BodyPublisher}
+     * @see {@link JsonViewValue}, {@link HttpRequest.BodyPublisher}
      */
-    default DeclarationDescriptor bodyDescriptor() {
+    default ValueDescriptor bodyDescriptor() {
         return null;
     }
 

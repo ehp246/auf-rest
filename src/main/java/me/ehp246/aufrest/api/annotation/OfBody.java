@@ -7,14 +7,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Restores parameter types that are erased by Java compiler. Needed by the
- * framework and JSON provider to construct generic types.
+ * Used to define the typing information of the body.
+ * <p>
+ * When used on a {@linkplain ByRest} method, it specifies the full type
+ * including the type parameters that are erased by Java compiler but needed to
+ * re-construct generic types.
  *
  * @author Lei Yang
- * @since 3.2
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface ReifyingBody {
+public @interface OfBody {
     Class<?>[] value();
 }
