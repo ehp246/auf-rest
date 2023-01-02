@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.annotation.AuthHeader;
+import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
@@ -57,7 +57,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class,
-            OfPath.class, OfQuery.class, AuthHeader.class, AuthBean.Param.class);
+            OfPath.class, OfQuery.class, OfAuth.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
     private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
@@ -155,10 +155,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                 .orElseGet(byRest::contentType);
 
-        final var authHeaders = reflected.allParametersWith(AuthHeader.class);
+        final var authHeaders = reflected.allParametersWith(OfAuth.class);
         if (authHeaders.size() > 1) {
             throw new IllegalArgumentException(
-                    "Too many " + AuthHeader.class.getSimpleName() + " found on " + method.getName());
+                    "Too many " + OfAuth.class.getSimpleName() + " found on " + method.getName());
         }
 
         final ArgBinder<Object, Supplier<String>> authSupplierFn;

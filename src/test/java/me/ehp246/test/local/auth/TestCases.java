@@ -3,7 +3,7 @@ package me.ehp246.test.local.auth;
 import java.net.http.HttpResponse;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.annotation.AuthHeader;
+import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -20,7 +20,7 @@ interface TestCases {
     interface DefaultCase001 {
         void get();
 
-        void get(@AuthHeader String basic);
+        void get(@OfAuth String basic);
 
         @OfBody(Void.class)
         HttpResponse<Void> getAsResponse();
@@ -31,21 +31,21 @@ interface TestCases {
     interface BasicCase002 {
         void get();
 
-        void get(@AuthHeader String basic);
+        void get(@OfAuth String basic);
     }
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = "basicuser:password", scheme = AuthScheme.BEARER))
     interface BearerCase003 {
         void get();
 
-        void get(@AuthHeader String basic);
+        void get(@OfAuth String basic);
     }
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = "Basic YmFzaWN1c2VyOnBhc3N3b3Jk", scheme = AuthScheme.SIMPLE))
     interface SimpleCase004 {
         void get();
 
-        void get(@AuthHeader String basic);
+        void get(@OfAuth String basic);
     }
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "basicuser",
