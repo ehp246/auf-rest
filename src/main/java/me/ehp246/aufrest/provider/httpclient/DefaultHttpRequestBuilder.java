@@ -35,7 +35,7 @@ import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
-import me.ehp246.aufrest.core.byrest.ToJson;
+import me.ehp246.aufrest.core.rest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**

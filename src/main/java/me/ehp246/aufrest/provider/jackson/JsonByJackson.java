@@ -13,8 +13,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
-import me.ehp246.aufrest.core.byrest.FromJson;
-import me.ehp246.aufrest.core.byrest.ToJson;
+import me.ehp246.aufrest.core.rest.FromJson;
+import me.ehp246.aufrest.core.rest.ToJson;
 
 /**
  * Implements internal JSON operations on {@linkplain ObjectMapper}.
