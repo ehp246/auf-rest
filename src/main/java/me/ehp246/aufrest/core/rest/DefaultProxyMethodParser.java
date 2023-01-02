@@ -21,8 +21,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
@@ -31,6 +29,8 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfPath;
+import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
@@ -57,7 +57,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class,
-            PathVariable.class, RequestParam.class, AuthHeader.class, AuthBean.Param.class);
+            OfPath.class, OfQuery.class, AuthHeader.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
     private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
@@ -91,14 +91,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
                 byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
-        final var pathParams = reflected.allParametersWith(PathVariable.class).stream().collect(Collectors
-                .toMap(p -> p.parameter().getAnnotation(PathVariable.class).value(), ReflectedParameter::index));
+        final var pathParams = reflected.allParametersWith(OfPath.class).stream().collect(Collectors
+                .toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
 
         /*
          * Query parameters
          */
-        final var queryParams = reflected.allParametersWith(RequestParam.class).stream().collect(Collectors
-                .toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(RequestParam.class).value()));
+        final var queryParams = reflected.allParametersWith(OfQuery.class).stream().collect(Collectors
+                .toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(OfQuery.class).value()));
 
         /*
          * Query static

@@ -11,11 +11,7 @@ import java.lang.annotation.Target;
  *
  */
 @Retention(RUNTIME)
-@Target({ ElementType.METHOD, ElementType.PARAMETER })
-public @interface OfHeader {
-    /**
-     * The name of the header.
-     *
-     */
+@Target({ ElementType.PARAMETER })
+public @interface OfQuery {
     String value() default "";
 }

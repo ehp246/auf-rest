@@ -2,10 +2,9 @@ package me.ehp246.aufrest.core.rest.uri;
 
 import java.util.Map;
 
-import org.springframework.web.bind.annotation.PathVariable;
-
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfPath;
 
 /**
  * Test cases for path parameters
@@ -19,11 +18,11 @@ interface TestCase001 {
     void get001();
 
     @OfMapping("get/{path1}/path2/{path3}")
-    void getByPathVariable(@PathVariable("path1") String path1, @PathVariable("path3") String path3);
+    void getByPathVariable(@OfPath("path1") String path1, @OfPath("path3") String path3);
 
     @OfMapping("{path3}/{path4}")
-    void getByPathParam(@PathVariable("path4") String path4, @PathVariable("path1") String path1,
-            @PathVariable("path3") String path2);
+    void getByPathParam(@OfPath("path4") String path4, @OfPath("path1") String path1,
+            @OfPath("path3") String path2);
 
     /**
      * Map all path ids.
@@ -32,7 +31,7 @@ interface TestCase001 {
      * @return
      */
     @OfMapping("get/{path1}/path2/{path3}")
-    void getByMap(@PathVariable Map<String, String> pathParams);
+    void getByMap(@OfPath Map<String, String> pathParams);
 
     /**
      * All path values are merged together. For the same path variable, explicit
@@ -44,10 +43,10 @@ interface TestCase001 {
      * @return
      */
     @OfMapping("get/{path1}/path2/{path3}")
-    void getByMap(@PathVariable Map<String, String> pathParams, @PathVariable("path1") String path1);
+    void getByMap(@OfPath Map<String, String> pathParams, @OfPath("path1") String path1);
 
     @OfMapping("get/{path1}/path2/{path3}")
-    void getByObject(@PathVariable PathObject pathObject);
+    void getByObject(@OfPath PathObject pathObject);
 
     /**
      * This method should throw exception since PathParam's are missing.

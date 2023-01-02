@@ -5,13 +5,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.web.bind.annotation.RequestParam;
-
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
-import me.ehp246.aufrest.api.annotation.OfBody;
+import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.integration.model.Person;
 
 /**
@@ -23,11 +22,11 @@ import me.ehp246.aufrest.integration.model.Person;
 interface JsonTestCase {
     @OfMapping("instants")
     @OfBody({ ArrayList.class, Instant.class })
-    List<Instant> get001(@RequestParam("count") int count);
+    List<Instant> get001(@OfQuery("count") int count);
 
     @OfMapping("instants")
     @AsIs
-    String get006(@RequestParam("count") int count);
+    String get006(@OfQuery("count") int count);
 
     @OfMapping("person")
     Person get007();
@@ -59,14 +58,14 @@ interface JsonTestCase {
 
     @OfMapping("instants")
     @OfBody({ List.class, Instant.class })
-    HttpResponse<List<Instant>> get002(@RequestParam("count") int count);
+    HttpResponse<List<Instant>> get002(@OfQuery("count") int count);
 
     @OfMapping("instants")
     @OfBody({ List.class, Instant.class })
-    HttpResponse get004(@RequestParam("count") int count);
+    HttpResponse get004(@OfQuery("count") int count);
 
     @OfMapping("instants")
     @AsIs
     @OfBody(String.class)
-    HttpResponse<String> get007(@RequestParam("count") int count);
+    HttpResponse<String> get007(@OfQuery("count") int count);
 }

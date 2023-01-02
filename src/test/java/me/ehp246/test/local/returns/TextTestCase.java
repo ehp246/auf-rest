@@ -2,16 +2,15 @@ package me.ehp246.test.local.returns;
 
 import java.time.Instant;
 
-import org.springframework.web.bind.annotation.RequestParam;
-
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
  * Receiving different media type as raw String.
- * 
+ *
  * @author Lei Yang
  *
  */
@@ -22,7 +21,7 @@ interface TextTestCase {
 
     @OfMapping("person")
     @AsIs
-    String getPerson(@RequestParam("name") String name);
+    String getPerson(@OfQuery("name") String name);
 
     @OfMapping(value = "instant", accept = HttpUtils.TEXT_PLAIN)
     String get();

@@ -1,8 +1,7 @@
 package me.ehp246.test.local.timeout;
 
-import org.springframework.web.bind.annotation.RequestParam;
-
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfQuery;
 
 /**
  * @author Lei Yang
@@ -12,5 +11,5 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 interface TestCase001 {
     void get();
 
-    void get(@RequestParam("sleep") String sleep);
+    void get(@OfQuery("sleep") String sleep);
 }

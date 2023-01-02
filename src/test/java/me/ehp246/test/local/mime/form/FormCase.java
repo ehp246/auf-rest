@@ -4,11 +4,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.web.bind.annotation.RequestParam;
-
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfQuery;
 
 /**
  * @author Lei Yang
@@ -20,17 +19,17 @@ interface FormCase {
 
     @OfMapping(value = "/string")
     @AsIs
-    String post(@RequestParam("name") String name);
+    String post(@OfQuery("name") String name);
 
     @OfMapping(value = "/person")
-    Person postQueryInBody(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
-            @RequestParam("dob") Instant dob);
+    Person postQueryInBody(@OfQuery("firstName") String firstName, @OfQuery("lastName") String lastName,
+            @OfQuery("dob") Instant dob);
 
     @OfMapping(value = "/person-queryonpath", contentType = "application/json")
-    Person postQueryOnPath(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
-            @RequestParam("dob") Instant dob);
+    Person postQueryOnPath(@OfQuery("firstName") String firstName, @OfQuery("lastName") String lastName,
+            @OfQuery("dob") Instant dob);
 
     @OfMapping(value = "/querymap")
-    List<String> postQueryMap(@RequestParam Map<String, String> map,
-            @RequestParam("qList") List<String> list, @RequestParam("qList") String query);
+    List<String> postQueryMap(@OfQuery Map<String, String> map, @OfQuery("qList") List<String> list,
+            @OfQuery("qList") String query);
 }
