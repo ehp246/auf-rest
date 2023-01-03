@@ -2,7 +2,6 @@ package me.ehp246.aufrest.core.rest.uri;
 
 import java.net.http.HttpResponse;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,42 +10,37 @@ import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.RestFn;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
-import me.ehp246.aufrest.core.rest.uri.TestCase001.PathObject;
+import me.ehp246.aufrest.core.rest.uri.TestCase.PathObject;
+import me.ehp246.aufrest.mock.MockRestFnProvider;
 
 /**
  * @author Lei Yang
  *
  */
-class UriTest {
-    private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
+class ByRestProxyFactoryUriTest {
+    private final MockRestFnProvider restFnProvider = new MockRestFnProvider(Mockito.mock(HttpResponse.class));
 
-    private final RestFn restFn = (req, con) -> {
-        reqRef.set(req);
-        return Mockito.mock(HttpResponse.class);
-    };
     private final PropertyResolver env = new MockEnvironment().withProperty("echo.base",
             "http://localhost")::resolveRequiredPlaceholders;
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new ClientConfig(),
             new DefaultProxyMethodParser(env, name -> null, name -> r -> null, binding -> r -> null));
 
-    private final TestCase001 case001 = factory.newInstance(TestCase001.class);
+    private final TestCase testCase = factory.newInstance(TestCase.class);
 
     @BeforeEach
     void beforeEach() {
-        reqRef.set(null);
+        restFnProvider.takeReq();
     }
 
     @Test
     void path001() {
-        case001.getByPathVariable("1", "3");
+        testCase.getByPathVariable("1", "3");
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         Assertions.assertEquals(true, request.uri() == request.uri());
         Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
@@ -54,9 +48,9 @@ class UriTest {
 
     @Test
     void path002() {
-        case001.getByPathParam("4", "1", "3");
+        testCase.getByPathParam("4", "1", "3");
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         /**
          * Method-level annotation overwrites type-level. This behavior is different
@@ -67,9 +61,9 @@ class UriTest {
 
     @Test
     void path003() {
-        case001.getByPathVariable("1", "3");
+        testCase.getByPathVariable("1", "3");
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         /**
          * Method-level annotation overwrites type-level. This behavior is different
@@ -81,23 +75,23 @@ class UriTest {
 
     @Test
     void uri_004() {
-        case001.getWithPlaceholder();
+        testCase.getWithPlaceholder();
 
-        Assertions.assertEquals("http://localhost/get", reqRef.get().uri());
+        Assertions.assertEquals("http://localhost/get", restFnProvider.getReq().uri());
     }
 
     @Test
     void uri_005() {
-        case001.get001();
+        testCase.get001();
 
-        Assertions.assertEquals("http://localhost/", reqRef.get().uri());
+        Assertions.assertEquals("http://localhost/", restFnProvider.getReq().uri());
     }
 
     @Test
     void pathMap001() {
-        case001.getByMap(Map.of("path1", "1", "path3", "3"));
+        testCase.getByMap(Map.of("path1", "1", "path3", "3"));
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         /**
          * Method-level annotation overwrites type-level. This behavior is different
@@ -108,9 +102,9 @@ class UriTest {
 
     @Test
     void pathMap002() {
-        case001.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
+        testCase.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         /**
          * Explicit parameter takes precedence.
@@ -120,14 +114,14 @@ class UriTest {
 
     @Test
     void pathMap_02() {
-        case001.getByMap(Map.of("path1", "mapped1", "path3", "3 = 1"), "1");
+        testCase.getByMap(Map.of("path1", "mapped1", "path3", "3 &= 1: / 4 ? 5:"), "1");
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         /**
          * Explicit parameter takes precedence.
          */
-        Assertions.assertEquals("http://localhost/get/1/path2/3%20%3D%201", request.uri());
+        Assertions.assertEquals("http://localhost/get/1/path2/3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A", request.uri());
     }
 
     /*
@@ -135,7 +129,7 @@ class UriTest {
      */
     // @Test
     void pathObject001() {
-        case001.getByObject(new PathObject() {
+        testCase.getByObject(new PathObject() {
 
             @Override
             public String getPath3() {
@@ -148,7 +142,7 @@ class UriTest {
             }
         });
 
-        final var request = reqRef.get();
+        final var request = restFnProvider.getReq();
 
         Assertions.assertEquals("http://localhost/get/1/path2/3", request.uri());
     }

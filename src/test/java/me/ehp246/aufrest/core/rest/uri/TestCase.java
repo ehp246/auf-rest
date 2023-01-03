@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.OfPath;
  *
  */
 @ByRest("${echo.base}/")
-interface TestCase001 {
+interface TestCase {
     @OfMapping
     void get001();
 

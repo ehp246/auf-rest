@@ -30,9 +30,12 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
 public @interface ByRest {
 
     /**
-     * Full URL of the REST endpoint that the interface proxies. The element
-     * supports Spring property placeholder (e.g. <code>"/${api.base}"</code>). The
-     * value must resolve to a full HTTP-based URL.
+     * Defines the base URL of the REST endpoint that the interface proxies for.
+     * <p>
+     * The value specified is not validated until used.
+     * <p>
+     * Supports Spring property placeholder (e.g. <code>"/${api.base}"</code>).
+     *
      */
     String value();
 

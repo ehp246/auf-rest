@@ -21,11 +21,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.springframework.web.util.UriComponentsBuilder;
-
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
@@ -78,7 +76,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     @SuppressWarnings("unchecked")
     public DefaultInvocationRequestBinder parse(final Method method) {
         final var byRest = method.getDeclaringClass().getAnnotation(ByRest.class);
-
         final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
@@ -87,9 +84,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         .filter(name -> method.getName().toUpperCase().startsWith(name))::findAny)
                 .map(String::toUpperCase)
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
-
-        final var uriBuilder = UriComponentsBuilder.fromUriString(propertyResolver.resolve(
-                byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse("")));
 
         final var pathParams = reflected.allParametersWith(OfPath.class).stream().collect(Collectors
                 .toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
@@ -241,9 +235,20 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             returnMapper = response -> null;
         }
 
-        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout, uriBuilder,
+        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout, baseUrl(byRest, optionalOfMapping),
                 pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn, bodyArgBinder,
                 bodyInfo, consumerBinder, returnMapper);
+    }
+
+    /**
+     * Parses the base URL from the method and the interface. Resolves any property
+     * place holders.
+     * <p>
+     * Empty string in case everything is missing/blank.
+     */
+    private String baseUrl(final ByRest byRest, final Optional<OfMapping> optionalOfMapping) {
+        return propertyResolver.resolve(
+                byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse(""));
     }
 
     private ArgBinder<Object, Supplier<String>> authSupplierFn(final ByRest.Auth auth,

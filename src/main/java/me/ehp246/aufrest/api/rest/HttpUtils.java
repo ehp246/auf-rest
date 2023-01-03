@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 /**
@@ -42,4 +44,16 @@ public final class HttpUtils {
     private HttpUtils() {
         super();
     }
+
+    /**
+     * Encodes a URL path element.
+     *
+     * @param urlpath
+     * @return
+     */
+    public static String encodUrlPath(final String urlpath) {
+        return URLEncoder.encode(urlpath, StandardCharsets.UTF_8).replaceAll("\\+", "%20").replaceAll("\\%21", "!")
+                .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")").replaceAll("\\%7E", "~");
+    }
+
 }

@@ -1,9 +1,7 @@
 package me.ehp246.aufrest.core.rest;
 
-import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ValueDescriptor;
 import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
@@ -37,7 +36,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final String accept;
     private final String acceptEncoding;
     private final String contentType;
-    private final UriComponentsBuilder uriBuilder;
+    private final String baseUri;
     private final ArgBinder<Object, Supplier<String>> authSupplierFn;
     private final Map<String, Integer> pathParams;
     private final Map<Integer, String> queryParams;
@@ -54,7 +53,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
 
 
     DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
-            final String contentType, final Duration timeout, final UriComponentsBuilder uriBuilder,
+            final String contentType, final Duration timeout, final String baseUrl,
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic,
@@ -67,7 +66,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         this.accept = accept;
         this.acceptEncoding = acceptGZip ? "gzip" : null;
         this.contentType = contentType;
-        this.uriBuilder = uriBuilder;
+        this.baseUri = baseUrl;
         this.authSupplierFn = authSupplierFn;
         this.pathParams = pathParams;
         this.queryParams = queryParams;
@@ -88,16 +87,16 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final var arg = args[entry.getValue()];
             if (arg instanceof final Map<?, ?> map) {
                 pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
-                        e -> URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))));
+                        e -> HttpUtils.encodUrlPath(e.getValue().toString()))));
 
                 map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(),
-                        URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8)));
+                        HttpUtils.encodUrlPath(e.getValue().toString())));
             } else {
-                pathArgs.put(entry.getKey(), URLEncoder.encode(arg.toString(), StandardCharsets.UTF_8));
+                pathArgs.put(entry.getKey(), HttpUtils.encodUrlPath(arg.toString()));
             }
         });
 
-        final var uri = this.uriBuilder.buildAndExpand(pathArgs).toUriString();
+        final var uri = UriComponentsBuilder.fromUriString(baseUri).buildAndExpand(pathArgs).toUriString();
 
         final var queryBound = new HashMap<String, List<String>>();
         this.queryParams.entrySet().forEach(entry -> {

@@ -12,10 +12,10 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  *
  */
 public class MockRestFnProvider implements RestFnProvider {
-    private final HttpResponse<Object> response;
+    private final HttpResponse<?> response;
     private RestRequest req;
 
-    public MockRestFnProvider(final HttpResponse<Object> response) {
+    public MockRestFnProvider(final HttpResponse<?> response) {
         super();
         this.response = response;
     }
@@ -32,5 +32,9 @@ public class MockRestFnProvider implements RestFnProvider {
         final var req = this.req;
         this.req = null;
         return req;
+    }
+
+    public RestRequest getReq() {
+        return this.req;
     }
 }
