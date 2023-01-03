@@ -1,4 +1,4 @@
-package me.ehp246.test.local.returns.controller;
+package me.ehp246.test.local.returns;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import me.ehp246.aufrest.integration.model.Person;
 
 /**
  * @author Lei Yang
@@ -37,34 +35,12 @@ class JsonController {
 
     @GetMapping("person")
     Person getPerson(@RequestParam(value = "name", required = false) final String name) {
-        return new Person() {
-
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public Instant getDob() {
-                return Instant.now();
-            }
-        };
+        return new Person(Instant.now(), name);
     }
 
     @GetMapping("persons")
     List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> new Person() {
-
-            @Override
-            public String getName() {
-                return null;
-            }
-
-            @Override
-            public Instant getDob() {
-                return Instant.now();
-            }
-        }).collect(Collectors.toList());
+        return IntStream.range(0, count).mapToObj(i -> new Person(Instant.now(), null)).collect(Collectors.toList());
     }
 
     // Text

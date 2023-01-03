@@ -16,8 +16,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.integration.model.Person;
-
 /**
  * @author Lei Yang
  *
@@ -123,7 +121,7 @@ class JsonTest {
 
     @Test
     void test_009() {
-        Assertions.assertEquals(true, case001.get007().getDob() instanceof Instant);
+        Assertions.assertEquals(true, case001.get007().dob() instanceof Instant);
     }
 
     @Test
@@ -133,7 +131,7 @@ class JsonTest {
         Assertions.assertEquals(true, persons instanceof List);
         Assertions.assertEquals(1, persons.size());
 
-        persons.stream().forEach(person -> Assertions.assertEquals(true, person.getDob() instanceof Instant));
+        persons.stream().forEach(person -> Assertions.assertEquals(true, person.dob() instanceof Instant));
     }
 
     @Test

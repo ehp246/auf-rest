@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.it.config02;
+package me.ehp246.test.app.config02;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;

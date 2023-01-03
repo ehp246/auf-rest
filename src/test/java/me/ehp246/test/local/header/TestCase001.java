@@ -5,7 +5,6 @@ import java.util.Map;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfHeader;
-import me.ehp246.aufrest.integration.model.Headers;
 
 /**
  * @author Lei Yang

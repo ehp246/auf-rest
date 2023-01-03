@@ -15,7 +15,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  *
  */
 @ByRest("http://localhost:${local.server.port}/json/")
-interface TextTestCase {
+interface TextCase {
     @OfMapping("instant")
     String getJson();
 

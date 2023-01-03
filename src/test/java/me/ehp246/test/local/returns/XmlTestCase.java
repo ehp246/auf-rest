@@ -11,7 +11,6 @@ import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
-import me.ehp246.aufrest.integration.model.Person;
 
 /**
  * @author Lei Yang

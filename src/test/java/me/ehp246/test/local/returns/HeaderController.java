@@ -1,4 +1,4 @@
-package me.ehp246.test.local.returns.controller;
+package me.ehp246.test.local.returns;
 
 import java.util.Map;
 

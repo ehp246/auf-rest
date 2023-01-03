@@ -1,4 +1,4 @@
-package me.ehp246.test.local.stream.controller;
+package me.ehp246.test.local.stream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-import me.ehp246.aufrest.integration.model.Person;
-
 /**
  * @author Lei Yang
  *
@@ -25,22 +23,11 @@ import me.ehp246.aufrest.integration.model.Person;
 class StreamController {
     @GetMapping("person")
     Person getPerson(@RequestParam(value = "name", required = false) final String name) {
-        return new Person() {
-
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public Instant getDob() {
-                return Instant.now();
-            }
-        };
+        return new Person(Instant.now(), name);
     }
 
     @PostMapping("inputstream")
-    int postStream(InputStream in) throws JsonParseException, JsonMappingException, IOException {
+    int postStream(final InputStream in) throws JsonParseException, JsonMappingException, IOException {
         int count = 0;
         // Should be all zeros.
         while (in.read() == 0) {

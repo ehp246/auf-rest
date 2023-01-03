@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.it.config04;
+package me.ehp246.test.app.config04;
 
 import org.springframework.context.annotation.Import;
 
