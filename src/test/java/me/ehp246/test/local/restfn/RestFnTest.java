@@ -28,7 +28,7 @@ class RestFnTest {
     private RestFn restFn;
 
     @Test
-    void auth_001() {
+    void auth_01() {
         final var response = restFn.apply(new RestRequest() {
 
             @Override
@@ -41,7 +41,7 @@ class RestFnTest {
     }
 
     @Test
-    void auth_002() {
+    void auth_02() {
         final var response = restFn.apply(new RestRequest() {
 
             @Override
