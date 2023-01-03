@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.core.rest;
 
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -49,7 +47,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final JsonViewValue bodyInfo;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
-    private final Function<HttpResponse<?>, ?> returnMapper;
+    private final ResponseReturnMapper returnMapper;
 
 
     DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
@@ -60,7 +58,7 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder,
             final JsonViewValue bodyInfo, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final Function<HttpResponse<?>, ?> returnMapper) {
+            final ResponseReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;

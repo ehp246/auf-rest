@@ -13,11 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
-import me.ehp246.aufrest.api.exception.ErrorResponseException;
-import me.ehp246.aufrest.api.exception.RedirectionResponseException;
-import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
-import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -64,6 +59,7 @@ public final class ByRestProxyFactory {
                         if (method.getName().equals("equals")) {
                             return proxy == args[0];
                         }
+
                         final var returnType = method.getReturnType();
                         if (method.isDefault()) {
                             return MethodHandles.privateLookupIn(byRestInterface, MethodHandles.lookup())
@@ -76,45 +72,13 @@ public final class ByRestProxyFactory {
                         final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
-                        final var req = bound.request();
+                        final var outcome = RestFnOutcome.invoke(() -> restFn.apply(bound.request(), bound.consumer()));
 
-                        final var outcome = RestFnOutcome.invoke(() -> restFn.apply(req, bound.consumer()));
+                        // Handles any exceptions during the REST call prior the response.
+                        final var httpResponse = (HttpResponse<?>) outcome
+                                .orElseThrow(List.of(method.getExceptionTypes()));
 
-                        final var threws = List.of(method.getExceptionTypes());
-
-                        final var httpResponse = (HttpResponse<?>) outcome.orElseThrow(threws);
-
-                        // If the return type is HttpResponse, returns it as-is without any processing
-                        // regardless the status code.
-                        if (returnType.isAssignableFrom(HttpResponse.class)) {
-                            return httpResponse;
-                        }
-
-                        // Should throw the more specific type if possible.
-                        ErrorResponseException ex = null;
-                        if (httpResponse.statusCode() >= 600) {
-                            ex = new ErrorResponseException(req, httpResponse);
-                        } else if (httpResponse.statusCode() >= 500) {
-                            ex = new ServerErrorResponseException(req, httpResponse);
-                        } else if (httpResponse.statusCode() >= 400) {
-                            ex = new ClientErrorResponseException(req, httpResponse);
-                        } else if (httpResponse.statusCode() >= 300) {
-                            ex = new RedirectionResponseException(req, httpResponse);
-                        }
-
-                        if (ex != null) {
-                            if (canThrow(threws, ex.getClass())) {
-                                throw ex;
-                            }
-
-                            throw new UnhandledResponseException(ex);
-                        }
-
-                        return bound.returnMapper().apply(httpResponse);
-                    }
-
-                    private static boolean canThrow(final List<Class<?>> threws, final Class<?> type) {
-                        return threws.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
+                        return bound.returnMapper().apply(bound.request(), httpResponse);
                     }
                 });
     }

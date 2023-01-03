@@ -46,13 +46,11 @@ public final class HttpUtils {
     }
 
     /**
-     * Encodes a URL path element.
+     * Encodes a single URL path element.
      *
-     * @param urlpath
-     * @return
      */
-    public static String encodUrlPath(final String urlpath) {
-        return URLEncoder.encode(urlpath, StandardCharsets.UTF_8).replaceAll("\\+", "%20").replaceAll("\\%21", "!")
+    public static String encodUrlPath(final String path) {
+        return URLEncoder.encode(path, StandardCharsets.UTF_8).replaceAll("\\+", "%20").replaceAll("\\%21", "!")
                 .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")").replaceAll("\\%7E", "~");
     }
 

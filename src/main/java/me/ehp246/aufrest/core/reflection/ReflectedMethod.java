@@ -21,12 +21,17 @@ public final class ReflectedMethod {
     private final Method method;
     private final Parameter[] parameters;
     private final Annotation[][] parameterAnnotations;
+    private final List<Annotation> declaredAnnotations;
+    private final List<Class<?>> exceptionTypes;
+
 
     public ReflectedMethod(final Method method) {
         this.method = Objects.requireNonNull(method);
         this.declaringType = method.getDeclaringClass();
         this.parameters = method.getParameters();
         this.parameterAnnotations = this.method.getParameterAnnotations();
+        this.declaredAnnotations = List.of(method.getDeclaredAnnotations());
+        this.exceptionTypes = List.of(method.getExceptionTypes());
     }
 
     public List<ReflectedParameter> filterParametersWith(final Set<Class<? extends Annotation>> excludedAnnotations, final Set<Class<?>> excludedTypes) {
@@ -41,7 +46,7 @@ public final class ReflectedMethod {
             if (excludedTypes.contains(parameters[i].getType())) {
                 continue;
             }
-            
+
             list.add(new ReflectedParameter(parameters[i], i));
         }
 
@@ -65,7 +70,7 @@ public final class ReflectedMethod {
         return this.method;
     }
 
-    public Parameter getParameter(int index) {
+    public Parameter getParameter(final int index) {
         return this.parameters[index];
     }
 
@@ -109,6 +114,17 @@ public final class ReflectedMethod {
     }
 
     public List<? extends Annotation> getMethodDeclaredAnnotations() {
-        return List.of(method.getDeclaredAnnotations());
+        return declaredAnnotations;
+    }
+
+    public List<Class<?>> getExceptionTypes() {
+        return exceptionTypes;
+    }
+
+    /**
+     * Is the given type assignable from the <code>throws</code> clause.
+     */
+    public boolean isOnThrows(final Class<? extends Exception> type) {
+        return this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
     }
 }

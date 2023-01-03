@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
  */
 interface TestCases {
     @ByRest("http://localhost:${local.server.port}/auth/basic")
-    interface DefaultCase001 {
+    interface Default01 {
         void get();
 
         void get(@OfAuth String basic);
@@ -28,21 +28,21 @@ interface TestCases {
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "basicuser",
             "password" }, scheme = AuthScheme.BASIC))
-    interface BasicCase002 {
+    interface Basic02 {
         void get();
 
         void get(@OfAuth String basic);
     }
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = "basicuser:password", scheme = AuthScheme.BEARER))
-    interface BearerCase003 {
+    interface Bearer03 {
         void get();
 
         void get(@OfAuth String basic);
     }
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = "Basic YmFzaWN1c2VyOnBhc3N3b3Jk", scheme = AuthScheme.SIMPLE))
-    interface SimpleCase004 {
+    interface Simple04 {
         void get();
 
         void get(@OfAuth String basic);
@@ -50,7 +50,7 @@ interface TestCases {
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "basicuser",
             "password" }, scheme = AuthScheme.BASIC))
-    interface MethodAuthCase001 {
+    interface MethodAuth01 {
         // Default value, should follow the interface
         @OfMapping
         void get();

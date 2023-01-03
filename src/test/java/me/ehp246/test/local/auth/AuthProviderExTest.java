@@ -18,7 +18,7 @@ class AuthProviderExTest {
     private AppConfig appConfig;
 
     @Autowired
-    private TestCases.DefaultCase001 case001;
+    private TestCases.Default01 case001;
 
     @Test
     void test_001() {

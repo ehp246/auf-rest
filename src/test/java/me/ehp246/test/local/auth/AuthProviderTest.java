@@ -29,7 +29,7 @@ class AuthProviderTest {
 
     @Test
     void basic_auth_001() {
-        final var case001 = factory.getBean(TestCases.DefaultCase001.class);
+        final var case001 = factory.getBean(TestCases.Default01.class);
 
         case001.get();
 
@@ -52,7 +52,7 @@ class AuthProviderTest {
 
     @Test
     void basic_auth_002() {
-        final var case002 = factory.getBean(TestCases.BasicCase002.class);
+        final var case002 = factory.getBean(TestCases.Basic02.class);
 
         /**
          * Should work on the first call.

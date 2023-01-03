@@ -29,6 +29,11 @@ import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
+import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.exception.RedirectionResponseException;
+import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
@@ -54,8 +59,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @see DefaultInvocationRequestBinder
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
-    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class,
-            OfPath.class, OfQuery.class, OfAuth.class, AuthBean.Param.class);
+    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class, OfPath.class,
+            OfQuery.class, OfAuth.class, AuthBean.Param.class);
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
     private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
@@ -85,14 +90,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .map(String::toUpperCase)
                 .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
 
-        final var pathParams = reflected.allParametersWith(OfPath.class).stream().collect(Collectors
-                .toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
+        final var pathParams = reflected.allParametersWith(OfPath.class).stream().collect(
+                Collectors.toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
 
         /*
          * Query parameters
          */
-        final var queryParams = reflected.allParametersWith(OfQuery.class).stream().collect(Collectors
-                .toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(OfQuery.class).value()));
+        final var queryParams = reflected.allParametersWith(OfQuery.class).stream().collect(
+                Collectors.toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(OfQuery.class).value()));
 
         /*
          * Query static
@@ -194,7 +199,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * Returns and response body handlers are coupled.
          */
         final var returnType = reflected.getReturnType();
-        final var ofHeader = reflected.findOnMethod(OfHeader.class).orElse(null);
         /**
          * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig,
          * built-in recognized types, default BindingBodyHandlerProvider
@@ -215,29 +219,76 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     return (target, args) -> handler;
                 });
 
-        // Defaults to return the body.
-        Function<HttpResponse<?>, ?> returnMapper = HttpResponse::body;
+        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout,
+                baseUrl(byRest, optionalOfMapping), pathParams, queryParams, queryStatic, headerParams, headerStatic,
+                authSupplierFn, bodyArgBinder, bodyInfo, consumerBinder, returnMapper(reflected));
+    }
+
+    /**
+     * Generates the return mapping function based on the method signature.
+     * Exception propagation is implemented here.
+     *
+     */
+    private ResponseReturnMapper returnMapper(final ReflectedMethod reflected) {
+        final Class<?> returnType = reflected.getReturnType();
+        final OfHeader ofHeader = reflected.findOnMethod(OfHeader.class).orElse(null);
+
+        // Normal return mapper. Defaults to return the body.
+        final Function<HttpResponse<?>, ?> valueMapper;
 
         if (returnType.isAssignableFrom(HttpHeaders.class)) {
-            returnMapper = HttpResponse::headers;
+            valueMapper = HttpResponse::headers;
         } else if (ofHeader != null) {
             final var name = ofHeader.value();
             if (returnType == String.class) {
-                returnMapper = response -> response.headers().firstValue(name).orElse(null);
+                valueMapper = response -> response.headers().firstValue(name).orElse(null);
             } else if (returnType.isAssignableFrom(Map.class)) {
-                returnMapper = response -> response.headers().map();
+                valueMapper = response -> response.headers().map();
             } else if (returnType.isAssignableFrom(List.class)) {
-                returnMapper = response -> response.headers().allValues(name);
+                valueMapper = response -> response.headers().allValues(name);
+            } else {
+                throw new IllegalArgumentException(
+                        OfHeader.class.toString() + " does not support return type: " + returnType.toString());
             }
         } else if (returnType.isAssignableFrom(HttpResponse.class)) {
-            returnMapper = Function.identity();
+            valueMapper = Function.identity();
         } else if (returnType == void.class && returnType == Void.class) {
-            returnMapper = response -> null;
+            valueMapper = response -> null;
+        } else {
+            valueMapper = HttpResponse::body;
         }
 
-        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout, baseUrl(byRest, optionalOfMapping),
-                pathParams, queryParams, queryStatic, headerParams, headerStatic, authSupplierFn, bodyArgBinder,
-                bodyInfo, consumerBinder, returnMapper);
+        /*
+         * Compose with Response Exception propagation. This logic applies only when a
+         * HttpResponse has been received.
+         *
+         * An Response Exception based on the status code is always raised first.
+         */
+        final ResponseReturnMapper mapper = (restReq, httpResponse) -> {
+            // Should throw the more specific type if possible.
+            ErrorResponseException ex = null;
+            if (httpResponse.statusCode() >= 600) {
+                ex = new ErrorResponseException(restReq, httpResponse);
+            } else if (httpResponse.statusCode() >= 500) {
+                ex = new ServerErrorResponseException(restReq, httpResponse);
+            } else if (httpResponse.statusCode() >= 400) {
+                ex = new ClientErrorResponseException(restReq, httpResponse);
+            } else if (httpResponse.statusCode() >= 300) {
+                ex = new RedirectionResponseException(restReq, httpResponse);
+            }
+
+            if (ex != null) {
+                if (reflected.isOnThrows(ex.getClass())) {
+                    throw ex;
+                }
+
+                throw new UnhandledResponseException(ex);
+            }
+
+            return valueMapper.apply(httpResponse);
+        };
+
+        return mapper;
     }
 
     /**
@@ -247,8 +298,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
      * Empty string in case everything is missing/blank.
      */
     private String baseUrl(final ByRest byRest, final Optional<OfMapping> optionalOfMapping) {
-        return propertyResolver.resolve(
-                byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse(""));
+        return propertyResolver
+                .resolve(byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse(""));
     }
 
     private ArgBinder<Object, Supplier<String>> authSupplierFn(final ByRest.Auth auth,

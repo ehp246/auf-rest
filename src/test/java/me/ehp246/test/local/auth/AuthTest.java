@@ -31,17 +31,13 @@ class AuthTest {
     @Test
     void basic_auth_001() {
         Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.DefaultCase001.class).get());
+                () -> factory.getBean(TestCases.Default01.class).get());
     }
 
     @Test
     void basic_auth_002() {
-        final var newInstance = factory.getBean(TestCases.DefaultCase001.class);
-        /*
-         * If the return type is HttpResponse, the invocation should not throw as long
-         * as a response is received and can be returned.
-         */
-        final var response = Assertions.assertDoesNotThrow(newInstance::getAsResponse,
+        final var newInstance = factory.getBean(TestCases.Default01.class);
+        final var response = Assertions.assertThrows(UnhandledResponseException.class, newInstance::getAsResponse,
                 "Should return a valid response instead of throwing");
 
         Assertions.assertEquals(401, response.statusCode(), "Should have correct status code");
@@ -49,7 +45,7 @@ class AuthTest {
 
     @Test
     void basic_auth_003() {
-        final var newInstance = factory.getBean(TestCases.BearerCase003.class);
+        final var newInstance = factory.getBean(TestCases.Bearer03.class);
 
         Assertions.assertThrows(UnhandledResponseException.class, newInstance::get,
                 "Should not work because of the wrong authentication type");
@@ -62,7 +58,7 @@ class AuthTest {
 
     @Test
     void basic_auth_004() {
-        final var bean = factory.getBean(TestCases.SimpleCase004.class);
+        final var bean = factory.getBean(TestCases.Simple04.class);
 
         bean.get();
 
@@ -78,18 +74,18 @@ class AuthTest {
     @Test
     void auth_header_001() {
         Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.DefaultCase001.class).get(""));
+                () -> factory.getBean(TestCases.Default01.class).get(""));
     }
 
     @Test
     void auth_header_002() {
-        factory.getBean(TestCases.DefaultCase001.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+        factory.getBean(TestCases.Default01.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
     }
 
     @Test
     void method_auth_001() {
         // Should follow the interface
-        factory.getBean(TestCases.MethodAuthCase001.class).get();
+        factory.getBean(TestCases.MethodAuth01.class).get();
     }
 
     @Test
