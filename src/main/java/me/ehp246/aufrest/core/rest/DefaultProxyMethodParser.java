@@ -88,73 +88,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
 
-        final var verb = optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue)
-                .or(HttpUtils.METHOD_NAMES.stream()
-                        .filter(name -> method.getName().toUpperCase().startsWith(name))::findAny)
-                .map(String::toUpperCase)
-                .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
-
-        final var pathParams = reflected.allParametersWith(OfPath.class).stream().collect(
-                Collectors.toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
-
-        /*
-         * Query parameters
-         */
-        final var queryParams = reflected.allParametersWith(OfQuery.class).stream().collect(
-                Collectors.toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(OfQuery.class).value()));
-
-        /*
-         * Query static
-         */
-        final var queries = Arrays.asList(byRest.queries());
-        if ((queries.size() & 1) != 0) {
-            throw new IllegalArgumentException("Queries should be in name/value pairs: " + queries);
-        }
-
-        final Map<String, List<String>> queryStatic = new HashMap<>();
-        for (int i = 0; i < queries.size(); i += 2) {
-            queryStatic.computeIfAbsent(queries.get(i), k -> new ArrayList<String>())
-                    .add(propertyResolver.resolve(queries.get(i + 1)));
-        }
-
-        /*
-         * Header parameters
-         */
-        final var headerParams = reflected.allParametersWith(OfHeader.class).stream().map(p -> {
-            final var name = p.parameter().getAnnotation(OfHeader.class).value();
-            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
-                throw new IllegalArgumentException(
-                        "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
-            }
-            return p;
-        }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(OfHeader.class).value().toString().toLowerCase(Locale.US)));
-
-        final var namesOnParam = headerParams.values();
-        if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
-            throw new IllegalArgumentException("Duplicate header names on " + reflected.method());
-        }
-
-        /*
-         * Headers static
-         */
-        final var headers = Arrays.asList(byRest.headers());
-        if ((headers.size() & 1) != 0) {
-            throw new IllegalArgumentException("Headers should be in name/value pairs: " + headers);
-        }
-        final Map<String, List<String>> headerStatic = new HashMap<>();
-        for (int i = 0; i < headers.size(); i += 2) {
-            final var key = headers.get(i).toLowerCase(Locale.US);
-            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.US)) || headerStatic.containsKey(key)) {
-                throw new IllegalArgumentException("Illegal header '" + headers.get(i) + "' in " + headers + " on "
-                        + reflected.method().getDeclaringClass());
-            }
-            headerStatic.compute(key, (k, v) -> new ArrayList<String>())
-                    .add(propertyResolver.resolve(headers.get(i + 1)));
-        }
-
-        final var accept = optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElseGet(byRest::accept);
-
         final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
                 .orElseGet(byRest::contentType);
 
@@ -194,11 +127,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             return new JsonViewValue(parameter.getType(), parameter.getAnnotations());
         }).orElse(null);
 
-        final var timeout = Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue)
-                .map(propertyResolver::resolve).map(text -> OneUtil.orThrow(() -> Duration.parse(text),
-                        e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
-                .orElse(null);
-
         /*
          * Returns and response body handlers are coupled.
          */
@@ -223,9 +151,94 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     return (target, args) -> handler;
                 });
 
-        return new DefaultInvocationRequestBinder(verb, accept, byRest.acceptGZip(), contentType, timeout,
-                baseUrl(byRest, optionalOfMapping), pathParams, queryParams, queryStatic, headerParams, headerStatic,
-                authSupplierFn, bodyArgBinder, bodyInfo, consumerBinder, returnMapper(reflected));
+        return new DefaultInvocationRequestBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(), contentType,
+                timeout(byRest), baseUrl(byRest, optionalOfMapping), pathParams(reflected), queryParams(reflected), queryStatic(byRest), headerParams(reflected),
+                headerStatic(byRest, reflected), authSupplierFn, bodyArgBinder, bodyInfo, consumerBinder, returnMapper(reflected));
+    }
+
+    private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
+        final var headerParams = reflected.allParametersWith(OfHeader.class).stream().map(p -> {
+            final var name = p.parameter().getAnnotation(OfHeader.class).value();
+            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
+                throw new IllegalArgumentException(
+                        "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
+            }
+            return p;
+        }).collect(Collectors.toMap(ReflectedParameter::index,
+                p -> p.parameter().getAnnotation(OfHeader.class).value().toString().toLowerCase(Locale.US)));
+
+        final var namesOnParam = headerParams.values();
+        if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
+            throw new IllegalArgumentException("Duplicate header names on " + reflected.method());
+        }
+        return headerParams;
+    }
+
+    /**
+     * Static headers come from annotation on the interface.
+     */
+    private Map<String, List<String>> headerStatic(final ByRest byRest, final ReflectedMethod reflected) {
+        final var headers = Arrays.asList(byRest.headers());
+        if ((headers.size() & 1) != 0) {
+            throw new IllegalArgumentException("Headers should be in name/value pairs: " + headers);
+        }
+        final Map<String, List<String>> headerStatic = new HashMap<>();
+        for (int i = 0; i < headers.size(); i += 2) {
+            final var key = headers.get(i).toLowerCase(Locale.US);
+            if (HttpUtils.RESERVED_HEADERS.contains(key.toLowerCase(Locale.US)) || headerStatic.containsKey(key)) {
+                throw new IllegalArgumentException("Illegal header '" + headers.get(i) + "' in " + headers + " on "
+                        + reflected.method().getDeclaringClass());
+            }
+            headerStatic.compute(key, (k, v) -> new ArrayList<String>())
+                    .add(propertyResolver.resolve(headers.get(i + 1)));
+        }
+        return headerStatic;
+    }
+
+    private Map<String, List<String>> queryStatic(final ByRest byRest) {
+        final var queries = Arrays.asList(byRest.queries());
+        if ((queries.size() & 1) != 0) {
+            throw new IllegalArgumentException("Queries should be in name/value pairs: " + queries);
+        }
+
+        final Map<String, List<String>> queryStatic = new HashMap<>();
+        for (int i = 0; i < queries.size(); i += 2) {
+            queryStatic.computeIfAbsent(queries.get(i), k -> new ArrayList<String>())
+                    .add(propertyResolver.resolve(queries.get(i + 1)));
+        }
+        return queryStatic;
+    }
+
+    private Map<Integer, String> queryParams(final ReflectedMethod reflected) {
+        return reflected.allParametersWith(OfQuery.class).stream().collect(
+                Collectors.toMap(ReflectedParameter::index, p -> p.parameter().getAnnotation(OfQuery.class).value()));
+    }
+
+    private Map<String, Integer> pathParams(final ReflectedMethod reflected) {
+        return reflected.allParametersWith(OfPath.class).stream().collect(
+                Collectors.toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
+    }
+
+    private String accept(final ByRest byRest, final Optional<OfMapping> optionalOfMapping) {
+        return optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElseGet(byRest::accept);
+    }
+
+    private String verb(final ReflectedMethod reflected) {
+        final var method = reflected.method();
+        final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
+
+        return optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue)
+                .or(HttpUtils.METHOD_NAMES.stream()
+                        .filter(name -> method.getName().toUpperCase().startsWith(name))::findAny)
+                .map(String::toUpperCase)
+                .orElseThrow(() -> new IllegalArgumentException("Un-defined HTTP method on " + method.toString()));
+    }
+
+    private Duration timeout(final ByRest byRest) {
+        return Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue).map(propertyResolver::resolve)
+                .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
+                        e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
+                .orElse(null);
     }
 
     /**
