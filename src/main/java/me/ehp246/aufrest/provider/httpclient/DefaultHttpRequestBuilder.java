@@ -29,12 +29,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.AuthProvider;
+import me.ehp246.aufrest.api.rest.BodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 import me.ehp246.aufrest.core.rest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -66,7 +67,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     }
 
     @Override
-    public HttpRequest apply(final RestRequest req) {
+    public HttpRequest apply(final RestRequest req, final BodyDescriptor descriptor) {
         final var builder = reqBuilderSupplier.get();
         final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
         /*
@@ -136,7 +137,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         /*
          * Body
          */
-        final var contentPublisher = getContentPublisher(req);
+        final var contentPublisher = getContentPublisher(req, descriptor);
 
         builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType);
 
@@ -145,7 +146,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         return builder.build();
     }
 
-    private ContentPublisher getContentPublisher(final RestRequest req) {
+    private ContentPublisher getContentPublisher(final RestRequest req, final BodyDescriptor descriptor) {
         final var body = req.body();
 
         final var contentType = Optional.of(req.contentType()).filter(OneUtil::hasValue)
@@ -183,11 +184,11 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
             return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(toJson.apply(body, (JsonViewValue) req.bodyDescriptor())));
+                    BodyPublishers.ofString(toJson.apply(body, (JsonViewValue) descriptor)));
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + req.bodyDescriptor().type() + "'");
+                + body.toString() + "' of type '" + descriptor.type() + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {

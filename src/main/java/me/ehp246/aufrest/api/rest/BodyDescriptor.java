@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.api.spi;
+package me.ehp246.aufrest.api.rest;
 
 import java.lang.annotation.Annotation;
 import java.net.http.HttpResponse;
@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfBody;
-import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * Defines the details of a value object outside of the value itself. It could
@@ -26,11 +25,16 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  *
  */
-public sealed class ValueDescriptor {
+public sealed class BodyDescriptor {
     protected final Class<?> type;
     protected final Map<Class<? extends Annotation>, Annotation> map;
 
-    public ValueDescriptor(final Class<?> type, final Annotation[] annotations) {
+    public BodyDescriptor(final Class<?> type) {
+        this.type = type;
+        this.map = Map.of();
+    }
+
+    public BodyDescriptor(final Class<?> type, final Annotation[] annotations) {
         this.type = type;
         this.map = annotations == null ? Map.of()
                 : Arrays.asList(annotations).stream()
@@ -45,7 +49,7 @@ public sealed class ValueDescriptor {
         return this.type;
     }
 
-    public Map<Class<? extends Annotation>, Annotation> map() {
+    public Map<Class<? extends Annotation>, Annotation> annotations() {
         return this.map;
     }
 
@@ -54,7 +58,7 @@ public sealed class ValueDescriptor {
         return (T) this.map.get(annotationType);
     }
 
-    public sealed static class JsonViewValue extends ValueDescriptor {
+    public sealed static class JsonViewValue extends BodyDescriptor {
         private final Class<?> viewValue;
 
         public JsonViewValue(final Class<?> type, final Annotation[] annotations) {
@@ -72,7 +76,7 @@ public sealed class ValueDescriptor {
      * Defines the type information needed for de-serialization of the response
      * body. Mostly to be used to support a generic container, e.g., {@link List}.
      * <p>
-     * The {@linkplain ValueDescriptor#type} might not be the de-serialization
+     * The {@linkplain BodyDescriptor#type} might not be the de-serialization
      * target type. E.g., it could be {@linkplain HttpResponse} from the return of a
      * {@linkplain ByRest} method. In such cases, the
      * {@linkplain ReturnValue#reifying} must define the actual response

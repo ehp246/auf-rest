@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.core.rest.FromJson;
 import me.ehp246.aufrest.core.rest.ToJson;
 

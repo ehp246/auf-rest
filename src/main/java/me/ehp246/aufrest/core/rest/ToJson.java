@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
 
 /**
  * Internal abstraction for {@linkplain ObjectMapper} operations.

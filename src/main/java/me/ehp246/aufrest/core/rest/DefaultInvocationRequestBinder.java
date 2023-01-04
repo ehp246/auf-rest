@@ -15,10 +15,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
+import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.ValueDescriptor;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -212,11 +211,6 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             public Object body() {
                 return body;
             }
-
-            @Override
-            public ValueDescriptor bodyDescriptor() {
-                return bodyInfo;
-            }
-        }, () -> handler, returnMapper);
+        }, bodyInfo, () -> handler, returnMapper);
     }
 }

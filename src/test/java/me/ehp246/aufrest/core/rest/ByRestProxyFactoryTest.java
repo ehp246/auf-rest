@@ -25,9 +25,6 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
-import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
-import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
-import me.ehp246.aufrest.core.rest.ProxyMethodParser;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BearerAuthCase01;
@@ -36,6 +33,7 @@ import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.core.rest.QueryParamCases.QueryParamCase01;
 import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.aufrest.mock.MockRestFnProvider;
 
 /**
  * @author Lei Yang
@@ -43,10 +41,11 @@ import me.ehp246.aufrest.mock.MockHttpResponse;
  */
 class ByRestProxyFactoryTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final RestFn restFn = (request, consumer) -> {
+    private final RestFn restFn = (request, descriptor, consumer) -> {
         reqRef.set(request);
         return Mockito.mock(HttpResponse.class);
     };
+
     private final RestFnProvider restFnProvider = cfg -> restFn;
     private final PropertyResolver propertyResolver = new MockEnvironment()
             .withProperty("echo.base", "https://postman-echo.com")
@@ -471,9 +470,8 @@ class ByRestProxyFactoryTest {
     void exception_01() {
         final var checked = new IOException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestProxyFactory(config -> (req, con) -> {
-            throw restFnException;
-        }, clientConfig, parser).newInstance(ExceptionCase001.class);
+        final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
+                .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RestFnException.class, newInstance::get);
 
@@ -484,9 +482,8 @@ class ByRestProxyFactoryTest {
     void exception_02() {
         final var checked = new IOException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestProxyFactory(config -> (req, con) -> {
-            throw restFnException;
-        }, clientConfig, parser).newInstance(ExceptionCase001.class);
+        final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
+                .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(IOException.class, newInstance::delete);
 
@@ -497,9 +494,7 @@ class ByRestProxyFactoryTest {
     void exception_03() {
         final var checked = new InterruptedException();
         final var restFnException = new RestFnException(checked);
-        final var newInstance = new ByRestProxyFactory(config -> (req, con) -> {
-            throw restFnException;
-        }, clientConfig, parser)
+        final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(InterruptedException.class, newInstance::delete);
@@ -510,9 +505,7 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_04() {
         final var toBeThrown = new RuntimeException();
-        final var newInstance = new ByRestProxyFactory(config -> (req, con) -> {
-            throw toBeThrown;
-        }, clientConfig, parser)
+        final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(toBeThrown), clientConfig, parser)
                 .newInstance(ExceptionCase001.class);
 
         final var thrown = Assertions.assertThrows(RuntimeException.class, newInstance::delete);
@@ -523,7 +516,7 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_05() {
         Assertions.assertThrows(Exception.class,
-                new ByRestProxyFactory(config -> (req, con) -> new MockHttpResponse<Object>(200, Instant.now()),
+                new ByRestProxyFactory(config -> (req, des, con) -> new MockHttpResponse<Object>(200, Instant.now()),
                         clientConfig,
                         parser)
                 .newInstance(ExceptionCase001.class)::post);

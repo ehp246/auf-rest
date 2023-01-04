@@ -13,10 +13,11 @@ import java.net.http.HttpResponse.BodyHandlers;
  */
 @FunctionalInterface
 public interface RestFn {
-    HttpResponse<?> apply(RestRequest request, ResponseConsumer consumer);
+    HttpResponse<?> apply(RestRequest request, BodyDescriptor descriptor, ResponseConsumer consumer);
 
     default HttpResponse<?> apply(final RestRequest request) {
-        return this.apply(request, BodyHandlers::discarding);
+        return this.apply(request, request.body() == null ? null : new BodyDescriptor(request.body().getClass()),
+                BodyHandlers::discarding);
     }
 
     public interface ResponseConsumer {

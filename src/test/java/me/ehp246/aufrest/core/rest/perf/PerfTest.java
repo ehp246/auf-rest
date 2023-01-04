@@ -12,7 +12,7 @@ import org.springframework.mock.env.MockEnvironment;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
-import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.aufrest.mock.MockRestFn;
 import me.ehp246.aufrest.provider.TimingExtension;
 
 /**
@@ -22,11 +22,9 @@ import me.ehp246.aufrest.provider.TimingExtension;
 @ExtendWith(TimingExtension.class)
 @EnabledIfEnvironmentVariable(named = "aufrest.perfTest", matches = "true")
 class PerfTest {
+    private final MockRestFn mockRestFn = new MockRestFn();
     private final int count = 1_000_000;
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(clientConfig -> {
-        final var response = new MockHttpResponse<>();
-        return (req, con) -> response;
-    }, new ClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(mockRestFn.toProvider(), new ClientConfig(),
             new DefaultProxyMethodParser(new MockEnvironment().withProperty("uri", "http://localhost")
                     .withProperty("uri-context", "api")::resolveRequiredPlaceholders, name -> null, name -> null,
                     binding -> null));

@@ -1,13 +1,9 @@
 package me.ehp246.aufrest.api.rest;
 
-import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import me.ehp246.aufrest.api.spi.ValueDescriptor;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
 
 /**
  * The abstraction of a REST request that expects a response.
@@ -64,18 +60,6 @@ public interface RestRequest {
     }
 
     default Object body() {
-        return null;
-    }
-
-    /**
-     * Optional metadata used to help publish the body.
-     * <p>
-     * By default, the {@linkplain RestFn} inspects the type of the body value and
-     * creates a suitable {@linkplain HttpRequest.BodyPublisher}.
-     *
-     * @see {@link JsonViewValue}, {@link HttpRequest.BodyPublisher}
-     */
-    default ValueDescriptor bodyDescriptor() {
         return null;
     }
 

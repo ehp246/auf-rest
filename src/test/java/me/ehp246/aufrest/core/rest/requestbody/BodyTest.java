@@ -9,36 +9,25 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestFn.ResponseConsumer;
+import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.core.rest.ProxyMethodParser;
-import me.ehp246.aufrest.api.rest.RestFnProvider;
-import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.aufrest.mock.MockRestFn;
 
 /**
  * @author Lei Yang
  *
  */
 class BodyTest {
-    private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
-    private final AtomicReference<ResponseConsumer> conRef = new AtomicReference<>();
-    private final RestFnProvider restFnProvider = cfg -> (req, con) -> {
-        reqRef.set(req);
-        conRef.set(con);
-        return new MockHttpResponse<Object>();
-    };
+    private final MockRestFn restFn = new MockRestFn();
     @SuppressWarnings("unchecked")
     private final BodyHandler<Object> resolvedBodyHandler = Mockito.mock(BodyHandler.class);
     @SuppressWarnings("unchecked")
@@ -46,14 +35,8 @@ class BodyTest {
     private final BodyHandlerBeanResolver bodyHandlerResolver = name -> resolvedBodyHandler;
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
             bodyHandlerResolver, binding -> mockBodyHandler);
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new ClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
             parser);
-
-    @BeforeEach
-    void beforeEach() {
-        reqRef.set(null);
-        conRef.set(null);
-    }
 
     @Test
     void request_01() {
@@ -61,7 +44,7 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.RequestCase01.class).get(expected);
 
-        Assertions.assertEquals(true, expected == reqRef.get().body());
+        Assertions.assertEquals(true, expected == restFn.req().body());
     }
 
     @Test
@@ -71,8 +54,8 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.RequestCase01.class).get(expected);
 
-        Assertions.assertEquals(true, expected == reqRef.get().body());
-        Assertions.assertEquals(36, ((BodyPublisher) (reqRef.get().body())).contentLength());
+        Assertions.assertEquals(true, expected == restFn.req().body());
+        Assertions.assertEquals(36, ((BodyPublisher) (restFn.req().body())).contentLength());
     }
 
     @Test
@@ -81,7 +64,7 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.RequestCase01.class).get(0, expected, null);
 
-        Assertions.assertEquals(true, expected == reqRef.get().body(), "should use the publisher");
+        Assertions.assertEquals(true, expected == restFn.req().body(), "should use the publisher");
     }
 
     @Test
@@ -90,7 +73,7 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.RequestCase01.class).get(expected, -1);
 
-        Assertions.assertEquals(true, expected == reqRef.get().body(), "should use the first un-recognized");
+        Assertions.assertEquals(true, expected == restFn.req().body(), "should use the first un-recognized");
     }
 
     @Test
@@ -99,7 +82,7 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.RequestCase01.class).get(Instant.now(), expected);
 
-        Assertions.assertEquals(true, expected == reqRef.get().body(), "should use the annotated");
+        Assertions.assertEquals(true, expected == restFn.req().body(), "should use the annotated");
     }
 
     @Test
@@ -109,7 +92,7 @@ class BodyTest {
         factory.newInstance(BodyTestCases.RequestCase01.class).get(UUID.randomUUID().toString(), Instant.now(),
                 expected);
 
-        Assertions.assertEquals(true, expected == reqRef.get().body(), "should use the annotated");
+        Assertions.assertEquals(true, expected == restFn.req().body(), "should use the annotated");
     }
 
     @Test
@@ -118,14 +101,14 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.ResponseCase01.class).getOnMethod(expected);
 
-        Assertions.assertEquals(true, expected == conRef.get().handler());
+        Assertions.assertEquals(true, expected == restFn.consumer().handler());
     }
 
     @Test
     void response_03() {
         factory.newInstance(BodyTestCases.ResponseCase01.class).getOfMapping();
 
-        Assertions.assertEquals(mockBodyHandler, conRef.get().handler());
+        Assertions.assertEquals(mockBodyHandler, restFn.consumer().handler());
     }
 
     @Test
@@ -134,12 +117,12 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerBeanResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("named"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFnProvider, new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase01.class)
                                 .getOfMappingNamed();
 
-        Assertions.assertEquals(expected, conRef.get().handler());
+        Assertions.assertEquals(expected, restFn.consumer().handler());
     }
 
     @Test
@@ -147,7 +130,7 @@ class BodyTest {
         final var expected = Mockito.mock(BodyHandler.class);
         final var namedResolver = Mockito.mock(BodyHandlerBeanResolver.class);
 
-        new ByRestProxyFactory(restFnProvider, new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOnMethod(0, expected);
@@ -156,19 +139,19 @@ class BodyTest {
          * Should not call the resolver
          */
         Mockito.verify(namedResolver, times(0)).get(Mockito.anyString());
-        Assertions.assertEquals(expected, conRef.get().handler());
+        Assertions.assertEquals(expected, restFn.consumer().handler());
     }
 
     @Test
     void response_06() {
         final var namedResolver = Mockito.mock(BodyHandlerBeanResolver.class);
 
-        new ByRestProxyFactory(restFnProvider, new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .get(null);
 
-        Assertions.assertEquals(null, conRef.get().handler());
+        Assertions.assertEquals(null, restFn.consumer().handler());
     }
 
     @Test
@@ -177,10 +160,11 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerBeanResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("interfaceNamed"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFnProvider, new ClientConfig(), new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
+        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(), new DefaultProxyMethodParser(Object::toString,
+                name -> null, namedResolver,
                 Mockito.mock(BodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
 
-        Assertions.assertEquals(expected, conRef.get().handler());
+        Assertions.assertEquals(expected, restFn.consumer().handler());
     }
 
     @Test
@@ -189,11 +173,11 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerBeanResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("methodNamed"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFnProvider, new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
                         Mockito.mock(BodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOfMappingNamed();
 
-        Assertions.assertEquals(expected, conRef.get().handler());
+        Assertions.assertEquals(expected, restFn.consumer().handler());
     }
 }

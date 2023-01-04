@@ -16,7 +16,7 @@ import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -39,7 +39,7 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
         // A few return types that don't need the body on successful responses.
         final var dischardBody = type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)
                 || type.isAssignableFrom(java.net.http.HttpHeaders.class)
-                || descriptor.map().containsKey(OfHeader.class);
+                || descriptor.annotations().containsKey(OfHeader.class);
 
         // Declared return type requires de-serialization.
         return responseInfo -> {

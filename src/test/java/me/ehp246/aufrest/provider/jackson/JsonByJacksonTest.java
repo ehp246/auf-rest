@@ -27,8 +27,8 @@ import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import me.ehp246.aufrest.api.annotation.OfBody;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.JsonViewValue;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.api.spi.RestPayload;
 import me.ehp246.aufrest.core.reflection.ReflectedType;
 import me.ehp246.test.TimingExtension;

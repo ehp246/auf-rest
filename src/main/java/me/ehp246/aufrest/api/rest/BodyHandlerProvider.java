@@ -3,7 +3,7 @@ package me.ehp246.aufrest.api.rest;
 import java.net.http.HttpResponse.BodyHandler;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.spi.ValueDescriptor.ReturnValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 
 /**
  * The abstraction that provides a {@linkplain BodyHandler} given a

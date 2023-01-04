@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.rest.BodyDescriptor;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -36,7 +37,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final RestLogger restLogger;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
-        this(clientBuilderSupplier, req -> null, null);
+        this(clientBuilderSupplier, (req, descriptor) -> null, null);
     }
 
     @Autowired
@@ -69,8 +70,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             private final HttpClient client = clientBuilder.build();
 
             @Override
-            public HttpResponse<?> apply(final RestRequest req, final ResponseConsumer consumer) {
-                final var httpReq = reqBuilder.apply(req);
+            public HttpResponse<?> apply(final RestRequest req, final BodyDescriptor descriptor,
+                    final ResponseConsumer consumer) {
+                final var httpReq = reqBuilder.apply(req, descriptor);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 

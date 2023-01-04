@@ -1,6 +1,5 @@
 package me.ehp246.test.local.restfn;
 
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
@@ -11,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.rest.RestFn;
-import me.ehp246.aufrest.api.rest.RestFn.ResponseConsumer;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -20,8 +18,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class RestFnTest {
-    private final static ResponseConsumer consumer = BodyHandlers::discarding;
-
     @Value("${local.server.port}")
     private int port;
     @Autowired
@@ -35,7 +31,7 @@ class RestFnTest {
             public String uri() {
                 return "http://localhost:" + port + "/restfn/auth";
             }
-        }, consumer);
+        });
 
         Assertions.assertEquals(401, response.statusCode());
     }
@@ -54,7 +50,7 @@ class RestFnTest {
                 return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
 
-        }, consumer);
+        });
 
         Assertions.assertEquals(200, response.statusCode());
     }

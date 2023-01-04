@@ -72,7 +72,8 @@ public final class ByRestProxyFactory {
                         final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
-                        final var outcome = RestFnOutcome.invoke(() -> restFn.apply(bound.request(), bound.consumer()));
+                        final var outcome = RestFnOutcome.invoke(
+                                () -> restFn.apply(bound.request(), bound.requestBodyDescriptor(), bound.consumer()));
 
                         // Handles any exceptions during the REST call prior the response.
                         final var httpResponse = (HttpResponse<?>) outcome

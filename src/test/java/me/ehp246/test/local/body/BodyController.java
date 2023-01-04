@@ -1,4 +1,4 @@
-package me.ehp246.test.local.bodys;
+package me.ehp246.test.local.body;
 
 import java.util.List;
 
