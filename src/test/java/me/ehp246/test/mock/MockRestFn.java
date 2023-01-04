@@ -14,7 +14,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 public class MockRestFn implements RestFn {
     private HttpResponse<?> response;
     private RestRequest req;
-    private ResponseConsumer consumer;
+    private ResponseHandler consumer;
     private final RuntimeException except;
 
     public MockRestFn() {
@@ -37,7 +37,7 @@ public class MockRestFn implements RestFn {
 
     @Override
     public HttpResponse<?> apply(final RestRequest request, final BodyDescriptor descriptor,
-            final ResponseConsumer consumer) {
+            final ResponseHandler consumer) {
         this.req = request;
         this.consumer = consumer;
 
@@ -50,7 +50,7 @@ public class MockRestFn implements RestFn {
         return response;
     }
 
-    public ResponseConsumer consumer() {
+    public ResponseHandler consumer() {
         return this.consumer;
     }
 

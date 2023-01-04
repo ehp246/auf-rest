@@ -71,7 +71,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @Override
             public HttpResponse<?> apply(final RestRequest req, final BodyDescriptor descriptor,
-                    final ResponseConsumer consumer) {
+                    final ResponseHandler consumer) {
                 final var httpReq = reqBuilder.apply(req, descriptor);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));

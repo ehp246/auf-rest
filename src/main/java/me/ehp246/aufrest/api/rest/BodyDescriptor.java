@@ -61,6 +61,10 @@ public sealed class BodyDescriptor {
     public sealed static class JsonViewValue extends BodyDescriptor {
         private final Class<?> viewValue;
 
+        public JsonViewValue(final Class<? extends Object> type) {
+            this(type, null);
+        }
+
         public JsonViewValue(final Class<?> type, final Annotation[] annotations) {
             super(type, annotations);
             this.viewValue = Optional.ofNullable(map.get(JsonView.class)).map(ann -> (JsonView) ann)

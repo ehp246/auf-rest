@@ -33,9 +33,13 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final JsonViewValue valueInfo) {
+    public String apply(final Object value, JsonViewValue valueInfo) {
         if (value == null) {
             return null;
+        }
+
+        if (valueInfo == null) {
+            valueInfo = new JsonViewValue(value.getClass(), null);
         }
 
         try {
@@ -69,11 +73,11 @@ public final class JsonByJackson implements FromJson, ToJson {
             }
 
             if (reifying.size() == 1) {
-                ObjectReader reader = objectMapper.readerFor(reifying.get(0));
                 if (jsonView != null) {
-                    reader = reader.withView(jsonView);
+                    return objectMapper.readerWithView(jsonView).forType(reifying.get(0)).readValue(json);
+                } else {
+                    return objectMapper.readValue(json, reifying.get(0));
                 }
-                return reader.readValue(json);
             } else {
                 final var typeFactory = objectMapper.getTypeFactory();
                 final var types = new ArrayList<Class<?>>();

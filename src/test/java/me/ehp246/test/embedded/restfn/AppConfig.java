@@ -12,6 +12,6 @@ import me.ehp246.test.mock.Jackson;
  */
 @SpringBootApplication
 @EnableByRest
-@Import(Jackson.class)
+@Import(Jackson.View.class)
 class AppConfig {
 }

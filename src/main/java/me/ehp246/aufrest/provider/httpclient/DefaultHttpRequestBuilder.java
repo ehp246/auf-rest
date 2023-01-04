@@ -183,6 +183,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         }
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
+            // Must be a JSON object.
             return new ContentPublisher(contentType,
                     BodyPublishers.ofString(toJson.apply(body, (JsonViewValue) descriptor)));
         }
