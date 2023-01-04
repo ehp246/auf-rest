@@ -20,7 +20,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @since 2.5.0
  *
  */
-public class ErrorResponseException extends Exception {
+public sealed class ErrorResponseException extends
+        Exception permits ClientErrorResponseException, ServerErrorResponseException, RedirectionResponseException {
     private static final long serialVersionUID = -182048232082907551L;
 
     protected final RestRequest request;

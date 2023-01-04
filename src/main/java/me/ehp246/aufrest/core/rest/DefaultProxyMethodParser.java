@@ -29,20 +29,24 @@ import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
+import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
+import me.ehp246.aufrest.api.exception.InternalServerErrorException;
 import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -267,13 +271,22 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final ResponseReturnMapper mapper = (restReq, httpResponse) -> {
             // Should throw the more specific type if possible.
             ErrorResponseException ex = null;
-            if (httpResponse.statusCode() >= 600) {
+            final var statusCode = httpResponse.statusCode();
+            if (statusCode >= 600) {
                 ex = new ErrorResponseException(restReq, httpResponse);
-            } else if (httpResponse.statusCode() >= 500) {
+            } else if (statusCode == 500) {
+                ex = new InternalServerErrorException(restReq, httpResponse);
+            } else if (statusCode == 502) {
+                ex = new BadGatewayException(restReq, httpResponse);
+            } else if (statusCode == 503) {
+                ex = new ServiceUnavailableException(restReq, httpResponse);
+            } else if (statusCode == 504) {
+                ex = new GatewayTimeoutException(restReq, httpResponse);
+            } else if (statusCode >= 500) {
                 ex = new ServerErrorResponseException(restReq, httpResponse);
-            } else if (httpResponse.statusCode() >= 400) {
+            } else if (statusCode >= 400) {
                 ex = new ClientErrorResponseException(restReq, httpResponse);
-            } else if (httpResponse.statusCode() >= 300) {
+            } else if (statusCode >= 300) {
                 ex = new RedirectionResponseException(restReq, httpResponse);
             }
 
