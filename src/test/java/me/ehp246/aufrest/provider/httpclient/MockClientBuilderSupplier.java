@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.test.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang

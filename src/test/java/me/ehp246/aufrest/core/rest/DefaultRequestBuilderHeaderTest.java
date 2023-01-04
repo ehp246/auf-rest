@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.mock.MockReq;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
+import me.ehp246.test.mock.MockReq;
 
 /**
  * @author Lei Yang

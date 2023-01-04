@@ -14,7 +14,7 @@ import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.core.rest.uri.TestCase.PathObject;
-import me.ehp246.aufrest.mock.MockRestFnProvider;
+import me.ehp246.test.mock.MockRestFnProvider;
 
 /**
  * @author Lei Yang

@@ -32,8 +32,8 @@ import me.ehp246.aufrest.core.rest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.core.rest.QueryParamCases.QueryParamCase01;
-import me.ehp246.aufrest.mock.MockHttpResponse;
-import me.ehp246.aufrest.mock.MockRestFnProvider;
+import me.ehp246.test.mock.MockHttpResponse;
+import me.ehp246.test.mock.MockRestFnProvider;
 
 /**
  * @author Lei Yang

@@ -11,7 +11,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
-import me.ehp246.aufrest.mock.Jackson;
+import me.ehp246.test.mock.Jackson;
 
 /**
  * @author Lei Yang

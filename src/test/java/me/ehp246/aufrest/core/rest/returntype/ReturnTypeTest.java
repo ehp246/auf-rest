@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
-import me.ehp246.aufrest.mock.MockRestFn;
+import me.ehp246.test.mock.MockRestFn;
 
 /**
  * @author Lei Yang

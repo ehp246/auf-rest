@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.mock.Jackson;
+import me.ehp246.test.mock.Jackson;
 
 /**
  * @author Lei Yang

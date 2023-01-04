@@ -18,7 +18,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.mock.MockHttpRequestBuilder;
+import me.ehp246.test.mock.MockHttpRequestBuilder;
 
 /**
  * @author Lei Yang
