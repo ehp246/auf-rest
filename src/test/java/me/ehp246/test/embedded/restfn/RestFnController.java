@@ -1,10 +1,13 @@
 package me.ehp246.test.embedded.restfn;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import me.ehp246.test.embedded.restfn.Logins.Login;
@@ -28,5 +31,11 @@ class RestFnController {
     @GetMapping("login")
     Login getLogin(@RequestBody final Login login) {
         return login;
+    }
+
+    @GetMapping("error")
+    ResponseEntity<Error> getError(@RequestHeader("code") final int code,
+            @RequestParam("message") final String message) {
+        return ResponseEntity.status(410).body(new Error(code, message));
     }
 }

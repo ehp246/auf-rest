@@ -1,6 +1,7 @@
 package me.ehp246.test.embedded.restfn;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -36,6 +37,21 @@ class RestFnTest {
     private RestFn restFn;
     @Autowired
     private BodyHandlerProvider jsonBodyHandlerProvider;
+
+    private RestFn.ResponseHandler newHandler() {
+        return () -> jsonBodyHandlerProvider.get(new ReturnValue(null, Error.class, new Annotation[] { new OfBody() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return OfBody.class;
+            }
+
+            @Override
+            public Class<?>[] value() {
+                return new Class[] { Map.class };
+            }
+        } }));
+    }
 
     @Test
     void auth_01() {
@@ -226,5 +242,40 @@ class RestFnTest {
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
+    }
+
+    @Test
+    void errorType_01() {
+        final var expected = UUID.randomUUID().toString();
+        final var response = this.restFn.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost:" + port + "/restfn/error";
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
+            }
+
+            @Override
+            public Map<String, List<String>> headers() {
+                return Map.of("code", List.of("10"));
+            }
+
+            @Override
+            public Map<String, List<String>> queries() {
+                return Map.of("message", List.of(expected));
+            }
+
+        }, null, newHandler());
+
+        Assertions.assertEquals(410, response.statusCode());
+
+        final var error = (Error)response.body();
+
+        Assertions.assertEquals(10, error.code());
+        Assertions.assertEquals(expected, error.message());
     }
 }
