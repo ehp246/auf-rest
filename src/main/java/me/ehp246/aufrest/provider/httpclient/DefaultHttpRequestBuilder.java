@@ -22,9 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.lang.Nullable;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.RestFnException;
@@ -128,10 +126,8 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             uri = URI.create(req.uri());
         } else {
             // Add query parameters
-            uri = URI.create(UriComponentsBuilder.fromUriString(req.uri())
-                    .queryParams(
-                            CollectionUtils.toMultiValueMap(Optional.ofNullable(req.queries()).orElseGet(Map::of)))
-                    .toUriString());
+            uri = URI.create(String.join("?", req.uri(),
+                    HttpUtils.toQueryString(Optional.ofNullable(req.queries()).orElseGet(Map::of))));
         }
 
         /*

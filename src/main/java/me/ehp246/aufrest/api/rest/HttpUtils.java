@@ -2,7 +2,10 @@ package me.ehp246.aufrest.api.rest;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * HTTP-related constants.
@@ -49,9 +52,34 @@ public final class HttpUtils {
      * Encodes a single URL path element.
      *
      */
-    public static String encodUrlPath(final String path) {
+    public static String encodeUrlPath(final String path) {
         return URLEncoder.encode(path, StandardCharsets.UTF_8).replaceAll("\\+", "%20").replaceAll("\\%21", "!")
                 .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")").replaceAll("\\%7E", "~");
     }
 
+    public static String toQueryString(final Map<String, List<String>> queries) {
+        if (queries == null || queries.size() == 0) {
+            return "";
+        }
+
+        final var strBuf = new StringBuffer();
+        for (final var entry : queries.entrySet()) {
+            final var name = entry.getKey();
+            final var values = entry.getValue();
+            if (values == null || values.size() == 0) {
+                continue;
+            }
+
+            final var encoded = values.stream().map(value -> URLEncoder.encode(value, StandardCharsets.UTF_8))
+                    .collect(Collectors.toList());
+
+            if (!strBuf.isEmpty()) {
+                strBuf.append("&");
+            }
+            strBuf.append(name + "=");
+            strBuf.append(String.join(",", encoded));
+        }
+
+        return strBuf.toString();
+    }
 }

@@ -84,12 +84,12 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
             final var arg = args[entry.getValue()];
             if (arg instanceof final Map<?, ?> map) {
                 pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
-                        e -> HttpUtils.encodUrlPath(e.getValue().toString()))));
+                        e -> HttpUtils.encodeUrlPath(e.getValue().toString()))));
 
                 map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(),
-                        HttpUtils.encodUrlPath(e.getValue().toString())));
+                        HttpUtils.encodeUrlPath(e.getValue().toString())));
             } else {
-                pathArgs.put(entry.getKey(), HttpUtils.encodUrlPath(arg.toString()));
+                pathArgs.put(entry.getKey(), HttpUtils.encodeUrlPath(arg.toString()));
             }
         });
 
