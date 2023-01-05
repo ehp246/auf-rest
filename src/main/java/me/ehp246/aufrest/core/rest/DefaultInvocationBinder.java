@@ -27,8 +27,9 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  * @author Lei Yang
  * @see DefaultProxyMethodParser
+ * @since 4.0
  */
-final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
+final class DefaultInvocationBinder implements InvocationBinder {
     private final String method;
     private final String accept;
     private final String acceptEncoding;
@@ -48,16 +49,13 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
     private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
     private final ResponseReturnMapper returnMapper;
 
-
-    DefaultInvocationRequestBinder(final String method, final String accept, final boolean acceptGZip,
+    DefaultInvocationBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final String baseUrl,
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
-            final Map<String, List<String>> headerStatic,
-            final ArgBinder<Object, Supplier<String>> authSupplierFn,
-            final ArgBinder<Object, Object> bodyArgBinder,
-            final JsonViewValue bodyInfo, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final ResponseReturnMapper returnMapper) {
+            final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
+            final ArgBinder<Object, Object> bodyArgBinder, final JsonViewValue bodyInfo,
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ResponseReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -99,11 +97,15 @@ final class DefaultInvocationRequestBinder implements InvocationRequestBinder {
         this.queryParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getKey()];
             if (arg instanceof final Map<?, ?> map) {
-                map.entrySet().stream().forEach(e -> queryBound.merge(e.getKey().toString(),
-                        new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue()))), (o, p) -> {
-                            o.add(p.get(0));
-                            return o;
-                        }));
+                map.entrySet().stream().forEach(e -> {
+                    final List<String> value = e.getValue() instanceof final List<?> list
+                            ? list.stream().map(Object::toString).collect(Collectors.toList())
+                            : Arrays.asList(OneUtil.toString(e.getValue()));
+                    queryBound.merge(e.getKey().toString(), value, (o, p) -> {
+                        o.add(p.get(0));
+                        return o;
+                    });
+                });
             } else if (arg instanceof final List<?> list) {
                 list.stream().forEach(v -> queryBound.merge(entry.getValue(),
                         new ArrayList<>(Arrays.asList(OneUtil.toString(v))), (o, p) -> {

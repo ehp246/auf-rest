@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
@@ -31,7 +32,7 @@ import me.ehp246.aufrest.core.rest.AuthTestCases.BearerAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase02;
-import me.ehp246.aufrest.core.rest.QueryParamCases.QueryParamCase01;
+import me.ehp246.aufrest.core.rest.QueryParamCases.Case01;
 import me.ehp246.test.mock.MockHttpResponse;
 import me.ehp246.test.mock.MockRestFnProvider;
 
@@ -187,7 +188,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParams_01() {
-        factory.newInstance(QueryParamCase01.class).queryByParams("q1", "q2");
+        factory.newInstance(Case01.class).getByParams("q1", "q2");
 
         final var request = reqRef.get();
 
@@ -206,14 +207,14 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParams_02() {
-        factory.newInstance(QueryParamCase01.class).queryEncoded("1 + 1 = 2");
+        factory.newInstance(Case01.class).get("1 + 1 = 2");
 
         Assertions.assertEquals("1 + 1 = 2", reqRef.get().queries().get("query 1").get(0), "Should not encode");
     }
 
     @Test
     void queryParams_03() {
-        factory.newInstance(QueryParamCase01.class).getByMultiple("1 + 1 = 2", "3");
+        factory.newInstance(Case01.class).getByMultiple("1 + 1 = 2", "3");
 
         final var queryParams = reqRef.get().queries();
 
@@ -273,8 +274,18 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
+    void queryParams_08() {
+        final var expected = UUID.randomUUID().toString();
+        factory.newInstance(QueryParamCases.Case01.class).getByParamName(expected);
+        final var queryName = reqRef.get().queries();
+
+        Assertions.assertEquals(1, queryName.size());
+        Assertions.assertEquals(expected, queryName.get("query1").get(0), "should default to parameter name");
+    }
+
+    @Test
     void queryParamList_01() {
-        factory.newInstance(QueryParamCase01.class).getByList(List.of("1 + 1 = 2", "3"));
+        factory.newInstance(Case01.class).getByList(List.of("1 + 1 = 2", "3"));
 
         final var queryParams = reqRef.get().queries();
 
@@ -286,7 +297,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParamMap_01() {
-        final var newInstance = factory.newInstance(QueryParamCase01.class);
+        final var newInstance = factory.newInstance(Case01.class);
 
         newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2"));
 
@@ -299,7 +310,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParamMap_02() {
-        final var newInstance = factory.newInstance(QueryParamCase01.class);
+        final var newInstance = factory.newInstance(Case01.class);
 
         newInstance.getByMap(Map.of("query 1", "1 + 1 = 2", "query2", "q2-a"), "q2-b");
 
@@ -311,6 +322,24 @@ class ByRestProxyFactoryTest {
         Assertions.assertEquals(2, request.queries().get("query2").size(), "Should collect all");
         Assertions.assertEquals("q2-a", request.queries().get("query2").get(0), "Should be determinstic in order");
         Assertions.assertEquals("q2-b", request.queries().get("query2").get(1));
+    }
+
+    @Test
+    @Disabled
+    void queryParamMap_03() {
+        final var newInstance = factory.newInstance(QueryParamCases.Case01.class);
+
+        newInstance.getByMapOfList(Map.of("query 1", List.of("1 + 1 = 2"), "query2", List.of("q2-a")));
+
+        final var request = reqRef.get();
+
+        Assertions.assertEquals(2, request.queries().size());
+
+        Assertions.assertEquals(1, request.queries().get("query 1").size());
+        Assertions.assertEquals("1 + 1 = 2", request.queries().get("query 1").get(0));
+
+        Assertions.assertEquals(1, request.queries().get("query2").size());
+        Assertions.assertEquals("q2-a", request.queries().get("query2").get(0));
     }
 
     @Test

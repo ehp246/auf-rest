@@ -60,7 +60,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * invocation to a {@linkplain RestRequest}.
  *
  * @author Lei Yang
- * @see DefaultInvocationRequestBinder
+ * @see DefaultInvocationBinder
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class, OfPath.class,
@@ -83,7 +83,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     @Override
     @SuppressWarnings("unchecked")
-    public DefaultInvocationRequestBinder parse(final Method method) {
+    public DefaultInvocationBinder parse(final Method method) {
         final var byRest = method.getDeclaringClass().getAnnotation(ByRest.class);
         final var reflected = new ReflectedMethod(method);
         final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
@@ -151,7 +151,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     return (target, args) -> handler;
                 });
 
-        return new DefaultInvocationRequestBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(), contentType,
+        return new DefaultInvocationBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(), contentType,
                 timeout(byRest), baseUrl(byRest, optionalOfMapping), pathParams(reflected), queryParams(reflected), queryStatic(byRest), headerParams(reflected),
                 headerStatic(byRest, reflected), authSupplierFn, bodyArgBinder, bodyInfo, consumerBinder, returnMapper(reflected));
     }

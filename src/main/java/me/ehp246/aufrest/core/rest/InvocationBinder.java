@@ -11,9 +11,9 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * {@linkplain RestRequest}. Produced by a {@linkplain ProxyMethodParser}.
  *
  * @author Lei Yang
- *
+ * @since 4.0
  */
-public interface InvocationRequestBinder {
+public interface InvocationBinder {
     Bound apply(Object target, Object[] args);
 
     record Bound(RestRequest request, BodyDescriptor requestBodyDescriptor, ResponseHandler consumer,

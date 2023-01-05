@@ -515,4 +515,9 @@ class DefaultProxyMethodParserTest {
                         () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
                 .printStackTrace();
     }
+
+    @Test
+    void query_01() {
+
+    }
 }

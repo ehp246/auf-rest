@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 
 /**
@@ -13,20 +12,23 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
  */
 class QueryParamCases {
     @ByRest("${echo.base}/get")
-    interface QueryParamCase01 {
-        @OfMapping(method = "GET")
-        void queryByParams(@OfQuery("query1") String query1, @OfQuery("query2") String query2);
+    interface Case01 {
+        void getByParams(@OfQuery("query1") String query1, @OfQuery("query2") String query2);
 
-        @OfMapping(method = "GET")
-        void queryEncoded(@OfQuery("query 1") String query1);
+        void get(@OfQuery("query 1") String query1);
 
         void getByMap(@OfQuery Map<String, String> queryParams);
+
+        void getByMapOfList(@OfQuery Map<String, List<String>> queryParams);
 
         void getByMap(@OfQuery Map<String, String> queryParams, @OfQuery("query2") String query2);
 
         void getByMultiple(@OfQuery("query 1") String query1, @OfQuery("query 1") String query2);
 
         void getByList(@OfQuery("qList") List<String> q);
+
+        void getByParamName(@OfQuery String query1);
+
     }
 
     @ByRest(value = "${echo.base}/get", queries = { "query2", "${api.bearer.token}", "query3",

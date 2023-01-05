@@ -25,7 +25,7 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
 public final class ByRestProxyFactory {
     private final static Logger LOGGER = LogManager.getLogger(ByRestProxyFactory.class);
 
-    private final Map<Method, InvocationRequestBinder> parsedCache = new ConcurrentHashMap<>();
+    private final Map<Method, InvocationBinder> parsedCache = new ConcurrentHashMap<>();
 
     private final RestFnProvider clientProvider;
     private final ClientConfig clientConfig;

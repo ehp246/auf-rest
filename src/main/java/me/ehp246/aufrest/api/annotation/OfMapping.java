@@ -9,9 +9,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 
 /**
- * Instructs the framework on how to construct HTTP requests from method
+ * Instructs the library on how to construct HTTP requests from method
  * invocations.
- *
  * <p>
  * It is to be applied to methods on
  * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces.
@@ -56,7 +55,7 @@ public @interface OfMapping {
     /**
      * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
      * that would be called to handle the response for the method.
-     * 
+     *
      * @return a bean name
      * @see HttpClient#send(java.net.http.HttpRequest,
      *      java.net.http.HttpResponse.BodyHandler)

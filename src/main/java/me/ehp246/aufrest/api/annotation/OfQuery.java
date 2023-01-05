@@ -5,13 +5,52 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.lang.reflect.Parameter;
 
 /**
- * @author Lei Yang
+ * Indicates the annotated method parameter specifies a REST query parameter.
+ * <p>
+ * The following Java types are supported on the method parameter:
+ * <p>
+ * <li>String</li>
+ * <p>
+ * In this case, the query parameter name is from {@linkplain OfQuery#value()}
+ * and it will have a single value.
+ * <p>
+ * <li>{@link java.util.List List&lt;String, String&gt;}</li>
+ * <p>
+ * In this case, the query parameter name is from {@linkplain OfQuery#value()}.
+ * It will have a list of values.
+ * <p>
+ * <li>{@link java.util.Map Map&lt;String, String&gt;}</li>
+ * <li>{@link java.util.Map Map&lt;String, List&lt;String, String&gt;&gt;}</li>
+ * <p>
+ * Map keys will be the query names and map values will query values.
+ * {@linkplain OfQuery#value()} is ignored in this case.
  *
+ * <p>
+ * The values should not be encoded.
+ * <p>
+ * <code>null</code> value is not filtered.
+ *
+ * @author Lei Yang
+ * @since 4.0
  */
 @Retention(RUNTIME)
 @Target({ ElementType.PARAMETER })
 public @interface OfQuery {
+    /**
+     * Specifies the name of the query parameter.
+     * <p>
+     * If no value is provided, the return from {@linkplain Parameter#getName()}
+     * will be used. To make this default behavior useful, Java compiler should
+     * probably have <code>-parameters</code> turned on.
+     * <p>
+     * If a query name is repeated on multiple method parameters, all arguments will
+     * be collected into a list under the query name.
+     *
+     * @see <a href='https://openjdk.org/jeps/118'>JEP 118: Access to Parameter
+     *      Names at Runtime</a>
+     */
     String value() default "";
 }

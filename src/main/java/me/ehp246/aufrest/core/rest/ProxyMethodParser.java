@@ -7,7 +7,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * The abstraction that parses a method of a {@linkplain ByRest} interface to
- * produce a {@linkplain InvocationRequestBinder} which in turn can turn an
+ * produce a {@linkplain InvocationBinder} which in turn can turn an
  * invocation on the method to a {@linkplain RestRequest}.
  *
  * @author Lei Yang
@@ -21,5 +21,5 @@ public interface ProxyMethodParser {
      * @param method must come from a {@linkplain ByRest}-annotated interface
      *
      */
-    InvocationRequestBinder parse(Method method);
+    InvocationBinder parse(Method method);
 }
