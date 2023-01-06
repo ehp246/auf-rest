@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,14 @@ public interface RestRequest {
         return null;
     }
 
+    /**
+     * Specifies the request body/payload. There is built-in support for the
+     * following types:
+     * <li>{@linkplain InputStream}</li>
+     * <li>{@linkplain Path}</li>
+     * <p>
+     * Un-recognized Java types will be sent as <code>application/json</code>.
+     */
     default Object body() {
         return null;
     }

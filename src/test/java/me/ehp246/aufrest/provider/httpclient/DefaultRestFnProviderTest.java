@@ -15,9 +15,9 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 import me.ehp246.test.mock.MockHttpRequestBuilder;
 
 /**

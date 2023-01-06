@@ -1,6 +1,5 @@
 package me.ehp246.test.embedded.restfn;
 
-import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -13,14 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import com.fasterxml.jackson.annotation.JsonView;
-
-import me.ehp246.aufrest.api.annotation.OfBody;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.api.spi.RestPayload;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
 
@@ -35,35 +31,27 @@ class RestFnTest {
     private int port;
     @Autowired
     private RestFn restFn;
-    @Autowired
-    private BodyHandlerProvider jsonBodyHandlerProvider;
 
-    private RestFn.ResponseHandler newHandler() {
-        return () -> jsonBodyHandlerProvider.get(new ReturnValue(null, Error.class, new Annotation[] { new OfBody() {
-
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return OfBody.class;
-            }
-
-            @Override
-            public Class<?>[] value() {
-                return new Class[] { Map.class };
-            }
-        } }));
-    }
-
-    @Test
-    void auth_01() {
-        final var response = restFn.apply(new RestRequest() {
+    private RestRequest new401Req() {
+        return new RestRequest() {
 
             @Override
             public String uri() {
                 return "http://localhost:" + port + "/restfn/auth";
             }
-        });
+        };
+    }
 
-        Assertions.assertEquals(401, response.statusCode());
+    @SuppressWarnings("unchecked")
+    @Test
+    void auth_01() {
+        final var threw = Assertions.assertThrows(UnhandledResponseException.class,
+                () -> this.restFn.apply(new401Req()));
+        threw.printStackTrace();
+
+        Assertions.assertEquals(401, threw.statusCode());
+        Assertions.assertEquals(true, threw.getCause().body() instanceof Map);
+        Assertions.assertEquals(4, ((Map<String, Object>) threw.getCause().body()).entrySet().size());
     }
 
     @Test
@@ -107,19 +95,7 @@ class RestFnTest {
             public Supplier<String> authSupplier() {
                 return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
-        }, new JsonViewValue(Logins.Login.class),
-                () -> jsonBodyHandlerProvider.get(new ReturnValue(null, null, new Annotation[] { new OfBody() {
-
-                    @Override
-                    public Class<? extends Annotation> annotationType() {
-                        return OfBody.class;
-                    }
-
-                    @Override
-                    public Class<?>[] value() {
-                        return new Class[] { Map.class };
-                    }
-                } })));
+        });
 
         @SuppressWarnings("unchecked")
         final var body = (Map<String, Object>) response.body();
@@ -161,29 +137,18 @@ class RestFnTest {
             public Supplier<String> authSupplier() {
                 return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
-        }, new JsonViewValue(Logins.LoginName.class, new Annotation[] { new JsonView() {
+        }, new RestBodyDescriptor<Logins.LoginName>() {
 
             @Override
-            public Class<? extends Annotation> annotationType() {
-                return JsonView.class;
+            public Class<Logins.LoginName> type() {
+                return Logins.LoginName.class;
             }
 
             @Override
-            public Class<?>[] value() {
-                return new Class[] { RestPayload.class };
+            public Class<?> view() {
+                return RestPayload.class;
             }
-        } }), () -> jsonBodyHandlerProvider.get(new ReturnValue(null, null, new Annotation[] { new OfBody() {
-
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return OfBody.class;
-            }
-
-            @Override
-            public Class<?>[] value() {
-                return new Class[] { Map.class };
-            }
-        } })));
+        });
 
         @SuppressWarnings("unchecked")
         final var body = (Map<String, Object>) response.body();
@@ -214,31 +179,20 @@ class RestFnTest {
             public Supplier<String> authSupplier() {
                 return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
-        }, null, () -> jsonBodyHandlerProvider.get(new ReturnValue(null, null, new Annotation[] { new JsonView() {
+        }, (RestResponseDescriptor<LoginName>) new RestResponseDescriptor.InferringDescriptor<LoginName>() {
 
             @Override
-            public Class<? extends Annotation> annotationType() {
-                return JsonView.class;
+            public Class<LoginName> type() {
+                return LoginName.class;
             }
 
             @Override
-            public Class<?>[] value() {
-                return new Class[] { RestPayload.class };
+            public Class<?> view() {
+                return RestPayload.class;
             }
-        }, new OfBody() {
+        });
 
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return OfBody.class;
-            }
-
-            @Override
-            public Class<?>[] value() {
-                return new Class[] { LoginName.class };
-            }
-        } })));
-
-        final var body = (LoginName) response.body();
+        final var body = response.body();
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -247,33 +201,45 @@ class RestFnTest {
     @Test
     void errorType_01() {
         final var expected = UUID.randomUUID().toString();
-        final var response = this.restFn.apply(new RestRequest() {
+        final var response = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.apply(new RestRequest() {
 
-            @Override
-            public String uri() {
-                return "http://localhost:" + port + "/restfn/error";
-            }
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/error";
+                    }
 
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
-            }
+                    @Override
+                    public Supplier<String> authSupplier() {
+                        return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
+                    }
 
-            @Override
-            public Map<String, List<String>> headers() {
-                return Map.of("code", List.of("10"));
-            }
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("10"));
+                    }
 
-            @Override
-            public Map<String, List<String>> queries() {
-                return Map.of("message", List.of(expected));
-            }
+                    @Override
+                    public Map<String, List<String>> queries() {
+                        return Map.of("message", List.of(expected));
+                    }
 
-        }, null, newHandler());
+                }, (RestResponseDescriptor<String>) new RestResponseDescriptor.InferringDescriptor<String>() {
+
+                    @Override
+                    public Class<String> type() {
+                        return String.class;
+                    }
+
+                    @Override
+                    public Class<?> errorType() {
+                        return Error.class;
+                    }
+                })).getCause().httpResponse();
 
         Assertions.assertEquals(410, response.statusCode());
 
-        final var error = (Error)response.body();
+        final var error = (Error) response.body();
 
         Assertions.assertEquals(10, error.code());
         Assertions.assertEquals(expected, error.message());

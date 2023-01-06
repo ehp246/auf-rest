@@ -82,4 +82,8 @@ public final class HttpUtils {
 
         return strBuf.toString();
     }
+
+    public static boolean isSuccess(final int code) {
+        return code >= 200 && code < 300;
+    }
 }

@@ -5,25 +5,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
 
-import me.ehp246.aufrest.api.annotation.OfHeader;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * @author Lei Yang
  *
  */
-final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
+final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
     private final FromJson fromJson;
     private final RestLogger restLogger;
 
@@ -33,40 +34,59 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
         this.restLogger = restLogger;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public BodyHandler<?> get(final ReturnValue descriptor) {
-        final Class<?> type = descriptor == null ? void.class : descriptor.bodyType();
-        // A few return types that don't need the body on successful responses.
-        final var dischardBody = type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class)
-                || type.isAssignableFrom(java.net.http.HttpHeaders.class)
-                || descriptor.annotations().containsKey(OfHeader.class);
+    public BodyHandler<?> get(final RestResponseDescriptor<?> descriptor) {
+        Objects.nonNull(descriptor);
 
-        // Declared return type requires de-serialization.
+        final var successDescriptor = (RestBodyDescriptor<Object>) descriptor;
+        final var errorDescriptor = new RestBodyDescriptor<>() {
+            public Class<Object> type() {
+                return (Class<Object>) descriptor.errorType();
+            }
+        };
+
         return responseInfo -> {
-            final var statusCode = responseInfo.statusCode();
-            final var gzipped = responseInfo.headers().firstValue(HttpUtils.CONTENT_ENCODING).orElse("")
-                    .equalsIgnoreCase("gzip");
-            // The server might not set the header. Assuming JSON. Otherwise, follow the
-            // header.
-            final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
-                    .orElse(HttpUtils.APPLICATION_JSON);
-
             // Log headers
             if (restLogger != null) {
                 this.restLogger.onResponseInfo(responseInfo);
             }
 
+            final var statusCode = responseInfo.statusCode();
+            final var gzipped = responseInfo.headers().firstValue(HttpUtils.CONTENT_ENCODING).orElse("")
+                    .equalsIgnoreCase("gzip");
+            // The server might not set the header. If not, assume JSON. Otherwise, follow
+            // the header.
+            final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
+                    .orElse(HttpUtils.APPLICATION_JSON);
+
+            final RestBodyDescriptor<Object> resposneDescriptor;
+            if (statusCode >= 200 && statusCode < 300) {
+                // Use the supplied if it is supplied.
+                if (descriptor instanceof final RestResponseDescriptor.CustomHandlerDescriptor<?> handleSupplier) {
+                    return (BodySubscriber<Object>) handleSupplier.handler();
+                }
+                resposneDescriptor = successDescriptor;
+            } else {
+                resposneDescriptor = errorDescriptor;
+            }
+
+            // By this time, the descriptor could be for either a success or a failure.
+            final var type = resposneDescriptor.type();
+            final var dischardBody = type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class);
+            if (statusCode == 204 || dischardBody) {
+                return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
+            }
+
             // Short-circuit the content-type.
             if (type.isAssignableFrom(InputStream.class)) {
+                // Wrap it in a gzip stream.
                 return gzipped
                         ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
                                 in -> OneUtil.orThrow(() -> new GZIPInputStream(in)))
                         : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
             }
 
-            if ((statusCode == 204) || (statusCode < 300 && dischardBody)) {
-                return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
-            }
 
             return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
                 try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
@@ -82,13 +102,12 @@ final class DefaultBodyHandlerProvider implements BodyHandlerProvider {
                 }
 
                 // This means a JSON string will not be de-serialized.
-                if (statusCode >= 300 && descriptor.errorType() == String.class) {
+                if (type.isAssignableFrom(String.class)) {
                     return text;
                 }
 
                 if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-                    return fromJson.apply(text,
-                            statusCode < 300 ? descriptor : new ReturnValue(descriptor.errorType()));
+                    return fromJson.apply(text, resposneDescriptor);
                 }
 
                 // Returns the raw text for anything that is not JSON for now.

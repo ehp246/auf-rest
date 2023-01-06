@@ -21,19 +21,17 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.MimeTypeUtils;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyDescriptor;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.core.rest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -50,9 +48,9 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     private final Optional<AuthProvider> authProvider;
     private final Duration responseTimeout;
 
-    public DefaultHttpRequestBuilder(@Nullable final Supplier<HttpRequest.Builder> reqBuilderSupplier,
-            @Nullable final HeaderProvider headerProvider, @Nullable final AuthProvider authProvider,
-            final ToJson toJson, @Nullable final String requestTimeout) {
+    public DefaultHttpRequestBuilder(final Supplier<HttpRequest.Builder> reqBuilderSupplier,
+            final HeaderProvider headerProvider, final AuthProvider authProvider, final ToJson toJson,
+            final String requestTimeout) {
         super();
         this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
         this.headerProvider = Optional.ofNullable(headerProvider);
@@ -65,7 +63,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     }
 
     @Override
-    public HttpRequest apply(final RestRequest req, final BodyDescriptor descriptor) {
+    public HttpRequest apply(final RestRequest req, final RestBodyDescriptor<?> descriptor) {
         final var builder = reqBuilderSupplier.get();
         final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
         /*
@@ -142,7 +140,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         return builder.build();
     }
 
-    private ContentPublisher getContentPublisher(final RestRequest req, final BodyDescriptor descriptor) {
+    private ContentPublisher getContentPublisher(final RestRequest req, final RestBodyDescriptor<?> descriptor) {
         final var body = req.body();
 
         final var contentType = Optional.of(req.contentType()).filter(OneUtil::hasValue)
@@ -181,7 +179,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
             // Must be a JSON object.
             return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(toJson.apply(body, (JsonViewValue) descriptor)));
+                    BodyPublishers.ofString(toJson.apply(body, descriptor)));
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"

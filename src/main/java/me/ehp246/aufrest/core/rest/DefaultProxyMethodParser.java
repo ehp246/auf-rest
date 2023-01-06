@@ -44,7 +44,6 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
-import me.ehp246.aufrest.api.rest.BodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
@@ -70,11 +69,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
-    private final BodyHandlerProvider jsonBodyHandlerProvider;
+    private final InferringBodyHandlerProvider jsonBodyHandlerProvider;
     private final BodyHandlerBeanResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerBeanResolver bodyHandlerResolver, final BodyHandlerProvider jsonBodyHandlerProvider) {
+            final BodyHandlerBeanResolver bodyHandlerResolver, final InferringBodyHandlerProvider jsonBodyHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
         this.jsonBodyHandlerProvider = jsonBodyHandlerProvider;
@@ -147,7 +146,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     if (descriptor.type().isAssignableFrom(HttpResponse.class) && descriptor.reifying() == null) {
                         throw new IllegalArgumentException("Missing required " + OfBody.class);
                     }
-                    final var handler = jsonBodyHandlerProvider.get(descriptor);
+                    final var handler = jsonBodyHandlerProvider.get(null);
                     return (target, args) -> handler;
                 });
 

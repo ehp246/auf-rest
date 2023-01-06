@@ -5,8 +5,8 @@ import java.net.http.HttpRequest;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.BodyDescriptor;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
 /**
  * @author Lei Yang

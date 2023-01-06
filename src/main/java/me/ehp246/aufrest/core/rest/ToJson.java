@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 
 /**
  * Internal abstraction for {@linkplain ObjectMapper} operations.
@@ -12,13 +12,7 @@ import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
  */
 @FunctionalInterface
 public interface ToJson {
-    /**
-     *
-     * @param value
-     * @param descriptor Could be <code>null</code>
-     * @return
-     */
-    String apply(Object value, JsonViewValue descriptor);
+    String apply(Object value, RestBodyDescriptor<?> descriptor);
 
     default String apply(final Object value) {
         return this.apply(value, null);

@@ -1,10 +1,10 @@
 package me.ehp246.aufrest.provider.httpclient;
 
-import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,15 +12,21 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
+import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.rest.BodyDescriptor;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
-import me.ehp246.aufrest.api.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor.InferringDescriptor;
+import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
+import me.ehp246.aufrest.core.rest.InferringBodyHandlerProvider;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
@@ -34,6 +40,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
     private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
+    private final InferringBodyHandlerProvider inferringHandlerProvider;
     private final RestLogger restLogger;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
@@ -42,11 +49,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
     @Autowired
     public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final List<RestListener> listeners,
-            @Nullable final RestLogger restLogger) {
+            @Nullable final RestLogger restLogger, final InferringBodyHandlerProvider inferringBodyHandlerProvider) {
         this.clientBuilderSupplier = HttpClient::newBuilder;
         this.reqBuilder = reqBuilder;
         this.listeners = listeners;
         this.restLogger = restLogger;
+        this.inferringHandlerProvider = inferringBodyHandlerProvider;
     }
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
@@ -55,6 +63,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         this.reqBuilder = restToHttp;
         this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
         this.restLogger = null;
+        this.inferringHandlerProvider = null;
     }
 
     @Override
@@ -69,10 +78,11 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             private final HttpClient client = clientBuilder.build();
 
+            @SuppressWarnings("unchecked")
             @Override
-            public HttpResponse<?> apply(final RestRequest req, final BodyDescriptor descriptor,
-                    final ResponseHandler consumer) {
-                final var httpReq = reqBuilder.apply(req, descriptor);
+            public <T> HttpResponse<T> apply(final RestRequest req, final RestBodyDescriptor<?> requestBodyDescriptor,
+                    final RestResponseDescriptor<T> responseBodyDescriptor) {
+                final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 
@@ -80,21 +90,38 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     restLogger.onRequest(httpReq, req);
                 }
 
+                final var handler = responseBodyDescriptor instanceof final RestResponseDescriptor.CustomHandlerDescriptor<T> handlerSupplier
+                        ? handlerSupplier.handler()
+                        : inferringHandlerProvider
+                                .get(responseBodyDescriptor == null ? new InferringDescriptor<T>() {
+
+                                    @Override
+                                    public Class<T> type() {
+                                        return (Class<T>) Map.class;
+                                    }
+                                } : (InferringDescriptor<T>) responseBodyDescriptor);
+
                 final HttpResponse<?> httpResponse;
                 // Try/catch on send only.
                 try {
-                    httpResponse = client.send(httpReq, consumer.handler());
-                } catch (IOException | InterruptedException e) {
+                    httpResponse = client.send(httpReq, handler);
+                    if (!HttpUtils.isSuccess(httpResponse.statusCode())) {
+                        throw new ErrorResponseException(req, httpResponse);
+                    }
+                } catch (final Exception e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
 
                     listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
 
+                    if (e instanceof final ErrorResponseException error) {
+                        throw new UnhandledResponseException(error);
+                    }
                     throw new RestFnException(e);
                 }
 
                 listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
 
-                return httpResponse;
+                return (HttpResponse<T>) httpResponse;
             }
         };
     }

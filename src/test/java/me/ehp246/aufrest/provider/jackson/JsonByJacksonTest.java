@@ -17,7 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -153,8 +155,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
-                new ReturnValue(null, null,
-                        this.reifying(HashSet.class, List.class, TestCases.Person01.class)));
+                new ReturnValue(null, null, this.reifying(HashSet.class, List.class, TestCases.Person01.class)));
 
         Assertions.assertEquals(1, result.size());
 
@@ -165,6 +166,28 @@ class JsonByJacksonTest {
             Assertions.assertEquals(from.get(i).getFirstName(), list.get(i).getFirstName());
             Assertions.assertEquals(from.get(i).getLastName(), list.get(i).getLastName());
         });
+    }
+
+    // @Test
+    void view_01() throws JsonMappingException, JsonProcessingException {
+        final var expected = new Person(Instant.now(), UUID.randomUUID().toString(), UUID.randomUUID().toString(),
+                null);
+
+        final var json = OBJECT_MAPPER.writer().forType(Person.class).writeValueAsString(expected);
+
+        Assertions.assertEquals(true, json.contains(expected.getFirstName()));
+
+        var writer = OBJECT_MAPPER.writer().forType(Person.class).withView(RestPayload.class);
+
+        var jsonView = writer.writeValueAsString(expected);
+
+        Assertions.assertEquals(false, jsonView.contains(expected.getFirstName()));
+
+        writer = writer.withView(String.class);
+
+        jsonView = writer.writeValueAsString(expected);
+
+        Assertions.assertEquals(false, jsonView.contains(expected.getFirstName()));
     }
 
     @Test
