@@ -16,9 +16,9 @@ import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
-import me.ehp246.aufrest.core.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.core.rest.ProxyMethodParser;
 import me.ehp246.test.mock.MockRestFn;
 

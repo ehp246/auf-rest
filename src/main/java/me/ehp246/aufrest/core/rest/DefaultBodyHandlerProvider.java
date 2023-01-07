@@ -14,6 +14,7 @@ import java.util.zip.GZIPInputStream;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;

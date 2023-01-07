@@ -15,7 +15,7 @@ public record RestBodyDescriptor<T> (
          */
         Class<?> type,
         /**
-         * The type parameters if {@linkplain #type()} is a generic {@linkplain List} or
+         * The type parameters if {@linkplain #contentType()} is a generic {@linkplain List} or
          * {@linkplain Set}.
          */
         Class<?>[] reifying,

@@ -17,13 +17,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
+import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
 import me.ehp246.aufrest.api.spi.RestPayload;
-import me.ehp246.aufrest.core.rest.InferringBodyHandlerProvider;
 import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
 
@@ -42,6 +43,8 @@ class RestFnTest {
     private RestFn restFn;
     @Autowired
     private InferringBodyHandlerProvider handlerProvider;
+    @Autowired
+    private ContentPublisherProvider publisherProvider;
 
     private RestRequest new401Req() {
         return new RestRequest() {
@@ -49,6 +52,11 @@ class RestFnTest {
             @Override
             public String uri() {
                 return "http://localhost:" + port + "/restfn/auth";
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                return ""::toString;
             }
         };
     }
@@ -65,11 +73,6 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
-            }
         };
     }
 
@@ -84,11 +87,6 @@ class RestFnTest {
             @Override
             public Object body() {
                 return login;
-            }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
         };
     }
@@ -113,15 +111,15 @@ class RestFnTest {
             public String uri() {
                 return "http://localhost:" + port + "/restfn/auth";
             }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
-            }
-
         });
 
         Assertions.assertEquals(200, response.statusCode());
+    }
+
+    @Test
+    void auth_03() {
+        Assertions.assertEquals(200, restFn.apply(() -> "http://localhost:" + port + "/restfn/auth").statusCode(),
+                "should authorize from the global bean");
     }
 
     @Test
@@ -140,11 +138,6 @@ class RestFnTest {
             @Override
             public Object body() {
                 return login;
-            }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
         });
 
@@ -182,17 +175,56 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
-            }
         }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class, RestPayload.class));
 
         final var body = response.body();
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
+    }
+
+    @Test
+    void contentPublisher_01() {
+        final var username = UUID.randomUUID().toString();
+        final var password = UUID.randomUUID().toString();
+        final var login = new Logins.LoginName() {
+
+            @Override
+            public String getUsername() {
+                return username;
+            }
+
+            @Override
+            public String getPassword() {
+                return password;
+            }
+        };
+
+        final var contentPublisher = this.publisherProvider.get(login,
+                new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class));
+
+        final var response = restFn.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost:" + port + "/restfn/login";
+            }
+
+            @Override
+            public String contentType() {
+                return contentPublisher.contentType();
+            }
+
+            @Override
+            public Object body() {
+                return contentPublisher.publisher();
+            }
+        });
+
+        final var body = response.body();
+
+        Assertions.assertEquals(username, body.get("username"));
+        Assertions.assertEquals(password, body.get("password"), "should bypass the built-in publisher");
     }
 
     @Test
@@ -224,11 +256,6 @@ class RestFnTest {
             public Object body() {
                 return bodyPublisher;
             }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
-            }
         }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class));
 
         final var body = response.body();
@@ -253,11 +280,6 @@ class RestFnTest {
             @Override
             public Object body() {
                 return login;
-            }
-
-            @Override
-            public Supplier<String> authSupplier() {
-                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
         }, new RestResponseDescriptor.Inferring<LoginName>(
                 new RestBodyDescriptor<>(LoginName.class, RestPayload.class)));
@@ -329,11 +351,6 @@ class RestFnTest {
                     @Override
                     public String uri() {
                         return "http://localhost:" + port + "/restfn/error";
-                    }
-
-                    @Override
-                    public Supplier<String> authSupplier() {
-                        return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
                     }
 
                     @Override

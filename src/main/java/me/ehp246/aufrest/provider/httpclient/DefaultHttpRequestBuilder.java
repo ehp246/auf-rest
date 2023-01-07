@@ -1,16 +1,9 @@
 package me.ehp246.aufrest.provider.httpclient;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -21,47 +14,50 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.util.MimeTypeUtils;
-
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
-import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.AuthProvider;
+import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
+import me.ehp246.aufrest.api.rest.ContentPublisherProvider.ContentPublisher;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
-import me.ehp246.aufrest.core.rest.ToJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * Builds a {@linkplain HttpRequest} from a {@linkplain RestRequest}.
+ * <p>
+ * Available as Spring bean.
  *
  * @author Lei Yang
- *
+ * @since 1.0
+ * @see AufRestConfiguration
  */
 public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
-    private final ToJson toJson;
+    private final ContentPublisherProvider publisherProvider;
     private final Optional<HeaderProvider> headerProvider;
     private final Optional<AuthProvider> authProvider;
     private final Duration responseTimeout;
 
     public DefaultHttpRequestBuilder(final Supplier<HttpRequest.Builder> reqBuilderSupplier,
-            final HeaderProvider headerProvider, final AuthProvider authProvider, final ToJson toJson,
-            final String requestTimeout) {
+            final HeaderProvider headerProvider, final AuthProvider authProvider,
+            final ContentPublisherProvider publisherProvider, final String requestTimeout) {
         super();
         this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
         this.headerProvider = Optional.ofNullable(headerProvider);
         this.authProvider = Optional.ofNullable(authProvider);
-        this.toJson = toJson;
+        this.publisherProvider = publisherProvider;
         this.responseTimeout = Optional.ofNullable(requestTimeout).filter(OneUtil::hasValue)
                 .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
                         e -> new IllegalArgumentException(AufRestConstants.RESPONSE_TIMEOUT + ": " + value)))
                 .orElse(null);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public HttpRequest apply(final RestRequest req, final RestBodyDescriptor<?> descriptor) {
         final var builder = reqBuilderSupplier.get();
@@ -131,92 +127,20 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         /*
          * Body
          */
-        final var contentPublisher = getContentPublisher(req, descriptor);
+        final ContentPublisherProvider.ContentPublisher contentPublisher;
+        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+            // Encode query parameters as the body ignoring the body object.
+            contentPublisher = new ContentPublisher(req.contentType(),
+                    BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queries())));
+        } else {
+            contentPublisher = this.publisherProvider.get(req.body(), req.contentType(),
+                    (RestBodyDescriptor<Object>) descriptor);
+        }
 
-        builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType);
+        builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType());
 
         builder.method(req.method().toUpperCase(), contentPublisher.publisher()).uri(uri);
 
         return builder.build();
-    }
-
-    private ContentPublisher getContentPublisher(final RestRequest req, final RestBodyDescriptor<?> descriptor) {
-        final var body = req.body();
-
-        final var contentType = Optional.of(req.contentType()).filter(OneUtil::hasValue)
-                .orElse(HttpUtils.APPLICATION_JSON);
-
-        if (body instanceof final BodyPublisher publisher) {
-            return new ContentPublisher(contentType, publisher);
-        }
-
-        if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
-            // Encode query parameters as the body ignoring the body object.
-            return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queries())));
-        }
-
-        if (body == null) {
-            return new ContentPublisher(contentType, BodyPublishers.noBody());
-        }
-
-        // The rest requires a body.
-        if (body instanceof final InputStream stream) {
-            return new ContentPublisher(contentType, BodyPublishers.ofInputStream(() -> stream));
-        }
-
-        if (body instanceof final Path path) {
-            final var boundry = new String(MimeTypeUtils.generateMultipartBoundary(), StandardCharsets.UTF_8);
-
-            return new ContentPublisher(HttpUtils.MULTIPART_FORM_DATA + ";boundary=" + boundry,
-                    ofMimeMultipartData(Map.of("file", path), boundry));
-        }
-
-        if (contentType.equalsIgnoreCase(HttpUtils.TEXT_PLAIN)) {
-            return new ContentPublisher(contentType, BodyPublishers.ofString(body.toString()));
-        }
-
-        if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
-            // Must be a JSON object.
-            return new ContentPublisher(contentType,
-                    BodyPublishers.ofString(toJson.apply(body, descriptor)));
-        }
-
-        throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + descriptor.type() + "'");
-    }
-
-    private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {
-        final var byteArrays = new ArrayList<byte[]>();
-        final byte[] separator = ("--" + boundary + "\r\ncontent-disposition: form-data; name=")
-                .getBytes(StandardCharsets.UTF_8);
-
-        try {
-            for (final Map.Entry<Object, Object> entry : data.entrySet()) {
-                byteArrays.add(separator);
-
-                final var key = entry.getKey();
-                final var value = entry.getValue();
-                if (value instanceof final Path path) {
-                    final var mimeType = Files.probeContentType(path);
-
-                    byteArrays.add(("\"" + key + "\"; filename=\"" + path.getFileName() + "\"\r\ncontent-type: "
-                            + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-                    byteArrays.add(Files.readAllBytes(path));
-                    byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
-                } else {
-                    byteArrays.add(("\"" + key + "\"\r\n\r\n" + value + "\r\n").getBytes(StandardCharsets.UTF_8));
-                }
-            }
-        } catch (final IOException e) {
-            throw new RestFnException(e);
-        }
-
-        byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-
-        return BodyPublishers.ofByteArrays(byteArrays);
-    }
-
-    private record ContentPublisher(String contentType, BodyPublisher publisher) {
     }
 }

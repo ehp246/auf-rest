@@ -24,10 +24,10 @@ public interface RestFn {
      *
      * @param <T>                    The expected payload type.
      * @param request
-     * @param requestBodyDescriptor  Can be <code>null</code>. In which case, the
+     * @param requestDescriptor  Can be <code>null</code>. In which case, the
      *                               object reference type will be used for
      *                               serialization.
-     * @param restResponseDescriptor Defines how to de-serialize the response body.
+     * @param responseDescriptor Defines how to de-serialize the response body.
      *                               Both normal response and error response should
      *                               be specified. Can be <code>null</code>. In
      *                               which case, the response body will be
@@ -41,8 +41,8 @@ public interface RestFn {
      *         transformed into a Java object as dedicated by
      *         {@linkplain RestResponseDescriptor}.
      */
-    <T> HttpResponse<T> apply(RestRequest request, RestBodyDescriptor<?> requestBodyDescriptor,
-            RestResponseDescriptor<T> restResponseDescriptor);
+    <T> HttpResponse<T> apply(RestRequest request, RestBodyDescriptor<?> requestDescriptor,
+            RestResponseDescriptor<T> responseDescriptor);
 
     default HttpResponse<Map<String, Object>> apply(final RestRequest request) {
         return this.apply(request, null, Inferring.MAP);
@@ -58,12 +58,12 @@ public interface RestFn {
      *
      */
     default HttpResponse<Map<String, Object>> apply(final RestRequest request,
-            final RestBodyDescriptor<?> requestBodyDescriptor) {
-        return this.apply(request, requestBodyDescriptor, Inferring.MAP);
+            final RestBodyDescriptor<?> requestDescriptor) {
+        return this.apply(request, requestDescriptor, Inferring.MAP);
     }
 
     default <T> HttpResponse<T> apply(final RestRequest request,
-            final RestResponseDescriptor<T> restResponseDescriptor) {
-        return this.apply(request, null, restResponseDescriptor);
+            final RestResponseDescriptor<T> responseDescriptor) {
+        return this.apply(request, null, responseDescriptor);
     }
 }

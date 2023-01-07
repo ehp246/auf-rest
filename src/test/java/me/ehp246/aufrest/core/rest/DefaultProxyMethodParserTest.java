@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
+import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth02;

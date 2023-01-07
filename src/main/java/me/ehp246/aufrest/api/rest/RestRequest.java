@@ -27,9 +27,9 @@ public interface RestRequest {
     /**
      * Defines the supplier for Authorization value for the request.
      * <p>
-     * A non-<code>null</code> supplier indicates to the framework, it should use
-     * the returned supplier for Authorization header ignoring the optional global
-     * {@link AuthProvider AuthorizationProvider} bean.
+     * A non-<code>null</code> supplier indicates to use the returned for
+     * Authorization header ignoring the optional global {@link AuthProvider
+     * AuthorizationProvider} bean.
      * <p>
      * The returned object from the supplier is converted to {@linkplain String} via
      * {@linkplain Object#toString()}.

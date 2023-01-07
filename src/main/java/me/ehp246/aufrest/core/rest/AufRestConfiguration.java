@@ -17,6 +17,7 @@ import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -38,7 +39,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class })
+@Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultBodyHandlerProvider.class,
+        DefaultContentPublisherProvider.class })
 public final class AufRestConfiguration {
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
@@ -63,9 +65,11 @@ public final class AufRestConfiguration {
 
     @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
     public HttpRequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
-            @Autowired(required = false) final AuthProvider authProvider, final ToJson toJson,
+            @Autowired(required = false) final AuthProvider authProvider,
+            final ContentPublisherProvider publisherProvider,
             @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
-        return new DefaultHttpRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, toJson, requestTimeout);
+        return new DefaultHttpRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, publisherProvider,
+                requestTimeout);
     }
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
