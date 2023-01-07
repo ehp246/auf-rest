@@ -1,5 +1,6 @@
 package me.ehp246.test.embedded.restfn;
 
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -11,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
@@ -32,6 +36,8 @@ import me.ehp246.test.embedded.restfn.Logins.LoginName;
 class RestFnTest {
     @Value("${local.server.port}")
     private int port;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private RestFn restFn;
     @Autowired
@@ -149,7 +155,7 @@ class RestFnTest {
     }
 
     @Test
-    void body_requestView_01() {
+    void requestBody_view_01() {
         final var username = UUID.randomUUID().toString();
         final var password = UUID.randomUUID().toString();
 
@@ -187,6 +193,48 @@ class RestFnTest {
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
+    }
+
+    @Test
+    void requestBody_providedPublisher_01() throws JsonProcessingException {
+        final var username = UUID.randomUUID().toString();
+        final var password = UUID.randomUUID().toString();
+        final var login = new Logins.LoginName() {
+
+            @Override
+            public String getUsername() {
+                return username;
+            }
+
+            @Override
+            public String getPassword() {
+                return password;
+            }
+        };
+
+        final var bodyPublisher = BodyPublishers.ofString(objectMapper.writeValueAsString(login));
+        final var response = restFn.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost:" + port + "/restfn/login";
+            }
+
+            @Override
+            public Object body() {
+                return bodyPublisher;
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
+            }
+        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class));
+
+        final var body = response.body();
+
+        Assertions.assertEquals(username, body.get("username"));
+        Assertions.assertEquals(password, body.get("password"), "should bypass the built-in publisher");
     }
 
     @Test
