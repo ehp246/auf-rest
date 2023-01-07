@@ -19,12 +19,17 @@ public sealed interface RestResponseDescriptor<T> {
     }
 
     /**
-     *
      * @author Lei Yang
      * @since 4.0
      */
-    non-sealed interface CustomHandlerDescriptor<T> extends RestResponseDescriptor<T> {
-        BodyHandler<T> handler();
+    record Provided<T> (BodyHandler<T> handler, Class<?> errorType) implements RestResponseDescriptor<T> {
+        /**
+         *
+         * @param handler Required.
+         */
+        public Provided(final BodyHandler<T> handler) {
+            this(handler, Map.class);
+        }
     }
 
     /**
@@ -35,6 +40,21 @@ public sealed interface RestResponseDescriptor<T> {
      * @since 4.0
      * @see BodyHandler
      */
-    non-sealed interface InferringDescriptor<T> extends RestResponseDescriptor<T>, RestBodyDescriptor<T> {
+    record Inferring<T> (RestBodyDescriptor<T> body, Class<?> errorType)
+            implements RestResponseDescriptor<T> {
+
+        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(RestBodyDescriptor.MAP);
+
+        public Inferring(final RestBodyDescriptor<T> descriptor) {
+            this(descriptor, Map.class);
+        }
+
+        public Inferring(final Class<T> type) {
+            this(new RestBodyDescriptor<T>(type), Map.class);
+        }
+
+        public Inferring(final Class<T> type, final Class<?> errorType) {
+            this(new RestBodyDescriptor<T>(type), errorType);
+        }
     }
 }

@@ -1,5 +1,7 @@
 package me.ehp246.test.embedded.restfn;
 
+import java.util.Set;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,11 @@ class RestFnController {
     @GetMapping("login")
     Login getLogin(@RequestBody final Login login) {
         return login;
+    }
+
+    @GetMapping("logins")
+    Set<Login> getLoginSet(@RequestBody final Login login) {
+        return Set.of(login);
     }
 
     @GetMapping("error")

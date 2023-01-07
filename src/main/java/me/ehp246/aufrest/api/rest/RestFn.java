@@ -4,6 +4,7 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
 
 /**
  * The abstraction of a HttpClient that takes in a request and returns a
@@ -43,6 +44,9 @@ public interface RestFn {
     <T> HttpResponse<T> apply(RestRequest request, RestBodyDescriptor<?> requestBodyDescriptor,
             RestResponseDescriptor<T> restResponseDescriptor);
 
+    default HttpResponse<Map<String, Object>> apply(final RestRequest request) {
+        return this.apply(request, null, Inferring.MAP);
+    }
     /**
      * Sends the request body by inferring on the reference type of
      * {@linkplain RestRequest#body()}.
@@ -53,12 +57,9 @@ public interface RestFn {
      * the body will be accepted as raw {@linkplain String}.
      *
      */
-    default <T> HttpResponse<T> apply(final RestRequest request) {
-        return this.apply(request, null, null);
-    }
-
-    default <T> HttpResponse<T> apply(final RestRequest request, final RestBodyDescriptor<?> requestBodyDescriptor) {
-        return this.apply(request, requestBodyDescriptor, null);
+    default HttpResponse<Map<String, Object>> apply(final RestRequest request,
+            final RestBodyDescriptor<?> requestBodyDescriptor) {
+        return this.apply(request, requestBodyDescriptor, Inferring.MAP);
     }
 
     default <T> HttpResponse<T> apply(final RestRequest request,

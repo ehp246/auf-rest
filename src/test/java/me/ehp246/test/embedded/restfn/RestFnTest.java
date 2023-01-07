@@ -17,7 +17,10 @@ import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
 import me.ehp246.aufrest.api.spi.RestPayload;
+import me.ehp246.aufrest.core.rest.InferringBodyHandlerProvider;
+import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
 
 /**
@@ -31,6 +34,8 @@ class RestFnTest {
     private int port;
     @Autowired
     private RestFn restFn;
+    @Autowired
+    private InferringBodyHandlerProvider handlerProvider;
 
     private RestRequest new401Req() {
         return new RestRequest() {
@@ -38,6 +43,46 @@ class RestFnTest {
             @Override
             public String uri() {
                 return "http://localhost:" + port + "/restfn/auth";
+            }
+        };
+    }
+
+    private RestRequest newLoginsReq(final Login login) {
+        return new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost:" + port + "/restfn/logins";
+            }
+
+            @Override
+            public Object body() {
+                return login;
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
+            }
+        };
+    }
+
+    private RestRequest newLoginReq(final Login login) {
+        return new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost:" + port + "/restfn/login";
+            }
+
+            @Override
+            public Object body() {
+                return login;
+            }
+
+            @Override
+            public Supplier<String> authSupplier() {
+                return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
         };
     }
@@ -97,8 +142,7 @@ class RestFnTest {
             }
         });
 
-        @SuppressWarnings("unchecked")
-        final var body = (Map<String, Object>) response.body();
+        final var body = response.body();
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(password, body.get("password"));
@@ -137,21 +181,9 @@ class RestFnTest {
             public Supplier<String> authSupplier() {
                 return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
-        }, new RestBodyDescriptor<Logins.LoginName>() {
+        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class, RestPayload.class));
 
-            @Override
-            public Class<Logins.LoginName> type() {
-                return Logins.LoginName.class;
-            }
-
-            @Override
-            public Class<?> view() {
-                return RestPayload.class;
-            }
-        });
-
-        @SuppressWarnings("unchecked")
-        final var body = (Map<String, Object>) response.body();
+        final var body = response.body();
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
@@ -179,23 +211,65 @@ class RestFnTest {
             public Supplier<String> authSupplier() {
                 return "Basic YmFzaWN1c2VyOnBhc3N3b3Jk"::toString;
             }
-        }, (RestResponseDescriptor<LoginName>) new RestResponseDescriptor.InferringDescriptor<LoginName>() {
-
-            @Override
-            public Class<LoginName> type() {
-                return LoginName.class;
-            }
-
-            @Override
-            public Class<?> view() {
-                return RestPayload.class;
-            }
-        });
+        }, new RestResponseDescriptor.Inferring<LoginName>(
+                new RestBodyDescriptor<>(LoginName.class, RestPayload.class)));
 
         final var body = response.body();
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
+    }
+
+    @Test
+    void body_reifying_01() {
+        final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+        final var response = restFn.apply(newLoginsReq(login),
+                new Inferring<List<LoginName>>(new RestBodyDescriptor<List<LoginName>>(List.class,
+                        new Class<?>[] { LoginName.class }, RestPayload.class)));
+
+        final var body = response.body();
+
+        Assertions.assertEquals(1, body.size());
+        Assertions.assertEquals(login.username(), body.get(0).getUsername());
+        Assertions.assertEquals(null, body.get(0).getPassword());
+    }
+
+    @Test
+    void responseBody_providedHandler_01() {
+        final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+        /*
+         * Get a handler that doesn't support View.
+         */
+        final var handler = this.handlerProvider.get(new RestResponseDescriptor.Inferring<LoginName>(
+                new RestBodyDescriptor<>(LoginName.class)));
+
+        final var respons = restFn.apply(newLoginReq(login), new RestResponseDescriptor.Provided<>(handler)).body();
+
+        /*
+         * The provided handler doesn't support view. All properties should be /*
+         * populated.
+         */
+        Assertions.assertEquals(login.username(), respons.getUsername());
+        Assertions.assertEquals(login.password(), respons.getPassword());
+
+        /*
+         * Get a handler that does support View.
+         */
+        final var handlerWithView = this.handlerProvider
+                .get(new RestResponseDescriptor.Inferring<LoginName>(
+                        new RestBodyDescriptor<>(LoginName.class, RestPayload.class)));
+
+        /**
+         * Use it on the response.
+         */
+        final var responseWithView = restFn
+                .apply(newLoginReq(login), new RestResponseDescriptor.Provided<>(handlerWithView))
+                .body();
+
+        Assertions.assertEquals(login.username(), responseWithView.getUsername());
+        Assertions.assertEquals(null, responseWithView.getPassword());
     }
 
     @Test
@@ -224,18 +298,8 @@ class RestFnTest {
                         return Map.of("message", List.of(expected));
                     }
 
-                }, (RestResponseDescriptor<String>) new RestResponseDescriptor.InferringDescriptor<String>() {
-
-                    @Override
-                    public Class<String> type() {
-                        return String.class;
-                    }
-
-                    @Override
-                    public Class<?> errorType() {
-                        return Error.class;
-                    }
-                })).getCause().httpResponse();
+                }, new RestResponseDescriptor.Inferring<String>(String.class, Error.class))).getCause()
+                .httpResponse();
 
         Assertions.assertEquals(410, response.statusCode());
 

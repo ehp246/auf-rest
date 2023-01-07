@@ -9,7 +9,6 @@ import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
@@ -18,6 +17,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -36,15 +36,12 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public BodyHandler<?> get(final RestResponseDescriptor<?> descriptor) {
+    public <T> BodyHandler<T> get(final RestResponseDescriptor<T> descriptor) {
         Objects.nonNull(descriptor);
 
-        final var successDescriptor = (RestBodyDescriptor<Object>) descriptor;
-        final var errorDescriptor = new RestBodyDescriptor<>() {
-            public Class<Object> type() {
-                return (Class<Object>) descriptor.errorType();
-            }
-        };
+        // In case of dynamic handler, the success body type is not used and irrelevant.
+        final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.body() : null;
+        final var errorDescriptor = new RestBodyDescriptor<>(descriptor.errorType());
 
         return responseInfo -> {
             // Log headers
@@ -60,11 +57,11 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
             final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
                     .orElse(HttpUtils.APPLICATION_JSON);
 
-            final RestBodyDescriptor<Object> resposneDescriptor;
+            final RestBodyDescriptor<?> resposneDescriptor;
             if (statusCode >= 200 && statusCode < 300) {
                 // Use the supplied if it is supplied.
-                if (descriptor instanceof final RestResponseDescriptor.CustomHandlerDescriptor<?> handleSupplier) {
-                    return (BodySubscriber<Object>) handleSupplier.handler();
+                if (descriptor instanceof final RestResponseDescriptor.Provided<?> handleSupplier) {
+                    return (BodySubscriber<T>) handleSupplier.handler();
                 }
                 resposneDescriptor = successDescriptor;
             } else {
@@ -83,36 +80,36 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
                 // Wrap it in a gzip stream.
                 return gzipped
                         ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
-                                in -> OneUtil.orThrow(() -> new GZIPInputStream(in)))
-                        : BodySubscribers.mapping(BodySubscribers.ofInputStream(), Function.identity());
+                                in -> OneUtil.orThrow(() -> (T) new GZIPInputStream(in)))
+                        : BodySubscribers.mapping(BodySubscribers.ofInputStream(), t -> (T) t);
             }
 
+            return (BodySubscriber<T>) BodySubscribers
+                    .mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
+                        try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
+                                final var byteOs = new ByteArrayOutputStream()) {
+                            gis.transferTo(byteOs);
+                            return byteOs.toString(StandardCharsets.UTF_8);
+                        } catch (final IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
+                        if (restLogger != null) {
+                            restLogger.onResponseBody(text);
+                        }
 
-            return BodySubscribers.mapping(gzipped ? BodySubscribers.mapping(BodySubscribers.ofByteArray(), bytes -> {
-                try (final var gis = new GZIPInputStream(new ByteArrayInputStream(bytes));
-                        final var byteOs = new ByteArrayOutputStream()) {
-                    gis.transferTo(byteOs);
-                    return byteOs.toString(StandardCharsets.UTF_8);
-                } catch (final IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-                if (restLogger != null) {
-                    restLogger.onResponseBody(text);
-                }
+                        // This means a JSON string will not be de-serialized.
+                        if (type.isAssignableFrom(String.class)) {
+                            return text;
+                        }
 
-                // This means a JSON string will not be de-serialized.
-                if (type.isAssignableFrom(String.class)) {
-                    return text;
-                }
+                        if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
+                            return fromJson.apply(text, resposneDescriptor);
+                        }
 
-                if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-                    return fromJson.apply(text, resposneDescriptor);
-                }
-
-                // Returns the raw text for anything that is not JSON for now.
-                return text;
-            });
+                        // Returns the raw text for anything that is not JSON for now.
+                        return text;
+                    });
         };
     }
 

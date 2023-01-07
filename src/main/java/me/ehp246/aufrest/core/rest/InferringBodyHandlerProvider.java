@@ -25,5 +25,5 @@ public interface InferringBodyHandlerProvider {
      * @param successDescriptor the descriptor on how to handle a success response.
      * @param errorDescriptor   the descriptor on how to handle an error response.
      */
-    BodyHandler<?> get(RestResponseDescriptor<?> descriptor);
+    <T> BodyHandler<T> get(RestResponseDescriptor<T> descriptor);
 }

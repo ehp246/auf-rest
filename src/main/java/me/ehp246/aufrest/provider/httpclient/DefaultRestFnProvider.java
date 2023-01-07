@@ -4,7 +4,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +23,6 @@ import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor.InferringDescriptor;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.core.rest.InferringBodyHandlerProvider;
 
@@ -90,16 +88,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     restLogger.onRequest(httpReq, req);
                 }
 
-                final var handler = responseBodyDescriptor instanceof final RestResponseDescriptor.CustomHandlerDescriptor<T> handlerSupplier
+                final var handler = responseBodyDescriptor instanceof final RestResponseDescriptor.Provided<T> handlerSupplier
                         ? handlerSupplier.handler()
-                        : inferringHandlerProvider
-                                .get(responseBodyDescriptor == null ? new InferringDescriptor<T>() {
-
-                                    @Override
-                                    public Class<T> type() {
-                                        return (Class<T>) Map.class;
-                                    }
-                                } : (InferringDescriptor<T>) responseBodyDescriptor);
+                        : inferringHandlerProvider.get(responseBodyDescriptor);
 
                 final HttpResponse<?> httpResponse;
                 // Try/catch on send only.
