@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
@@ -41,11 +42,11 @@ public interface RestFn {
      *         transformed into a Java object as dedicated by
      *         {@linkplain RestResponseDescriptor}.
      */
-    <T> HttpResponse<T> apply(RestRequest request, RestBodyDescriptor<?> requestDescriptor,
+    <T> HttpResponse<T> applyForResponse(RestRequest request, RestBodyDescriptor<?> requestDescriptor,
             RestResponseDescriptor<T> responseDescriptor);
 
-    default HttpResponse<Map<String, Object>> apply(final RestRequest request) {
-        return this.apply(request, null, Inferring.MAP);
+    default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
+        return this.applyForResponse(request, null, Inferring.MAP);
     }
     /**
      * Sends the request body by inferring on the reference type of
@@ -57,13 +58,27 @@ public interface RestFn {
      * the body will be accepted as raw {@linkplain String}.
      *
      */
-    default HttpResponse<Map<String, Object>> apply(final RestRequest request,
+    default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request,
             final RestBodyDescriptor<?> requestDescriptor) {
-        return this.apply(request, requestDescriptor, Inferring.MAP);
+        return this.applyForResponse(request, requestDescriptor, Inferring.MAP);
     }
 
-    default <T> HttpResponse<T> apply(final RestRequest request,
+    default <T> HttpResponse<T> applyForResponse(final RestRequest request,
             final RestResponseDescriptor<T> responseDescriptor) {
-        return this.apply(request, null, responseDescriptor);
+        return this.applyForResponse(request, null, responseDescriptor);
+    }
+
+    default Map<String, Object> apply(final RestRequest request) {
+        return this.applyForResponse(request).body();
+    }
+
+    default <T> T apply(final RestRequest request, final RestBodyDescriptor<?> requestDescriptor,
+            final RestResponseDescriptor<T> responseDescriptor) {
+        return this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
+    }
+
+    default <T> HttpHeaders applyForHeaders(final RestRequest request, final RestBodyDescriptor<?> requestDescriptor,
+            final RestResponseDescriptor<T> responseDescriptor) {
+        return this.applyForResponse(request, requestDescriptor, responseDescriptor).headers();
     }
 }

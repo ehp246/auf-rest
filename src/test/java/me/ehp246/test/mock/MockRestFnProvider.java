@@ -3,9 +3,11 @@ package me.ehp246.test.mock;
 import java.net.http.HttpResponse;
 
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 
 /**
  * @author Lei Yang
@@ -31,14 +33,27 @@ public class MockRestFnProvider implements RestFnProvider {
     @Override
     public RestFn get(final ClientConfig clientConfig) {
         if (this.except != null) {
-            return (req, des, con) -> {
-                throw this.except;
+            return new RestFn() {
+
+                @Override
+                public <T> HttpResponse<T> applyForResponse(final RestRequest request,
+                        final RestBodyDescriptor<?> requestDescriptor,
+                        final RestResponseDescriptor<T> responseDescriptor) {
+                    throw except;
+                }
+
             };
         }
+        return new RestFn() {
 
-        return (req, des, con) -> {
-            this.req = req;
-            return response;
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> HttpResponse<T> applyForResponse(final RestRequest request,
+                    final RestBodyDescriptor<?> requestDescriptor, final RestResponseDescriptor<T> responseDescriptor) {
+                MockRestFnProvider.this.req = req;
+                return (HttpResponse<T>) MockRestFnProvider.this.response;
+            }
+
         };
     }
 

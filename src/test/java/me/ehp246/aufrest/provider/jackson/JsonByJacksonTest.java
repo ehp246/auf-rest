@@ -83,7 +83,7 @@ class JsonByJacksonTest {
     void list_01() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
+        final List<Instant> back = (List<Instant>) jackson.applyForResponse(jackson.apply(from),
                 new ReturnValue(null, null, this.reifying(ArrayList.class, Instant.class)));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
@@ -94,7 +94,7 @@ class JsonByJacksonTest {
     void list_02() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
+        final List<Instant> back = (List<Instant>) jackson.applyForResponse(jackson.apply(from),
                 new ReturnValue(null, null, this.reifying(ArrayList.class, Instant.class)));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
@@ -105,7 +105,7 @@ class JsonByJacksonTest {
     void list_03() {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
-        final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
+        final List<List<Instant>> back = (List<List<Instant>>) jackson.applyForResponse(jackson.apply(from),
                 new ReturnValue(null, null, this.reifying(List.class, List.class, Instant.class)));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
@@ -122,7 +122,7 @@ class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
+        final List<Person> back = (List<Person>) jackson.applyForResponse(jackson.apply(from),
                 new ReturnValue(null, null, this.reifying(ArrayList.class, Person.class)));
 
         back.stream().forEach(value -> {
@@ -138,7 +138,7 @@ class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
+        final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.applyForResponse(jackson.apply(from),
                 new ReturnValue(List.class, null, this.reifying(ArrayList.class, TestCases.Person01.class)));
 
         IntStream.range(0, from.size()).forEach(i -> {
@@ -154,7 +154,7 @@ class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
+        final var result = (Set<List<TestCases.Person01>>) jackson.applyForResponse(jackson.apply(Set.of(from)),
                 new ReturnValue(null, null, this.reifying(HashSet.class, List.class, TestCases.Person01.class)));
 
         Assertions.assertEquals(1, result.size());
@@ -199,7 +199,7 @@ class JsonByJacksonTest {
         final var valueInfo = new JsonViewValue(Person.class, annotations);
 
         IntStream.range(0, PERF_COUNT).forEach(i -> {
-            jackson.apply(value, valueInfo);
+            jackson.applyForResponse(value, valueInfo);
         });
     }
 }

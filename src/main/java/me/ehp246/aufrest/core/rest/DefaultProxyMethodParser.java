@@ -7,6 +7,7 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,12 +42,12 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -70,14 +71,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
-    private final InferringBodyHandlerProvider jsonBodyHandlerProvider;
+    private final InferringBodyHandlerProvider inferredHandlerProvider;
     private final BodyHandlerBeanResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerBeanResolver bodyHandlerResolver, final InferringBodyHandlerProvider jsonBodyHandlerProvider) {
+            final BodyHandlerBeanResolver bodyHandlerResolver,
+            final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
-        this.jsonBodyHandlerProvider = jsonBodyHandlerProvider;
+        this.inferredHandlerProvider = inferredHandlerProvider;
         this.bodyHandlerResolver = bodyHandlerResolver;
     }
 
@@ -122,19 +124,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
-        final var bodyInfo = bodyParam.map(p -> {
-            final var parameter = p.parameter();
-            return new JsonViewValue(parameter.getType(), parameter.getAnnotations());
-        }).orElse(null);
+        final var bodyArgInfo = bodyParam.map(ReflectedParameter::parameter)
+                .map(parameter -> new RestBodyDescriptor<>(parameter.getType(),
+                        Optional.ofNullable(parameter.getAnnotation(OfBody.class)).map(OfBody::view).orElse(null)))
+                .orElse(null);
 
         /*
          * Returns and response body handlers are coupled.
          */
         final var returnType = reflected.getReturnType();
-        /**
-         * Priority: BodyHandler parameter, @OfMapping named, ByRestProxyConfig,
-         * built-in recognized types, default BindingBodyHandlerProvider
-         */
         final var consumerBinder = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p))
                 .or(() -> optionalOfMapping.map(OfMapping::consumerHandler).filter(OneUtil::hasValue)
@@ -142,18 +140,28 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
-                    final var descriptor = new ReturnValue(returnType, byRest.errorType(),
-                            reflected.method().getDeclaredAnnotations());
-                    if (descriptor.type().isAssignableFrom(HttpResponse.class) && descriptor.reifying() == null) {
+                    final var ofBody = reflected.findOnMethod(OfBody.class);
+                    if (returnType.isAssignableFrom(HttpHeaders.class)) {
+                        return (target, args) -> BodyHandlers.discarding();
+                    }
+                    if (returnType.isAssignableFrom(HttpResponse.class) && ofBody.isEmpty()) {
                         throw new IllegalArgumentException("Missing required " + OfBody.class);
                     }
-                    final var handler = jsonBodyHandlerProvider.get(null);
+                    final var bodyDescriptor =
+                            ofBody.map(OfBody::value).filter(OneUtil::hasValue)
+                                    .map(value -> new RestBodyDescriptor<>(value[0],
+                                            value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null,
+                                            byRest.errorType()))
+                                    .orElseGet(() -> new RestBodyDescriptor<>(returnType, null, byRest.errorType()));
+                    final var handler = inferredHandlerProvider.get(
+                            new RestResponseDescriptor.Inferring<>(bodyDescriptor));
                     return (target, args) -> handler;
                 });
 
-        return new DefaultInvocationBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(), contentType,
-                timeout(byRest), baseUrl(byRest, optionalOfMapping), pathParams(reflected), queryParams(reflected), queryStatic(byRest), headerParams(reflected),
-                headerStatic(byRest, reflected), authSupplierFn, bodyArgBinder, bodyInfo, consumerBinder, returnMapper(reflected));
+        return new DefaultInvocationBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(),
+                contentType, timeout(byRest), baseUrl(byRest, optionalOfMapping), pathParams(reflected),
+                queryParams(reflected), queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected),
+                authSupplierFn, bodyArgBinder, bodyArgInfo, consumerBinder, returnMapper(reflected));
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
@@ -210,8 +218,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private Map<Integer, String> queryParams(final ReflectedMethod reflected) {
-        return reflected.allParametersWith(OfQuery.class).stream().collect(
-                Collectors.toMap(ReflectedParameter::index, p -> {
+        return reflected.allParametersWith(OfQuery.class).stream()
+                .collect(Collectors.toMap(ReflectedParameter::index, p -> {
                     final var name = p.parameter().getAnnotation(OfQuery.class).value();
                     return OneUtil.hasValue(name) ? name : p.parameter().getName();
                 }));

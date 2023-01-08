@@ -20,4 +20,6 @@ import java.lang.annotation.Target;
 @Target({ METHOD, ElementType.PARAMETER })
 public @interface OfBody {
     Class<?>[] value() default {};
+
+    Class<?> view() default Default.class;
 }

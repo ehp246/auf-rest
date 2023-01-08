@@ -2,31 +2,33 @@ package me.ehp246.test.mock;
 
 import java.net.http.HttpResponse;
 
-import me.ehp246.aufrest.api.rest.BodyDescriptor;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 
 /**
  * @author Lei Yang
  *
  */
 public class MockRestFn implements RestFn {
-    private HttpResponse<?> response;
     private RestRequest req;
-    private ResponseHandler consumer;
+    private HttpResponse<?> response;
+
+    private RestResponseDescriptor<?> responseDescriptor;
     private final RuntimeException except;
 
     public MockRestFn() {
         super();
-        this.response = null;
+        this.response = new MockHttpResponse<>();
         this.except = null;
     }
 
     public MockRestFn(final RuntimeException except) {
         super();
         this.except = except;
-        this.response = null;
+        this.response = new MockHttpResponse<>();
     }
 
     public MockRestFn(final HttpResponse<?> response) {
@@ -35,34 +37,32 @@ public class MockRestFn implements RestFn {
         this.response = response;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public HttpResponse<?> apply(final RestRequest request, final BodyDescriptor descriptor,
-            final ResponseHandler consumer) {
+    public <T> HttpResponse<T> applyForResponse(final RestRequest request,
+            final RestBodyDescriptor<?> requestDescriptor,
+            final RestResponseDescriptor<T> responseDescriptor) {
         this.req = request;
-        this.consumer = consumer;
+        this.responseDescriptor = responseDescriptor;
 
         if (this.except != null) {
             throw this.except;
         }
 
-        this.response = new MockHttpResponse<>();
-
-        return response;
+        return (HttpResponse<T>) response;
     }
 
-    public ResponseHandler consumer() {
-        return this.consumer;
+    public RestResponseDescriptor<?> responseDescriptor() {
+        return this.responseDescriptor;
     }
 
     public RestRequest req() {
         return this.req;
     }
 
-    public RestRequest takeReq() {
-        final var req = this.req;
-        this.req = req;
-
-        return req;
+    public void reset() {
+        this.req = null;
+        this.response = null;
     }
 
     public RestFnProvider toProvider() {

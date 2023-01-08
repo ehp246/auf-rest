@@ -41,6 +41,10 @@ public final class OneUtil {
         return value != null && !value.isBlank();
     }
 
+    public static boolean hasValue(final Object[] value) {
+        return value != null && value.length > 0;
+    }
+
     public static Stream<String> streamValues(final Collection<String> values) {
         return Optional.ofNullable(values).orElseGet(ArrayList::new).stream().filter(OneUtil::hasValue);
     }
@@ -127,14 +131,14 @@ public final class OneUtil {
             for (final var arg : args) {
                 if (arg == null) {
                     mapped.add(null);
-                } else if (arg instanceof Map<?, ?> m) {
+                } else if (arg instanceof final Map<?, ?> m) {
                     m.entrySet().stream().forEach(t -> {
                         final var v = t.getValue();
                         mapped.add(v == null ? (String) null : v.toString());
 
                         map.put(t.getKey().toString(), mapped);
                     });
-                } else if (arg instanceof List<?> v) {
+                } else if (arg instanceof final List<?> v) {
                     v.stream().map(t -> t == null ? (String) null : t.toString()).forEach(t -> mapped.add(t));
                     map.put(entry.getKey(), mapped);
                 } else {

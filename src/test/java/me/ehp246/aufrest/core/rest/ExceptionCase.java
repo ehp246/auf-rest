@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  *
  */
 @ByRest("")
-interface ExceptionCase001 {
+interface ExceptionCase {
     void get();
 
     void delete() throws IOException, InterruptedException;

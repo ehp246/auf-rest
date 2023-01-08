@@ -99,7 +99,7 @@ class DefaultRestFnProviderTest {
             }
         });
 
-        new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig()).apply(req);
+        new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig()).applyForResponse(req);
 
         Assertions.assertEquals(true, map.get("1") == mockedReq);
         Assertions.assertEquals(true, map.get("1") == map.get("3"));
@@ -126,7 +126,7 @@ class DefaultRestFnProviderTest {
                                 final RestRequest req) {
                             map.put("5", exception);
                         }
-                    })).get(new ClientConfig()).apply(req);
+                    })).get(new ClientConfig()).applyForResponse(req);
         } catch (final Exception e) {
             ex = e;
         }
@@ -155,7 +155,7 @@ class DefaultRestFnProviderTest {
                                 final RestRequest req) {
                             map.put("5", exception);
                         }
-                    })).get(new ClientConfig()).apply(req);
+                    })).get(new ClientConfig()).applyForResponse(req);
         } catch (final Exception e) {
             ex = e;
         }
@@ -180,7 +180,7 @@ class DefaultRestFnProviderTest {
                 public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
                     throw orig;
                 }
-            })).get(new ClientConfig()).apply(req);
+            })).get(new ClientConfig()).applyForResponse(req);
         } catch (final Exception e) {
             ex = e;
         }
@@ -196,7 +196,7 @@ class DefaultRestFnProviderTest {
                 .assertThrows(RestFnException.class,
                         () -> new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
                                 new MockHttpRequestBuilder(), null).get(new ClientConfig())
-                                        .apply(() -> "http://nowhere"));
+                                        .applyForResponse(() -> "http://nowhere"));
 
         Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }
@@ -207,7 +207,7 @@ class DefaultRestFnProviderTest {
 
         final var ex = Assertions.assertThrows(RestFnException.class,
                 () -> new DefaultRestFnProvider(new MockClientBuilderSupplier(toBeThrown)::builder,
-                        new MockHttpRequestBuilder(), null).get(new ClientConfig()).apply(() -> "http://nowhere"));
+                        new MockHttpRequestBuilder(), null).get(new ClientConfig()).applyForResponse(() -> "http://nowhere"));
 
         Assertions.assertEquals(true, ex.getCause() == toBeThrown);
     }

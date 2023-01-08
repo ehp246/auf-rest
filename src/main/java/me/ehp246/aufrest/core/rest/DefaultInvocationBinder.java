@@ -15,9 +15,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -44,9 +45,9 @@ final class DefaultInvocationBinder implements InvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final JsonViewValue bodyInfo;
+    private final RestBodyDescriptor<?> bodyInfo;
     // Response body
-    private final ArgBinder<Object, BodyHandler<?>> consumerBinder;
+    private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ResponseReturnMapper returnMapper;
 
     DefaultInvocationBinder(final String method, final String accept, final boolean acceptGZip,
@@ -54,7 +55,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
-            final ArgBinder<Object, Object> bodyArgBinder, final JsonViewValue bodyInfo,
+            final ArgBinder<Object, Object> bodyArgBinder, final RestBodyDescriptor<?> bodyInfo,
             final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ResponseReturnMapper returnMapper) {
         super();
         this.method = method;
@@ -71,7 +72,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyInfo = bodyInfo;
-        this.consumerBinder = consumerBinder;
+        this.handlerBinder = consumerBinder;
         this.returnMapper = returnMapper;
     }
 
@@ -158,9 +159,8 @@ final class DefaultInvocationBinder implements InvocationBinder {
                 .forEach(entry -> headerBound.putIfAbsent(entry.getKey(), entry.getValue()));
 
         final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
-        final var body = bodyArgBinder == null ? null : bodyArgBinder.apply(target, args);
 
-        final var handler = consumerBinder.apply(target, args);
+        final var body = bodyArgBinder == null ? null : bodyArgBinder.apply(target, args);
 
         return new Bound(new RestRequest() {
 
@@ -213,6 +213,6 @@ final class DefaultInvocationBinder implements InvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyInfo, () -> handler, returnMapper);
+        }, bodyInfo, new RestResponseDescriptor.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 }

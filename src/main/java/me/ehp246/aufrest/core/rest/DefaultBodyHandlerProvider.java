@@ -40,8 +40,10 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
     public <T> BodyHandler<T> get(final RestResponseDescriptor<T> descriptor) {
         Objects.nonNull(descriptor);
 
-        // In case of dynamic handler, the success body type is not used and irrelevant.
+        // In case of provided handler, the success body type is not used and
+        // irrelevant.
         final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.body() : null;
+        // Needed for both provided and inferring descriptors.
         final var errorDescriptor = new RestBodyDescriptor<>(descriptor.errorType());
 
         return responseInfo -> {

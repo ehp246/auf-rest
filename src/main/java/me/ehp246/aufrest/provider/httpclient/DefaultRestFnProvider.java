@@ -78,7 +78,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> apply(final RestRequest req, final RestBodyDescriptor<?> requestBodyDescriptor,
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final RestBodyDescriptor<?> requestBodyDescriptor,
                     final RestResponseDescriptor<T> responseBodyDescriptor) {
                 final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 

@@ -73,7 +73,7 @@ public final class ByRestProxyFactory {
                                 .apply(proxy, args);
 
                         final var outcome = RestFnOutcome.invoke(
-                                () -> restFn.apply(bound.request(), bound.requestBodyDescriptor(), bound.consumer()));
+                                () -> restFn.applyForResponse(bound.request(), bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
                         // Handles any exceptions during the REST call prior the response.
                         final var httpResponse = (HttpResponse<?>) outcome

@@ -95,7 +95,7 @@ class RestFnTest {
     @Test
     void auth_01() {
         final var threw = Assertions.assertThrows(UnhandledResponseException.class,
-                () -> this.restFn.apply(new401Req()));
+                () -> this.restFn.applyForResponse(new401Req()));
         threw.printStackTrace();
 
         Assertions.assertEquals(401, threw.statusCode());
@@ -105,7 +105,7 @@ class RestFnTest {
 
     @Test
     void auth_02() {
-        final var response = restFn.apply(new RestRequest() {
+        final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
             public String uri() {
@@ -118,7 +118,7 @@ class RestFnTest {
 
     @Test
     void auth_03() {
-        Assertions.assertEquals(200, restFn.apply(() -> "http://localhost:" + port + "/restfn/auth").statusCode(),
+        Assertions.assertEquals(200, restFn.applyForResponse(() -> "http://localhost:" + port + "/restfn/auth").statusCode(),
                 "should authorize from the global bean");
     }
 
@@ -128,7 +128,7 @@ class RestFnTest {
         final var password = UUID.randomUUID().toString();
 
         final var login = new Logins.Login(username, password);
-        final var response = restFn.apply(new RestRequest() {
+        final var body = restFn.apply(new RestRequest() {
 
             @Override
             public String uri() {
@@ -140,8 +140,6 @@ class RestFnTest {
                 return login;
             }
         });
-
-        final var body = response.body();
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(password, body.get("password"));
@@ -164,7 +162,7 @@ class RestFnTest {
                 return password;
             }
         };
-        final var response = restFn.apply(new RestRequest() {
+        final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
             public String uri() {
@@ -203,7 +201,7 @@ class RestFnTest {
         final var contentPublisher = this.publisherProvider.get(login,
                 new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class));
 
-        final var response = restFn.apply(new RestRequest() {
+        final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
             public String uri() {
@@ -245,7 +243,7 @@ class RestFnTest {
         };
 
         final var bodyPublisher = BodyPublishers.ofString(objectMapper.writeValueAsString(login));
-        final var response = restFn.apply(new RestRequest() {
+        final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
             public String uri() {
@@ -270,7 +268,7 @@ class RestFnTest {
         final var password = UUID.randomUUID().toString();
 
         final var login = new Logins.Login(username, password);
-        final var response = restFn.apply(new RestRequest() {
+        final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
             public String uri() {
@@ -294,7 +292,7 @@ class RestFnTest {
     void body_reifying_01() {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-        final var response = restFn.apply(newLoginsReq(login),
+        final var response = restFn.applyForResponse(newLoginsReq(login),
                 new Inferring<List<LoginName>>(new RestBodyDescriptor<List<LoginName>>(List.class,
                         new Class<?>[] { LoginName.class }, RestPayload.class)));
 
@@ -315,7 +313,7 @@ class RestFnTest {
         final var handler = this.handlerProvider.get(new RestResponseDescriptor.Inferring<LoginName>(
                 new RestBodyDescriptor<>(LoginName.class)));
 
-        final var respons = restFn.apply(newLoginReq(login), new RestResponseDescriptor.Provided<>(handler)).body();
+        final var respons = restFn.applyForResponse(newLoginReq(login), new RestResponseDescriptor.Provided<>(handler)).body();
 
         /*
          * The provided handler doesn't support view. All properties should be /*
@@ -335,7 +333,7 @@ class RestFnTest {
          * Use it on the response.
          */
         final var responseWithView = restFn
-                .apply(newLoginReq(login), new RestResponseDescriptor.Provided<>(handlerWithView))
+                .applyForResponse(newLoginReq(login), new RestResponseDescriptor.Provided<>(handlerWithView))
                 .body();
 
         Assertions.assertEquals(login.username(), responseWithView.getUsername());
@@ -346,7 +344,7 @@ class RestFnTest {
     void errorType_01() {
         final var expected = UUID.randomUUID().toString();
         final var response = Assertions
-                .assertThrows(UnhandledResponseException.class, () -> this.restFn.apply(new RestRequest() {
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
 
                     @Override
                     public String uri() {
