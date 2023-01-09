@@ -30,14 +30,7 @@ import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
-import me.ehp246.aufrest.api.exception.BadGatewayException;
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
-import me.ehp246.aufrest.api.exception.ErrorResponseException;
-import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
-import me.ehp246.aufrest.api.exception.InternalServerErrorException;
-import me.ehp246.aufrest.api.exception.RedirectionResponseException;
-import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
-import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
+import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
@@ -153,7 +146,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                                     ofBody.map(OfBody::view).orElse(null),
                                     value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null))
                             .orElseGet(() -> new RestBodyDescriptor<>(returnType, ofBody.map(OfBody::view).orElse(null),
-                                    null));
+                                    (Class<?>) null));
                     final var handler = inferredHandlerProvider
                             .get(new RestResponseDescriptor.Inferring<>(bodyDescriptor, byRest.errorType()));
                     return (target, args) -> handler;
@@ -293,37 +286,48 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          *
          * An Response Exception based on the status code is always raised first.
          */
-        final ResponseReturnMapper mapper = (restReq, httpResponse) -> {
-            // Should throw the more specific type if possible.
-            ErrorResponseException ex = null;
-            final var statusCode = httpResponse.statusCode();
-            if (statusCode >= 600) {
-                ex = new ErrorResponseException(restReq, httpResponse);
-            } else if (statusCode == 500) {
-                ex = new InternalServerErrorException(restReq, httpResponse);
-            } else if (statusCode == 502) {
-                ex = new BadGatewayException(restReq, httpResponse);
-            } else if (statusCode == 503) {
-                ex = new ServiceUnavailableException(restReq, httpResponse);
-            } else if (statusCode == 504) {
-                ex = new GatewayTimeoutException(restReq, httpResponse);
-            } else if (statusCode >= 500) {
-                ex = new ServerErrorResponseException(restReq, httpResponse);
-            } else if (statusCode >= 400) {
-                ex = new ClientErrorResponseException(restReq, httpResponse);
-            } else if (statusCode >= 300) {
-                ex = new RedirectionResponseException(restReq, httpResponse);
+        final ResponseReturnMapper mapper = (restReq, outcome) -> {
+            final var received = outcome.received();
+            /*
+             * Was a response received?
+             */
+            if (received instanceof final HttpResponse<?> httpResponse) {
+                /*
+                 * Must be a successful response.
+                 */
+                return valueMapper.apply(httpResponse);
             }
 
-            if (ex != null) {
-                if (reflected.isOnThrows(ex.getClass())) {
-                    throw ex;
+            /*
+             * RestFn throws an UnhandledResponseException when a response is received with
+             * wrong status code.
+             */
+            if (received instanceof final UnhandledResponseException unhandledResponse) {
+                if (reflected.isOnThrows(unhandledResponse.getCause().getClass())) {
+                    throw unhandledResponse.getCause();
                 }
 
-                throw new UnhandledResponseException(ex);
+                throw unhandledResponse;
             }
 
-            return valueMapper.apply(httpResponse);
+            /*
+             * Must be an RestFnException.
+             */
+            if (received instanceof final RestFnException restFnException) {
+                final var cause = restFnException.getCause();
+                if (cause != null && reflected.isOnThrows(cause.getClass())) {
+                    throw cause;
+                }
+                throw restFnException;
+            }
+
+            if (received instanceof final RuntimeException runtime) {
+                throw runtime;
+            }
+            /*
+             * What happened? Shouldn't be here.
+             */
+            throw new RuntimeException("Un-known received: " + received);
         };
 
         return mapper;

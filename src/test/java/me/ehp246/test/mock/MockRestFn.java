@@ -16,7 +16,7 @@ import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Provided;
  */
 public class MockRestFn implements RestFn {
     private RestRequest req;
-    private HttpResponse<?> response;
+    private final HttpResponse<?> response;
 
     private RestResponseDescriptor<?> responseDescriptor;
     private final RuntimeException except;
@@ -66,9 +66,8 @@ public class MockRestFn implements RestFn {
         return this.req;
     }
 
-    public void reset() {
+    public void clearReq() {
         this.req = null;
-        this.response = null;
     }
 
     public RestFnProvider toProvider() {

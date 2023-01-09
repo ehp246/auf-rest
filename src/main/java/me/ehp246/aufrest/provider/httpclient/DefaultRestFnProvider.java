@@ -14,8 +14,15 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
+import me.ehp246.aufrest.api.exception.BadGatewayException;
+import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
+import me.ehp246.aufrest.api.exception.InternalServerErrorException;
+import me.ehp246.aufrest.api.exception.RedirectionResponseException;
 import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -106,8 +113,27 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 // Try/catch on send only.
                 try {
                     httpResponse = client.send(httpReq, handler);
+
                     if (!HttpUtils.isSuccess(httpResponse.statusCode())) {
-                        throw new ErrorResponseException(req, httpResponse);
+                        // Should throw the more specific type if possible.
+                        final var statusCode = httpResponse.statusCode();
+                        if (statusCode >= 600) {
+                            throw new ErrorResponseException(req, httpResponse);
+                        } else if (statusCode == 500) {
+                            throw new InternalServerErrorException(req, httpResponse);
+                        } else if (statusCode == 502) {
+                            throw new BadGatewayException(req, httpResponse);
+                        } else if (statusCode == 503) {
+                            throw new ServiceUnavailableException(req, httpResponse);
+                        } else if (statusCode == 504) {
+                            throw new GatewayTimeoutException(req, httpResponse);
+                        } else if (statusCode >= 500) {
+                            throw new ServerErrorResponseException(req, httpResponse);
+                        } else if (statusCode >= 400) {
+                            throw new ClientErrorResponseException(req, httpResponse);
+                        }
+
+                        throw new RedirectionResponseException(req, httpResponse);
                     }
                 } catch (IOException | InterruptedException | ErrorResponseException e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
@@ -117,6 +143,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     if (e instanceof final ErrorResponseException error) {
                         throw new UnhandledResponseException(error);
                     }
+                    /*
+                     * Wrap only the checked.
+                     */
                     throw new RestFnException(e);
                 }
 

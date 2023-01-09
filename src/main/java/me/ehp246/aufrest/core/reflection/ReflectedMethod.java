@@ -122,9 +122,12 @@ public final class ReflectedMethod {
     }
 
     /**
-     * Is the given type assignable from the <code>throws</code> clause.
+     * Is the given type on the <code>throws</code>. Must be explicitly declared.
+     * Not on the clause doesn't mean the exception can not be thrown by the method,
+     * e.g., all runtime exceptions.
      */
-    public boolean isOnThrows(final Class<? extends Exception> type) {
-        return this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
+    public boolean isOnThrows(final Class<?> type) {
+        return RuntimeException.class.isAssignableFrom(type)
+                || this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
     }
 }

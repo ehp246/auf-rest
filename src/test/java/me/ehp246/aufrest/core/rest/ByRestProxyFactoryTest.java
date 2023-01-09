@@ -54,7 +54,7 @@ class ByRestProxyFactoryTest {
 
     @BeforeEach
     void beforeEach() {
-        restFn.reset();
+        restFn.clearReq();
     }
 
     @Test
@@ -366,7 +366,7 @@ class ByRestProxyFactoryTest {
 
         Assertions.assertEquals("   ", restFn.req().headers().get("x-correl-id").get(0));
 
-        restFn.reset();
+        restFn.clearReq();
 
         newInstance.get((String) null);
 
