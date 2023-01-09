@@ -2,6 +2,7 @@ package me.ehp246.aufrest.provider.jackson;
 
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import me.ehp246.aufrest.api.spi.RestView;
@@ -22,6 +23,7 @@ class Person extends PersonName {
         this.prefix = null;
     }
 
+    @JsonCreator
     public Person(final Instant dob, final String prefix, final String firstName, final String lastName) {
         super(firstName, lastName);
         this.dob = dob;

@@ -90,7 +90,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(ArrayList.class, null, new Class<?>[] { Person.class }));
+                new RestBodyDescriptor<>(ArrayList.class, null, Person.class));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -106,7 +106,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(List.class, null, new Class<?>[] { TestCases.Person01.class }));
+                new RestBodyDescriptor<>(List.class, RestView.class, TestCases.Person01.class));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());

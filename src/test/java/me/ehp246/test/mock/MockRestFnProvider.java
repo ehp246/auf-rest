@@ -50,7 +50,7 @@ public class MockRestFnProvider implements RestFnProvider {
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest request,
                     final RestBodyDescriptor<?> requestDescriptor, final RestResponseDescriptor<T> responseDescriptor) {
-                MockRestFnProvider.this.req = req;
+                MockRestFnProvider.this.req = request;
                 return (HttpResponse<T>) MockRestFnProvider.this.response;
             }
 
