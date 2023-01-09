@@ -7,8 +7,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * @author Lei Yang
+ * <p>
+ * When applied on a {@linkplain ByRest} method, it specifies the values of the
+ * named header from the response should be returned. The following types are
+ * supported:
+ * <li>String</li>
+ * <li>List</li>
+ * <li>Map</li>
  *
+ * <p>
+ * If applied to a method, the response body will be discarded.
+ *
+ *
+ * @author Lei Yang
+ * @since 4.0
  */
 @Retention(RUNTIME)
 @Target({ ElementType.METHOD, ElementType.PARAMETER })

@@ -10,14 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("local")
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+        "me.ehp246.aufrest.restlogger.enabled=true" })
 class FormTest {
     @Autowired
     private FormCase formCase;
@@ -33,7 +32,7 @@ class FormTest {
     void post_02() {
         final var now = Instant.now();
         final var person = formCase.postQueryInBody(null, "", now);
-        
+
         Assertions.assertEquals(true, now.equals(person.dob()));
         Assertions.assertEquals(null, person.firstName());
         Assertions.assertEquals(true, person.lastName() == "");

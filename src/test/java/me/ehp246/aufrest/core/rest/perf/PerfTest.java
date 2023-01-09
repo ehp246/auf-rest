@@ -13,6 +13,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.provider.TimingExtension;
+import me.ehp246.test.mock.MockBodyHandlerProvider;
 import me.ehp246.test.mock.MockRestFn;
 
 /**
@@ -27,7 +28,7 @@ class PerfTest {
     private final ByRestProxyFactory factory = new ByRestProxyFactory(mockRestFn.toProvider(), new ClientConfig(),
             new DefaultProxyMethodParser(new MockEnvironment().withProperty("uri", "http://localhost")
                     .withProperty("uri-context", "api")::resolveRequiredPlaceholders, name -> null, name -> null,
-                    binding -> null));
+                    new MockBodyHandlerProvider()));
 
     private final PerfTestCase01 proxy = factory.newInstance(PerfTestCase01.class);
 

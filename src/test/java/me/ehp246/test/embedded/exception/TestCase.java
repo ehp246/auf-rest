@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
  * @author Lei Yang
  *
  */
-@ByRest("http://localhost:${local.server.port}/status-code/")
+@ByRest(value = "http://localhost:${local.server.port}/status-code/")
 interface TestCase {
     @OfMapping("runtime")
     void get();

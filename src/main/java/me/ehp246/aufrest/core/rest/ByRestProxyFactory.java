@@ -6,21 +6,26 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.http.HttpResponse;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.EnableByRest;
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 
 /**
+ * Factory of {@linkplain ByRest} beans. Depended by
+ * {@linkplain ByRestRegistrar}.
  *
  * @author Lei Yang
- *
+ * @see {@link EnableByRest}, {@link ByRestRegistrar}
+ * @since 1.0
  */
 public final class ByRestProxyFactory {
     private final static Logger LOGGER = LogManager.getLogger(ByRestProxyFactory.class);
@@ -72,14 +77,33 @@ public final class ByRestProxyFactory {
                         final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
-                        final var outcome = RestFnOutcome.invoke(
-                                () -> restFn.applyForResponse(bound.request(), bound.requestBodyDescriptor(), bound.responseDescriptor()));
+                        final var outcome = RestFnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
+                                bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
-                        // Handles any exceptions during the REST call prior the response.
-                        final var httpResponse = (HttpResponse<?>) outcome
-                                .orElseThrow(List.of(method.getExceptionTypes()));
+                        /*
+                         * Was a response received?
+                         *
+                         * RestFn throws an UnhandledResponseException if a response is received but
+                         * with a wrong status code. Unpack it for the return mapper.
+                         *
+                         */
+                        final HttpResponse<?> httpResponse;
+                        if (outcome.received() instanceof final HttpResponse<?> received) {
+                            httpResponse = received;
+                        } else if (outcome.received() instanceof final UnhandledResponseException responseException) {
+                            httpResponse = responseException.getCause().httpResponse();
+                        } else {
+                            httpResponse = null;
+                        }
 
-                        return bound.returnMapper().apply(bound.request(), httpResponse);
+                        if (httpResponse != null) {
+                            return bound.returnMapper().apply(bound.request(), httpResponse);
+                        }
+
+                        /*
+                         * No response. Must mean something bad happened before or during send.
+                         */
+                        throw (Throwable) outcome.received();
                     }
                 });
     }

@@ -10,6 +10,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
+import me.ehp246.test.mock.MockBodyHandlerProvider;
 import me.ehp246.test.mock.MockRestFn;
 
 /**
@@ -20,7 +21,8 @@ class ReturnTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
     private final MockRestFn restFn = new MockRestFn();
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
-            new DefaultProxyMethodParser(Object::toString, name -> null, name -> r -> null, binding -> r -> null));
+            new DefaultProxyMethodParser(Object::toString, name -> null, name -> r -> null,
+                    new MockBodyHandlerProvider()));
 
     @BeforeEach
     void beforeEach() {

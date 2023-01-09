@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.test.mock.Jackson;
-import me.ehp246.test.mock.MockResponseBodyHandler;
+import me.ehp246.test.mock.MockBodyHandler;
 
 /**
  * @author Lei Yang
@@ -21,11 +21,11 @@ import me.ehp246.test.mock.MockResponseBodyHandler;
 class AppConfig {
     @Bean("onInterface")
     BodyHandler<String> interfaceHander() {
-        return new MockResponseBodyHandler<String>("interface");
+        return new MockBodyHandler<String>("interface");
     }
 
     @Bean("onMethod")
     BodyHandler<String> methodHander() {
-        return new MockResponseBodyHandler<String>("method");
+        return new MockBodyHandler<String>("method");
     }
 }

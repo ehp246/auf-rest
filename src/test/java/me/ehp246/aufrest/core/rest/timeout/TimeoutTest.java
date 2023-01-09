@@ -8,6 +8,7 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
+import me.ehp246.test.mock.MockBodyHandlerProvider;
 import me.ehp246.test.mock.MockRestFn;
 
 /**
@@ -20,7 +21,7 @@ class TimeoutTest {
             .withProperty("api.timeout.illegal", "5")::resolveRequiredPlaceholders;
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
-            new DefaultProxyMethodParser(env, name -> null, name -> r -> null, binding -> r -> null));
+            new DefaultProxyMethodParser(env, name -> null, name -> r -> null, new MockBodyHandlerProvider()));
 
     @Test
     void timeout_01() {

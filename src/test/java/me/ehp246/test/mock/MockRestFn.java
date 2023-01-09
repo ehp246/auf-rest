@@ -1,12 +1,14 @@
 package me.ehp246.test.mock;
 
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Provided;
 
 /**
  * @author Lei Yang
@@ -54,6 +56,10 @@ public class MockRestFn implements RestFn {
 
     public RestResponseDescriptor<?> responseDescriptor() {
         return this.responseDescriptor;
+    }
+
+    public BodyHandler<?> handler() {
+        return ((Provided<?>) responseDescriptor).handler();
     }
 
     public RestRequest req() {

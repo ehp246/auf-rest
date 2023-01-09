@@ -141,20 +141,21 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
                     final var ofBody = reflected.findOnMethod(OfBody.class);
-                    if (returnType.isAssignableFrom(HttpHeaders.class)) {
+                    if (returnType.isAssignableFrom(HttpHeaders.class)
+                            || reflected.findOnMethod(OfHeader.class).isPresent()) {
                         return (target, args) -> BodyHandlers.discarding();
                     }
                     if (returnType.isAssignableFrom(HttpResponse.class) && ofBody.isEmpty()) {
                         throw new IllegalArgumentException("Missing required " + OfBody.class);
                     }
-                    final var bodyDescriptor =
-                            ofBody.map(OfBody::value).filter(OneUtil::hasValue)
-                                    .map(value -> new RestBodyDescriptor<>(value[0],
-                                            value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null,
-                                            byRest.errorType()))
-                                    .orElseGet(() -> new RestBodyDescriptor<>(returnType, null, byRest.errorType()));
-                    final var handler = inferredHandlerProvider.get(
-                            new RestResponseDescriptor.Inferring<>(bodyDescriptor));
+                    final var bodyDescriptor = ofBody.map(OfBody::value).filter(OneUtil::hasValue)
+                            .map(value -> new RestBodyDescriptor<>(value[0],
+                                    value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null,
+                                    ofBody.map(OfBody::view).orElse(null)))
+                            .orElseGet(() -> new RestBodyDescriptor<>(returnType, null,
+                                    ofBody.map(OfBody::view).orElse(null)));
+                    final var handler = inferredHandlerProvider
+                            .get(new RestResponseDescriptor.Inferring<>(bodyDescriptor, byRest.errorType()));
                     return (target, args) -> handler;
                 });
 

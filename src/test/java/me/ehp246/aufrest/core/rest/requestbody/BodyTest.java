@@ -20,6 +20,7 @@ import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.core.rest.ProxyMethodParser;
+import me.ehp246.test.mock.MockBodyHandler;
 import me.ehp246.test.mock.MockRestFn;
 
 /**
@@ -31,10 +32,10 @@ class BodyTest {
     @SuppressWarnings("unchecked")
     private final BodyHandler<Object> resolvedBodyHandler = Mockito.mock(BodyHandler.class);
     @SuppressWarnings("unchecked")
-    private final BodyHandler<Object> mockBodyHandler = Mockito.mock(BodyHandler.class);
+    private final MockBodyHandler<Object> mockBodyHandler = new MockBodyHandler<>(null);
     private final BodyHandlerBeanResolver bodyHandlerResolver = name -> resolvedBodyHandler;
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
-            bodyHandlerResolver, binding -> mockBodyHandler);
+            bodyHandlerResolver, mockBodyHandler.toProvider());
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
             parser);
 
@@ -101,14 +102,14 @@ class BodyTest {
 
         factory.newInstance(BodyTestCases.ResponseCase01.class).getOnMethod(expected);
 
-        Assertions.assertEquals(true, expected == restFn.consumer().handler());
+        Assertions.assertEquals(true, expected == restFn.handler());
     }
 
     @Test
     void response_03() {
         factory.newInstance(BodyTestCases.ResponseCase01.class).getOfMapping();
 
-        Assertions.assertEquals(mockBodyHandler, restFn.consumer().handler());
+        Assertions.assertEquals(mockBodyHandler, restFn.handler());
     }
 
     @Test
@@ -122,7 +123,7 @@ class BodyTest {
                         Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase01.class)
                                 .getOfMappingNamed();
 
-        Assertions.assertEquals(expected, restFn.consumer().handler());
+        Assertions.assertEquals(expected, restFn.handler());
     }
 
     @Test
@@ -139,7 +140,7 @@ class BodyTest {
          * Should not call the resolver
          */
         Mockito.verify(namedResolver, times(0)).get(Mockito.anyString());
-        Assertions.assertEquals(expected, restFn.consumer().handler());
+        Assertions.assertEquals(expected, restFn.handler());
     }
 
     @Test
@@ -151,7 +152,7 @@ class BodyTest {
                         Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .get(null);
 
-        Assertions.assertEquals(null, restFn.consumer().handler());
+        Assertions.assertEquals(null, restFn.handler());
     }
 
     @Test
@@ -164,7 +165,7 @@ class BodyTest {
                 name -> null, namedResolver,
                 Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
 
-        Assertions.assertEquals(expected, restFn.consumer().handler());
+        Assertions.assertEquals(expected, restFn.handler());
     }
 
     @Test
@@ -178,6 +179,6 @@ class BodyTest {
                         Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
                                 .getOfMappingNamed();
 
-        Assertions.assertEquals(expected, restFn.consumer().handler());
+        Assertions.assertEquals(expected, restFn.handler());
     }
 }

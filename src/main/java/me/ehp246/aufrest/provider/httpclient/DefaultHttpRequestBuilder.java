@@ -2,6 +2,7 @@ package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Duration;
 import java.util.HashMap;
@@ -126,9 +127,12 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
         /*
          * Body
+         *
+         * Respect a provided body publisher as much as possible.
          */
         final ContentPublisherProvider.ContentPublisher contentPublisher;
-        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)
+                && !(req.body() instanceof BodyPublisher)) {
             // Encode query parameters as the body ignoring the body object.
             contentPublisher = new ContentPublisher(req.contentType(),
                     BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queries())));

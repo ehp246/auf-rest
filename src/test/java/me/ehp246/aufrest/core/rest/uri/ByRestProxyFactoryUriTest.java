@@ -14,6 +14,7 @@ import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
 import me.ehp246.aufrest.core.rest.uri.TestCase.PathObject;
+import me.ehp246.test.mock.MockBodyHandlerProvider;
 import me.ehp246.test.mock.MockRestFnProvider;
 
 /**
@@ -27,7 +28,7 @@ class ByRestProxyFactoryUriTest {
             "http://localhost")::resolveRequiredPlaceholders;
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFnProvider, new ClientConfig(),
-            new DefaultProxyMethodParser(env, name -> null, name -> r -> null, binding -> r -> null));
+            new DefaultProxyMethodParser(env, name -> null, name -> r -> null, new MockBodyHandlerProvider()));
 
     private final TestCase testCase = factory.newInstance(TestCase.class);
 

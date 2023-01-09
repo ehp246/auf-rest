@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.provider.jackson;
 
-import java.lang.annotation.Annotation;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,11 +11,9 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -28,11 +25,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-import me.ehp246.aufrest.api.annotation.OfBody;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.JsonViewValue;
-import me.ehp246.aufrest.api.rest.BodyDescriptor.ReturnValue;
+import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.spi.RestPayload;
-import me.ehp246.aufrest.core.reflection.ReflectedType;
 import me.ehp246.test.TimingExtension;
 
 /**
@@ -48,43 +42,16 @@ class JsonByJacksonTest {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
             .registerModule(new ParameterNamesModule());
 
-    private static final int PERF_COUNT = 1000_000;
-
     private final JsonByJackson jackson = new JsonByJackson(OBJECT_MAPPER);
 
-    private Annotation[] reifying(final Class<?>... targets) {
-        return new Annotation[] { new OfBody() {
-
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return OfBody.class;
-            }
-
-            @Override
-            public Class<?>[] value() {
-                return targets;
-            }
-        }, new JsonView() {
-
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return JsonView.class;
-            }
-
-            @Override
-            public Class<?>[] value() {
-                return new Class[] { RestPayload.class };
-            }
-        } };
-    }
 
     @SuppressWarnings("unchecked")
     @Test
     void list_01() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.applyForResponse(jackson.apply(from),
-                new ReturnValue(null, null, this.reifying(ArrayList.class, Instant.class)));
+        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
+                new RestBodyDescriptor<>(ArrayList.class, new Class<?>[] { Instant.class }, null));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -94,8 +61,8 @@ class JsonByJacksonTest {
     void list_02() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.applyForResponse(jackson.apply(from),
-                new ReturnValue(null, null, this.reifying(ArrayList.class, Instant.class)));
+        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
+                new RestBodyDescriptor<>(ArrayList.class, new Class<?>[] { Instant.class }, null));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -105,8 +72,8 @@ class JsonByJacksonTest {
     void list_03() {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
-        final List<List<Instant>> back = (List<List<Instant>>) jackson.applyForResponse(jackson.apply(from),
-                new ReturnValue(null, null, this.reifying(List.class, List.class, Instant.class)));
+        final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
+                new RestBodyDescriptor<>(List.class, new Class<?>[] { List.class, Instant.class }, null));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -122,8 +89,8 @@ class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<Person> back = (List<Person>) jackson.applyForResponse(jackson.apply(from),
-                new ReturnValue(null, null, this.reifying(ArrayList.class, Person.class)));
+        final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
+                new RestBodyDescriptor<>(ArrayList.class, new Class<?>[] { Person.class }, null));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -138,8 +105,8 @@ class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.applyForResponse(jackson.apply(from),
-                new ReturnValue(List.class, null, this.reifying(ArrayList.class, TestCases.Person01.class)));
+        final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
+                new RestBodyDescriptor<>(List.class, new Class<?>[] { TestCases.Person01.class }, null));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());
@@ -154,8 +121,8 @@ class JsonByJacksonTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final var result = (Set<List<TestCases.Person01>>) jackson.applyForResponse(jackson.apply(Set.of(from)),
-                new ReturnValue(null, null, this.reifying(HashSet.class, List.class, TestCases.Person01.class)));
+        final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
+                new RestBodyDescriptor<>(HashSet.class, new Class<?>[] { List.class, TestCases.Person01.class }, null));
 
         Assertions.assertEquals(1, result.size());
 
@@ -188,18 +155,5 @@ class JsonByJacksonTest {
         jsonView = writer.writeValueAsString(expected);
 
         Assertions.assertEquals(false, jsonView.contains(expected.getFirstName()));
-    }
-
-    @Test
-    @EnabledIfSystemProperty(named = "me.ehp246.aufrest.perf", matches = "true")
-    void perf_001() {
-        final var annotations = new ReflectedType(TestCases.class).findMethod("toJson01", Person.class)
-                .map(m -> m.getParameters()[0].getAnnotations()).orElse(null);
-        final var value = new Person(Instant.now(), UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        final var valueInfo = new JsonViewValue(Person.class, annotations);
-
-        IntStream.range(0, PERF_COUNT).forEach(i -> {
-            jackson.applyForResponse(value, valueInfo);
-        });
     }
 }

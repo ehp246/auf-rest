@@ -101,7 +101,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
                 map.entrySet().stream().forEach(e -> {
                     final List<String> value = e.getValue() instanceof final List<?> list
                             ? list.stream().map(Object::toString).collect(Collectors.toList())
-                            : Arrays.asList(OneUtil.toString(e.getValue()));
+                            : new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue())));
                     queryBound.merge(e.getKey().toString(), value, (o, p) -> {
                         o.add(p.get(0));
                         return o;

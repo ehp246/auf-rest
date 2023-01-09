@@ -18,7 +18,7 @@ import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.util.MultiValueMapAdapter;
 
 import me.ehp246.aufrest.core.rest.ToJson;
-import me.ehp246.test.mock.MockResponseBodyHandler;
+import me.ehp246.test.mock.MockBodyHandler;
 
 /**
  * @author Lei Yang
@@ -62,7 +62,7 @@ class BodyTest {
 
     @Test
     void handler_01() {
-        final var bodyHandler = new MockResponseBodyHandler<Integer>(1);
+        final var bodyHandler = new MockBodyHandler<Integer>(1);
         final var original = UUID.randomUUID().toString();
 
         Assertions.assertEquals(1, handlerCase.postNumber(original, bodyHandler),

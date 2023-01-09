@@ -22,8 +22,11 @@ import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
- * @author Lei Yang
+ * Implementation of the bean of {@linkplain InferringBodyHandlerProvider}.
  *
+ * @author Lei Yang
+ * @since 1.0
+ * @see AufRestConfiguration
  */
 final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
     private final FromJson fromJson;
@@ -73,13 +76,12 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
 
             // By this time, the descriptor could be for either a success or a failure.
             final var type = resposneDescriptor.type();
-            final var dischardBody = type.isAssignableFrom(void.class) || type.isAssignableFrom(Void.class);
-            if (statusCode == 204 || dischardBody) {
+            if (statusCode == 204 || type == void.class || type == Void.class) {
                 return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
             }
 
             // Short-circuit the content-type.
-            if (type.isAssignableFrom(InputStream.class)) {
+            if (type == InputStream.class) {
                 // Wrap it in a gzip stream.
                 return gzipped
                         ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
@@ -102,7 +104,7 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
                         }
 
                         // This means a JSON string will not be de-serialized.
-                        if (type.isAssignableFrom(String.class)) {
+                        if (type == String.class) {
                             return text;
                         }
 

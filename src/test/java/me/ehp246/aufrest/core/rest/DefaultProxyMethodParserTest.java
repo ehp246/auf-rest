@@ -26,6 +26,7 @@ import me.ehp246.aufrest.core.rest.AuthTestCases.NoneAuth01;
 import me.ehp246.aufrest.core.rest.requestbody.BodyTestCases;
 import me.ehp246.test.Invocation;
 import me.ehp246.test.InvocationUtil;
+import me.ehp246.test.mock.MockBodyHandlerProvider;
 
 /**
  * @author Lei Yang
@@ -33,7 +34,7 @@ import me.ehp246.test.InvocationUtil;
  */
 class DefaultProxyMethodParserTest {
     private final BodyHandlerBeanResolver bodyHandlerResolver = name -> r -> null;
-    private final InferringBodyHandlerProvider bindingBodyHandlerProvider = binding -> r -> null;
+    private final InferringBodyHandlerProvider bindingBodyHandlerProvider = new MockBodyHandlerProvider();
     private final PropertyResolver propertyResolver = new MockEnvironment()::resolveRequiredPlaceholders;
     private final MockAuthBean authBean = new MockAuthBean();
     private final AuthBeanResolver beanResolver = name -> {
