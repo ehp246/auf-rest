@@ -4,14 +4,14 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-import me.ehp246.aufrest.api.spi.RestPayload;
+import me.ehp246.aufrest.api.spi.RestView;
 
 /**
  * @author Lei Yang
  *
  */
 class Person extends PersonName {
-    @JsonView(RestPayload.class)
+    @JsonView(RestView.class)
     private final Instant dob;
     @JsonView({ String.class })
     private final String prefix;

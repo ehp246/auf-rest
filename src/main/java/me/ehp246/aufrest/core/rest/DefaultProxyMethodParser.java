@@ -150,10 +150,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     }
                     final var bodyDescriptor = ofBody.map(OfBody::value).filter(OneUtil::hasValue)
                             .map(value -> new RestBodyDescriptor<>(value[0],
-                                    value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null,
-                                    ofBody.map(OfBody::view).orElse(null)))
-                            .orElseGet(() -> new RestBodyDescriptor<>(returnType, null,
-                                    ofBody.map(OfBody::view).orElse(null)));
+                                    ofBody.map(OfBody::view).orElse(null),
+                                    value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null))
+                            .orElseGet(() -> new RestBodyDescriptor<>(returnType, ofBody.map(OfBody::view).orElse(null),
+                                    null));
                     final var handler = inferredHandlerProvider
                             .get(new RestResponseDescriptor.Inferring<>(bodyDescriptor, byRest.errorType()));
                     return (target, args) -> handler;

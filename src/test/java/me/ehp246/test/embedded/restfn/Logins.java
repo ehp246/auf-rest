@@ -2,7 +2,7 @@ package me.ehp246.test.embedded.restfn;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-import me.ehp246.aufrest.api.spi.RestPayload;
+import me.ehp246.aufrest.api.spi.RestView;
 
 /**
  * @author Lei Yang
@@ -13,7 +13,7 @@ interface Logins {
     }
 
     interface LoginName {
-        @JsonView(RestPayload.class)
+        @JsonView(RestView.class)
         String getUsername();
 
         String getPassword();

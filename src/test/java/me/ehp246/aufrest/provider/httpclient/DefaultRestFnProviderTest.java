@@ -99,7 +99,8 @@ class DefaultRestFnProviderTest {
             }
         });
 
-        new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig()).applyForResponse(req);
+        new DefaultRestFnProvider(clientBuilderSupplier::builder, reqBuilder, obs).get(new ClientConfig())
+                .applyForResponse(req);
 
         Assertions.assertEquals(true, map.get("1") == mockedReq);
         Assertions.assertEquals(true, map.get("1") == map.get("3"));

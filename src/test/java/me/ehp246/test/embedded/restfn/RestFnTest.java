@@ -24,7 +24,7 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
-import me.ehp246.aufrest.api.spi.RestPayload;
+import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
 
@@ -173,7 +173,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class, RestPayload.class));
+        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class, RestView.class));
 
         final var body = response.body();
 
@@ -280,7 +280,7 @@ class RestFnTest {
                 return login;
             }
         }, new RestResponseDescriptor.Inferring<LoginName>(
-                new RestBodyDescriptor<>(LoginName.class, RestPayload.class)));
+                new RestBodyDescriptor<>(LoginName.class, RestView.class)));
 
         final var body = response.body();
 
@@ -294,7 +294,7 @@ class RestFnTest {
 
         final var response = restFn.applyForResponse(newLoginsReq(login),
                 new Inferring<List<LoginName>>(new RestBodyDescriptor<List<LoginName>>(List.class,
-                        new Class<?>[] { LoginName.class }, RestPayload.class)));
+                        RestView.class, new Class<?>[] { LoginName.class })));
 
         final var body = response.body();
 
@@ -327,7 +327,7 @@ class RestFnTest {
          */
         final var handlerWithView = this.handlerProvider
                 .get(new RestResponseDescriptor.Inferring<LoginName>(
-                        new RestBodyDescriptor<>(LoginName.class, RestPayload.class)));
+                        new RestBodyDescriptor<>(LoginName.class, RestView.class)));
 
         /**
          * Use it on the response.

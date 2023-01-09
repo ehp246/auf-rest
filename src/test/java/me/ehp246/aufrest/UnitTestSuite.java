@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded;
+package me.ehp246.aufrest;
 
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
@@ -9,8 +9,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
  *
  */
 @Suite
-@SuiteDisplayName("me.ehp246.test.embedded")
-@SelectPackages("me.ehp246.test.embedded")
-class EmbeddedTestSuite {
-
+@SuiteDisplayName("me.ehp246.aufrest")
+@SelectPackages("me.ehp246.aufrest")
+class UnitTestSuite {
 }

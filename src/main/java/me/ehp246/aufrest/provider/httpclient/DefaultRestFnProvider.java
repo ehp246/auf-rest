@@ -2,6 +2,8 @@ package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -38,7 +40,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final Supplier<HttpClient.Builder> clientBuilderSupplier;
     private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
-    private final InferringBodyHandlerProvider inferringHandlerProvider;
+    private final InferringBodyHandlerProvider handlerProvider;
     private final RestLogger restLogger;
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
@@ -47,12 +49,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
     @Autowired
     public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final List<RestListener> listeners,
-            @Nullable final RestLogger restLogger, final InferringBodyHandlerProvider inferringBodyHandlerProvider) {
+            @Nullable final RestLogger restLogger, final InferringBodyHandlerProvider handlerProvider) {
         this.clientBuilderSupplier = HttpClient::newBuilder;
         this.reqBuilder = reqBuilder;
         this.listeners = listeners;
         this.restLogger = restLogger;
-        this.inferringHandlerProvider = inferringBodyHandlerProvider;
+        this.handlerProvider = handlerProvider;
     }
 
     public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
@@ -61,7 +63,14 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         this.reqBuilder = restToHttp;
         this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
         this.restLogger = null;
-        this.inferringHandlerProvider = null;
+        this.handlerProvider = new InferringBodyHandlerProvider() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> BodyHandler<T> get(final RestResponseDescriptor<T> descriptor) {
+                return (BodyHandler<T>) BodyHandlers.discarding();
+            }
+        };
     }
 
     @Override
@@ -90,7 +99,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
                 final var handler = responseBodyDescriptor instanceof final RestResponseDescriptor.Provided<T> handlerSupplier
                         ? handlerSupplier.handler()
-                        : inferringHandlerProvider.get(responseBodyDescriptor);
+                        : handlerProvider.get(responseBodyDescriptor);
 
                 final HttpResponse<?> httpResponse;
                 // Try/catch on send only.

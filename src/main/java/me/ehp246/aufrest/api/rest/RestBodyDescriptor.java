@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  */
 public final class RestBodyDescriptor<T> {
     public static final RestBodyDescriptor<Map<String, Object>> MAP = new RestBodyDescriptor<Map<String, Object>>(
-            Map.class, null, null);
+            Map.class, null, (Class<?>) null);
     /**
      * The declared type of the body.
      */
@@ -30,17 +30,17 @@ public final class RestBodyDescriptor<T> {
     private final Class<?> view;
 
     public RestBodyDescriptor(final Class<T> type) {
-        this(type, null, null);
+        this(type, null);
     }
 
     public RestBodyDescriptor(final Class<T> type, final Class<?> view) {
-        this(type, null, view);
+        this(type, view, (Class<?>) null);
     }
 
-    public RestBodyDescriptor(final Class<?> type, final Class<?>[] reifying, final Class<?> view) {
+    public RestBodyDescriptor(final Class<?> type, final Class<?> view, final Class<?>... reifying) {
         this.type = type;
-        this.reifying = reifying;
         this.view = view;
+        this.reifying = reifying;
     }
 
     public Class<?> type() {
