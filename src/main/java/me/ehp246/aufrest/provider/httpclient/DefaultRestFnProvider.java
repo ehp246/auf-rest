@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.provider.httpclient;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
@@ -108,7 +109,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     if (!HttpUtils.isSuccess(httpResponse.statusCode())) {
                         throw new ErrorResponseException(req, httpResponse);
                     }
-                } catch (final Exception e) {
+                } catch (IOException | InterruptedException | ErrorResponseException e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
 
                     listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));

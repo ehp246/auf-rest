@@ -108,14 +108,14 @@ class DefaultRestFnProviderTest {
     }
 
     @Test
-    void listener_002() {
+    void listener_exception_02() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
         final HttpRequestBuilder reqBuilder = new MockHttpRequestBuilder(mockedReq);
 
         final var req = (RestRequest) () -> "http://nowhere";
 
         final var map = new HashMap<>();
-        final var orig = new RuntimeException("This is a test");
+        final var orig = new RuntimeException("Should not be given to the listeners.");
 
         Exception ex = null;
         try {
@@ -125,14 +125,15 @@ class DefaultRestFnProviderTest {
                         @Override
                         public void onException(final Exception exception, final HttpRequest httpRequest,
                                 final RestRequest req) {
-                            map.put("5", exception);
+                            map.put("1", exception);
                         }
                     })).get(new ClientConfig()).applyForResponse(req);
         } catch (final Exception e) {
             ex = e;
         }
 
-        Assertions.assertEquals(true, map.get("5") == null, "should have no wrap");
+        // The exception happens outside of send.
+        Assertions.assertEquals(true, map.get("1") == null, "should not have it");
         Assertions.assertEquals(true, ex == orig);
     }
 
