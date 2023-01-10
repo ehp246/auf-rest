@@ -141,7 +141,7 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> testCase.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
-        Assertions.assertTrue(ex.getMessage().endsWith("400"), "Should include the body");
+        Assertions.assertTrue(ex.getClass() == ClientErrorResponseException.class);
     }
 
     @Test
@@ -156,6 +156,21 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> testCase.getRedirect(699));
 
         Assertions.assertEquals(699, ex.statusCode());
+    }
+
+    @Test
+    void test_server_01() {
+        final var ex = Assertions.assertThrows(BadGatewayException.class, () -> testCase.getServerError(502));
+
+        Assertions.assertEquals(502, ex.statusCode());
+    }
+
+    @Test
+    void test_server_02() {
+        final var ex = Assertions.assertThrows(ServerErrorResponseException.class, () -> testCase.getServerError(504));
+
+        Assertions.assertEquals(GatewayTimeoutException.class, ex.getClass());
+        Assertions.assertEquals(504, ex.statusCode());
     }
 
     @Test

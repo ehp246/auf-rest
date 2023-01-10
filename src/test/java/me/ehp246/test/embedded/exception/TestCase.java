@@ -33,6 +33,9 @@ interface TestCase {
             throws RedirectionResponseException, ErrorResponseException;
 
     @OfMapping("{statusCode}")
+    void getServerError(@OfPath("statusCode") int statusCode) throws ServerErrorResponseException;
+
+    @OfMapping("{statusCode}")
     void getError(@OfPath("statusCode") int statusCode) throws ErrorResponseException;
 
     @OfMapping("body")

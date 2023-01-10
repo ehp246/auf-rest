@@ -17,6 +17,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.util.MultiValueMapAdapter;
 
+import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.core.rest.ToJson;
 import me.ehp246.test.mock.MockBodyHandler;
 
@@ -40,7 +41,11 @@ class BodyTest {
     void publisher_01() {
         final var payload = UUID.randomUUID().toString();
 
-        Assertions.assertEquals(payload, publisherCase.post(BodyPublishers.ofString(payload)).get(0));
+        Assertions.assertThrows(UnhandledResponseException.class,
+                () -> publisherCase.post(BodyPublishers.ofString(payload)), "should specify the content type")
+                .printStackTrace();
+
+        Assertions.assertEquals(payload, publisherCase.postAsJson(BodyPublishers.ofString(payload)).get(0));
     }
 
     @Test
