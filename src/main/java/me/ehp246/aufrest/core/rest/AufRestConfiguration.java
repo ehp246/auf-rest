@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.rest;
 
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
@@ -19,6 +20,7 @@ import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
+import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
@@ -85,5 +87,10 @@ public final class AufRestConfiguration {
     @Bean("216fbb62-0701-43fb-9fdd-a6df279c92bc")
     public BodyHandlerBeanResolver invocationBodyHandlerProvider(final BeanFactory env) {
         return name -> env.getBean(name, BodyHandler.class);
+    }
+
+    @Bean("404d421e-45a8-483e-9f62-2367cfda4a80")
+    public HttpClientBuilderSupplier httpClientBuilderSupplier() {
+        return HttpClient::newBuilder;
     }
 }

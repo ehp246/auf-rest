@@ -7,7 +7,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 
 /**
- * Internal abstraction that can build a {@link HttpRequest} from a
+ * Internal abstraction that builds a {@link HttpRequest} from a
  * {@link RestRequest}.
  *
  * @author Lei Yang

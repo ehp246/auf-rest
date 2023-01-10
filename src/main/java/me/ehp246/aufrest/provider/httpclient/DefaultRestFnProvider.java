@@ -3,16 +3,12 @@ package me.ehp246.aufrest.provider.httpclient;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
@@ -25,6 +21,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
@@ -34,51 +31,43 @@ import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
 /**
  * For each call for a HTTP client, the provider should ask the client-builder
- * supplier for a new builder. For each HTTP request, the provider should ask
- * the request-builder supplier for a new builder. The provider should not
- * cache/re-use any builders.
+ * supplier for a new builder.
+ * <p>
+ * For each HTTP request, the provider should ask the request-builder supplier
+ * for a new builder.
+ * <p>
+ * The provider should not cache/re-use any builders.
+ * <p>
+ * Internal Spring bean.
  *
  * @author Lei Yang
+ * @since 1.0
+ * @version 4.0
+ * @see {@link RestFnProvider}, {@link RestFn},
+ *      {@linkplain AufRestConfiguration}
  */
 public final class DefaultRestFnProvider implements RestFnProvider {
-    private final Supplier<HttpClient.Builder> clientBuilderSupplier;
+    private final HttpClientBuilderSupplier clientBuilderSupplier;
     private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
     private final InferringBodyHandlerProvider handlerProvider;
     private final RestLogger restLogger;
 
-    public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier) {
-        this(clientBuilderSupplier, (req, descriptor) -> null, null);
-    }
-
-    @Autowired
-    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final List<RestListener> listeners,
-            @Nullable final RestLogger restLogger, final InferringBodyHandlerProvider handlerProvider) {
-        this.clientBuilderSupplier = HttpClient::newBuilder;
-        this.reqBuilder = reqBuilder;
-        this.listeners = listeners;
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
+            final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
+            final List<RestListener> listeners, final RestLogger restLogger) {
+        this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder : clientBuilderSupplier;
+        this.reqBuilder = Objects.requireNonNull(reqBuilder,
+                HttpRequestBuilder.class.getSimpleName() + " must be specified");
+        this.listeners = listeners == null ? List.of() : Collections.unmodifiableList(listeners);
         this.restLogger = restLogger;
-        this.handlerProvider = handlerProvider;
-    }
-
-    public DefaultRestFnProvider(final Supplier<HttpClient.Builder> clientBuilderSupplier,
-            final HttpRequestBuilder restToHttp, final List<RestListener> listeners) {
-        this.clientBuilderSupplier = clientBuilderSupplier;
-        this.reqBuilder = restToHttp;
-        this.listeners = listeners == null ? List.of() : new ArrayList<>(listeners);
-        this.restLogger = null;
-        this.handlerProvider = new InferringBodyHandlerProvider() {
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public <T> BodyHandler<T> get(final RestResponseDescriptor<T> descriptor) {
-                return (BodyHandler<T>) BodyHandlers.discarding();
-            }
-        };
+        this.handlerProvider = Objects.requireNonNull(handlerProvider,
+                InferringBodyHandlerProvider.class.getSimpleName() + " must be specified");
     }
 
     @Override
@@ -95,7 +84,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final RestBodyDescriptor<?> requestBodyDescriptor,
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req,
+                    final RestBodyDescriptor<?> requestBodyDescriptor,
                     final RestResponseDescriptor<T> responseBodyDescriptor) {
                 final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 

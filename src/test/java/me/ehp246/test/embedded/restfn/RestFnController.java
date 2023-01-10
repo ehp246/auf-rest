@@ -45,4 +45,9 @@ class RestFnController {
             @RequestParam("message") final String message) {
         return ResponseEntity.status(410).body(new Error(code, message));
     }
+
+    @GetMapping("status")
+    ResponseEntity<Error> getError(@RequestHeader("code") final int code) {
+        return ResponseEntity.status(code).body(null);
+    }
 }

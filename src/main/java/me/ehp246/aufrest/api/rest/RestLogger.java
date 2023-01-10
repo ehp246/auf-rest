@@ -23,7 +23,7 @@ import org.apache.logging.log4j.MarkerManager;
 
 /**
  * Helper bean for the convenience of the application.
- * 
+ *
  * @author Lei Yang
  *
  */
@@ -87,17 +87,17 @@ public final class RestLogger {
                 () -> LOGGER.atTrace().withMarker(REQUEST_BODY).log(""));
     }
 
-    public void onResponseInfo(HttpResponse.ResponseInfo responseInfo) {
+    public void onResponseInfo(final HttpResponse.ResponseInfo responseInfo) {
         LOGGER.atInfo().withMarker(RESPONSE).log("{}", responseInfo::statusCode);
 
         LOGGER.atDebug().withMarker(RESPONSE_HEADERS).log("{}", () -> maskHeaders(responseInfo.headers().map()));
     }
 
-    public void onResponseBody(String text) {
+    public void onResponseBody(final String text) {
         LOGGER.atTrace().withMarker(RESPONSE_BODY).log(text);
     }
 
-    private String maskHeaders(Map<String, List<String>> headers) {
+    private String maskHeaders(final Map<String, List<String>> headers) {
         final var workingMap = new HashMap<>(headers.size());
 
         headers.entrySet().forEach(entry -> {

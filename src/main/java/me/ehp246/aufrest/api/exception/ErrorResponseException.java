@@ -28,8 +28,6 @@ public sealed class ErrorResponseException extends
     protected final HttpResponse<?> response;
 
     public ErrorResponseException(final RestRequest request, final HttpResponse<?> response) {
-        super(response.request().method() + " " + response.uri().toString() + " " + response.statusCode()
-                + System.lineSeparator() + OneUtil.toString(response.body()));
         this.request = request;
         this.response = response;
     }
