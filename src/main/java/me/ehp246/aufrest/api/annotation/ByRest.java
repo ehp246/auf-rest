@@ -32,10 +32,13 @@ public @interface ByRest {
     /**
      * Defines the base URL of the REST endpoint that the interface proxies for.
      * <p>
-     * The value specified is not validated until used.
+     * The value specified is not validated until used. Simple path only without
+     * parameters.
      * <p>
      * Supports Spring property placeholder (e.g. <code>"/${api.base}"</code>).
      *
+     * @see <a href=
+     *      "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#:~:text=With%20Hypertext%20and%20HTTP%2C%20URL,unique%20resource%20on%20the%20Web.">URL</a>
      */
     String value();
 

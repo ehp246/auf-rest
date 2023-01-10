@@ -33,7 +33,7 @@ class HttpUtilsTest {
 
     @Test
     void queryString_01() {
-        Assertions.assertEquals("", HttpUtils.toQueryString(null));
+        Assertions.assertEquals("", HttpUtils.encodeQueryString(null));
     }
 
     @Test
@@ -43,7 +43,7 @@ class HttpUtilsTest {
         final var expected = UriComponentsBuilder.fromUriString("http://localhost")
                 .queryParams(CollectionUtils.toMultiValueMap(queries)).toUriString();
 
-        Assertions.assertEquals(expected, "http://localhost?" + HttpUtils.toQueryString(queries));
+        Assertions.assertEquals(expected, "http://localhost?" + HttpUtils.encodeQueryString(queries));
     }
 
     @Test
@@ -54,6 +54,6 @@ class HttpUtilsTest {
         final var expected = UriComponentsBuilder.fromUriString("http://localhost:123/")
                 .queryParams(CollectionUtils.toMultiValueMap(queries)).toUriString();
 
-        Assertions.assertEquals(expected, "http://localhost:123/?" + HttpUtils.toQueryString(queries));
+        Assertions.assertEquals(expected, "http://localhost:123/?" + HttpUtils.encodeQueryString(queries));
     }
 }

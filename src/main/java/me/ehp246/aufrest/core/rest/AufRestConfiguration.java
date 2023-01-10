@@ -68,7 +68,7 @@ public final class AufRestConfiguration {
             @Autowired(required = false) final AuthProvider authProvider,
             final ContentPublisherProvider publisherProvider,
             @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
-        return new DefaultHttpRequestBuilder(HttpRequest::newBuilder, headerProvider, authProvider, publisherProvider,
+        return new DefaultHttpRequestBuilder(publisherProvider, HttpRequest::newBuilder, headerProvider, authProvider,
                 requestTimeout);
     }
 

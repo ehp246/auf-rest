@@ -5,7 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
+
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * HTTP-related constants.
@@ -57,7 +60,7 @@ public final class HttpUtils {
                 .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")").replaceAll("\\%7E", "~");
     }
 
-    public static String toQueryString(final Map<String, List<String>> queries) {
+    public static String encodeQueryString(final Map<String, List<String>> queries) {
         if (queries == null || queries.size() == 0) {
             return "";
         }
@@ -81,6 +84,26 @@ public final class HttpUtils {
         }
 
         return strBuf.toString();
+    }
+
+    public static String encodeFormUrlBody(final Map<String, List<String>> map) {
+        if (map == null || map.size() == 0) {
+            return "";
+        }
+
+        final var joiner = new StringJoiner("&");
+        for (final var entry : map.entrySet()) {
+            final var key = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
+            for (final var value : entry.getValue()) {
+                if (OneUtil.hasValue(value)) {
+                    joiner.add(String.join("=", key, URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8)));
+                } else {
+                    joiner.add(key);
+                }
+            }
+        }
+
+        return joiner.toString();
     }
 
     public static boolean isSuccess(final int code) {

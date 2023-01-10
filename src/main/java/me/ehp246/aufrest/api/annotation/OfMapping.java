@@ -25,10 +25,14 @@ public @interface OfMapping {
     /**
      * Defines additional path to append to the URL specified by
      * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} on the interface.
-     *
+     * <p>
+     * Simple path only without query parameters.
      * <p>
      * Spring property place-holders are supported. Simple string concatenation to
      * construct the final URL.
+     *
+     * @see <a href=
+     *      "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#:~:text=With%20Hypertext%20and%20HTTP%2C%20URL,unique%20resource%20on%20the%20Web.">URL</a>
      */
     String value() default "";
 

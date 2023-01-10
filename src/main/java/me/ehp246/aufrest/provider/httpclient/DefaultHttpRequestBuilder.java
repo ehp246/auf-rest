@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
-import me.ehp246.aufrest.api.rest.ContentPublisherProvider.ContentPublisher;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -45,9 +44,9 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     private final Optional<AuthProvider> authProvider;
     private final Duration responseTimeout;
 
-    public DefaultHttpRequestBuilder(final Supplier<HttpRequest.Builder> reqBuilderSupplier,
-            final HeaderProvider headerProvider, final AuthProvider authProvider,
-            final ContentPublisherProvider publisherProvider, final String requestTimeout) {
+    public DefaultHttpRequestBuilder(final ContentPublisherProvider publisherProvider,
+            final Supplier<HttpRequest.Builder> reqBuilderSupplier, final HeaderProvider headerProvider,
+            final AuthProvider authProvider, final String requestTimeout) {
         super();
         this.publisherProvider = publisherProvider;
         this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
@@ -118,33 +117,44 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
          */
         final URI uri;
         if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
-            // Expecting this uri doesn't have query parameters on it.
+            /*
+             * URI should be without query parameters on it. But not enforcing the policy.
+             * This means queries on the URI will not be sent in the body.
+             */
             uri = URI.create(req.uri());
         } else {
             // Add query parameters
             uri = URI.create(Optional.ofNullable(req.queries()).filter(queries -> !queries.isEmpty())
-                    .map(queries -> String.join("?", req.uri(), HttpUtils.toQueryString(queries))).orElseGet(req::uri));
+                    .map(queries -> String.join("?", req.uri(), HttpUtils.encodeQueryString(queries)))
+                    .orElseGet(req::uri));
         }
 
         /*
          * Body
-         *
-         * Respect a provided body publisher as much as possible.
          */
-        final ContentPublisherProvider.ContentPublisher contentPublisher;
-        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)
-                && !(req.body() instanceof BodyPublisher)) {
+        if (req.body() instanceof final BodyPublisher publisher) {
+            /*
+             * Respect a provided body publisher as much as possible. In this case, respect
+             * the provide content type as well.
+             */
+            builder.setHeader(HttpUtils.CONTENT_TYPE, req.contentType());
+
+            builder.method(req.method().toUpperCase(), publisher).uri(uri);
+        } else if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
             // Encode query parameters as the body ignoring the body object.
-            contentPublisher = new ContentPublisher(req.contentType(),
-                    BodyPublishers.ofString(OneUtil.formUrlEncodedBody(req.queries())));
+            builder.setHeader(HttpUtils.CONTENT_TYPE, req.contentType());
+
+            builder.method(req.method().toUpperCase(),
+                    BodyPublishers.ofString(HttpUtils.encodeFormUrlBody(req.queries()))).uri(uri);
         } else {
-            contentPublisher = this.publisherProvider.get(req.body(), req.contentType(),
+            // Infer it as the last resort.
+            final var contentPublisher = this.publisherProvider.get(req.body(), req.contentType(),
                     (RestBodyDescriptor<Object>) descriptor);
+
+            builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType());
+
+            builder.method(req.method().toUpperCase(), contentPublisher.publisher()).uri(uri);
         }
-
-        builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType());
-
-        builder.method(req.method().toUpperCase(), contentPublisher.publisher()).uri(uri);
 
         return builder.build();
     }

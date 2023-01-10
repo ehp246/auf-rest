@@ -11,9 +11,18 @@ import java.util.function.Supplier;
  * The abstraction of a REST request that expects a response.
  *
  * @author Lei Yang
- *
+ * @since 1.0
+ * @version 4.0
  */
 public interface RestRequest {
+    /**
+     * Defines the URL path.
+     * <p>
+     * Should be a simple path without query string or other parameters.
+     *
+     * @see <a href=
+     *      "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#:~:text=With%20Hypertext%20and%20HTTP%2C%20URL,unique%20resource%20on%20the%20Web.">URL</a>
+     */
     String uri();
 
     default String method() {
@@ -62,8 +71,8 @@ public interface RestRequest {
     }
 
     /**
-     * Specifies the request body/payload. There is built-in support for the
-     * following types:
+     * Defines the request body/payload. There is built-in support for the following
+     * types:
      * <li>{@linkplain InputStream}</li>
      * <li>{@linkplain Path}</li>
      * <p>
@@ -74,7 +83,7 @@ public interface RestRequest {
     }
 
     /**
-     * Defines application-custom headers.
+     * Specifies application-custom headers.
      * <p>
      * The map should not include the reserved headers defined in
      * {@linkplain HttpUtils#RESERVED_HEADERS}.
