@@ -35,7 +35,8 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  * @author Lei Yang
  * @since 1.0
- * @see AufRestConfiguration
+ * @see AufRestConfiguration#requestBuilder(HeaderProvider, AuthProvider,
+ *      ContentPublisherProvider, String)
  */
 public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
     private final Supplier<HttpRequest.Builder> reqBuilderSupplier;
@@ -48,10 +49,10 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             final HeaderProvider headerProvider, final AuthProvider authProvider,
             final ContentPublisherProvider publisherProvider, final String requestTimeout) {
         super();
+        this.publisherProvider = publisherProvider;
         this.reqBuilderSupplier = reqBuilderSupplier == null ? HttpRequest::newBuilder : reqBuilderSupplier;
         this.headerProvider = Optional.ofNullable(headerProvider);
         this.authProvider = Optional.ofNullable(authProvider);
-        this.publisherProvider = publisherProvider;
         this.responseTimeout = Optional.ofNullable(requestTimeout).filter(OneUtil::hasValue)
                 .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
                         e -> new IllegalArgumentException(AufRestConstants.RESPONSE_TIMEOUT + ": " + value)))
@@ -121,8 +122,8 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             uri = URI.create(req.uri());
         } else {
             // Add query parameters
-            uri = URI.create(String.join("?", req.uri(),
-                    HttpUtils.toQueryString(Optional.ofNullable(req.queries()).orElseGet(Map::of))));
+            uri = URI.create(Optional.ofNullable(req.queries()).filter(queries -> !queries.isEmpty())
+                    .map(queries -> String.join("?", req.uri(), HttpUtils.toQueryString(queries))).orElseGet(req::uri));
         }
 
         /*

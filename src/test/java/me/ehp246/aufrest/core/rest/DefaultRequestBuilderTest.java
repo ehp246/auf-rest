@@ -21,6 +21,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.MockRequestBuilderSupplier;
+import me.ehp246.test.mock.MockContentPublisherProvider;
 import me.ehp246.test.mock.MockReq;
 
 /**
@@ -31,6 +32,8 @@ class DefaultRequestBuilderTest {
     private final static String POSTMAN_ECHO = "https://postman-echo.com";
     private final static String BEARER = "I'm a bearer.";
     private final static String BASIC = "I'm basic.";
+
+    private final static MockContentPublisherProvider provider = new MockContentPublisherProvider();
 
     private final AuthProvider authProvider = new AuthProvider() {
         private int count = 0;
@@ -49,7 +52,7 @@ class DefaultRequestBuilderTest {
         }
     };
 
-    private final HttpRequestBuilder defBuilder = new DefaultHttpRequestBuilder(null, null, null, null, null);
+    private final HttpRequestBuilder defBuilder = new DefaultHttpRequestBuilder(null, null, null, provider, null);
 
     @BeforeEach
     void beforeEach() {
@@ -84,7 +87,7 @@ class DefaultRequestBuilderTest {
 
     @Test
     void auth_global_001() {
-        final var req = new DefaultHttpRequestBuilder(null, null, authProvider, null, null)
+        final var req = new DefaultHttpRequestBuilder(null, null, authProvider, provider, null)
                 .apply(() -> POSTMAN_ECHO + "/bearer");
 
         Assertions.assertEquals(BEARER, req.headers().firstValue(HttpUtils.AUTHORIZATION).get());
@@ -92,7 +95,7 @@ class DefaultRequestBuilderTest {
 
     @Test
     void auth_global_002() {
-        final var req = new DefaultHttpRequestBuilder(null, null, authProvider, null, null)
+        final var req = new DefaultHttpRequestBuilder(null, null, authProvider, provider, null)
                 .apply(() -> POSTMAN_ECHO + "/basic");
 
         Assertions.assertEquals(BASIC, req.headers().firstValue(HttpUtils.AUTHORIZATION).get());
@@ -100,7 +103,8 @@ class DefaultRequestBuilderTest {
 
     @Test
     void auth_global_003() {
-        final DefaultHttpRequestBuilder builder = new DefaultHttpRequestBuilder(null, null, authProvider, null, null);
+        final DefaultHttpRequestBuilder builder = new DefaultHttpRequestBuilder(null, null, authProvider, provider,
+                null);
 
         final var request = (RestRequest) () -> POSTMAN_ECHO + "/count";
 
@@ -118,14 +122,16 @@ class DefaultRequestBuilderTest {
 
     @Test
     void auth_global_004() {
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, null).apply(() -> POSTMAN_ECHO + "/basic");
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, null)
+                .apply(() -> POSTMAN_ECHO + "/basic");
 
         Assertions.assertEquals(0, req.headers().allValues(HttpUtils.AUTHORIZATION).size(), "Should have no Auth");
     }
 
     @Test
     void auth_global_005() {
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, null).apply(() -> POSTMAN_ECHO + "/basic");
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, null)
+                .apply(() -> POSTMAN_ECHO + "/basic");
 
         Assertions.assertEquals(0, req.headers().allValues(HttpUtils.AUTHORIZATION).size(), "Should have no Auth");
     }
@@ -148,7 +154,7 @@ class DefaultRequestBuilderTest {
 
         };
 
-        final var req = new DefaultHttpRequestBuilder(null, null, authProvider, null, null).apply(request);
+        final var req = new DefaultHttpRequestBuilder(null, null, authProvider, provider, null).apply(request);
 
         Assertions.assertEquals(0, req.headers().allValues("authorization").size(),
                 "Request has Authorization explicitly off");
@@ -159,7 +165,7 @@ class DefaultRequestBuilderTest {
         final var value = UUID.randomUUID().toString();
         HeaderContext.add("authorization", value);
 
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, null).apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, null).apply(new RestRequest() {
 
             @Override
             public String uri() {
@@ -179,7 +185,7 @@ class DefaultRequestBuilderTest {
     void auth_headerContext_03() {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, null).apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, null).apply(new RestRequest() {
 
             @Override
             public String uri() {
@@ -204,7 +210,7 @@ class DefaultRequestBuilderTest {
     void auth_headerContext_04() {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
-        final var req = new DefaultHttpRequestBuilder(null, null, r -> null, null, null).apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(null, null, r -> null, provider, null).apply(new RestRequest() {
 
             @Override
             public String uri() {
@@ -231,21 +237,20 @@ class DefaultRequestBuilderTest {
     void auth_headerProvider_01() {
         final var fromProvider = UUID.randomUUID().toString();
         // No authProvider.
-        final var req = new DefaultHttpRequestBuilder(null,
-                r -> Map.of(HttpUtils.AUTHORIZATION, List.of(fromProvider)), null, null, null)
-                        .apply(new MockReq() {
-                            // No request auth.
-                            @Override
-                            public Supplier<String> authSupplier() {
-                                return null;
-                            }
+        final var req = new DefaultHttpRequestBuilder(null, r -> Map.of(HttpUtils.AUTHORIZATION, List.of(fromProvider)),
+                null, provider, null).apply(new MockReq() {
+                    // No request auth.
+                    @Override
+                    public Supplier<String> authSupplier() {
+                        return null;
+                    }
 
-                            // Should be ignored
-                            @Override
-                            public Map<String, List<String>> headers() {
-                                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
-                            }
-                        });
+                    // Should be ignored
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                    }
+                });
 
         Assertions.assertEquals(1, req.headers().allValues("authorization").size(), "Should be from headerProvider");
         Assertions.assertEquals(fromProvider, req.headers().allValues("authorization").get(0),
@@ -258,38 +263,37 @@ class DefaultRequestBuilderTest {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
         // No authProvider. headerProvider should be ignored.
-        final var req = new DefaultHttpRequestBuilder(null,
-                r -> Map.of(HttpUtils.AUTHORIZATION, List.of(fromProvider)), null, null, null)
-                        .apply(new MockReq() {
-                            // No request auth.
-                            @Override
-                            public Supplier<String> authSupplier() {
-                                return null;
-                            }
+        final var req = new DefaultHttpRequestBuilder(null, r -> Map.of(HttpUtils.AUTHORIZATION, List.of(fromProvider)),
+                null, provider, null).apply(new MockReq() {
+                    // No request auth.
+                    @Override
+                    public Supplier<String> authSupplier() {
+                        return null;
+                    }
 
-                            // Should be ignored
-                            @Override
-                            public Map<String, List<String>> headers() {
-                                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
-                            }
-                        });
+                    // Should be ignored
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                    }
+                });
 
-        Assertions.assertEquals(1, req.headers().allValues("authorization").size(),
-                "Should come from headerProvider");
+        Assertions.assertEquals(1, req.headers().allValues("authorization").size(), "Should come from headerProvider");
         Assertions.assertEquals(fromProvider, req.headers().allValues("authorization").get(0),
                 "Should come from headerProvider");
     }
 
     @Test
     void timeout_global_reponse_001() {
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, null).apply(() -> "http://tonowhere");
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, null).apply(() -> "http://tonowhere");
 
         Assertions.assertEquals(true, req.timeout().isEmpty(), "Should have no timeout on request");
     }
 
     @Test
     void timeout_global_reponse_002() {
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, "PT24H").apply(() -> "http://tonowhere");
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, "PT24H")
+                .apply(() -> "http://tonowhere");
 
         Assertions.assertEquals(1, req.timeout().get().toDays(), "Should have global timeout");
     }
@@ -314,7 +318,7 @@ class DefaultRequestBuilderTest {
 
     @Test
     void timeout_per_request_002() {
-        final var req = new DefaultHttpRequestBuilder(null, null, null, null, "PT2H").apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(null, null, null, provider, "PT2H").apply(new RestRequest() {
 
             @Override
             public Duration timeout() {
@@ -433,7 +437,7 @@ class DefaultRequestBuilderTest {
         final var contentType = req.headers().map().get("content-type");
 
         Assertions.assertEquals(1, contentType.size());
-        Assertions.assertEquals("application/json", contentType.get(0));
+        Assertions.assertEquals("", contentType.get(0), "should be passed through");
 
         final var accept = req.headers().map().get("accept");
 
@@ -562,11 +566,11 @@ class DefaultRequestBuilderTest {
     }
 
     @Test
-    void requst_builder_001() {
+    void request_builder_001() {
         final Supplier<HttpRequest.Builder> reqBuilderSupplier = Mockito.mock(MockRequestBuilderSupplier.class,
                 CALLS_REAL_METHODS);
 
-        final var builder = new DefaultHttpRequestBuilder(reqBuilderSupplier, null, null, null, null);
+        final var builder = new DefaultHttpRequestBuilder(reqBuilderSupplier, null, null, provider, null);
 
         final int count = (int) (Math.random() * 20);
 

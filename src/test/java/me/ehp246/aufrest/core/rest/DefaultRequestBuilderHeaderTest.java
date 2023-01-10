@@ -14,6 +14,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
+import me.ehp246.test.mock.MockContentPublisherProvider;
 import me.ehp246.test.mock.MockReq;
 
 /**
@@ -29,8 +30,8 @@ class DefaultRequestBuilderHeaderTest {
         HeaderContext.clear();
     }
 
-    DefaultHttpRequestBuilder builder(HeaderProvider provider) {
-        return new DefaultHttpRequestBuilder(null, provider, null, null, null);
+    DefaultHttpRequestBuilder builder(final HeaderProvider provider) {
+        return new DefaultHttpRequestBuilder(null, provider, null, new MockContentPublisherProvider(), null);
     }
 
     @Test

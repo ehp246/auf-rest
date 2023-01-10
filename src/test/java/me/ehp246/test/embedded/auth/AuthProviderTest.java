@@ -16,7 +16,8 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+        "me.ehp246.aufrest.restlogger.enabled=true" })
 @ActiveProfiles("authProvider")
 class AuthProviderTest {
     @Autowired
