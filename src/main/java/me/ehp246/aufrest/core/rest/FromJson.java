@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 
 /**
  * Internal abstraction for {@linkplain ObjectMapper} operations.
@@ -19,5 +19,5 @@ public interface FromJson {
      *                   {@linkplain ObjectMapper}.
      * @return
      */
-    <T> T apply(final String json, final RestBodyDescriptor<T> descriptor);
+    <T> T apply(final String json, final BodyOf<T> descriptor);
 }

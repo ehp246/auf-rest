@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.rest;
 
 import java.net.http.HttpRequest;
 
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 
@@ -16,7 +16,7 @@ import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
  */
 @FunctionalInterface
 public interface HttpRequestBuilder {
-    HttpRequest apply(RestRequest req, RestBodyDescriptor<?> descriptor);
+    HttpRequest apply(RestRequest req, BodyOf<?> descriptor);
 
     default HttpRequest apply(final RestRequest req) {
         return this.apply(req, null);

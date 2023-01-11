@@ -27,11 +27,11 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
@@ -182,7 +182,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class, RestView.class));
+        }, new BodyOf<Logins.LoginName>(Logins.LoginName.class, RestView.class));
 
         final var body = response.body();
 
@@ -218,7 +218,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class, RestView.class));
+        }, new BodyOf<Logins.LoginName>(Logins.LoginName.class, RestView.class));
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
@@ -242,7 +242,7 @@ class RestFnTest {
         };
 
         final var contentPublisher = this.publisherProvider.get(login,
-                new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class));
+                new BodyOf<Logins.LoginName>(Logins.LoginName.class));
 
         final var response = restFn.applyForResponse(new RestRequest() {
 
@@ -302,7 +302,7 @@ class RestFnTest {
             public Object body() {
                 return bodyPublisher;
             }
-        }, new RestBodyDescriptor<Logins.LoginName>(Logins.LoginName.class));
+        }, new BodyOf<Logins.LoginName>(Logins.LoginName.class));
 
         final var body = response.body();
 
@@ -327,8 +327,8 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, null, new RestResponseDescriptor.Inferring<LoginName>(
-                new RestBodyDescriptor<>(LoginName.class, RestView.class)));
+        }, null, new BodyHandlerType.Inferring<LoginName>(
+                new BodyOf<>(LoginName.class, RestView.class)));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -339,7 +339,7 @@ class RestFnTest {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var body = restFn.apply(newLoginsReq(login),
-                new Inferring<List<LoginName>>(new RestBodyDescriptor<List<LoginName>>(List.class, RestView.class,
+                new Inferring<List<LoginName>>(new BodyOf<List<LoginName>>(List.class, RestView.class,
                         new Class<?>[] { LoginName.class })));
 
         Assertions.assertEquals(1, body.size());
@@ -374,9 +374,9 @@ class RestFnTest {
          * Get a handler that doesn't support View.
          */
         final var handler = this.handlerProvider
-                .get(new RestResponseDescriptor.Inferring<LoginName>(new RestBodyDescriptor<>(LoginName.class)));
+                .get(new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(LoginName.class)));
 
-        final var respons = restFn.applyForResponse(newLoginReq(login), new RestResponseDescriptor.Provided<>(handler))
+        final var respons = restFn.applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler))
                 .body();
 
         /*
@@ -389,14 +389,14 @@ class RestFnTest {
         /*
          * Get a handler that does support View.
          */
-        final var handlerWithView = this.handlerProvider.get(new RestResponseDescriptor.Inferring<LoginName>(
-                new RestBodyDescriptor<>(LoginName.class, RestView.class)));
+        final var handlerWithView = this.handlerProvider.get(new BodyHandlerType.Inferring<LoginName>(
+                new BodyOf<>(LoginName.class, RestView.class)));
 
         /**
          * Use it on the response.
          */
         final var responseWithView = restFn
-                .applyForResponse(newLoginReq(login), new RestResponseDescriptor.Provided<>(handlerWithView)).body();
+                .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handlerWithView)).body();
 
         Assertions.assertEquals(login.username(), responseWithView.getUsername());
         Assertions.assertEquals(null, responseWithView.getPassword());
@@ -423,7 +423,7 @@ class RestFnTest {
                         return Map.of("message", List.of(expected));
                     }
 
-                }, new RestResponseDescriptor.Inferring<String>(String.class, Error.class))).getCause().httpResponse();
+                }, new BodyHandlerType.Inferring<String>(String.class, Error.class))).getCause().httpResponse();
 
         Assertions.assertEquals(410, response.statusCode());
 

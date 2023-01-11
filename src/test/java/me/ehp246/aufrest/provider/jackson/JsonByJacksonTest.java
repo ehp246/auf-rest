@@ -25,7 +25,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.TimingExtension;
 
@@ -51,7 +51,7 @@ class JsonByJacksonTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(ArrayList.class, null, new Class<?>[] { Instant.class }));
+                new BodyOf<>(ArrayList.class, null, new Class<?>[] { Instant.class }));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -62,7 +62,7 @@ class JsonByJacksonTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(ArrayList.class, null, new Class<?>[] { Instant.class }));
+                new BodyOf<>(ArrayList.class, null, new Class<?>[] { Instant.class }));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -73,7 +73,7 @@ class JsonByJacksonTest {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
         final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(List.class, null, new Class<?>[] { List.class, Instant.class }));
+                new BodyOf<>(List.class, null, new Class<?>[] { List.class, Instant.class }));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -90,7 +90,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(ArrayList.class, null, Person.class));
+                new BodyOf<>(ArrayList.class, null, Person.class));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -106,7 +106,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
-                new RestBodyDescriptor<>(List.class, RestView.class, TestCases.Person01.class));
+                new BodyOf<>(List.class, RestView.class, TestCases.Person01.class));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());
@@ -122,7 +122,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
-                new RestBodyDescriptor<>(HashSet.class, RestView.class, List.class, TestCases.Person01.class));
+                new BodyOf<>(HashSet.class, RestView.class, List.class, TestCases.Person01.class));
 
         Assertions.assertEquals(1, result.size());
 

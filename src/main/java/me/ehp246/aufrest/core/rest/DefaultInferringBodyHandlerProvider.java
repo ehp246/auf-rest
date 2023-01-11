@@ -14,11 +14,11 @@ import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Provided;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -41,15 +41,15 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> BodyHandler<T> get(final RestResponseDescriptor<T> descriptor) {
+    public <T> BodyHandler<T> get(final BodyHandlerType<T> descriptor) {
         // In case of provided handler, the success body type is not used and
         // irrelevant.
         final var handler = descriptor instanceof final Provided<?> provided ? provided.handler()
                 : null;
 
-        final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.body() : null;
+        final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.bodyOf() : null;
         // Needed for both provided and inferring descriptors.
-        final var errorDescriptor = descriptor == null ? null : new RestBodyDescriptor<>(descriptor.errorType());
+        final var errorDescriptor = descriptor == null ? null : new BodyOf<>(descriptor.errorType());
 
         return responseInfo -> {
             // Log headers

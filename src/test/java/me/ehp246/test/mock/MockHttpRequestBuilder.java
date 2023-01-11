@@ -4,7 +4,7 @@ import java.net.http.HttpRequest;
 
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
@@ -25,7 +25,7 @@ public class MockHttpRequestBuilder implements HttpRequestBuilder {
     }
 
     @Override
-    public HttpRequest apply(final RestRequest req, final RestBodyDescriptor<?> descriptor) {
+    public HttpRequest apply(final RestRequest req, final BodyOf<?> descriptor) {
         return this.httpRequest;
     }
 

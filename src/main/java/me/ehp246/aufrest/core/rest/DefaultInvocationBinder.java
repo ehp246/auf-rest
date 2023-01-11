@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -45,7 +45,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final RestBodyDescriptor<?> bodyInfo;
+    private final BodyOf<?> bodyInfo;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ResponseReturnMapper returnMapper;
@@ -55,7 +55,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
-            final ArgBinder<Object, Object> bodyArgBinder, final RestBodyDescriptor<?> bodyInfo,
+            final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
             final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ResponseReturnMapper returnMapper) {
         super();
         this.method = method;
@@ -213,6 +213,6 @@ final class DefaultInvocationBinder implements InvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyInfo, new RestResponseDescriptor.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+        }, bodyInfo, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 }

@@ -7,11 +7,12 @@ import java.util.Map;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 
 /**
+ * Marker type on how to handle a response body.
  *
  * @author Lei Yang
  * @since 4.0
  */
-public sealed interface RestResponseDescriptor<T> {
+public sealed interface BodyHandlerType<T> {
     /**
      * The Java type of the response body on a {@linkplain ErrorResponseException}.
      */
@@ -20,10 +21,13 @@ public sealed interface RestResponseDescriptor<T> {
     }
 
     /**
+     * Defines a custom {@linkplain BodyHandler} for the response body. By-passes
+     * the built-in {@linkplain InferringBodyHandlerProvider}.
+     *
      * @author Lei Yang
      * @since 4.0
      */
-    public final class Provided<T> implements RestResponseDescriptor<T> {
+    public final class Provided<T> implements BodyHandlerType<T> {
         public static final Provided<Void> DISCARDING = new Provided<>(BodyHandlers.discarding());
 
         private final BodyHandler<T> handler;
@@ -53,34 +57,35 @@ public sealed interface RestResponseDescriptor<T> {
     }
 
     /**
-     * Specifies how to {@linkplain BodyHandler handle} the incoming response body.
-     * I.e., how to transform the body into a Java object.
+     * Defines the typing information needed to transform the response body into a
+     * Java object. Passed to {@linkplain InferringBodyHandlerProvider} for a
+     * {@linkplain BodyHandler}.
      *
      * @author Lei Yang
      * @since 4.0
-     * @see BodyHandler
+     * @see {@linkplain InferringBodyHandlerProvider}
      */
-    public final class Inferring<T> implements RestResponseDescriptor<T> {
-        private final RestBodyDescriptor<T> bodyDescriptor;
+    public final class Inferring<T> implements BodyHandlerType<T> {
+        private final BodyOf<T> bodyDescriptor;
         private final Class<?> errorType;
 
-        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(RestBodyDescriptor.MAP);
+        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(BodyOf.MAP);
 
-        public Inferring(final RestBodyDescriptor<T> body, final Class<?> errorType) {
+        public Inferring(final BodyOf<T> body, final Class<?> errorType) {
             this.bodyDescriptor = body;
             this.errorType = errorType;
         }
 
-        public Inferring(final RestBodyDescriptor<T> descriptor) {
+        public Inferring(final BodyOf<T> descriptor) {
             this(descriptor, Map.class);
         }
 
         public Inferring(final Class<T> type) {
-            this(new RestBodyDescriptor<T>(type), Map.class);
+            this(new BodyOf<T>(type), Map.class);
         }
 
         public Inferring(final Class<T> type, final Class<?> errorType) {
-            this(new RestBodyDescriptor<T>(type), errorType);
+            this(new BodyOf<T>(type), errorType);
         }
 
         @Override
@@ -88,7 +93,7 @@ public sealed interface RestResponseDescriptor<T> {
             return errorType;
         }
 
-        public RestBodyDescriptor<T> body() {
+        public BodyOf<T> bodyOf() {
             return bodyDescriptor;
         }
     }

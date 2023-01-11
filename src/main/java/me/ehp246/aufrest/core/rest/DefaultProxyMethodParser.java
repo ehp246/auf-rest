@@ -38,9 +38,9 @@ import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -118,7 +118,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyArgInfo = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new RestBodyDescriptor<>(parameter.getType(),
+                .map(parameter -> new BodyOf<>(parameter.getType(),
                         Optional.ofNullable(parameter.getAnnotation(OfBody.class)).map(OfBody::view).orElse(null),
                         (Class<?>[]) null))
                 .orElse(null);
@@ -143,14 +143,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         throw new IllegalArgumentException("Missing required " + OfBody.class);
                     }
                     final var bodyDescriptor = ofBody.map(OfBody::value).filter(OneUtil::hasValue)
-                            .map(value -> new RestBodyDescriptor<>(value[0],
+                            .map(value -> new BodyOf<>(value[0],
                                     ofBody.map(OfBody::view).orElse(null),
                                     value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null))
                             .orElseGet(
-                                    () -> new RestBodyDescriptor<>(returnType, ofBody.map(OfBody::view).orElse(null),
+                                    () -> new BodyOf<>(returnType, ofBody.map(OfBody::view).orElse(null),
                                             (Class<?>[]) null));
                     final var handler = inferredHandlerProvider
-                            .get(new RestResponseDescriptor.Inferring<>(bodyDescriptor, byRest.errorType()));
+                            .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));
                     return (target, args) -> handler;
                 });
 

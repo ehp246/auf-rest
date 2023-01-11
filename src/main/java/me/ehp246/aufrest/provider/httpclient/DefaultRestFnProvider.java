@@ -24,13 +24,13 @@ import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
@@ -85,8 +85,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             @SuppressWarnings("unchecked")
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest req,
-                    final RestBodyDescriptor<?> requestBodyDescriptor,
-                    final RestResponseDescriptor<T> responseBodyDescriptor) {
+                    final BodyOf<?> requestBodyDescriptor,
+                    final BodyHandlerType<T> responseBodyDescriptor) {
                 final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
@@ -95,7 +95,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     restLogger.onRequest(httpReq, req);
                 }
 
-                final var handler = responseBodyDescriptor instanceof final RestResponseDescriptor.Provided<T> handlerSupplier
+                final var handler = responseBodyDescriptor instanceof final BodyHandlerType.Provided<T> handlerSupplier
                         ? handlerSupplier.handler()
                         : handlerProvider.get(responseBodyDescriptor);
 

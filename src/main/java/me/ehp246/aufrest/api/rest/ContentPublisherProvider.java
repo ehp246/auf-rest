@@ -22,9 +22,9 @@ public interface ContentPublisherProvider {
      * @param descriptor
      * @return
      */
-    <T> ContentPublisher get(T body, String mimeType, RestBodyDescriptor<T> descriptor);
+    <T> ContentPublisher get(T body, String mimeType, BodyOf<T> descriptor);
 
-    default <T> ContentPublisher get(final T body, final RestBodyDescriptor<T> descriptor) {
+    default <T> ContentPublisher get(final T body, final BodyOf<T> descriptor) {
         return this.get(body, null, descriptor);
     }
     /**

@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.core.rest.FromJson;
 import me.ehp246.aufrest.core.rest.ToJson;
 
@@ -32,7 +32,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final RestBodyDescriptor<?> valueInfo) {
+    public String apply(final Object value, final BodyOf<?> valueInfo) {
         if (value == null) {
             return null;
         }
@@ -53,8 +53,8 @@ public final class JsonByJackson implements FromJson, ToJson {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T apply(final String json, RestBodyDescriptor<T> descriptor) {
-        descriptor = descriptor == null ? (RestBodyDescriptor<T>) new RestBodyDescriptor<>(Object.class) : descriptor;
+    public <T> T apply(final String json, BodyOf<T> descriptor) {
+        descriptor = descriptor == null ? (BodyOf<T>) new BodyOf<>(Object.class) : descriptor;
 
         if (json == null || json.isBlank()) {
             return null;

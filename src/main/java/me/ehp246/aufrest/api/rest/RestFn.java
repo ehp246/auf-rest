@@ -5,8 +5,8 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
-import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Provided;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
 
 /**
  * The abstraction of a HttpClient that takes in a request and returns a
@@ -35,10 +35,10 @@ public interface RestFn {
      *                           see {@linkplain InferringBodyHandlerProvider}.
      * @return The response whose {@linkplain HttpResponse#body()} has the payload
      *         transformed into a Java object as dedicated by
-     *         {@linkplain RestResponseDescriptor}.
+     *         {@linkplain BodyHandlerType}.
      */
-    <T> HttpResponse<T> applyForResponse(RestRequest request, RestBodyDescriptor<?> requestDescriptor,
-            RestResponseDescriptor<T> responseDescriptor);
+    <T> HttpResponse<T> applyForResponse(RestRequest request, BodyOf<?> requestDescriptor,
+            BodyHandlerType<T> responseDescriptor);
 
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
         return this.applyForResponse(request, null, Inferring.MAP);
@@ -54,12 +54,12 @@ public interface RestFn {
      *
      */
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request,
-            final RestBodyDescriptor<?> requestDescriptor) {
+            final BodyOf<?> requestDescriptor) {
         return this.applyForResponse(request, requestDescriptor, Inferring.MAP);
     }
 
     default <T> HttpResponse<T> applyForResponse(final RestRequest request,
-            final RestResponseDescriptor<T> responseDescriptor) {
+            final BodyHandlerType<T> responseDescriptor) {
         return this.applyForResponse(request, null, responseDescriptor);
     }
 
@@ -82,16 +82,16 @@ public interface RestFn {
     /**
      * Executes the request and returns the response body as a {@linkplain Map}.
      */
-    default Map<String, Object> apply(final RestRequest request, final RestBodyDescriptor<?> requestDescriptor) {
+    default Map<String, Object> apply(final RestRequest request, final BodyOf<?> requestDescriptor) {
         return this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
     }
 
-    default <T> T apply(final RestRequest request, final RestResponseDescriptor<T> responseDescriptor) {
+    default <T> T apply(final RestRequest request, final BodyHandlerType<T> responseDescriptor) {
         return this.applyForResponse(request, null, responseDescriptor).body();
     }
 
-    default <T> T apply(final RestRequest request, final RestBodyDescriptor<?> requestDescriptor,
-            final RestResponseDescriptor<T> responseDescriptor) {
+    default <T> T apply(final RestRequest request, final BodyOf<?> requestDescriptor,
+            final BodyHandlerType<T> responseDescriptor) {
         return this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
     }
 

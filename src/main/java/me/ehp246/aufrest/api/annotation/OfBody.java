@@ -15,6 +15,7 @@ import java.lang.annotation.Target;
  * including the type parameters needed to de-serialize response body.
  *
  * @author Lei Yang
+ * @since 4.0
  */
 @Retention(RUNTIME)
 @Target({ METHOD, ElementType.PARAMETER })
