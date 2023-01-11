@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  * @since 4.0
  */
-public final class BadGatewayException extends ServerErrorResponseException {
+public final class BadGatewayException extends ServerErrorException {
     private static final long serialVersionUID = 4026754453331838045L;
 
     public BadGatewayException(final RestRequest request, final HttpResponse<?> response) {

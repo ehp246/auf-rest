@@ -9,15 +9,15 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * and 599.
  *
  * @author Lei Yang
- * @since 2.3.7
+ * @since 4.0
  *
  */
-public sealed class ServerErrorResponseException
+public sealed class ServerErrorException
         extends
         ErrorResponseException permits ServiceUnavailableException, BadGatewayException, GatewayTimeoutException, InternalServerErrorException {
     private static final long serialVersionUID = -3503724512415848631L;
 
-    public ServerErrorResponseException(final RestRequest request, final HttpResponse<?> response) {
+    public ServerErrorException(final RestRequest request, final HttpResponse<?> response) {
         super(request, response);
         final var statusCode = response.statusCode();
         if (statusCode < 500 || response.statusCode() > 599) {

@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  * @since 4.0
  */
-public final class InternalServerErrorException extends ServerErrorResponseException {
+public final class InternalServerErrorException extends ServerErrorException {
     private static final long serialVersionUID = 2178348433906014074L;
 
     public InternalServerErrorException(final RestRequest request, final HttpResponse<?> response) {

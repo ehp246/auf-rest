@@ -17,11 +17,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
-import me.ehp246.aufrest.api.exception.RedirectionResponseException;
-import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.RedirectionException;
+import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
@@ -450,7 +450,7 @@ class RestFnTest {
 
                 })).getCause();
 
-        Assertions.assertEquals(ClientErrorResponseException.class, cause.getClass());
+        Assertions.assertEquals(ClientErrorException.class, cause.getClass());
         Assertions.assertEquals(410, cause.statusCode());
     }
 
@@ -555,7 +555,7 @@ class RestFnTest {
 
                 })).getCause();
 
-        Assertions.assertEquals(ServerErrorResponseException.class, cause.getClass());
+        Assertions.assertEquals(ServerErrorException.class, cause.getClass());
         Assertions.assertEquals(510, cause.statusCode());
     }
 
@@ -576,7 +576,7 @@ class RestFnTest {
 
                 })).getCause();
 
-        Assertions.assertEquals(ClientErrorResponseException.class, cause.getClass());
+        Assertions.assertEquals(ClientErrorException.class, cause.getClass());
         Assertions.assertEquals(400, cause.statusCode());
     }
 
@@ -597,7 +597,7 @@ class RestFnTest {
 
                 })).getCause();
 
-        Assertions.assertEquals(RedirectionResponseException.class, cause.getClass());
+        Assertions.assertEquals(RedirectionException.class, cause.getClass());
         Assertions.assertEquals(300, cause.statusCode());
     }
 }

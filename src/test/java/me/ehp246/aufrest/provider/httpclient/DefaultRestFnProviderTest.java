@@ -14,12 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
-import me.ehp246.aufrest.api.exception.RedirectionResponseException;
+import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -285,7 +285,7 @@ class DefaultRestFnProviderTest {
                         MockClientBuilderSupplier.supplier(new MockHttpResponse<>(590)), null, null)
                                 .get(new ClientConfig()).applyForResponse(() -> "http://nowhere"));
 
-        Assertions.assertEquals(ServerErrorResponseException.class, ex.getCause().getClass());
+        Assertions.assertEquals(ServerErrorException.class, ex.getCause().getClass());
         Assertions.assertEquals(590, ex.getCause().statusCode());
     }
 
@@ -296,7 +296,7 @@ class DefaultRestFnProviderTest {
                         MockClientBuilderSupplier.supplier(new MockHttpResponse<>(400)), null, null)
                                 .get(new ClientConfig()).applyForResponse(() -> "http://nowhere"));
 
-        Assertions.assertEquals(ClientErrorResponseException.class, ex.getCause().getClass());
+        Assertions.assertEquals(ClientErrorException.class, ex.getCause().getClass());
         Assertions.assertEquals(400, ex.getCause().statusCode());
     }
 
@@ -307,7 +307,7 @@ class DefaultRestFnProviderTest {
                         MockClientBuilderSupplier.supplier(new MockHttpResponse<>(300)), null, null)
                                 .get(new ClientConfig()).applyForResponse(() -> "http://nowhere"));
 
-        Assertions.assertEquals(RedirectionResponseException.class, ex.getCause().getClass());
+        Assertions.assertEquals(RedirectionException.class, ex.getCause().getClass());
         Assertions.assertEquals(300, ex.getCause().statusCode());
     }
 

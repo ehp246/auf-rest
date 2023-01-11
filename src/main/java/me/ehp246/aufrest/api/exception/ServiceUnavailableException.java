@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  * @since 4.0
  */
-public final class ServiceUnavailableException extends ServerErrorResponseException {
+public final class ServiceUnavailableException extends ServerErrorException {
     private static final long serialVersionUID = 221830441972791734L;
 
     public ServiceUnavailableException(final RestRequest request, final HttpResponse<?> response) {

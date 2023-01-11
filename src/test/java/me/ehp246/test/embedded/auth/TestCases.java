@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
 import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfBody;
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
@@ -65,6 +65,6 @@ interface TestCases {
     @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "dynamicAuthBean",
             "wrongName" }, scheme = AuthScheme.BEAN))
     interface BeanAuth03 {
-        void get(@AuthBean.Param String username, @AuthBean.Param String password) throws ClientErrorResponseException;
+        void get(@AuthBean.Param String username, @AuthBean.Param String password) throws ClientErrorException;
     }
 }

@@ -13,12 +13,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
-import me.ehp246.aufrest.api.exception.RedirectionResponseException;
-import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.RedirectionException;
+import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 
@@ -40,12 +40,12 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> testCase.get(301));
 
         Assertions.assertEquals(301, ex.statusCode());
-        Assertions.assertTrue(ex.getCause() instanceof RedirectionResponseException, "Should be more specific");
+        Assertions.assertTrue(ex.getCause() instanceof RedirectionException, "Should be more specific");
     }
 
     @Test
-    void test300_002() throws RedirectionResponseException {
-        final var ex = Assertions.assertThrows(RedirectionResponseException.class, () -> testCase.get02(301));
+    void test300_002() throws RedirectionException {
+        final var ex = Assertions.assertThrows(RedirectionException.class, () -> testCase.get02(301));
 
         Assertions.assertEquals(301, ex.statusCode());
     }
@@ -55,12 +55,12 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> testCase.get(401));
 
         Assertions.assertEquals(401, ex.statusCode());
-        Assertions.assertTrue(ex.getCause() instanceof ClientErrorResponseException, "Should be more specific");
+        Assertions.assertTrue(ex.getCause() instanceof ClientErrorException, "Should be more specific");
     }
 
     @Test
     void test400_002() {
-        final var ex = Assertions.assertThrows(ClientErrorResponseException.class, () -> testCase.get02(401));
+        final var ex = Assertions.assertThrows(ClientErrorException.class, () -> testCase.get02(401));
 
         Assertions.assertEquals(401, ex.statusCode());
     }
@@ -70,12 +70,12 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class, testCase::get);
 
         Assertions.assertEquals(500, ex.statusCode());
-        Assertions.assertTrue(ex.getCause() instanceof ServerErrorResponseException, "Should be more specific");
+        Assertions.assertTrue(ex.getCause() instanceof ServerErrorException, "Should be more specific");
     }
 
     @Test
     void test500_002() {
-        final var ex = Assertions.assertThrows(ServerErrorResponseException.class, () -> testCase.get02(500));
+        final var ex = Assertions.assertThrows(ServerErrorException.class, () -> testCase.get02(500));
 
         Assertions.assertEquals(500, ex.statusCode());
     }
@@ -103,12 +103,12 @@ class ExceptionTest {
                 "Should be wrapped");
 
         Assertions.assertEquals(300, ex.statusCode());
-        Assertions.assertTrue(ex.getCause() instanceof RedirectionResponseException, "Should be more specific");
+        Assertions.assertTrue(ex.getCause() instanceof RedirectionException, "Should be more specific");
     }
 
     @Test
     void test_client_002() {
-        final var ex = Assertions.assertThrows(ClientErrorResponseException.class, () -> testCase.getClientError(400));
+        final var ex = Assertions.assertThrows(ClientErrorException.class, () -> testCase.getClientError(400));
 
         Assertions.assertEquals(400, ex.statusCode());
     }
@@ -131,7 +131,7 @@ class ExceptionTest {
 
     @Test
     void test_redirect_001() {
-        final var ex = Assertions.assertThrows(RedirectionResponseException.class, () -> testCase.getRedirect(300));
+        final var ex = Assertions.assertThrows(RedirectionException.class, () -> testCase.getRedirect(300));
 
         Assertions.assertEquals(300, ex.statusCode());
     }
@@ -141,7 +141,7 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> testCase.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
-        Assertions.assertTrue(ex.getClass() == ClientErrorResponseException.class);
+        Assertions.assertTrue(ex.getClass() == ClientErrorException.class);
     }
 
     @Test
@@ -167,7 +167,7 @@ class ExceptionTest {
 
     @Test
     void test_server_02() {
-        final var ex = Assertions.assertThrows(ServerErrorResponseException.class, () -> testCase.getServerError(504));
+        final var ex = Assertions.assertThrows(ServerErrorException.class, () -> testCase.getServerError(504));
 
         Assertions.assertEquals(GatewayTimeoutException.class, ex.getClass());
         Assertions.assertEquals(504, ex.statusCode());
@@ -175,21 +175,21 @@ class ExceptionTest {
 
     @Test
     void test_error_001() {
-        final var ex = Assertions.assertThrows(RedirectionResponseException.class, () -> testCase.getError(399));
+        final var ex = Assertions.assertThrows(RedirectionException.class, () -> testCase.getError(399));
 
         Assertions.assertEquals(399, ex.statusCode());
     }
 
     @Test
     void test_error_002() {
-        final var ex = Assertions.assertThrows(ClientErrorResponseException.class, () -> testCase.getError(499));
+        final var ex = Assertions.assertThrows(ClientErrorException.class, () -> testCase.getError(499));
 
         Assertions.assertEquals(499, ex.statusCode());
     }
 
     @Test
     void test_error_003() {
-        final var ex = Assertions.assertThrows(ServerErrorResponseException.class, () -> testCase.getError(599));
+        final var ex = Assertions.assertThrows(ServerErrorException.class, () -> testCase.getError(599));
 
         Assertions.assertEquals(599, ex.statusCode());
     }

@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  * @since 4.0
  */
-public final class GatewayTimeoutException extends ServerErrorResponseException {
+public final class GatewayTimeoutException extends ServerErrorException {
     private static final long serialVersionUID = -697691903891275721L;
 
     public GatewayTimeoutException(final RestRequest request, final HttpResponse<?> response) {

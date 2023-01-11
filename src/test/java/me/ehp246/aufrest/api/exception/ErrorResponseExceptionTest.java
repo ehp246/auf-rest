@@ -41,7 +41,7 @@ class ErrorResponseExceptionTest {
     @Test
     void client_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ClientErrorResponseException(new MockRestRequest(), new MockHttpResponse<>(500)));
+                () -> new ClientErrorException(new MockRestRequest(), new MockHttpResponse<>(500)));
     }
 
     @Test
@@ -65,13 +65,13 @@ class ErrorResponseExceptionTest {
     @Test
     void redirect_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new RedirectionResponseException(new MockRestRequest(), new MockHttpResponse<>(501)));
+                () -> new RedirectionException(new MockRestRequest(), new MockHttpResponse<>(501)));
     }
 
     @Test
     void server_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ServerErrorResponseException(new MockRestRequest(), new MockHttpResponse<>(401)));
+                () -> new ServerErrorException(new MockRestRequest(), new MockHttpResponse<>(401)));
     }
 
     @Test

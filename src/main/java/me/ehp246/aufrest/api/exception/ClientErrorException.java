@@ -9,13 +9,13 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * and 499.
  *
  * @author Lei Yang
- * @since 2.3.7
+ * @since 4.0
  *
  */
-public final class ClientErrorResponseException extends ErrorResponseException {
+public final class ClientErrorException extends ErrorResponseException {
     private static final long serialVersionUID = 3539564874094568554L;
 
-    public ClientErrorResponseException(final RestRequest request, final HttpResponse<?> response) {
+    public ClientErrorException(final RestRequest request, final HttpResponse<?> response) {
         super(request, response);
         final var statusCode = response.statusCode();
         if (statusCode < 400 || response.statusCode() > 499) {

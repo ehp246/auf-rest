@@ -11,13 +11,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
-import me.ehp246.aufrest.api.exception.ClientErrorResponseException;
+import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
-import me.ehp246.aufrest.api.exception.RedirectionResponseException;
+import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.RestFnException;
-import me.ehp246.aufrest.api.exception.ServerErrorResponseException;
+import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
@@ -118,12 +118,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         } else if (statusCode == 504) {
                             throw new GatewayTimeoutException(req, httpResponse);
                         } else if (statusCode >= 500) {
-                            throw new ServerErrorResponseException(req, httpResponse);
+                            throw new ServerErrorException(req, httpResponse);
                         } else if (statusCode >= 400) {
-                            throw new ClientErrorResponseException(req, httpResponse);
+                            throw new ClientErrorException(req, httpResponse);
                         }
 
-                        throw new RedirectionResponseException(req, httpResponse);
+                        throw new RedirectionException(req, httpResponse);
                     }
                 } catch (IOException | InterruptedException | ErrorResponseException e) {
                     LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);

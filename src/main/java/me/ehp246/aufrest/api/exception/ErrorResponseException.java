@@ -22,7 +22,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @since 2.5.0
  */
 public sealed class ErrorResponseException extends
-        Exception permits ClientErrorResponseException, ServerErrorResponseException, RedirectionResponseException {
+        Exception permits ClientErrorException, ServerErrorException, RedirectionException {
     private static final long serialVersionUID = -182048232082907551L;
 
     protected final RestRequest request;
