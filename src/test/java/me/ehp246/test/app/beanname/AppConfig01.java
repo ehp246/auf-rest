@@ -1,4 +1,4 @@
-package me.ehp246.test.app.restlogger;
+package me.ehp246.test.app.beanname;
 
 import org.springframework.context.annotation.Import;
 
@@ -11,6 +11,6 @@ import me.ehp246.test.mock.Jackson;
  */
 @EnableByRest
 @Import(Jackson.class)
-class AppConfig {
+class AppConfig01 {
 
 }

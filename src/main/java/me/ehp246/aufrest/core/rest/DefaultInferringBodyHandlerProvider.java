@@ -8,7 +8,6 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
@@ -19,6 +18,7 @@ import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor;
 import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Inferring;
+import me.ehp246.aufrest.api.rest.RestResponseDescriptor.Provided;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -26,13 +26,14 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  * @author Lei Yang
  * @since 1.0
+ * @version 4.0
  * @see AufRestConfiguration
  */
-final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
+final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerProvider {
     private final FromJson fromJson;
     private final RestLogger restLogger;
 
-    public DefaultBodyHandlerProvider(final FromJson jsonFn, @Nullable final RestLogger restLogger) {
+    public DefaultInferringBodyHandlerProvider(final FromJson jsonFn, @Nullable final RestLogger restLogger) {
         super();
         this.fromJson = jsonFn;
         this.restLogger = restLogger;
@@ -41,13 +42,14 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
     @SuppressWarnings("unchecked")
     @Override
     public <T> BodyHandler<T> get(final RestResponseDescriptor<T> descriptor) {
-        Objects.nonNull(descriptor);
-
         // In case of provided handler, the success body type is not used and
         // irrelevant.
+        final var handler = descriptor instanceof final Provided<?> provided ? provided.handler()
+                : null;
+
         final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.body() : null;
         // Needed for both provided and inferring descriptors.
-        final var errorDescriptor = new RestBodyDescriptor<>(descriptor.errorType());
+        final var errorDescriptor = descriptor == null ? null : new RestBodyDescriptor<>(descriptor.errorType());
 
         return responseInfo -> {
             // Log headers
@@ -63,19 +65,19 @@ final class DefaultBodyHandlerProvider implements InferringBodyHandlerProvider {
             final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
                     .orElse(HttpUtils.APPLICATION_JSON);
 
-            final RestBodyDescriptor<?> resposneDescriptor;
-            if (statusCode >= 200 && statusCode < 300) {
-                // Use the supplied if it is supplied.
-                if (descriptor instanceof final RestResponseDescriptor.Provided<?> handleSupplier) {
-                    return (BodySubscriber<T>) handleSupplier.handler();
-                }
-                resposneDescriptor = successDescriptor;
-            } else {
-                resposneDescriptor = errorDescriptor;
+            // Use the supplied if it is supplied.
+            final var isSuccess = HttpUtils.isSuccess(statusCode);
+            if (isSuccess && handler != null) {
+                return (BodySubscriber<T>) handler;
             }
 
-            // By this time, the descriptor could be for either a success or a failure.
-            final var type = resposneDescriptor.type();
+            /*
+             * The descriptor for this particular response. By this time, the descriptor
+             * could be for either a success or a failure. Can be null. In which case, try
+             * to infer by the content type.
+             */
+            final var resposneDescriptor = isSuccess ? successDescriptor : errorDescriptor;
+            final var type = resposneDescriptor == null ? null : resposneDescriptor.type();
             if (statusCode == 204 || type == void.class || type == Void.class) {
                 return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
             }

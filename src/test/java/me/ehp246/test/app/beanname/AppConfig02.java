@@ -1,4 +1,4 @@
-package me.ehp246.test.app.config02;
+package me.ehp246.test.app.beanname;
 
 import org.springframework.context.annotation.Import;
 

@@ -5,6 +5,7 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,29 +18,41 @@ import javax.net.ssl.SSLSession;
 public class MockHttpResponse<T> implements HttpResponse<T> {
     private final int statusCode;
     private final T body;
+    private final Map<String, List<String>> headers;
 
     public MockHttpResponse() {
         super();
         this.statusCode = 200;
         this.body = null;
+        this.headers = Map.of();
     }
 
     public MockHttpResponse(final int statusCode) {
         super();
         this.statusCode = statusCode;
         this.body = null;
+        this.headers = Map.of();
     }
 
     public MockHttpResponse(final int statusCode, final T body) {
         super();
         this.statusCode = statusCode;
         this.body = body;
+        this.headers = Map.of();
+    }
+
+    public MockHttpResponse(final int statusCode, final T body, final Map<String, List<String>> headers) {
+        super();
+        this.statusCode = statusCode;
+        this.body = body;
+        this.headers = headers;
     }
 
     public MockHttpResponse(final T body) {
         super();
         this.statusCode = 200;
         this.body = body;
+        this.headers = Map.of();
     }
 
     @Override
@@ -61,7 +74,7 @@ public class MockHttpResponse<T> implements HttpResponse<T> {
 
     @Override
     public HttpHeaders headers() {
-        return HttpHeaders.of(Map.of(), (a, b) -> true);
+        return HttpHeaders.of(this.headers, (a, b) -> true);
     }
 
     @Override

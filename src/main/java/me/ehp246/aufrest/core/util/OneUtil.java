@@ -1,12 +1,10 @@
 package me.ehp246.aufrest.core.util;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -81,16 +79,6 @@ public final class OneUtil {
         } catch (final Exception e) {
             throw fn.apply(e);
         }
-    }
-
-    public static boolean isPresent(final List<? extends Annotation> annos, final Class<? extends Annotation> type) {
-        return OneUtil.filter(annos, type).findAny().isPresent();
-    }
-
-    public static Stream<? extends Annotation> filter(final List<? extends Annotation> annos,
-            final Class<? extends Annotation> type) {
-        return Optional.ofNullable(annos).filter(Objects::nonNull).orElseGet(ArrayList::new).stream()
-                .filter(anno -> anno.annotationType() == type);
     }
 
     public static Map<String, List<String>> toQueryParamMap(final Map<String, List<Object>> input) {

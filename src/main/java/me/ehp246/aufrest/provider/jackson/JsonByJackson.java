@@ -51,9 +51,10 @@ public final class JsonByJackson implements FromJson, ToJson {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public <T> T apply(final String json, final RestBodyDescriptor<T> descriptor) {
-        Objects.requireNonNull(descriptor);
+    public <T> T apply(final String json, RestBodyDescriptor<T> descriptor) {
+        descriptor = descriptor == null ? (RestBodyDescriptor<T>) new RestBodyDescriptor<>(Object.class) : descriptor;
 
         if (json == null || json.isBlank()) {
             return null;

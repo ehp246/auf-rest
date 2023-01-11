@@ -45,7 +45,7 @@ class ErrorTypeTest {
 
         Assertions.assertTrue(ex.body() instanceof Map);
 
-        Assertions.assertEquals(now.toString(), ex.body(Map.class).get("now").toString());
+        Assertions.assertEquals(now.toString(), ex.<Map<String, Object>>body().get("now").toString());
     }
 
     @Test
@@ -56,7 +56,7 @@ class ErrorTypeTest {
 
         Assertions.assertTrue(ex.httpResponse().body() instanceof Map);
 
-        Assertions.assertEquals(now.toString(), ex.body(Map.class).get("now").toString());
+        Assertions.assertEquals(now.toString(), ex.<Map<String, Object>>body().get("now").toString());
     }
 
     @Test
@@ -67,6 +67,6 @@ class ErrorTypeTest {
 
         Assertions.assertEquals(String.class, ex.httpResponse().body().getClass());
 
-        Assertions.assertEquals(string, ex.body(String.class));
+        Assertions.assertEquals(string, ex.<String>body());
     }
 }

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 /**
  * @author Lei Yang
- *
+ * @since 1.0
  */
 public final class ReflectedMethod {
     private final Class<?> declaringType;

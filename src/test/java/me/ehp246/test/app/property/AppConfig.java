@@ -1,4 +1,4 @@
-package me.ehp246.test.app.config01;
+package me.ehp246.test.app.property;
 
 import org.springframework.context.annotation.Import;
 
@@ -11,6 +11,5 @@ import me.ehp246.test.mock.Jackson;
  */
 @EnableByRest
 @Import(Jackson.class)
-class AppConfig01 {
-
+class AppConfig {
 }

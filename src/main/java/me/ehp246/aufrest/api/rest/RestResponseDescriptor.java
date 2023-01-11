@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.api.rest;
 
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
@@ -23,6 +24,8 @@ public sealed interface RestResponseDescriptor<T> {
      * @since 4.0
      */
     public final class Provided<T> implements RestResponseDescriptor<T> {
+        public static final Provided<Void> DISCARDING = new Provided<>(BodyHandlers.discarding());
+
         private final BodyHandler<T> handler;
         private final Class<?> errorType;
 

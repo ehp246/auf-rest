@@ -17,7 +17,7 @@ public final class BadGatewayException extends ServerErrorResponseException {
         super(request, response);
         final var statusCode = response.statusCode();
         if (statusCode != 502) {
-            throw new IllegalArgumentException("Un-supported status code: " + statusCode);
+            throw new IllegalArgumentException("Illegal status code: " + statusCode);
         }
     }
 }

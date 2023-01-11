@@ -6,7 +6,7 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
- * The abstraction to map a {@linkplain RestFnOutcome} to a return value of a
+ * The abstraction to map a {@linkplain FnOutcome} to a return value of a
  * {@linkplain ByRest} method. Should propagate exceptions according to the
  * <code>throws</code> clause of the method.
  * <p>
@@ -19,5 +19,5 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  */
 @FunctionalInterface
 public interface ResponseReturnMapper {
-    Object apply(RestRequest restRequest, RestFnOutcome outcome) throws Throwable;
+    Object apply(RestRequest restRequest, FnOutcome outcome) throws Throwable;
 }

@@ -1,4 +1,4 @@
-package me.ehp246.test.app.config01;
+package me.ehp246.test.app.beanname;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -22,9 +22,17 @@ class NameTest {
 
     @Test
     void name_01() {
-        appCtx = new AnnotationConfigApplicationContext(AppConfig01.class);
+        appCtx = new AnnotationConfigApplicationContext(AppConfig02.class);
 
         Assertions.assertEquals(true, appCtx.getBean(Case01.class) != null);
         Assertions.assertEquals(true, appCtx.getBean(Case01.class.getName()) != null);
+    }
+
+    @Test
+    void name_02() {
+        appCtx = new AnnotationConfigApplicationContext(AppConfig02.class);
+
+        Assertions.assertEquals(true, appCtx.getBean(Case02.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(AppConfig02.BEAN_NAME) != null);
     }
 }

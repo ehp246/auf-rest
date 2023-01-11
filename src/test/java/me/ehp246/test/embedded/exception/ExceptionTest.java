@@ -235,7 +235,7 @@ class ExceptionTest {
 
         Assertions.assertEquals(400, ex.statusCode());
 
-        Assertions.assertEquals(400, ex.body(Integer.class));
+        Assertions.assertEquals(400, ex.<Integer>body());
     }
 
     @Test

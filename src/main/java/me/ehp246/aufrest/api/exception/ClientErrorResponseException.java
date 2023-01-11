@@ -7,7 +7,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 /**
  * An {@link ErrorResponseException} that has a status code in the range of 400
  * and 499.
- * 
+ *
  * @author Lei Yang
  * @since 2.3.7
  *
@@ -19,7 +19,7 @@ public final class ClientErrorResponseException extends ErrorResponseException {
         super(request, response);
         final var statusCode = response.statusCode();
         if (statusCode < 400 || response.statusCode() > 499) {
-            throw new IllegalArgumentException("Un-supported status code: " + statusCode);
+            throw new IllegalArgumentException("Illegal status code: " + statusCode);
         }
     }
 }

@@ -15,7 +15,8 @@ public interface FromJson {
     /**
      *
      * @param json
-     * @param descriptor Required for de-serialization.
+     * @param descriptor Could be <code>null</code>. In which case, it is up to
+     *                   {@linkplain ObjectMapper}.
      * @return
      */
     <T> T apply(final String json, final RestBodyDescriptor<T> descriptor);

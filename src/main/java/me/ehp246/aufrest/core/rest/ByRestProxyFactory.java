@@ -74,7 +74,7 @@ public final class ByRestProxyFactory {
                         final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
-                        final var outcome = RestFnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
+                        final var outcome = FnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
                                 bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
                         return bound.returnMapper().apply(bound.request(), outcome);

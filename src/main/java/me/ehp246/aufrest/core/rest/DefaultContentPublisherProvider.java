@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.springframework.util.MimeTypeUtils;
 
-import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestBodyDescriptor;
@@ -90,7 +89,7 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
                 }
             }
         } catch (final IOException e) {
-            throw new RestFnException(e);
+            throw new RuntimeException(e);
         }
 
         byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
