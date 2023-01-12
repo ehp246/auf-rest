@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfQuery;
@@ -25,7 +24,6 @@ interface JsonTestCase {
     List<Instant> get001(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @AsIs
     String get006(@OfQuery("count") int count);
 
     @OfRequest("person")
@@ -65,7 +63,6 @@ interface JsonTestCase {
     HttpResponse get004(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @AsIs
     @OfResponse(body = @Body(String.class))
     HttpResponse<String> get007(@OfQuery("count") int count);
 }

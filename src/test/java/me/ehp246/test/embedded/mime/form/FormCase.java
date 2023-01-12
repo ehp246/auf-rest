@@ -4,10 +4,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfQuery;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 
 /**
  * @author Lei Yang
@@ -18,7 +17,6 @@ interface FormCase {
     String post(Map<String, String> map);
 
     @OfRequest(value = "/string")
-    @AsIs
     String post(@OfQuery("name") String name);
 
     @OfRequest(value = "/person")

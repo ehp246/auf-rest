@@ -2,10 +2,9 @@ package me.ehp246.test.embedded.returns;
 
 import java.time.Instant;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfQuery;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
@@ -20,7 +19,6 @@ interface TextCase {
     String getJson();
 
     @OfRequest("person")
-    @AsIs
     String getPerson(@OfQuery("name") String name);
 
     @OfRequest(value = "instant", accept = HttpUtils.TEXT_PLAIN)

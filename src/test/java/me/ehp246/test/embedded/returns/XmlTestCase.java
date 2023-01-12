@@ -4,7 +4,6 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 
-import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
@@ -48,7 +47,6 @@ interface XmlTestCase {
     HttpResponse get004(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @AsIs
     @OfResponse(body = @Body(String.class))
     HttpResponse<String> get007(@OfQuery("count") int count);
 
