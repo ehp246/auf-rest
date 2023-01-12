@@ -8,16 +8,16 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Parameter;
 
 /**
- * Indicates the annotated method parameter specifies a REST query parameter.
+ * Indicates that the annotated parameter specifies a query parameter.
  * <p>
- * The following Java types are supported on the method parameter:
+ * The following Java types are supported:
  * <p>
  * <li>String</li>
  * <p>
  * In this case, the query parameter name is from {@linkplain OfQuery#value()}
  * and it will have a single value.
  * <p>
- * <li>{@link java.util.List List&lt;String, String&gt;}</li>
+ * <li>{@link java.util.List List&lt;String&gt;}</li>
  * <p>
  * In this case, the query parameter name is from {@linkplain OfQuery#value()}.
  * It will have a list of values.
@@ -40,14 +40,14 @@ import java.lang.reflect.Parameter;
 @Target({ ElementType.PARAMETER })
 public @interface OfQuery {
     /**
-     * Specifies the name of the query parameter.
+     * Defines the name of the query parameter.
      * <p>
      * If no value is provided, the return from {@linkplain Parameter#getName()}
      * will be used. To make this default behavior useful, Java compiler should
      * probably have <code>-parameters</code> turned on.
      * <p>
-     * If a query name is repeated on multiple method parameters, all arguments will
-     * be collected into a list under the query name.
+     * If the same query name is repeated on multiple parameters, all arguments will
+     * be collected into a list under the name.
      *
      * @see <a href='https://openjdk.org/jeps/118'>JEP 118: Access to Parameter
      *      Names at Runtime</a>

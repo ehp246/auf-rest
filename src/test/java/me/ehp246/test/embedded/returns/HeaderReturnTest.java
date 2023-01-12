@@ -16,9 +16,9 @@ import me.ehp246.aufrest.api.configuration.AufRestConstants;
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
         AufRestConstants.REST_LOGGER_ENABLED + "=true" })
-class OfHeaderTest {
+class HeaderReturnTest {
     @Autowired
-    private OfHeaderTestCase testCase;
+    private HeaderReturnCase testCase;
 
     @Test
     void header_01() {

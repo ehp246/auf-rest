@@ -5,28 +5,46 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.lang.reflect.Parameter;
 
 /**
- * When applied on a {@linkplain ByRest} method, it specifies the values of the
- * named header from the response should be returned. The following types are
- * supported:
- * <li>String</li>
- * <li>List</li>
- * <li>Map</li>
- *
+ * Indicates that the annotated parameter specifies a header value.
  * <p>
- * If applied to a method, the response body will be discarded.
- *
+ * The following Java types are supported:
+ * <p>
+ * <li>{@link java.util.List List&lt;?&gt;}</li>
+ * <p>
+ * The header will have all the values.
+ * <p>
+ * <li>{@link java.util.Map Map&lt;String, ?&gt;}</li>
+ * <p>
+ * Map keys will become header names and map values header values.
+ * {@linkplain OfHeader#value()} is ignored in this case.
+ * <p>
+ * <li>Object</li>
+ * <p>
+ * {@linkplain Object#toString()} will be called for the text value.
+ * <p>
+ * <code>null</code> encountered will be skipped.
+ * <p>
  *
  * @author Lei Yang
  * @since 4.0
  */
 @Retention(RUNTIME)
-@Target({ ElementType.METHOD, ElementType.PARAMETER })
+@Target({ ElementType.PARAMETER })
 public @interface OfHeader {
     /**
-     * The name of the header.
+     * Defines the name of the header.
+     * <p>
+     * If no value is provided, the return from {@linkplain Parameter#getName()}
+     * will be used. To make this default behavior useful, Java compiler should
+     * probably have <code>-parameters</code> turned on.
+     * <p>
+     * Repeated header from multiple parameters will be collected into a list.
      *
+     * @see <a href='https://openjdk.org/jeps/118'>JEP 118: Access to Parameter
+     *      Names at Runtime</a>
      */
     String value() default "";
 }

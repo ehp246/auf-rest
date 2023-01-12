@@ -33,6 +33,7 @@ import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
+import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
@@ -147,7 +148,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .orElseGet(() -> {
                     final var returnType = reflected.getReturnType();
                     if (returnType.isAssignableFrom(HttpHeaders.class)
-                            || reflected.findOnMethod(OfHeader.class).isPresent()) {
+                            || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
                         return (target, args) -> BodyHandlers.discarding();
                     }
 
@@ -264,15 +265,19 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
      */
     private ResponseReturnMapper returnMapper(final ReflectedMethod reflected) {
         final Class<?> returnType = reflected.getReturnType();
-        final OfHeader ofHeader = reflected.findOnMethod(OfHeader.class).orElse(null);
+        final var ofResponse = reflected.findOnMethod(OfResponse.class);
+        final var bindToHeader = ofResponse.map(OfResponse::value).map(value -> value == Bind.HEADER).orElse(false);
 
         // Normal return mapper. Defaults to return the body.
         final Function<HttpResponse<?>, ?> valueMapper;
 
+        /*
+         * For this type, no annotation is needed.
+         */
         if (returnType.isAssignableFrom(HttpHeaders.class)) {
             valueMapper = HttpResponse::headers;
-        } else if (ofHeader != null) {
-            final var name = ofHeader.value();
+        } else if (bindToHeader) {
+            final var name = ofResponse.get().header();
             if (returnType == String.class) {
                 valueMapper = response -> response.headers().firstValue(name).orElse(null);
             } else if (returnType.isAssignableFrom(Map.class)) {
@@ -281,7 +286,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 valueMapper = response -> response.headers().allValues(name);
             } else {
                 throw new IllegalArgumentException(
-                        OfHeader.class.toString() + " does not support return type: " + returnType.toString());
+                        "Un-supported return type: " + returnType.toString());
             }
         } else if (returnType.isAssignableFrom(HttpResponse.class)) {
             valueMapper = Function.identity();

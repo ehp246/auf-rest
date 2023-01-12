@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * ByRest} interfaces.
  *
  * @author Lei Yang
- * @since 1.0
+ * @since 4.0
  * @see ByRest
  * @version 4.0
  */
@@ -25,7 +25,7 @@ public @interface OfRequest {
      * Defines additional path to append to the URL specified by
      * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} on the interface.
      * <p>
-     * Simple path only without query parameters.
+     * Simple path only. It should not have queries.
      * <p>
      * Spring property place-holders are supported. Simple string concatenation to
      * construct the final URL.

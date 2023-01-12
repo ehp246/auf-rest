@@ -106,6 +106,9 @@ public final class HttpUtils {
         return joiner.toString();
     }
 
+    /**
+     * Defines what a success status code is. I.e., within the range of 200.
+     */
     public static boolean isSuccess(final int code) {
         return code >= 200 && code < 300;
     }
