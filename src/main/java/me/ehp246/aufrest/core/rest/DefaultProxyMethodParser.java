@@ -128,46 +128,151 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         (Class<?>[]) null))
                 .orElse(null);
 
-        return new DefaultInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
-                contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected),
-                queryParams(reflected), queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected),
-                authSupplierFn, bodyArgBinder, bodyOf, handlerBinder(byRest, reflected), returnMapper(reflected));
+        return new DefaultInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(), contentType,
+                timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
+                queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
+                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), responseReturnMapper(reflected));
     }
 
     /*
      * Returns and response body handlers are coupled.
      */
     @SuppressWarnings("unchecked")
-    private ArgBinder<Object, BodyHandler<?>> handlerBinder(final ByRest byRest, final ReflectedMethod reflected) {
+    private ArgBinder<Object, BodyHandler<?>> responseHandlerBinder(final ByRest byRest,
+            final ReflectedMethod reflected) {
         final var ofResponse = reflected.findOnMethod(OfResponse.class);
 
-        return reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
-                .map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p))
-                .or(() -> ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue)
-                        .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
-                .orElseGet(() -> {
-                    final var returnType = reflected.getReturnType();
-                    if (returnType.isAssignableFrom(HttpHeaders.class)
-                            || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
-                        return (target, args) -> BodyHandlers.discarding();
-                    }
+        // Try argument first.
+        final var arg = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst();
+        if (arg.isPresent()) {
+            return arg.map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p)).get();
+        }
 
-                    final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value)
-                            .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null);
+        // Named bean?
+        final var handlerBean = ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue);
+        if (handlerBean.isPresent()) {
+            return handlerBean.map(bodyHandlerResolver::get)
+                    .map(handler -> (ArgBinder<Object, BodyHandler<?>>) (target, args) -> handler).get();
+        }
 
-                    final var ofBody = reflected.findOnMethod(OfBody.class);
+        // Infer from the return type
+        final var returnType = reflected.getReturnType();
+        if (returnType.isAssignableFrom(HttpHeaders.class)
+                || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
+            // The headers are wanted. Discard the body.
+            return (target, args) -> BodyHandlers.discarding();
+        }
 
-                    if (returnType.isAssignableFrom(HttpResponse.class) && ofBody.isEmpty()) {
-                        throw new IllegalArgumentException("Missing required " + OfBody.class);
-                    }
-                    final var bodyDescriptor = ofBody.map(OfBody::value).filter(OneUtil::hasValue)
-                            .map(value -> new BodyOf<>(value[0], jsonView,
-                                    value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null))
-                            .orElseGet(() -> new BodyOf<>(returnType, jsonView, (Class<?>[]) null));
-                    final var handler = inferredHandlerProvider
-                            .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));
-                    return (target, args) -> handler;
-                });
+        final var bodyTypes = ofResponse.map(OfResponse::body).map(OfResponse.Body::value).filter(OneUtil::hasValue)
+                .orElse(null);
+
+        // Need to specify at least one type for the body.
+        if (returnType.isAssignableFrom(HttpResponse.class) && bodyTypes == null) {
+            throw new IllegalArgumentException("Missing required " + OfResponse.Body.class);
+        }
+
+        final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
+                .map(views -> views[0]).orElse(null);
+
+        final var bodyDescriptor = bodyTypes != null && bodyTypes.length > 0
+                ? new BodyOf<>(bodyTypes[0], jsonView,
+                        bodyTypes.length > 1 ? Arrays.copyOfRange(bodyTypes, 1, bodyTypes.length) : null)
+                : new BodyOf<>(returnType, jsonView, (Class<?>[]) null);
+
+        final var handler = inferredHandlerProvider
+                .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));
+
+        return (target, args) -> handler;
+    }
+
+    /**
+     * Generates the return mapping function based on the method signature.
+     * Exception propagation is implemented here.
+     *
+     */
+    private ResponseReturnMapper responseReturnMapper(final ReflectedMethod reflected) {
+        final Class<?> returnType = reflected.getReturnType();
+        final var ofResponse = reflected.findOnMethod(OfResponse.class);
+        final var bindToHeader = ofResponse.map(OfResponse::value).map(value -> value == Bind.HEADER).orElse(false);
+
+        // Normal return mapper. Defaults to return the body.
+        final Function<HttpResponse<?>, ?> valueMapper;
+
+        /*
+         * For this type, no annotation is needed.
+         */
+        if (returnType.isAssignableFrom(HttpHeaders.class)) {
+            valueMapper = HttpResponse::headers;
+        } else if (bindToHeader) {
+            final var name = ofResponse.get().header();
+            if (returnType == String.class) {
+                valueMapper = response -> response.headers().firstValue(name).orElse(null);
+            } else if (returnType.isAssignableFrom(Map.class)) {
+                valueMapper = response -> response.headers().map();
+            } else if (returnType.isAssignableFrom(List.class)) {
+                valueMapper = response -> response.headers().allValues(name);
+            } else {
+                throw new IllegalArgumentException("Un-supported return type: " + returnType.toString());
+            }
+        } else if (returnType.isAssignableFrom(HttpResponse.class)) {
+            valueMapper = Function.identity();
+        } else if (returnType == void.class && returnType == Void.class) {
+            valueMapper = response -> null;
+        } else {
+            valueMapper = HttpResponse::body;
+        }
+
+        /*
+         * Compose with Response Exception propagation. This logic applies only when a
+         * HttpResponse has been received.
+         *
+         * An Response Exception based on the status code is always raised first.
+         */
+        final ResponseReturnMapper mapper = (restReq, outcome) -> {
+            final var received = outcome.received();
+            /*
+             * Was a response received?
+             */
+            if (received instanceof final HttpResponse<?> httpResponse) {
+                /*
+                 * Must be a successful response.
+                 */
+                return valueMapper.apply(httpResponse);
+            }
+
+            /*
+             * RestFn throws an UnhandledResponseException when a response is received with
+             * wrong status code.
+             */
+            if (received instanceof final UnhandledResponseException unhandledResponse) {
+                if (reflected.isOnThrows(unhandledResponse.getCause().getClass())) {
+                    throw unhandledResponse.getCause();
+                }
+
+                throw unhandledResponse;
+            }
+
+            /*
+             * Must be an RestFnException.
+             */
+            if (received instanceof final RestFnException restFnException) {
+                final var cause = restFnException.getCause();
+                if (cause != null && reflected.isOnThrows(cause.getClass())) {
+                    throw cause;
+                }
+                throw restFnException;
+            }
+
+            if (received instanceof final RuntimeException runtime) {
+                throw runtime;
+            }
+            /*
+             * What happened? Shouldn't be here.
+             */
+            throw new RuntimeException("Un-known received: " + received);
+        };
+
+        return mapper;
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
@@ -256,97 +361,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
                         e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
                 .orElse(null);
-    }
-
-    /**
-     * Generates the return mapping function based on the method signature.
-     * Exception propagation is implemented here.
-     *
-     */
-    private ResponseReturnMapper returnMapper(final ReflectedMethod reflected) {
-        final Class<?> returnType = reflected.getReturnType();
-        final var ofResponse = reflected.findOnMethod(OfResponse.class);
-        final var bindToHeader = ofResponse.map(OfResponse::value).map(value -> value == Bind.HEADER).orElse(false);
-
-        // Normal return mapper. Defaults to return the body.
-        final Function<HttpResponse<?>, ?> valueMapper;
-
-        /*
-         * For this type, no annotation is needed.
-         */
-        if (returnType.isAssignableFrom(HttpHeaders.class)) {
-            valueMapper = HttpResponse::headers;
-        } else if (bindToHeader) {
-            final var name = ofResponse.get().header();
-            if (returnType == String.class) {
-                valueMapper = response -> response.headers().firstValue(name).orElse(null);
-            } else if (returnType.isAssignableFrom(Map.class)) {
-                valueMapper = response -> response.headers().map();
-            } else if (returnType.isAssignableFrom(List.class)) {
-                valueMapper = response -> response.headers().allValues(name);
-            } else {
-                throw new IllegalArgumentException(
-                        "Un-supported return type: " + returnType.toString());
-            }
-        } else if (returnType.isAssignableFrom(HttpResponse.class)) {
-            valueMapper = Function.identity();
-        } else if (returnType == void.class && returnType == Void.class) {
-            valueMapper = response -> null;
-        } else {
-            valueMapper = HttpResponse::body;
-        }
-
-        /*
-         * Compose with Response Exception propagation. This logic applies only when a
-         * HttpResponse has been received.
-         *
-         * An Response Exception based on the status code is always raised first.
-         */
-        final ResponseReturnMapper mapper = (restReq, outcome) -> {
-            final var received = outcome.received();
-            /*
-             * Was a response received?
-             */
-            if (received instanceof final HttpResponse<?> httpResponse) {
-                /*
-                 * Must be a successful response.
-                 */
-                return valueMapper.apply(httpResponse);
-            }
-
-            /*
-             * RestFn throws an UnhandledResponseException when a response is received with
-             * wrong status code.
-             */
-            if (received instanceof final UnhandledResponseException unhandledResponse) {
-                if (reflected.isOnThrows(unhandledResponse.getCause().getClass())) {
-                    throw unhandledResponse.getCause();
-                }
-
-                throw unhandledResponse;
-            }
-
-            /*
-             * Must be an RestFnException.
-             */
-            if (received instanceof final RestFnException restFnException) {
-                final var cause = restFnException.getCause();
-                if (cause != null && reflected.isOnThrows(cause.getClass())) {
-                    throw cause;
-                }
-                throw restFnException;
-            }
-
-            if (received instanceof final RuntimeException runtime) {
-                throw runtime;
-            }
-            /*
-             * What happened? Shouldn't be here.
-             */
-            throw new RuntimeException("Un-known received: " + received);
-        };
-
-        return mapper;
     }
 
     /**
