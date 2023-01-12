@@ -4,7 +4,7 @@
 package me.ehp246.aufrest.core.rest;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 
 /**
  * @author Lei Yang
@@ -17,11 +17,11 @@ interface ContentTypeTestCases {
         void get1();
 
         // Should go with the interface
-        @OfMapping
+        @OfRequest
         void get2();
 
         // Should go with the method
-        @OfMapping(contentType = "m-type", accept = "m-accept")
+        @OfRequest(contentType = "m-type", accept = "m-accept")
         void get3();
     }
 
@@ -31,11 +31,11 @@ interface ContentTypeTestCases {
         void get1();
 
         // Should go with the interface
-        @OfMapping
+        @OfRequest
         void get2();
 
         // Should go with the method
-        @OfMapping(contentType = "m-type", accept = "m-accept")
+        @OfRequest(contentType = "m-type", accept = "m-accept")
         void get3();
     }
 }

@@ -29,9 +29,10 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
-import me.ehp246.aufrest.api.annotation.OfMapping;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
+import me.ehp246.aufrest.api.annotation.OfRequest;
+import me.ehp246.aufrest.api.annotation.OfResponse;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
@@ -83,9 +84,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     public DefaultInvocationBinder parse(final Method method) {
         final var byRest = method.getDeclaringClass().getAnnotation(ByRest.class);
         final var reflected = new ReflectedMethod(method);
-        final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
+        final var ofRequest = reflected.findOnMethod(OfRequest.class);
 
-        final var contentType = optionalOfMapping.map(OfMapping::contentType).filter(OneUtil::hasValue)
+        final var contentType = ofRequest.map(OfRequest::contentType).filter(OneUtil::hasValue)
                 .orElseGet(byRest::contentType);
 
         final var authHeaders = reflected.allParametersWith(OfAuth.class);
@@ -126,14 +127,22 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         (Class<?>[]) null))
                 .orElse(null);
 
-        /*
-         * Returns and response body handlers are coupled.
-         */
-        final var consumerBinder = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
+        return new DefaultInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
+                contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected),
+                queryParams(reflected), queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected),
+                authSupplierFn, bodyArgBinder, bodyOf, handlerBinder(byRest, reflected), returnMapper(reflected));
+    }
+
+    /*
+     * Returns and response body handlers are coupled.
+     */
+    @SuppressWarnings("unchecked")
+    private ArgBinder<Object, BodyHandler<?>> handlerBinder(final ByRest byRest, final ReflectedMethod reflected) {
+        final var ofResponse = reflected.findOnMethod(OfResponse.class);
+
+        return reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p))
-                .or(() -> optionalOfMapping.map(OfMapping::consumerHandler).filter(OneUtil::hasValue)
-                        .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
-                .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
+                .or(() -> ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
                     final var returnType = reflected.getReturnType();
@@ -158,11 +167,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                             .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));
                     return (target, args) -> handler;
                 });
-
-        return new DefaultInvocationBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(),
-                contentType, timeout(byRest), baseUrl(byRest, optionalOfMapping), pathParams(reflected),
-                queryParams(reflected), queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected),
-                authSupplierFn, bodyArgBinder, bodyOf, consumerBinder, returnMapper(reflected));
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
@@ -231,15 +235,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 Collectors.toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
     }
 
-    private String accept(final ByRest byRest, final Optional<OfMapping> optionalOfMapping) {
-        return optionalOfMapping.map(OfMapping::accept).filter(OneUtil::hasValue).orElseGet(byRest::accept);
+    private String accept(final ByRest byRest, final Optional<OfRequest> optionalOfMapping) {
+        return optionalOfMapping.map(OfRequest::accept).filter(OneUtil::hasValue).orElseGet(byRest::accept);
     }
 
     private String verb(final ReflectedMethod reflected) {
         final var method = reflected.method();
-        final var optionalOfMapping = reflected.findOnMethod(OfMapping.class);
+        final var optionalOfMapping = reflected.findOnMethod(OfRequest.class);
 
-        return optionalOfMapping.map(OfMapping::method).filter(OneUtil::hasValue)
+        return optionalOfMapping.map(OfRequest::method).filter(OneUtil::hasValue)
                 .or(HttpUtils.METHOD_NAMES.stream()
                         .filter(name -> method.getName().toUpperCase().startsWith(name))::findAny)
                 .map(String::toUpperCase)
@@ -346,9 +350,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
      * <p>
      * Empty string in case everything is missing/blank.
      */
-    private String baseUrl(final ByRest byRest, final Optional<OfMapping> optionalOfMapping) {
+    private String baseUrl(final ByRest byRest, final Optional<OfRequest> optionalOfMapping) {
         return propertyResolver
-                .resolve(byRest.value() + optionalOfMapping.map(OfMapping::value).filter(OneUtil::hasValue).orElse(""));
+                .resolve(byRest.value() + optionalOfMapping.map(OfRequest::value).filter(OneUtil::hasValue).orElse(""));
     }
 
     private ArgBinder<Object, Supplier<String>> authSupplierFn(final ByRest.Auth auth,

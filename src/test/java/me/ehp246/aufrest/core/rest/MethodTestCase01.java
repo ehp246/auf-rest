@@ -1,7 +1,7 @@
 package me.ehp246.aufrest.core.rest;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
@@ -16,19 +16,19 @@ interface MethodTestCase01 {
 
     void query(int i);
 
-    @OfMapping
+    @OfRequest
     void query();
 
     void post();
 
     void postByName();
 
-    @OfMapping(method = HttpUtils.POST)
+    @OfRequest(method = HttpUtils.POST)
     void create();
 
     void delete();
 
-    @OfMapping(method = HttpUtils.DELETE)
+    @OfRequest(method = HttpUtils.DELETE)
     void remove();
 
     void put();

@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.http.MediaType;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
@@ -15,12 +15,12 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @ByRest(value = "http://localhost:${local.server.port}/body")
 interface BodyPublisherCase {
-    @OfMapping("/publisher")
+    @OfRequest("/publisher")
     List<String> post(BodyPublisher publisher);
 
-    @OfMapping(value = "/publisher", contentType = HttpUtils.APPLICATION_JSON)
+    @OfRequest(value = "/publisher", contentType = HttpUtils.APPLICATION_JSON)
     List<String> postAsJson(BodyPublisher publisher);
 
-    @OfMapping(value = "/publisher/query", contentType = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @OfRequest(value = "/publisher/query", contentType = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     List<String> postQueryParams(BodyPublisher publisher);
 }

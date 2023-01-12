@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 
 /**
  * @author Lei Yang
@@ -17,7 +17,7 @@ interface LoggerCases {
 
         Instant post(final Instant instant, @OfAuth String auth);
 
-        @OfMapping("/null")
+        @OfRequest("/null")
         Instant postNull(final Instant instant, @OfAuth String auth);
     }
 

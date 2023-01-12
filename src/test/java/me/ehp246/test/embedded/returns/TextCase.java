@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
@@ -16,19 +16,19 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
  */
 @ByRest("http://localhost:${local.server.port}/json/")
 interface TextCase {
-    @OfMapping("instant")
+    @OfRequest("instant")
     String getJson();
 
-    @OfMapping("person")
+    @OfRequest("person")
     @AsIs
     String getPerson(@OfQuery("name") String name);
 
-    @OfMapping(value = "instant", accept = HttpUtils.TEXT_PLAIN)
+    @OfRequest(value = "instant", accept = HttpUtils.TEXT_PLAIN)
     String get();
 
-    @OfMapping(value = "instant", contentType = "text/plain", accept = HttpUtils.TEXT_PLAIN)
+    @OfRequest(value = "instant", contentType = "text/plain", accept = HttpUtils.TEXT_PLAIN)
     String post(String text);
 
-    @OfMapping(value = "instant", accept = HttpUtils.TEXT_PLAIN)
+    @OfRequest(value = "instant", accept = HttpUtils.TEXT_PLAIN)
     String post(Instant instant);
 }

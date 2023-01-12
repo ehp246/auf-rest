@@ -5,23 +5,22 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 
 /**
  * Instructs the library on how to construct HTTP requests from method
  * invocations.
  * <p>
- * It is to be applied to methods on
- * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} interfaces.
+ * To be applied to methods of {@link me.ehp246.aufrest.api.annotation.ByRest
+ * ByRest} interfaces.
  *
  * @author Lei Yang
  * @since 1.0
  * @see ByRest
+ * @version 4.0
  */
 @Retention(RUNTIME)
 @Target({ METHOD })
-public @interface OfMapping {
+public @interface OfRequest {
     /**
      * Defines additional path to append to the URL specified by
      * {@link me.ehp246.aufrest.api.annotation.ByRest ByRest} on the interface.
@@ -55,14 +54,4 @@ public @interface OfMapping {
      * Defines the Accept header. Usually derived by the return type of the method.
      */
     String accept() default "application/json";
-
-    /**
-     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
-     * that would be called to handle the response for the method.
-     *
-     * @return a bean name
-     * @see HttpClient#send(java.net.http.HttpRequest,
-     *      java.net.http.HttpResponse.BodyHandler)
-     */
-    String consumerHandler() default "";
 }

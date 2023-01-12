@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
 /**
@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.rest.HttpUtils;
 interface BlobContainer {
     void put(@PathVariable("file-name") String name, Path file);
 
-    @OfMapping(value = "", contentType = HttpUtils.TEXT_PLAIN)
+    @OfRequest(value = "", contentType = HttpUtils.TEXT_PLAIN)
     void put(@PathVariable("file-name") String name, InputStream file);
 
     String get(@PathVariable("file-name") String name);

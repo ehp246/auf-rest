@@ -1,7 +1,7 @@
 package me.ehp246.test.embedded.body;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 
 /**
  * @author Lei Yang
@@ -9,12 +9,12 @@ import me.ehp246.aufrest.api.annotation.OfMapping;
  */
 @ByRest(value = "http://localhost:${local.server.port}/body")
 interface BodyAsCase {
-    @OfMapping("/person")
+    @OfRequest("/person")
     Person post(Person person);
 
-    @OfMapping("/personName")
+    @OfRequest("/personName")
     Person post(PersonName name);
 
-    @OfMapping("/personDob")
+    @OfRequest("/personDob")
     Person post(PersonDob dob);
 }

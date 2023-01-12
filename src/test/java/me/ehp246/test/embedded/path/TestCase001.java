@@ -2,7 +2,7 @@ package me.ehp246.test.embedded.path;
 
 import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfPath;
 
 /**
@@ -15,6 +15,6 @@ interface TestCase001 {
     String get();
 
     @AsIs
-    @OfMapping("/{pathId}")
+    @OfRequest("/{pathId}")
     String get(@OfPath("pathId") String pathId);
 }

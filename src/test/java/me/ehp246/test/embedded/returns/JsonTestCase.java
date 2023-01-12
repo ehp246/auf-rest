@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.annotation.AsIs;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 
 /**
@@ -19,51 +19,51 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
 @SuppressWarnings("rawtypes")
 @ByRest("http://localhost:${local.server.port}/json/")
 interface JsonTestCase {
-    @OfMapping("instants")
+    @OfRequest("instants")
     @OfBody({ ArrayList.class, Instant.class })
     List<Instant> get001(@OfQuery("count") int count);
 
-    @OfMapping("instants")
+    @OfRequest("instants")
     @AsIs
     String get006(@OfQuery("count") int count);
 
-    @OfMapping("person")
+    @OfRequest("person")
     Person get007();
 
-    @OfMapping("person")
+    @OfRequest("person")
     Person getZip(@OfHeader("accept-encoding") String acceptEncoding);
 
-    @OfMapping("null")
+    @OfRequest("null")
     Person getNull();
 
-    @OfMapping("double")
+    @OfRequest("double")
     double getDouble001();
 
-    @OfMapping("double")
+    @OfRequest("double")
     Double getDouble002();
 
-    @OfMapping("204")
+    @OfRequest("204")
     Person getStatus204();
 
-    @OfMapping("persons")
+    @OfRequest("persons")
     @OfBody({ ArrayList.class, Person.class })
     List<Person> get008();
 
     // Response types
 
-    @OfMapping("person")
+    @OfRequest("person")
     @OfBody(Person.class)
     HttpResponse<Person> get011();
 
-    @OfMapping("instants")
+    @OfRequest("instants")
     @OfBody({ List.class, Instant.class })
     HttpResponse<List<Instant>> get002(@OfQuery("count") int count);
 
-    @OfMapping("instants")
+    @OfRequest("instants")
     @OfBody({ List.class, Instant.class })
     HttpResponse get004(@OfQuery("count") int count);
 
-    @OfMapping("instants")
+    @OfRequest("instants")
     @AsIs
     @OfBody(String.class)
     HttpResponse<String> get007(@OfQuery("count") int count);

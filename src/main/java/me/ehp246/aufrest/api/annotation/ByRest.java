@@ -5,8 +5,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 
@@ -14,7 +12,7 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
- * Indicates that the annotated interface should be scanned by Auf REST as a
+ * Indicates that the annotated interface should be scanned by AufREST as a
  * proxy of a REST endpoint.
  * <p>
  * For each annotated interface, the framework defines a bean of the type and
@@ -24,6 +22,7 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
  * @author Lei Yang
  * @since 1.0
  * @see EnableByRest
+ * @version 4.0
  */
 @Retention(RUNTIME)
 @Target(TYPE)
@@ -106,17 +105,6 @@ public @interface ByRest {
      * @see Auth
      */
     Auth auth() default @Auth(value = {}, scheme = AuthScheme.DEFAULT);
-
-    /**
-     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
-     * that would be called to handle the response on the methods that do not
-     * specify its own handler.
-     *
-     * @return a bean name
-     * @see HttpClient#send(java.net.http.HttpRequest,
-     *      java.net.http.HttpResponse.BodyHandler)
-     */
-    String consumerHandler() default "";
 
     /**
      * Defines request header names and values in pairs. E.g.,

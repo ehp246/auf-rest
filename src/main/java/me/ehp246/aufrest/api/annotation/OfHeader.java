@@ -7,7 +7,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * <p>
  * When applied on a {@linkplain ByRest} method, it specifies the values of the
  * named header from the response should be returned. The following types are
  * supported:

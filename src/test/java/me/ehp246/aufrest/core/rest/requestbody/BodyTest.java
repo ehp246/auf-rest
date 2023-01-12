@@ -31,7 +31,6 @@ class BodyTest {
     private final MockRestFn restFn = new MockRestFn();
     @SuppressWarnings("unchecked")
     private final BodyHandler<Object> resolvedBodyHandler = Mockito.mock(BodyHandler.class);
-    @SuppressWarnings("unchecked")
     private final MockBodyHandler<Object> mockBodyHandler = new MockBodyHandler<>(null);
     private final BodyHandlerBeanResolver bodyHandlerResolver = name -> resolvedBodyHandler;
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
@@ -153,19 +152,6 @@ class BodyTest {
                                 .get(null);
 
         Assertions.assertEquals(null, restFn.handler());
-    }
-
-    @Test
-    void response_07() {
-        final var expected = Mockito.mock(BodyHandler.class);
-        final var namedResolver = Mockito.mock(BodyHandlerBeanResolver.class);
-        Mockito.when(namedResolver.get(Mockito.eq("interfaceNamed"))).thenReturn(expected);
-
-        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(), new DefaultProxyMethodParser(Object::toString,
-                name -> null, namedResolver,
-                Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class).getOfMapping();
-
-        Assertions.assertEquals(expected, restFn.handler());
     }
 
     @Test

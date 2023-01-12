@@ -8,7 +8,8 @@ import java.time.Instant;
 import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfBody;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
+import me.ehp246.aufrest.api.annotation.OfResponse;
 
 /**
  * @author Lei Yang
@@ -39,24 +40,26 @@ public interface BodyTestCases {
     interface ResponseCase01 {
         void getOnMethod(BodyHandler<?> handler);
 
-        @OfMapping("")
+        @OfRequest("")
         void getOfMapping();
 
-        @OfMapping(value = "", consumerHandler = "named")
+        @OfRequest(value = "")
+        @OfResponse(handler = "named")
         String getOfMappingNamed();
     }
 
-    @ByRest(value = "", consumerHandler = "interfaceNamed")
+    @ByRest(value = "")
     interface ResponseCase02 {
         void getOnMethod(int i, BodyHandler<?> handler);
 
-        @OfMapping("")
+        @OfRequest("")
         void get(BodyHandler<?> handler);
 
-        @OfMapping("")
+        @OfRequest("")
         void getOfMapping();
 
-        @OfMapping(value = "", consumerHandler = "methodNamed")
+        @OfRequest(value = "")
+        @OfResponse(handler = "methodNamed")
         String getOfMappingNamed();
     }
 }

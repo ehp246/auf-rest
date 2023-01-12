@@ -6,7 +6,7 @@ import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
-import me.ehp246.aufrest.api.annotation.OfMapping;
+import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
@@ -52,7 +52,7 @@ interface TestCases {
             "password" }, scheme = AuthScheme.BASIC))
     interface MethodAuth01 {
         // Default value, should follow the interface
-        @OfMapping
+        @OfRequest
         void get();
     }
 

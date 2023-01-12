@@ -10,7 +10,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * At runtime, it resolves the name in Spring application context.
  *
  * @author Lei Yang
- * @see ByRest#consumerHandler()
+ * @see ByRest#responseHandler()
  */
 @FunctionalInterface
 public interface BodyHandlerBeanResolver {
