@@ -45,7 +45,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final BodyOf<?> bodyInfo;
+    private final BodyOf<?> bodyOf;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ResponseReturnMapper returnMapper;
@@ -71,7 +71,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
         this.headerStatic = headerStatic;
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
-        this.bodyInfo = bodyInfo;
+        this.bodyOf = bodyInfo;
         this.handlerBinder = consumerBinder;
         this.returnMapper = returnMapper;
     }
@@ -213,6 +213,6 @@ final class DefaultInvocationBinder implements InvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyInfo, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+        }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 }

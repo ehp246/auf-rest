@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.jackson;
+package me.ehp246.test.embedded.view;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;

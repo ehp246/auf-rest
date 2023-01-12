@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.jackson;
+package me.ehp246.test.embedded.view;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -12,10 +12,11 @@ class Logins {
     record Login(String username, String password) {
     }
 
-    record Login1(@JsonView(RestView.class) String username, @JsonView(Logins.class) String password) {
+    record RequestWithView(@JsonView(RestView.class) String username, @JsonView(Logins.class) String password) {
     }
 
-    public interface Login2 {
+    public interface ResponseWithView {
+        @JsonView(String.class)
         public String getUsername();
 
         @JsonView(RestView.class)

@@ -22,6 +22,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
 import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfAuth;
@@ -36,11 +38,11 @@ import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -117,16 +119,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
-        final var bodyArgInfo = bodyParam.map(ReflectedParameter::parameter)
+        final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
                 .map(parameter -> new BodyOf<>(parameter.getType(),
-                        Optional.ofNullable(parameter.getAnnotation(OfBody.class)).map(OfBody::view).orElse(null),
+                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
+                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
                         (Class<?>[]) null))
                 .orElse(null);
 
         /*
          * Returns and response body handlers are coupled.
          */
-        final var returnType = reflected.getReturnType();
         final var consumerBinder = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst()
                 .map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p))
                 .or(() -> optionalOfMapping.map(OfMapping::consumerHandler).filter(OneUtil::hasValue)
@@ -134,21 +136,24 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .or(() -> Optional.ofNullable(byRest.consumerHandler()).filter(OneUtil::hasValue)
                         .map(bodyHandlerResolver::get).map(handler -> (target, args) -> handler))
                 .orElseGet(() -> {
-                    final var ofBody = reflected.findOnMethod(OfBody.class);
+                    final var returnType = reflected.getReturnType();
                     if (returnType.isAssignableFrom(HttpHeaders.class)
                             || reflected.findOnMethod(OfHeader.class).isPresent()) {
                         return (target, args) -> BodyHandlers.discarding();
                     }
+
+                    final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value)
+                            .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null);
+
+                    final var ofBody = reflected.findOnMethod(OfBody.class);
+
                     if (returnType.isAssignableFrom(HttpResponse.class) && ofBody.isEmpty()) {
                         throw new IllegalArgumentException("Missing required " + OfBody.class);
                     }
                     final var bodyDescriptor = ofBody.map(OfBody::value).filter(OneUtil::hasValue)
-                            .map(value -> new BodyOf<>(value[0],
-                                    ofBody.map(OfBody::view).orElse(null),
+                            .map(value -> new BodyOf<>(value[0], jsonView,
                                     value.length > 1 ? Arrays.copyOfRange(value, 1, value.length) : null))
-                            .orElseGet(
-                                    () -> new BodyOf<>(returnType, ofBody.map(OfBody::view).orElse(null),
-                                            (Class<?>[]) null));
+                            .orElseGet(() -> new BodyOf<>(returnType, jsonView, (Class<?>[]) null));
                     final var handler = inferredHandlerProvider
                             .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));
                     return (target, args) -> handler;
@@ -157,7 +162,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         return new DefaultInvocationBinder(verb(reflected), accept(byRest, optionalOfMapping), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, optionalOfMapping), pathParams(reflected),
                 queryParams(reflected), queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected),
-                authSupplierFn, bodyArgBinder, bodyArgInfo, consumerBinder, returnMapper(reflected));
+                authSupplierFn, bodyArgBinder, bodyOf, consumerBinder, returnMapper(reflected));
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {

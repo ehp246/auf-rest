@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.jackson;
+package me.ehp246.test.embedded.view;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -25,6 +25,7 @@ import me.ehp246.aufrest.api.annotation.EnableByRest;
 class AppConfig {
     @Bean
     ObjectMapper objectMapper() {
+        // Don't include anything by default.
         return JsonMapper.builder().configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
                 .setSerializationInclusion(Include.NON_NULL).registerModule(new JavaTimeModule())
