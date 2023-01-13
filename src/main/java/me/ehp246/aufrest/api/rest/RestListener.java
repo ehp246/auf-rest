@@ -10,7 +10,7 @@ import org.springframework.core.annotation.Order;
  * Defines a Spring bean that can receive request/response events. Multiple
  * beans are supported and to be invoked in {@link Order}.
  * <p>
- * AufREST does not suppress any exception from the beans.
+ * Auf REST does not suppress any exception from the beans.
  *
  * @author Lei Yang
  * @since 1.0

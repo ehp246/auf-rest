@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Parameter;
 
 /**
- * Indicates that the annotated parameter specifies a query parameter.
+ * Indicates that the parameter specifies a query parameter.
  * <p>
  * The following Java types are supported:
  * <p>

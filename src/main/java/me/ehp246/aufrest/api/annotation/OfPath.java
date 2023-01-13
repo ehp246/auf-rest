@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Parameter;
 
 /**
- * Indicates that the annotated parameter specifies a path value.
+ * Indicates that the parameter specifies the value of a path variable.
  * <p>
  * Argument will be converted to {@linkplain String} by
  * {@linkplain Object#toString()}.

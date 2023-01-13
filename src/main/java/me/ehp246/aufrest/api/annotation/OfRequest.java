@@ -7,8 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Instructs the library on how to construct HTTP requests from method
- * invocations.
+ * Instructs how to construct HTTP requests from method invocations.
  * <p>
  * To be applied to methods of {@link me.ehp246.aufrest.api.annotation.ByRest
  * ByRest} interfaces.

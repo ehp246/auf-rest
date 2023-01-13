@@ -12,12 +12,11 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
- * Indicates that the annotated interface should be scanned by AufREST as a
- * proxy of a REST endpoint.
+ * Indicates that the annotated interface should be registered as a proxy of a
+ * REST endpoint.
  * <p>
- * For each annotated interface, the framework defines a bean of the type and
- * makes it available for injection. On behalf of the application the framework
- * implements invocations on the interface as HTTP requests/responses.
+ * For each annotated interface, Auf REST defines a bean of the type and makes
+ * it available for injection.
  *
  * @author Lei Yang
  * @since 1.0

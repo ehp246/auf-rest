@@ -51,7 +51,7 @@ public final class AufRestConfiguration {
     }
 
     @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
-    public ClientConfig restClientConfig(
+    public ClientConfig clientConfig(
             @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
         return new ClientConfig(
                 Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
