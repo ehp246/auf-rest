@@ -40,7 +40,7 @@ class ByRestProxyFactoryTest {
     private final MockRestFn restFn = new MockRestFn();
 
     private final PropertyResolver propertyResolver = new MockEnvironment()
-            .withProperty("echo.base", "https://postman-echo.com")
+            .withProperty("echo.base", "https://localhost")
             .withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
             .withProperty("postman.username", "postman")
             .withProperty("postman.password", "password")::resolveRequiredPlaceholders;
@@ -186,7 +186,7 @@ class ByRestProxyFactoryTest {
         final var request = restFn.req();
 
         Assertions.assertEquals("", request.contentType());
-        Assertions.assertEquals("https://postman-echo.com/get", request.uri());
+        Assertions.assertEquals("https://localhost/get", request.uri());
 
         final var queryParams = request.queries();
         Assertions.assertEquals(2, queryParams.size());
@@ -262,8 +262,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void queryParams_07() {
-        Assertions.assertThrows(IllegalArgumentException.class, factory.newInstance(QueryParamCases.Case03.class)::get)
-                .printStackTrace();
+        Assertions.assertThrows(IllegalArgumentException.class, factory.newInstance(QueryParamCases.Case03.class)::get);
     }
 
     @Test
@@ -713,5 +712,104 @@ class ByRestProxyFactoryTest {
                 () -> factory.newInstance(AuthTestCases.Case08.class).get());
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> factory.newInstance(AuthTestCases.Case09.class).get());
+    }
+
+    @Test
+    void uri_01() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+
+        uriCase.getByPathVariable("1", "3");
+
+        final var request = restFn.req();
+
+        Assertions.assertEquals(true, request.uri() == request.uri());
+        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri());
+    }
+
+    @Test
+    void uri_02() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.getByPathParam("4", "1", "3");
+
+        final var request = restFn.req();
+
+        /**
+         * Method-level annotation overwrites type-level. This behavior is different
+         * from Spring's RequestMapping.
+         */
+        Assertions.assertEquals("https://localhost/3/4", request.uri(),
+                "Should overwrite type-level annotation");
+    }
+
+    @Test
+    void uri_03() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.getByPathVariable("1", "3");
+
+        final var request = restFn.req();
+
+        /**
+         * Method-level annotation overwrites type-level. This behavior is different
+         * from Spring's RequestMapping.
+         */
+        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri(),
+                "Should overwrite type-level annotation");
+    }
+
+    @Test
+    void uri_04() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.getWithPlaceholder();
+
+        Assertions.assertEquals("https://localhost/get", restFn.req().uri());
+    }
+
+    @Test
+    void uri_05() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.get001();
+
+        Assertions.assertEquals("https://localhost/", restFn.req().uri());
+    }
+
+    @Test
+    void uri_map_01() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.getByMap(Map.of("path1", "1", "path3", "3"));
+
+        final var request = restFn.req();
+
+        /**
+         * Method-level annotation overwrites type-level. This behavior is different
+         * from Spring's RequestMapping.
+         */
+        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri());
+    }
+
+    @Test
+    void uri_map_02() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
+
+        final var request = restFn.req();
+
+        /**
+         * Explicit parameter takes precedence.
+         */
+        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri());
+    }
+
+    @Test
+    void uri_map_03() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+        uriCase.getByMap(Map.of("path1", "mapped1", "path3", "3 &= 1: / 4 ? 5:"), "1");
+
+        final var request = restFn.req();
+
+        /**
+         * Explicit parameter takes precedence.
+         */
+        Assertions.assertEquals("https://localhost/get/1/path2/3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A",
+                request.uri());
     }
 }

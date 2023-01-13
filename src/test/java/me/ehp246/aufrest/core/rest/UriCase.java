@@ -1,4 +1,4 @@
-package me.ehp246.aufrest.core.rest.uri;
+package me.ehp246.aufrest.core.rest;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.OfPath;
  *
  */
 @ByRest("${echo.base}/")
-interface TestCase {
+interface UriCase {
     @OfRequest
     void get001();
 
