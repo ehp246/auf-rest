@@ -338,7 +338,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     private Map<String, Integer> pathParams(final ReflectedMethod reflected) {
         return reflected.allParametersWith(OfPath.class).stream().collect(
-                Collectors.toMap(p -> p.parameter().getAnnotation(OfPath.class).value(), ReflectedParameter::index));
+                Collectors.toMap(p -> {
+                    final var name = p.parameter().getAnnotation(OfPath.class).value();
+                    return OneUtil.hasValue(name) ? name : p.parameter().getName();
+                }, ReflectedParameter::index));
     }
 
     private String accept(final ByRest byRest, final Optional<OfRequest> optionalOfMapping) {
