@@ -30,7 +30,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @see DefaultProxyMethodParser
  * @since 4.0
  */
-final class DefaultInvocationBinder implements InvocationBinder {
+final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final String method;
     private final String accept;
     private final String acceptEncoding;
@@ -50,7 +50,7 @@ final class DefaultInvocationBinder implements InvocationBinder {
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ResponseReturnMapper returnMapper;
 
-    DefaultInvocationBinder(final String method, final String accept, final boolean acceptGZip,
+    DefaultProxyInvocationBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final String baseUrl,
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
