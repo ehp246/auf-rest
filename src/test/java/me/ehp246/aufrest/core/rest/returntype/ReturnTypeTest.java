@@ -31,11 +31,11 @@ class ReturnTypeTest {
 
     @Test
     void return_type_003() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase01.class)::get01).printStackTrace();
+        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase01.class)::get01);
     }
 
     @Test
     void return_type_004() {
-        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase01.class)::get02).printStackTrace();
+        Assertions.assertThrows(Exception.class, factory.newInstance(ReturnTypeCase01.class)::get02);
     }
 }

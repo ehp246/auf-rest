@@ -16,7 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 class HttpUtilsTest {
 
     @Test
-    void path_01() {
+    void encodePath_01() {
         final var expected = UriComponentsBuilder.fromUriString("http://localhost/{path1}/{path2}/{path3}/{path4}")
                 .buildAndExpand(
                         Map.of("path1", "3 = 1", "path2", "3 &= 1", "path3", "3 &= 1: / 4 ? 5:", "path4", "?,=,/,&,:"))
@@ -27,7 +27,8 @@ class HttpUtilsTest {
 
         Assertions.assertEquals("3%20%3D%201", HttpUtils.encodeUrlPath("3 = 1"));
         Assertions.assertEquals("3%20%26%3D%201", HttpUtils.encodeUrlPath("3 &= 1"));
-        Assertions.assertEquals("3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A", HttpUtils.encodeUrlPath("3 &= 1: / 4 ? 5:"));
+        Assertions.assertEquals("3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A",
+                HttpUtils.encodeUrlPath("3 &= 1: / 4 ? 5:"));
         Assertions.assertEquals("%3F%2C%3D%2C%2F%2C%26%2C%3A", HttpUtils.encodeUrlPath("?,=,/,&,:"));
     }
 
@@ -55,5 +56,31 @@ class HttpUtilsTest {
                 .queryParams(CollectionUtils.toMultiValueMap(queries)).toUriString();
 
         Assertions.assertEquals(expected, "http://localhost:123/?" + HttpUtils.encodeQueryString(queries));
+    }
+
+    @Test
+    void expandPath_01() {
+        Assertions.assertEquals("", HttpUtils.bindPlaceholder(null, null, HttpUtils::encodeUrlPath));
+    }
+
+    @Test
+    void expandPath_02() {
+        Assertions.assertEquals("get/1/path2/3",
+                HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}", Map.of("path1", "1", "path2", "2", "path3", "3"),
+                        HttpUtils::encodeUrlPath));
+    }
+
+    @Test
+    void expandPath_03() {
+        Assertions.assertEquals("get/1/path2/3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A",
+                HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}",
+                        Map.of("path1", "1", "path3", "3 &= 1: / 4 ? 5:"), HttpUtils::encodeUrlPath));
+    }
+
+    @Test
+    void expandPath_04() {
+        Assertions.assertEquals("get/1/path2/{path3}",
+                HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}",
+                Map.of("path1", "1"), HttpUtils::encodeUrlPath));
     }
 }

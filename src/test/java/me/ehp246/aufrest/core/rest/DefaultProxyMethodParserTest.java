@@ -144,8 +144,7 @@ class DefaultProxyMethodParserTest {
 
         Assertions
                 .assertThrows(IllegalArgumentException.class,
-                        () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()))
-                .printStackTrace();
+                        () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()));
     }
 
     @Test
@@ -208,8 +207,7 @@ class DefaultProxyMethodParserTest {
         final var captor = InvocationUtil.newCaptor(BeanAuth02.class);
         captor.proxy().get();
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(captor.invocation().method()))
-                .printStackTrace();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(captor.invocation().method()));
     }
 
     @Test
@@ -234,7 +232,7 @@ class DefaultProxyMethodParserTest {
         Assertions
                 .assertThrows(IllegalArgumentException.class,
                         () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                .printStackTrace();
+                ;
     }
 
     @Test
@@ -459,7 +457,7 @@ class DefaultProxyMethodParserTest {
         Assertions
                 .assertThrows(IllegalArgumentException.class,
                         () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                .printStackTrace();
+                ;
     }
 
     @Test
@@ -489,7 +487,7 @@ class DefaultProxyMethodParserTest {
         Assertions
                 .assertThrows(IllegalArgumentException.class,
                         () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                .printStackTrace();
+                ;
     }
 
     @Test
@@ -501,7 +499,7 @@ class DefaultProxyMethodParserTest {
 
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()),
-                "should not allow duplicate names").printStackTrace();
+                "should not allow duplicate names");
     }
 
     @Test
@@ -514,7 +512,7 @@ class DefaultProxyMethodParserTest {
         Assertions
                 .assertThrows(IllegalArgumentException.class,
                         () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                .printStackTrace();
+                ;
     }
 
     @Test

@@ -43,7 +43,7 @@ class BodyTest {
 
         Assertions.assertThrows(UnhandledResponseException.class,
                 () -> publisherCase.post(BodyPublishers.ofString(payload)), "should specify the content type")
-                .printStackTrace();
+                ;
 
         Assertions.assertEquals(payload, publisherCase.postAsJson(BodyPublishers.ofString(payload)).get(0));
     }

@@ -13,12 +13,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.springframework.web.util.UriComponentsBuilder;
-
-import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.BodyOf;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -78,21 +76,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
     @Override
     public Bound apply(final Object target, final Object[] args) {
-        final var pathArgs = new HashMap<String, Object>();
-        this.pathParams.entrySet().forEach(entry -> {
-            final var arg = args[entry.getValue()];
-            if (arg instanceof final Map<?, ?> map) {
-                pathArgs.putAll(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(),
-                        e -> HttpUtils.encodeUrlPath(e.getValue().toString()))));
-
-                map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(),
-                        HttpUtils.encodeUrlPath(e.getValue().toString())));
-            } else {
-                pathArgs.put(entry.getKey(), HttpUtils.encodeUrlPath(arg.toString()));
-            }
-        });
-
-        final var uri = UriComponentsBuilder.fromUriString(baseUri).buildAndExpand(pathArgs).toUriString();
+        final var uri = uri(args);
 
         final var queryBound = new HashMap<String, List<String>>();
         this.queryParams.entrySet().forEach(entry -> {
@@ -214,5 +198,28 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
                 return body;
             }
         }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+    }
+
+    private String uri(final Object[] args) {
+        final var pathArgs = new HashMap<String, Object>();
+        this.pathParams.entrySet().forEach(entry -> {
+            final var arg = args[entry.getValue()];
+            if (arg instanceof final Map<?, ?> map) {
+                pathArgs.putAll(
+                        map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), Entry::getValue)));
+
+                map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(), e.getValue()));
+            } else {
+                pathArgs.put(entry.getKey(), arg);
+            }
+        });
+
+        final var uri = HttpUtils.bindPlaceholder(baseUri, pathArgs, HttpUtils::encodeUrlPath);
+
+        if (uri == null || uri.indexOf('{') != -1) {
+            throw new IllegalArgumentException(uri);
+        }
+
+        return uri;
     }
 }

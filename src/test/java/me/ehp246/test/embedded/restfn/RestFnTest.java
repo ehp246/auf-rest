@@ -24,14 +24,14 @@ import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
@@ -104,7 +104,6 @@ class RestFnTest {
     void auth_01() {
         final var threw = Assertions.assertThrows(UnhandledResponseException.class,
                 () -> this.restFn.applyForResponse(new401Req()));
-        threw.printStackTrace();
 
         Assertions.assertEquals(401, threw.statusCode());
         Assertions.assertEquals(true, threw.getCause().body() instanceof Map);

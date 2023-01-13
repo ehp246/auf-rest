@@ -377,7 +377,7 @@ class DefaultHttpRequestBuilderTest {
     @Test
     void response_timeout_01() {
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, "123")).printStackTrace();
+                () -> new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, "123"));
     }
 
     @Test

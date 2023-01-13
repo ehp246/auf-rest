@@ -4,8 +4,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -47,17 +51,23 @@ public final class HttpUtils {
     public static final String TEXT_PLAIN = "text/plain";
     public static final String OCTET_STREAM = "application/octet-stream";
 
+    private static final Pattern PATTERN_VARIABLE = Pattern.compile("\\{([^/]+?)\\}");
+
     private HttpUtils() {
         super();
     }
 
     /**
-     * Encodes a single URL path element.
-     *
+     * Encodes a single URL path element. Returns <code>null</code> if the argument
+     * is <code>null</code>.
      */
-    public static String encodeUrlPath(final String path) {
-        return URLEncoder.encode(path, StandardCharsets.UTF_8).replaceAll("\\+", "%20").replaceAll("\\%21", "!")
-                .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")").replaceAll("\\%7E", "~");
+    public static String encodeUrlPath(final Object path) {
+        if (path == null) {
+            return null;
+        }
+        return URLEncoder.encode(path.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20")
+                .replaceAll("\\%21", "!").replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")")
+                .replaceAll("\\%7E", "~");
     }
 
     public static String encodeQueryString(final Map<String, List<String>> queries) {
@@ -111,5 +121,40 @@ public final class HttpUtils {
      */
     public static boolean isSuccess(final int code) {
         return code >= 200 && code < 300;
+    }
+
+    /**
+     * Replaces the variable if a value is provided by the mapping function.
+     * Otherwise, retains the placeholder un-bound. I.e., the returned might have
+     * un-matched variable names if the mapping function returns <code>null</code>.
+     *
+     * @param base      input with variable place holders
+     * @param valueMap  name/value map
+     * @param mappingFn maps a value object to String. Invoked upon each found
+     *                  placeholder with the value from the value map as the
+     *                  argument which could be <code>null</code>. If the function
+     *                  returns <code>null</code>, the placeholder will be retained.
+     */
+    public static String bindPlaceholder(final String base, final Map<String, Object> valueMap,
+            final Function<Object, String> mappingFn) {
+        if (base == null || base.isBlank()) {
+            return "";
+        }
+
+        if (base.indexOf('{') == -1) {
+            return base;
+        }
+
+        final Matcher matcher = PATTERN_VARIABLE.matcher(base);
+        final StringBuffer strBuf = new StringBuffer();
+        while (matcher.find()) {
+            final var name = matcher.group(1);
+            final var value = Optional.ofNullable(mappingFn.apply(valueMap.get(name)))
+                    .orElseGet(() -> "{" + name + "}");
+            matcher.appendReplacement(strBuf, Matcher.quoteReplacement(value));
+        }
+        matcher.appendTail(strBuf);
+
+        return strBuf.toString();
     }
 }

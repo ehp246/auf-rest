@@ -538,8 +538,7 @@ class ByRestProxyFactoryTest {
     void exception_05() {
         Assertions.assertThrows(ClassCastException.class,
                 new ByRestProxyFactory(config -> new MockRestFn(new MockHttpResponse<Object>(200, Instant.now())),
-                        clientConfig, parser).newInstance(ExceptionCase.class)::post)
-                .printStackTrace();
+                        clientConfig, parser).newInstance(ExceptionCase.class)::post);
     }
 
     @Test
@@ -770,6 +769,16 @@ class ByRestProxyFactoryTest {
         uriCase.get001();
 
         Assertions.assertEquals("https://localhost/", restFn.req().uri());
+    }
+
+    @Test
+    void uri_06() {
+        final UriCase uriCase = factory.newInstance(UriCase.class);
+
+        final var thrown = Assertions.assertThrows(IllegalArgumentException.class,
+                () -> uriCase.getByMap(Map.of("path1", "1")));
+
+        Assertions.assertEquals("https://localhost/get/1/path2/{path3}", thrown.getMessage());
     }
 
     @Test

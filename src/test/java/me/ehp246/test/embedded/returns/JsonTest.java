@@ -157,7 +157,7 @@ class JsonTest {
     void zip_002() {
         Assertions
                 .assertThrows(Exception.class, () -> case001.getZip("header not allowed"), "should not allow overwrite")
-                .printStackTrace();
+                ;
         ;
     }
 }
