@@ -41,7 +41,7 @@ import me.ehp246.test.embedded.restfn.Logins.LoginName;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restlogger.enabled=false" })
+        "me.ehp246.aufrest.restlogger.enabled=true" })
 class RestFnTest {
     @Value("${local.server.port}")
     private int port;
@@ -128,6 +128,22 @@ class RestFnTest {
         Assertions.assertEquals(200,
                 restFn.applyForResponse(() -> "http://localhost:" + port + "/restfn/auth").statusCode(),
                 "should authorize from the global bean");
+    }
+
+    @Test
+    void uri_01() {
+        restFn.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return "http://localhost:" + port + "/{root}/{path}";
+            }
+
+            @Override
+            public Map<String, ?> paths() {
+                return Map.of("root", "restfn", "path", "auth");
+            }
+        });
     }
 
     @Test

@@ -27,6 +27,8 @@ import me.ehp246.aufrest.core.rest.AuthTestCases.BearerAuthCase02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.SimpleAuthCase02;
 import me.ehp246.aufrest.core.rest.QueryParamCases.Case01;
+import me.ehp246.aufrest.core.rest.UriCases.Uri01;
+import me.ehp246.aufrest.core.rest.UriCases.Uri02;
 import me.ehp246.test.mock.MockBodyHandlerProvider;
 import me.ehp246.test.mock.MockHttpResponse;
 import me.ehp246.test.mock.MockRestFn;
@@ -715,110 +717,107 @@ class ByRestProxyFactoryTest {
 
     @Test
     void uri_01() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
+        final Uri01 uri01s = factory.newInstance(Uri01.class);
 
-        uriCase.getByPathVariable("1", "3");
+        uri01s.getByPathVariable("1", "3");
 
         final var request = restFn.req();
 
         Assertions.assertEquals(true, request.uri() == request.uri());
-        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri());
-    }
+        Assertions.assertEquals("https://localhost/get/{path1}/path2/{path3}", request.uri());
 
-    @Test
-    void uri_02() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.getByPathParam("4", "1", "3");
+        final var paths = request.paths();
 
-        final var request = restFn.req();
-
-        /**
-         * Method-level annotation overwrites type-level. This behavior is different
-         * from Spring's RequestMapping.
-         */
-        Assertions.assertEquals("https://localhost/3/4", request.uri(),
-                "Should overwrite type-level annotation");
+        Assertions.assertEquals(2, paths.size());
+        Assertions.assertEquals("1", paths.get("path1"));
+        Assertions.assertEquals("3", paths.get("path3"));
     }
 
     @Test
     void uri_03() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.getByPathVariable("1", "3");
+        final Uri01 uri01s = factory.newInstance(Uri01.class);
+        uri01s.getByPathVariable("1", "3");
 
         final var request = restFn.req();
 
-        /**
-         * Method-level annotation overwrites type-level. This behavior is different
-         * from Spring's RequestMapping.
-         */
-        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri(),
+        Assertions.assertEquals("https://localhost/get/{path1}/path2/{path3}", request.uri(),
                 "Should overwrite type-level annotation");
     }
 
     @Test
     void uri_04() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.getWithPlaceholder();
+        final Uri01 uri01s = factory.newInstance(Uri01.class);
+        uri01s.getWithSub();
 
         Assertions.assertEquals("https://localhost/get", restFn.req().uri());
     }
 
     @Test
     void uri_05() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.get001();
+        final Uri01 testCase = factory.newInstance(Uri01.class);
+
+        testCase.get();
 
         Assertions.assertEquals("https://localhost/", restFn.req().uri());
     }
 
     @Test
-    void uri_06() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
+    void uri_07() {
+        final Uri02 testCase = factory.newInstance(Uri02.class);
 
-        final var thrown = Assertions.assertThrows(IllegalArgumentException.class,
-                () -> uriCase.getByMap(Map.of("path1", "1")));
+        final var root = UUID.randomUUID().toString();
+        final var id = UUID.randomUUID().toString();
+        testCase.get(root, id);
 
-        Assertions.assertEquals("https://localhost/get/1/path2/{path3}", thrown.getMessage());
+        Assertions.assertEquals("https://localhost/{root}/{id}", restFn.req().uri());
+
+        final var paths = restFn.req().paths();
+
+        Assertions.assertEquals(true, paths.size() == 2);
+        Assertions.assertEquals(root, paths.get("root"));
+        Assertions.assertEquals(id, paths.get("id"));
     }
 
     @Test
-    void uri_map_01() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.getByMap(Map.of("path1", "1", "path3", "3"));
+    void path_map_01() {
+        final Uri01 uri01s = factory.newInstance(Uri01.class);
+        final var expected = Map.of("path1", "1", "path3", "3");
+
+        uri01s.getByMap(expected);
 
         final var request = restFn.req();
 
-        /**
-         * Method-level annotation overwrites type-level. This behavior is different
-         * from Spring's RequestMapping.
-         */
-        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri());
+        Assertions.assertEquals("https://localhost/get/{path1}/path2/{path3}", request.uri());
+
+        final var paths = restFn.req().paths();
+
+        Assertions.assertEquals(true, paths.size() == 2);
+        Assertions.assertEquals("1", paths.get("path1"));
+        Assertions.assertEquals("3", paths.get("path3"));
     }
 
     @Test
-    void uri_map_02() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
+    void path_map_02() {
+        final Uri01 uri01s = factory.newInstance(Uri01.class);
+        uri01s.getByMap(Map.of("path1", "mapped1", "path3", "3"), "1");
 
-        final var request = restFn.req();
+        final var paths = restFn.req().paths();
 
-        /**
-         * Explicit parameter takes precedence.
-         */
-        Assertions.assertEquals("https://localhost/get/1/path2/3", request.uri());
+        Assertions.assertEquals(2, paths.size());
+        Assertions.assertEquals("1", paths.get("path1"));
+        Assertions.assertEquals("3", paths.get("path3"));
     }
 
     @Test
-    void uri_map_03() {
-        final UriCase uriCase = factory.newInstance(UriCase.class);
-        uriCase.getByMap(Map.of("path1", "mapped1", "path3", "3 &= 1: / 4 ? 5:"), "1");
+    void path_map_03() {
+        final Uri01 uri01s = factory.newInstance(Uri01.class);
 
-        final var request = restFn.req();
+        uri01s.getByMap(Map.of("path1", "mapped1", "path3", "3 &= 1: / 4 ? 5:"), "1");
 
-        /**
-         * Explicit parameter takes precedence.
-         */
-        Assertions.assertEquals("https://localhost/get/1/path2/3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A",
-                request.uri());
+        final var paths = restFn.req().paths();
+
+        Assertions.assertEquals(2, paths.size());
+        Assertions.assertEquals("1", paths.get("path1"));
+        Assertions.assertEquals("3 &= 1: / 4 ? 5:", paths.get("path3"), "should not encode");
     }
 }

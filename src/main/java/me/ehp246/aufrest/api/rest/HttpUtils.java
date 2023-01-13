@@ -135,13 +135,13 @@ public final class HttpUtils {
      *                  argument which could be <code>null</code>. If the function
      *                  returns <code>null</code>, the placeholder will be retained.
      */
-    public static String bindPlaceholder(final String base, final Map<String, Object> valueMap,
+    public static String bindPlaceholder(final String base, final Map<String, ?> valueMap,
             final Function<Object, String> mappingFn) {
         if (base == null || base.isBlank()) {
             return "";
         }
 
-        if (base.indexOf('{') == -1) {
+        if (base.indexOf('{') == -1 || valueMap == null || valueMap.isEmpty()) {
             return base;
         }
 

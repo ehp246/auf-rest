@@ -17,11 +17,11 @@ import java.util.stream.Stream;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
@@ -116,17 +116,17 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
          * URI
          */
         final URI uri;
+        final var boundBase = HttpUtils.bindPlaceholder(req.uri(), req.paths(), HttpUtils::encodeUrlPath);
         if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
             /*
              * URI should be without query parameters on it. But not enforcing the policy.
              * This means queries on the URI will not be sent in the body.
              */
-            uri = URI.create(req.uri());
+            uri = URI.create(boundBase);
         } else {
             // Add query parameters
             uri = URI.create(Optional.ofNullable(req.queries()).filter(queries -> !queries.isEmpty())
-                    .map(queries -> String.join("?", req.uri(), HttpUtils.encodeQueryString(queries)))
-                    .orElseGet(req::uri));
+                    .map(queries -> String.join("?", boundBase, HttpUtils.encodeQueryString(queries))).orElse(boundBase));
         }
 
         /*

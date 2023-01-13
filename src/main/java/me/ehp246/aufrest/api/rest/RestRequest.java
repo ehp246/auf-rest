@@ -16,9 +16,15 @@ import java.util.function.Supplier;
  */
 public interface RestRequest {
     /**
-     * Defines the URL path.
+     * Defines base URL.
      * <p>
-     * Should be a simple path without query string or other parameters.
+     * Place-holders are supported on path segments. E.g.,
+     * <code>http://localhost:8080/{app}/{id}</code>.
+     * <p>
+     * If present, all path place-holders must be provided for by
+     * {@linkplain RestRequest#paths()}. Otherwise, an exception will be raised.
+     * <p>
+     * Should be without query string or other parameters.
      *
      * @see <a href=
      *      "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#:~:text=With%20Hypertext%20and%20HTTP%2C%20URL,unique%20resource%20on%20the%20Web.">URL</a>
@@ -29,7 +35,22 @@ public interface RestRequest {
         return "GET";
     }
 
-    default Duration timeout() {
+    /**
+     * Defines values of path variables to bind to {@linkplain RestRequest#uri()}.
+     * <p>
+     * The values should NOT be encoded.
+     */
+    default Map<String, ?> paths() {
+        return null;
+    }
+
+    /**
+     * Defines application-custom headers.
+     * <p>
+     * The map should not include the reserved headers defined in
+     * {@linkplain HttpUtils#RESERVED_HEADERS}.
+     */
+    default Map<String, List<String>> headers() {
         return null;
     }
 
@@ -49,24 +70,16 @@ public interface RestRequest {
      * If the method returns <code>null</code>, i.e., there is no supplier,
      * Authorization will be set by the global Authorization Provider if there is
      * one.
-     * <p>
-     *
-     *
-     * @return
      */
     default Supplier<String> authSupplier() {
         return null;
     }
 
-    default String contentType() {
-        return "";
-    }
-
-    default String accept() {
-        return HttpUtils.APPLICATION_JSON;
-    }
-
-    default String acceptEncoding() {
+    /**
+     * Defines query parameter names and values. The values should NOT be encoded.
+     * Encoding will be taken care of by the HTTP client.
+     */
+    default Map<String, List<String>> queries() {
         return null;
     }
 
@@ -82,23 +95,20 @@ public interface RestRequest {
         return null;
     }
 
-    /**
-     * Specifies application-custom headers.
-     * <p>
-     * The map should not include the reserved headers defined in
-     * {@linkplain HttpUtils#RESERVED_HEADERS}.
-     * <p>
-     * {@code null} accepted.
-     */
-    default Map<String, List<String>> headers() {
+    default String contentType() {
+        return "";
+    }
+
+    default String accept() {
+        return HttpUtils.APPLICATION_JSON;
+    }
+
+    default String acceptEncoding() {
         return null;
     }
 
-    /**
-     * The values should NOT be encoded. Encoding will be taken care of by the HTTP
-     * client.
-     */
-    default Map<String, List<String>> queries() {
+    default Duration timeout() {
         return null;
     }
+
 }

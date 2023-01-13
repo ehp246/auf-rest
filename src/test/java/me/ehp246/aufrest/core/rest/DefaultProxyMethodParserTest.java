@@ -516,7 +516,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void query_01() {
+    void uri_01() {
 
     }
 }

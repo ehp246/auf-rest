@@ -31,7 +31,7 @@ import me.ehp246.test.mock.MockReq;
  *
  */
 class DefaultHttpRequestBuilderTest {
-    private final static String POSTMAN_ECHO = "https://postman-echo.com";
+    private final static String BASE_URL = "http://losthost:8080";
     private final static String BEARER = "I'm a bearer.";
     private final static String BASIC = "I'm basic.";
 
@@ -54,7 +54,8 @@ class DefaultHttpRequestBuilderTest {
         }
     };
 
-    private final HttpRequestBuilder defBuilder = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null);
+    private final HttpRequestBuilder defBuilder = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null,
+            null);
 
     @BeforeEach
     void beforeEach() {
@@ -63,7 +64,7 @@ class DefaultHttpRequestBuilderTest {
 
     @Test
     void uri_01() {
-        final var url = POSTMAN_ECHO + "get?foo1=bar1&foo2=bar2";
+        final var url = BASE_URL + "/get?foo1=bar1&foo2=bar2";
 
         final var httpReq = defBuilder.apply(new RestRequest() {
 
@@ -84,7 +85,7 @@ class DefaultHttpRequestBuilderTest {
 
     @Test
     void uri_02() {
-        final var url = POSTMAN_ECHO + "?foo1=bar1&foo2=bar2";
+        final var url = BASE_URL + "?foo1=bar1&foo2=bar2";
 
         final var httpReq = defBuilder.apply(new RestRequest() {
 
@@ -104,6 +105,71 @@ class DefaultHttpRequestBuilderTest {
     }
 
     @Test
+    void uri_04() {
+        final var httpReq = defBuilder.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return BASE_URL + "/{path1}/{path2}";
+            }
+
+            @Override
+            public Map<String, String> paths() {
+                return Map.of("path1", "1", "path2", "2");
+            }
+        });
+
+        Assertions.assertEquals(BASE_URL + "/1/2", httpReq.uri().toString());
+    }
+
+    @Test
+    void uri_05() {
+        final var httpReq = defBuilder.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return BASE_URL + "/{path1}/{path2}";
+            }
+
+            @Override
+            public Map<String, String> paths() {
+                return Map.of("path1", "1", "path2", "1 + 1");
+            }
+        });
+
+        Assertions.assertEquals(BASE_URL + "/1/1%20%2B%201", httpReq.uri().toString());
+    }
+
+    @Test
+    void uri_06() {
+        final var httpReq = defBuilder.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return BASE_URL + "/1/2";
+            }
+
+            @Override
+            public Map<String, String> paths() {
+                return Map.of();
+            }
+        });
+
+        Assertions.assertEquals(BASE_URL + "/1/2", httpReq.uri().toString());
+    }
+
+    @Test
+    void uri_07() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> defBuilder.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return BASE_URL + "/{path1}/{path2}";
+            }
+        }));
+    }
+
+    @Test
     void method_001() {
         Assertions.assertEquals("GET", defBuilder.apply(() -> "http://w.w.w").method());
     }
@@ -111,7 +177,7 @@ class DefaultHttpRequestBuilderTest {
     @Test
     void auth_global_001() {
         final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, authProvider, null)
-                .apply(() -> POSTMAN_ECHO + "/bearer");
+                .apply(() -> BASE_URL + "/bearer");
 
         Assertions.assertEquals(BEARER, req.headers().firstValue(HttpUtils.AUTHORIZATION).get());
     }
@@ -119,17 +185,17 @@ class DefaultHttpRequestBuilderTest {
     @Test
     void auth_global_002() {
         final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, authProvider, null)
-                .apply(() -> POSTMAN_ECHO + "/basic");
+                .apply(() -> BASE_URL + "/basic");
 
         Assertions.assertEquals(BASIC, req.headers().firstValue(HttpUtils.AUTHORIZATION).get());
     }
 
     @Test
     void auth_global_003() {
-        final DefaultHttpRequestBuilder builder = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, authProvider,
-                null);
+        final DefaultHttpRequestBuilder builder = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null,
+                authProvider, null);
 
-        final var request = (RestRequest) () -> POSTMAN_ECHO + "/count";
+        final var request = (RestRequest) () -> BASE_URL + "/count";
 
         var req = builder.apply(request);
 
@@ -146,7 +212,7 @@ class DefaultHttpRequestBuilderTest {
     @Test
     void auth_global_004() {
         final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
-                .apply(() -> POSTMAN_ECHO + "/basic");
+                .apply(() -> BASE_URL + "/basic");
 
         Assertions.assertEquals(0, req.headers().allValues(HttpUtils.AUTHORIZATION).size(), "Should have no Auth");
     }
@@ -154,7 +220,7 @@ class DefaultHttpRequestBuilderTest {
     @Test
     void auth_global_005() {
         final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
-                .apply(() -> POSTMAN_ECHO + "/basic");
+                .apply(() -> BASE_URL + "/basic");
 
         Assertions.assertEquals(0, req.headers().allValues(HttpUtils.AUTHORIZATION).size(), "Should have no Auth");
     }
@@ -188,18 +254,19 @@ class DefaultHttpRequestBuilderTest {
         final var value = UUID.randomUUID().toString();
         HeaderContext.add("authorization", value);
 
-        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null).apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
+                .apply(new RestRequest() {
 
-            @Override
-            public String uri() {
-                return "http://localhost";
-            }
+                    @Override
+                    public String uri() {
+                        return "http://localhost";
+                    }
 
-            @Override
-            public Map<String, List<String>> headers() {
-                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
-            }
-        });
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                    }
+                });
 
         Assertions.assertEquals(value, req.headers().firstValue("authorization").get(), "Should come from the context");
     }
@@ -208,23 +275,24 @@ class DefaultHttpRequestBuilderTest {
     void auth_headerContext_03() {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
-        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null).apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
+                .apply(new RestRequest() {
 
-            @Override
-            public String uri() {
-                return "http://localhost";
-            }
+                    @Override
+                    public String uri() {
+                        return "http://localhost";
+                    }
 
-            @Override
-            public Supplier<String> authSupplier() {
-                return () -> "me2";
-            }
+                    @Override
+                    public Supplier<String> authSupplier() {
+                        return () -> "me2";
+                    }
 
-            @Override
-            public Map<String, List<String>> headers() {
-                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
-            }
-        });
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                    }
+                });
 
         Assertions.assertEquals("me2", req.headers().firstValue("authorization").get(), "Should come from the request");
     }
@@ -233,24 +301,25 @@ class DefaultHttpRequestBuilderTest {
     void auth_headerContext_04() {
         HeaderContext.add("authorization", UUID.randomUUID().toString());
 
-        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, r -> null, null).apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, r -> null, null)
+                .apply(new RestRequest() {
 
-            @Override
-            public String uri() {
-                return "http://localhost";
-            }
+                    @Override
+                    public String uri() {
+                        return "http://localhost";
+                    }
 
-            @Override
-            public Supplier<String> authSupplier() {
-                // Let the authProvider handle it.
-                return null;
-            }
+                    @Override
+                    public Supplier<String> authSupplier() {
+                        // Let the authProvider handle it.
+                        return null;
+                    }
 
-            @Override
-            public Map<String, List<String>> headers() {
-                return Map.of("authorization", List.of(UUID.randomUUID().toString()));
-            }
-        });
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("authorization", List.of(UUID.randomUUID().toString()));
+                    }
+                });
 
         Assertions.assertEquals(0, req.headers().allValues("authorization").size(),
                 "Should come from the authProvider");
@@ -308,7 +377,8 @@ class DefaultHttpRequestBuilderTest {
 
     @Test
     void timeout_global_reponse_001() {
-        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null).apply(() -> "http://tonowhere");
+        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
+                .apply(() -> "http://tonowhere");
 
         Assertions.assertEquals(true, req.timeout().isEmpty(), "Should have no timeout on request");
     }
@@ -341,18 +411,19 @@ class DefaultHttpRequestBuilderTest {
 
     @Test
     void timeout_per_request_002() {
-        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, "PT2H").apply(new RestRequest() {
+        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, "PT2H")
+                .apply(new RestRequest() {
 
-            @Override
-            public Duration timeout() {
-                return Duration.ofHours(10);
-            }
+                    @Override
+                    public Duration timeout() {
+                        return Duration.ofHours(10);
+                    }
 
-            @Override
-            public String uri() {
-                return "http://tonowhere";
-            }
-        });
+                    @Override
+                    public String uri() {
+                        return "http://tonowhere";
+                    }
+                });
         Assertions.assertEquals(600, req.timeout().get().toMinutes(),
                 "Should have take timeout on the request instead of Global");
     }
@@ -691,7 +762,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO;
+                return BASE_URL;
             }
 
             @Override
@@ -709,7 +780,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO;
+                return BASE_URL;
             }
 
             @Override
@@ -734,7 +805,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO + "/bearer";
+                return BASE_URL + "/bearer";
             }
 
             @Override
@@ -757,7 +828,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO + "/bearer";
+                return BASE_URL + "/bearer";
             }
 
             @Override
@@ -783,7 +854,7 @@ class DefaultHttpRequestBuilderTest {
 
         final int count = (int) (Math.random() * 20);
 
-        IntStream.range(0, count).forEach(i -> builder.apply(() -> POSTMAN_ECHO));
+        IntStream.range(0, count).forEach(i -> builder.apply(() -> BASE_URL));
 
         Mockito.verify(reqBuilderSupplier,
                 Mockito.times(count).description("Should ask for a new builder for each request")).get();
@@ -795,7 +866,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO;
+                return BASE_URL;
             }
 
             @Override
@@ -804,6 +875,7 @@ class DefaultHttpRequestBuilderTest {
             }
         });
 
+        Assertions.assertEquals(BASE_URL, httpReq.uri().toString());
         Assertions.assertEquals(true, httpReq.uri().getQuery() == null);
     }
 
@@ -813,7 +885,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO;
+                return BASE_URL;
             }
 
             @Override
@@ -822,6 +894,7 @@ class DefaultHttpRequestBuilderTest {
             }
         });
 
+        Assertions.assertEquals(BASE_URL, httpReq.uri().toString());
         Assertions.assertEquals(true, httpReq.uri().getQuery() == null);
     }
 
@@ -831,7 +904,7 @@ class DefaultHttpRequestBuilderTest {
 
             @Override
             public String uri() {
-                return POSTMAN_ECHO;
+                return BASE_URL;
             }
 
             @Override

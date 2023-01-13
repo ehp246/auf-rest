@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
-import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -76,7 +75,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
     @Override
     public Bound apply(final Object target, final Object[] args) {
-        final var uri = uri(args);
+        final var paths = paths(args);
 
         final var queryBound = new HashMap<String, List<String>>();
         this.queryParams.entrySet().forEach(entry -> {
@@ -155,7 +154,12 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
             @Override
             public String uri() {
-                return uri;
+                return baseUri;
+            }
+
+            @Override
+            public Map<String, ?> paths() {
+                return paths;
             }
 
             @Override
@@ -200,7 +204,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 
-    private String uri(final Object[] args) {
+    private Map<String, ?> paths(final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
         this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
@@ -213,13 +217,6 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
                 pathArgs.put(entry.getKey(), arg);
             }
         });
-
-        final var uri = HttpUtils.bindPlaceholder(baseUri, pathArgs, HttpUtils::encodeUrlPath);
-
-        if (uri == null || uri.indexOf('{') != -1) {
-            throw new IllegalArgumentException(uri);
-        }
-
-        return uri;
+        return pathArgs;
     }
 }
