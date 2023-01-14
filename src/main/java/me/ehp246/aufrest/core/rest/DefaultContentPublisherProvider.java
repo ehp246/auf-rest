@@ -12,9 +12,9 @@ import java.util.Map;
 
 import org.springframework.util.MimeTypeUtils;
 
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -63,7 +63,7 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + descriptor.type() + "'");
+                + body.toString() + "' of type '" + descriptor.reifying()[0] + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {

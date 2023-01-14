@@ -39,7 +39,7 @@ public final class JsonByObjectMapper implements FromJson, ToJson {
             return null;
         }
 
-        final var type = valueInfo == null ? value.getClass() : valueInfo.type();
+        final var type = valueInfo == null ? value.getClass() : valueInfo.reifying()[0];
         final var view = valueInfo == null ? null : valueInfo.view();
 
         try {
@@ -62,18 +62,17 @@ public final class JsonByObjectMapper implements FromJson, ToJson {
             return null;
         }
 
-        final var type = Objects.requireNonNull(descriptor.type());
+        final var type = Objects.requireNonNull(descriptor.reifying()[0]);
         final var reifying = descriptor.reifying();
 
         final var reader = Optional.ofNullable(descriptor.view())
                 .map(view -> objectMapper.readerWithView(view)).orElseGet(objectMapper::reader);
         try {
-            if (reifying == null) {
+            if (reifying.length == 1) {
                 return reader.forType(type).readValue(json);
             } else {
                 final var typeFactory = objectMapper.getTypeFactory();
-                final var types = new ArrayList<Class<?>>(List.of(type));
-                types.addAll(List.of(reifying));
+                final var types = new ArrayList<Class<?>>(List.of(reifying));
 
                 final var size = types.size();
                 var javaType = typeFactory.constructParametricType(types.get(size - 2), types.get(size - 1));

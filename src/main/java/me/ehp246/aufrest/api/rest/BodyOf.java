@@ -14,15 +14,11 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  * @since 4.0
  */
 public final class BodyOf<T> {
-    public static final BodyOf<Map<String, Object>> MAP = new BodyOf<Map<String, Object>>(
-            null, Map.class, (Class<?>[]) null);
+    public static final BodyOf<Map<String, Object>> MAP = new BodyOf<Map<String, Object>>(null, Map.class);
     /**
-     * The declared type of the body.
-     */
-    private final Class<?> type;
-    /**
-     * The type parameters if {@linkplain #contentType()} is a generic
-     * {@linkplain List} or {@linkplain Set}.
+     * The declared type of the body. The type parameters if
+     * {@linkplain #contentType()} is a generic {@linkplain List} or
+     * {@linkplain Set}.
      */
     private final Class<?>[] reifying;
     /**
@@ -35,22 +31,26 @@ public final class BodyOf<T> {
         this(null, type);
     }
 
-    public BodyOf(final Class<?> view, final Class<T> type) {
-        this(view, type, (Class<?>[]) null);
-    }
-
-    public BodyOf(final Class<?> view, final Class<?> type, final Class<?>... reifying) {
-        this.type = type;
+    /**
+     * At least one type should be specified.
+     */
+    public BodyOf(final Class<?> view, final Class<?>... reifying) {
+        if (reifying == null || reifying.length == 0 || reifying[0] == null) {
+            throw new IllegalArgumentException("At least one type needed");
+        }
         this.view = view;
         this.reifying = reifying;
     }
 
     public Class<?> type() {
-        return type;
+        return this.reifying[0];
     }
 
+    /**
+     * Would have at least one type.
+     */
     public Class<?>[] reifying() {
-        return reifying;
+        return this.reifying;
     }
 
     public Class<?> view() {

@@ -122,14 +122,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new BodyOf<>(Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
-                        .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
-                        parameter.getType(),
-                        (Class<?>[]) null))
+                .map(parameter -> new BodyOf<>(
+                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
+                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
+                        parameter.getType()))
                 .orElse(null);
 
-        return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(), contentType,
-                timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
+        return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
+                contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
                 bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), responseReturnMapper(reflected));
     }
@@ -174,13 +174,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
                 .map(views -> views[0]).orElse(null);
 
-        final var bodyDescriptor = bodyTypes != null && bodyTypes.length > 0
-                ? new BodyOf<>(jsonView, bodyTypes[0],
-                        bodyTypes.length > 1 ? Arrays.copyOfRange(bodyTypes, 1, bodyTypes.length) : null)
-                : new BodyOf<>(jsonView, returnType, (Class<?>[]) null);
+        final var descriptor = new BodyHandlerType.Inferring<>(
+                new BodyOf<>(jsonView, bodyTypes == null ? new Class<?>[] { returnType } : bodyTypes),
+                byRest.errorType());
 
-        final var handler = inferredHandlerProvider
-                .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));
+        final var handler = inferredHandlerProvider.get(descriptor);
 
         return (target, args) -> handler;
     }
@@ -337,11 +335,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private Map<String, Integer> pathParams(final ReflectedMethod reflected) {
-        return reflected.allParametersWith(OfPath.class).stream().collect(
-                Collectors.toMap(p -> {
-                    final var name = p.parameter().getAnnotation(OfPath.class).value();
-                    return OneUtil.hasValue(name) ? name : p.parameter().getName();
-                }, ReflectedParameter::index));
+        return reflected.allParametersWith(OfPath.class).stream().collect(Collectors.toMap(p -> {
+            final var name = p.parameter().getAnnotation(OfPath.class).value();
+            return OneUtil.hasValue(name) ? name : p.parameter().getName();
+        }, ReflectedParameter::index));
     }
 
     private String accept(final ByRest byRest, final Optional<OfRequest> optionalOfMapping) {

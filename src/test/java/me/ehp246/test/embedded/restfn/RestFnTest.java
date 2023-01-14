@@ -1,6 +1,7 @@
 package me.ehp246.test.embedded.restfn;
 
 import java.net.http.HttpRequest.BodyPublishers;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -355,10 +356,10 @@ class RestFnTest {
 
         final var body = restFn.apply(newLoginsReq(login),
                 new Inferring<>(
-                        new BodyOf<List<LoginName>>(RestView.class, List.class,
-                        new Class<?>[] { LoginName.class })));
+                        new BodyOf<List<LoginName>>(RestView.class, ArrayList.class, LoginName.class)));
 
         Assertions.assertEquals(1, body.size());
+        Assertions.assertEquals(ArrayList.class, body.getClass());
         Assertions.assertEquals(login.username(), body.get(0).getUsername());
         Assertions.assertEquals(null, body.get(0).getPassword());
     }

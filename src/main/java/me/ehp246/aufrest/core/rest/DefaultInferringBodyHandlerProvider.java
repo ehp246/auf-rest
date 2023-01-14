@@ -12,13 +12,13 @@ import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
 
-import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.BodyOf;
-import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
+import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -77,7 +77,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
              * to infer by the content type.
              */
             final var resposneDescriptor = isSuccess ? successDescriptor : errorDescriptor;
-            final var type = resposneDescriptor == null ? null : resposneDescriptor.type();
+            final var type = resposneDescriptor == null ? null : resposneDescriptor.reifying()[0];
             if (statusCode == 204 || type == void.class || type == Void.class) {
                 return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
             }
