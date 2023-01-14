@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
-import me.ehp246.aufrest.api.annotation.OfResponse.Body;
+import me.ehp246.aufrest.api.annotation.OfResponse.BodyOf;
 
 /**
  * @author Lei Yang
@@ -29,25 +29,25 @@ interface XmlTestCase {
     String getPerson(@OfQuery("name") String name);
 
     @OfRequest(value = "persons", contentType = "application/xml", accept = "application/xml")
-    @OfResponse(body = @Body(Person.class))
+    @OfResponse(bodyOf = @BodyOf(Person.class))
     List<Person> get008();
 
     // Response types
 
     @OfRequest("person")
-    @OfResponse(body = @Body(Person.class))
+    @OfResponse(bodyOf = @BodyOf(Person.class))
     HttpResponse<Person> get011();
 
     @OfRequest("instants")
-    @OfResponse(body = @Body({ List.class, Instant.class }))
+    @OfResponse(bodyOf = @BodyOf({ List.class, Instant.class }))
     HttpResponse<List<Instant>> get002(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @OfResponse(body = @Body({ List.class, Instant.class }))
+    @OfResponse(bodyOf = @BodyOf({ List.class, Instant.class }))
     HttpResponse get004(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @OfResponse(body = @Body(String.class))
+    @OfResponse(bodyOf = @BodyOf(String.class))
     HttpResponse<String> get007(@OfQuery("count") int count);
 
 }

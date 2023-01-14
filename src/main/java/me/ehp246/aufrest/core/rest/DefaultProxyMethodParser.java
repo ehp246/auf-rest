@@ -163,12 +163,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             return (target, args) -> BodyHandlers.discarding();
         }
 
-        final var bodyTypes = ofResponse.map(OfResponse::body).map(OfResponse.Body::value).filter(OneUtil::hasValue)
+        final var bodyTypes = ofResponse.map(OfResponse::bodyOf).map(OfResponse.BodyOf::value).filter(OneUtil::hasValue)
                 .orElse(null);
 
         // Need to specify at least one type for the body.
         if (returnType.isAssignableFrom(HttpResponse.class) && bodyTypes == null) {
-            throw new IllegalArgumentException("Missing required " + OfResponse.Body.class);
+            throw new IllegalArgumentException("Missing required " + OfResponse.BodyOf.class);
         }
 
         final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
