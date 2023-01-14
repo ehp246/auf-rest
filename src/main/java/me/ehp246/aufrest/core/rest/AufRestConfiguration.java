@@ -10,6 +10,7 @@ import java.util.Set;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -36,7 +37,7 @@ import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
-import me.ehp246.aufrest.provider.jackson.JsonByJackson;
+import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
 
 /**
  * Registers infrastructure beans needed by the framework.
@@ -49,8 +50,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultInferringBodyHandlerProvider.class,
-        DefaultContentPublisherProvider.class, ObjectMapperConfiguration.class })
+@Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class, DefaultContentPublisherProvider.class,
+        ObjectMapperConfiguration.class })
 public final class AufRestConfiguration implements BeanDefinitionRegistryPostProcessor {
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
@@ -102,6 +103,12 @@ public final class AufRestConfiguration implements BeanDefinitionRegistryPostPro
         return HttpClient::newBuilder;
     }
 
+    @Bean
+    public JsonByObjectMapper jsonByObjectMapper(
+            @Qualifier(AufRestConstants.BEAN_OBJECT_MAPPER) final ObjectMapper objectMapper) {
+        return new JsonByObjectMapper(objectMapper);
+    }
+
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException {
         if (registry.containsBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER)) {
@@ -109,7 +116,8 @@ public final class AufRestConfiguration implements BeanDefinitionRegistryPostPro
         }
 
         if (registry.containsBeanDefinition("objectMapper")) {
-            registry.registerBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER, registry.getBeanDefinition("objectMapper"));
+            registry.registerBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER,
+                    registry.getBeanDefinition("objectMapper"));
             return;
         }
 

@@ -350,11 +350,12 @@ class RestFnTest {
     }
 
     @Test
-    void body_reifying_01() {
+    void responseBody_reifying_01() {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var body = restFn.apply(newLoginsReq(login),
-                new Inferring<List<LoginName>>(new BodyOf<List<LoginName>>(List.class, RestView.class,
+                new Inferring<>(
+                        new BodyOf<List<LoginName>>(List.class, RestView.class,
                         new Class<?>[] { LoginName.class })));
 
         Assertions.assertEquals(1, body.size());

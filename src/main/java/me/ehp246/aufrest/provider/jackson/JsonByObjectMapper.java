@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.FromJson;
 import me.ehp246.aufrest.core.rest.ToJson;
 
@@ -19,14 +20,15 @@ import me.ehp246.aufrest.core.rest.ToJson;
  * Implements internal JSON operations on {@linkplain ObjectMapper}.
  *
  * @author Lei Yang
- *
+ * @see {@linkplain AufRestConfiguration#jsonByObjectMapper(ObjectMapper)}
+ * @version 4.0
  */
-public final class JsonByJackson implements FromJson, ToJson {
-    private final static Logger LOGGER = LogManager.getLogger(JsonByJackson.class);
+public final class JsonByObjectMapper implements FromJson, ToJson {
+    private final static Logger LOGGER = LogManager.getLogger(JsonByObjectMapper.class);
 
     private final ObjectMapper objectMapper;
 
-    public JsonByJackson(final ObjectMapper objectMapper) {
+    public JsonByObjectMapper(final ObjectMapper objectMapper) {
         super();
         this.objectMapper = objectMapper;
     }

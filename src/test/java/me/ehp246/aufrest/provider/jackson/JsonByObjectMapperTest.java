@@ -34,7 +34,7 @@ import me.ehp246.test.TimingExtension;
  *
  */
 @ExtendWith(TimingExtension.class)
-class JsonByJacksonTest {
+class JsonByObjectMapperTest {
     public static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
             .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
@@ -42,7 +42,7 @@ class JsonByJacksonTest {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
             .registerModule(new ParameterNamesModule());
 
-    private final JsonByJackson jackson = new JsonByJackson(OBJECT_MAPPER);
+    private final JsonByObjectMapper jackson = new JsonByObjectMapper(OBJECT_MAPPER);
 
 
     @SuppressWarnings("unchecked")
