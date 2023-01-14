@@ -42,12 +42,8 @@ public final class BodyOf<T> {
         this.reifying = reifying;
     }
 
-    public Class<?> type() {
-        return this.reifying[0];
-    }
-
     /**
-     * Would have at least one type.
+     * Should have at least one type.
      */
     public Class<?>[] reifying() {
         return this.reifying;
