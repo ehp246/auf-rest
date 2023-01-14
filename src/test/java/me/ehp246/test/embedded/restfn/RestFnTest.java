@@ -197,7 +197,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new BodyOf<Logins.LoginName>(Logins.LoginName.class, RestView.class));
+        }, new BodyOf<Logins.LoginName>(RestView.class, Logins.LoginName.class));
 
         final var body = response.body();
 
@@ -233,7 +233,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new BodyOf<Logins.LoginName>(Logins.LoginName.class, RestView.class));
+        }, new BodyOf<Logins.LoginName>(RestView.class, Logins.LoginName.class));
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
@@ -343,7 +343,7 @@ class RestFnTest {
                 return login;
             }
         }, null, new BodyHandlerType.Inferring<LoginName>(
-                new BodyOf<>(LoginName.class, RestView.class)));
+                new BodyOf<>(RestView.class, LoginName.class)));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -355,7 +355,7 @@ class RestFnTest {
 
         final var body = restFn.apply(newLoginsReq(login),
                 new Inferring<>(
-                        new BodyOf<List<LoginName>>(List.class, RestView.class,
+                        new BodyOf<List<LoginName>>(RestView.class, List.class,
                         new Class<?>[] { LoginName.class })));
 
         Assertions.assertEquals(1, body.size());
@@ -406,7 +406,7 @@ class RestFnTest {
          * Get a handler that does support View.
          */
         final var handlerWithView = this.handlerProvider.get(new BodyHandlerType.Inferring<LoginName>(
-                new BodyOf<>(LoginName.class, RestView.class)));
+                new BodyOf<>(RestView.class, LoginName.class)));
 
         /**
          * Use it on the response.

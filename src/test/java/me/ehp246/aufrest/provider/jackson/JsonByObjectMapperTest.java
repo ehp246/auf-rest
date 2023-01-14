@@ -51,7 +51,7 @@ class JsonByObjectMapperTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(ArrayList.class, null, new Class<?>[] { Instant.class }));
+                new BodyOf<>(null, ArrayList.class, new Class<?>[] { Instant.class }));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -62,7 +62,7 @@ class JsonByObjectMapperTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(ArrayList.class, null, new Class<?>[] { Instant.class }));
+                new BodyOf<>(null, ArrayList.class, new Class<?>[] { Instant.class }));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -73,7 +73,7 @@ class JsonByObjectMapperTest {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
         final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(List.class, null, new Class<?>[] { List.class, Instant.class }));
+                new BodyOf<>(null, List.class, new Class<?>[] { List.class, Instant.class }));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -90,7 +90,7 @@ class JsonByObjectMapperTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(ArrayList.class, null, Person.class));
+                new BodyOf<>(null, ArrayList.class, Person.class));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -106,7 +106,7 @@ class JsonByObjectMapperTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(List.class, RestView.class, TestCases.Person01.class));
+                new BodyOf<>(RestView.class, List.class, TestCases.Person01.class));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());
@@ -122,7 +122,7 @@ class JsonByObjectMapperTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
-                new BodyOf<>(HashSet.class, RestView.class, List.class, TestCases.Person01.class));
+                new BodyOf<>(RestView.class, HashSet.class, List.class, TestCases.Person01.class));
 
         Assertions.assertEquals(1, result.size());
 

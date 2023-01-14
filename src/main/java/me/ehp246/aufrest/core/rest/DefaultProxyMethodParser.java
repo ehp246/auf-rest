@@ -122,9 +122,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new BodyOf<>(parameter.getType(),
-                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
-                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
+                .map(parameter -> new BodyOf<>(Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
+                        .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
+                        parameter.getType(),
                         (Class<?>[]) null))
                 .orElse(null);
 
@@ -175,9 +175,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .map(views -> views[0]).orElse(null);
 
         final var bodyDescriptor = bodyTypes != null && bodyTypes.length > 0
-                ? new BodyOf<>(bodyTypes[0], jsonView,
+                ? new BodyOf<>(jsonView, bodyTypes[0],
                         bodyTypes.length > 1 ? Arrays.copyOfRange(bodyTypes, 1, bodyTypes.length) : null)
-                : new BodyOf<>(returnType, jsonView, (Class<?>[]) null);
+                : new BodyOf<>(jsonView, returnType, (Class<?>[]) null);
 
         final var handler = inferredHandlerProvider
                 .get(new BodyHandlerType.Inferring<>(bodyDescriptor, byRest.errorType()));

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  */
 public final class BodyOf<T> {
     public static final BodyOf<Map<String, Object>> MAP = new BodyOf<Map<String, Object>>(
-            Map.class, null, (Class<?>[]) null);
+            null, Map.class, (Class<?>[]) null);
     /**
      * The declared type of the body.
      */
@@ -32,14 +32,14 @@ public final class BodyOf<T> {
     private final Class<?> view;
 
     public BodyOf(final Class<T> type) {
-        this(type, null);
+        this(null, type);
     }
 
-    public BodyOf(final Class<T> type, final Class<?> view) {
-        this(type, view, (Class<?>[]) null);
+    public BodyOf(final Class<?> view, final Class<T> type) {
+        this(view, type, (Class<?>[]) null);
     }
 
-    public BodyOf(final Class<?> type, final Class<?> view, final Class<?>... reifying) {
+    public BodyOf(final Class<?> view, final Class<?> type, final Class<?>... reifying) {
         this.type = type;
         this.view = view;
         this.reifying = reifying;
