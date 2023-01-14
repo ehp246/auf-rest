@@ -41,7 +41,7 @@ import me.ehp246.test.embedded.restfn.Logins.LoginName;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restlogger.enabled=true" })
+        "me.ehp246.aufrest.restlogger.enabled=false" })
 class RestFnTest {
     @Value("${local.server.port}")
     private int port;

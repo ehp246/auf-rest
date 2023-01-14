@@ -227,7 +227,7 @@
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
 					<systemPropertyVariables>
-						<me.ehp246.aufrest.restlogger.enabled>true</me.ehp246.aufrest.restlogger.enabled>
+						<me.ehp246.aufrest.restlogger.enabled>false</me.ehp246.aufrest.restlogger.enabled>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>

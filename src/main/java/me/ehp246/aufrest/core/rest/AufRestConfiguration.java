@@ -7,13 +7,21 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
+import me.ehp246.aufrest.api.configuration.ObjectMapperConfiguration;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
@@ -42,8 +50,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
  * @since 1.0
  */
 @Import({ DefaultRestFnProvider.class, JsonByJackson.class, DefaultInferringBodyHandlerProvider.class,
-        DefaultContentPublisherProvider.class })
-public final class AufRestConfiguration {
+        DefaultContentPublisherProvider.class, ObjectMapperConfiguration.class })
+public final class AufRestConfiguration implements BeanDefinitionRegistryPostProcessor {
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
             @Value("${" + AufRestConstants.REST_LOGGER_MASKED + ":authorization}") final Set<String> masked) {
@@ -92,5 +100,28 @@ public final class AufRestConfiguration {
     @Bean("404d421e-45a8-483e-9f62-2367cfda4a80")
     public HttpClientBuilderSupplier httpClientBuilderSupplier() {
         return HttpClient::newBuilder;
+    }
+
+    @Override
+    public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException {
+        if (registry.containsBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER)) {
+            return;
+        }
+
+        if (registry.containsBeanDefinition("objectMapper")) {
+            registry.registerBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER, registry.getBeanDefinition("objectMapper"));
+            return;
+        }
+
+        final var beanDef = new GenericBeanDefinition();
+        beanDef.setBeanClass(ObjectMapper.class);
+        beanDef.setFactoryBeanName(ObjectMapperConfiguration.class.getName());
+        beanDef.setFactoryMethodName(AufRestConstants.BEAN_OBJECT_MAPPER);
+
+        registry.registerBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER, beanDef);
+    }
+
+    @Override
+    public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 }

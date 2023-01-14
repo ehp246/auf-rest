@@ -40,6 +40,11 @@ public final class AufRestConstants {
     public static final String REST_LOGGER_ENABLED = "me.ehp246.aufrest.restlogger.enabled";
     public static final String REST_LOGGER_MASKED = "me.ehp246.aufrest.restlogger.masked-headers";
 
+    /**
+     * Object mapper name used by Auf REST.
+     */
+    public static final String BEAN_OBJECT_MAPPER = "aufRestObjectMapper";
+
     private AufRestConstants() {
         super();
     }
