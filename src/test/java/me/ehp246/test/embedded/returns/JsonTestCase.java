@@ -20,7 +20,7 @@ import me.ehp246.aufrest.api.annotation.OfResponse.BodyOf;
 @ByRest("http://localhost:${local.server.port}/json/")
 interface JsonTestCase {
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf({ ArrayList.class, Instant.class }))
+    @OfResponse(body = @BodyOf({ ArrayList.class, Instant.class }))
     List<Instant> get001(@OfQuery("count") int count);
 
     @OfRequest("instants")
@@ -45,24 +45,24 @@ interface JsonTestCase {
     Person getStatus204();
 
     @OfRequest("persons")
-    @OfResponse(bodyOf = @BodyOf({ ArrayList.class, Person.class }))
+    @OfResponse(body = @BodyOf({ ArrayList.class, Person.class }))
     List<Person> get008();
 
     // Response types
 
     @OfRequest("person")
-    @OfResponse(bodyOf = @BodyOf(Person.class))
+    @OfResponse(body = @BodyOf(Person.class))
     HttpResponse<Person> get011();
 
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf({ List.class, Instant.class }))
+    @OfResponse(body = @BodyOf({ List.class, Instant.class }))
     HttpResponse<List<Instant>> get002(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf({ List.class, Instant.class }))
+    @OfResponse(body = @BodyOf({ List.class, Instant.class }))
     HttpResponse get004(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf(String.class))
+    @OfResponse(body = @BodyOf(String.class))
     HttpResponse<String> get007(@OfQuery("count") int count);
 }

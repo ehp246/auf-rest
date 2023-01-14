@@ -155,6 +155,7 @@ public @interface ByRest {
     /**
      * Defines the Authorization types supported.
      */
+    @Target({})
     @interface Auth {
         /**
          * Defines the type of the Authorization required by the endpoint.

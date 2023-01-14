@@ -62,7 +62,7 @@ public @interface OfResponse {
      * <p>
      * Only applicable when binding to {@linkplain Bind#BODY}.
      */
-    BodyOf bodyOf() default @BodyOf({});
+    BodyOf body() default @BodyOf({});
 
     /**
      * Defines the components of a HTTP response that can be bound to as return
@@ -90,6 +90,7 @@ public @interface OfResponse {
      */
     String handler() default "";
 
+    @Target({})
     @interface BodyOf {
         Class<?>[] value();
     }

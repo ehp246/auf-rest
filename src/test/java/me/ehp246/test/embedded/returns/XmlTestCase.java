@@ -29,25 +29,25 @@ interface XmlTestCase {
     String getPerson(@OfQuery("name") String name);
 
     @OfRequest(value = "persons", contentType = "application/xml", accept = "application/xml")
-    @OfResponse(bodyOf = @BodyOf(Person.class))
+    @OfResponse(body = @BodyOf(Person.class))
     List<Person> get008();
 
     // Response types
 
     @OfRequest("person")
-    @OfResponse(bodyOf = @BodyOf(Person.class))
+    @OfResponse(body = @BodyOf(Person.class))
     HttpResponse<Person> get011();
 
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf({ List.class, Instant.class }))
+    @OfResponse(body = @BodyOf({ List.class, Instant.class }))
     HttpResponse<List<Instant>> get002(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf({ List.class, Instant.class }))
+    @OfResponse(body = @BodyOf({ List.class, Instant.class }))
     HttpResponse get004(@OfQuery("count") int count);
 
     @OfRequest("instants")
-    @OfResponse(bodyOf = @BodyOf(String.class))
+    @OfResponse(body = @BodyOf(String.class))
     HttpResponse<String> get007(@OfQuery("count") int count);
 
 }

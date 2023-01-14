@@ -163,7 +163,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             return (target, args) -> BodyHandlers.discarding();
         }
 
-        final var bodyTypes = ofResponse.map(OfResponse::bodyOf).map(OfResponse.BodyOf::value).filter(OneUtil::hasValue)
+        final var bodyTypes = ofResponse.map(OfResponse::body).map(OfResponse.BodyOf::value).filter(OneUtil::hasValue)
                 .orElse(null);
 
         // Need to specify at least one type for the body.

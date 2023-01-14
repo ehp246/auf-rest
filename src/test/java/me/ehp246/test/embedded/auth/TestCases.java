@@ -23,7 +23,7 @@ interface TestCases {
 
         void get(@OfAuth String basic);
 
-        @OfResponse(bodyOf = @BodyOf(Void.class))
+        @OfResponse(body = @BodyOf(Void.class))
         HttpResponse<Void> getAsResponse();
     }
 

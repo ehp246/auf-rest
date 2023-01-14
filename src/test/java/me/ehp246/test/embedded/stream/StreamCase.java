@@ -20,7 +20,7 @@ interface StreamCase {
         InputStream get(@OfQuery("name") String name);
 
         @OfRequest("/person")
-        @OfResponse(bodyOf = @BodyOf(InputStream.class))
+        @OfResponse(body = @BodyOf(InputStream.class))
         HttpResponse<InputStream> get002(@OfQuery("name") String name);
 
         @OfRequest(value = "/inputstream")
