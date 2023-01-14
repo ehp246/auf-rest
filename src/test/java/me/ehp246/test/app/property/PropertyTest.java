@@ -60,7 +60,7 @@ class PropertyTest {
     }
 
     @Test
-    void off_01() {
+    void restlogger_01() {
         final var appCtx = new AnnotationConfigApplicationContext();
         appCtx.setEnvironment(new MockEnvironment());
         appCtx.register(AppConfig.class);
@@ -72,7 +72,7 @@ class PropertyTest {
     }
 
     @Test
-    void on_01() {
+    void restlogger_02() {
         final var appCtx = new AnnotationConfigApplicationContext();
         // Should be hard coded.
         appCtx.setEnvironment(new MockEnvironment().withProperty("me.ehp246.aufrest.restlogger.enabled", "true"));
