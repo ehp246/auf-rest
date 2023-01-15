@@ -7,9 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
@@ -85,8 +82,6 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         }
 
         return new RestFn() {
-            private static final Logger LOGGER = LogManager.getLogger(RestFn.class);
-
             private final HttpClient client = clientBuilder.build();
 
             @SuppressWarnings("unchecked")
@@ -147,8 +142,6 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         throw new RedirectionException(req, httpResponse);
                     }
                 } catch (IOException | InterruptedException | ErrorResponseException e) {
-                    LOGGER.atTrace().withThrowable(e).log("Request failed: {} ", e::getMessage);
-
                     listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
 
                     if (e instanceof final ErrorResponseException error) {

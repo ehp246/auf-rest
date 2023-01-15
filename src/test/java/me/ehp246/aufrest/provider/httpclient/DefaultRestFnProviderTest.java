@@ -293,11 +293,11 @@ class DefaultRestFnProviderTest {
     void exception_08() {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class,
                 () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
-                        MockClientBuilderSupplier.supplier(new MockHttpResponse<>(400)), null, null)
+                        MockClientBuilderSupplier.supplier(new MockHttpResponse<>(439)), null, null)
                                 .get(new ClientConfig()).applyForResponse(() -> "http://nowhere"));
 
         Assertions.assertEquals(ClientErrorException.class, ex.getCause().getClass());
-        Assertions.assertEquals(400, ex.getCause().statusCode());
+        Assertions.assertEquals(439, ex.getCause().statusCode());
     }
 
     @Test

@@ -5,12 +5,13 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 
+import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
- * Raised inside the {@linkplain RestFn} when it receives a HTTP response that
- * is considered a failure/error.
+ * Raised inside {@linkplain RestFn} when it receives a HTTP response that is
+ * considered a failure/error.
  * <p>
  * The exception happens only after a {@linkplain HttpResponse} has been
  * received and its status code is not within 200. It doesn't cover anything
@@ -29,6 +30,10 @@ public sealed class ErrorResponseException extends
     protected final HttpResponse<?> response;
 
     public <T> ErrorResponseException(final RestRequest request, final HttpResponse<T> response) {
+        if (request == null || response == null || HttpUtils.isSuccess(response.statusCode())) {
+            throw new IllegalArgumentException();
+        }
+
         this.request = request;
         this.response = response;
     }

@@ -18,9 +18,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
+import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.ForbiddenException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
+import me.ehp246.aufrest.api.exception.NotAcceptableException;
+import me.ehp246.aufrest.api.exception.NotAllowedException;
+import me.ehp246.aufrest.api.exception.NotAuthorizedException;
+import me.ehp246.aufrest.api.exception.NotFoundException;
+import me.ehp246.aufrest.api.exception.NotSupportedException;
 import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
@@ -343,8 +350,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, null, new BodyHandlerType.Inferring<LoginName>(
-                new BodyOf<>(RestView.class, LoginName.class)));
+        }, null, new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(RestView.class, LoginName.class)));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -355,8 +361,7 @@ class RestFnTest {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var body = restFn.apply(newLoginsReq(login),
-                new Inferring<>(
-                        new BodyOf<List<LoginName>>(RestView.class, ArrayList.class, LoginName.class)));
+                new Inferring<>(new BodyOf<List<LoginName>>(RestView.class, ArrayList.class, LoginName.class)));
 
         Assertions.assertEquals(1, body.size());
         Assertions.assertEquals(ArrayList.class, body.getClass());
@@ -393,8 +398,7 @@ class RestFnTest {
         final var handler = this.handlerProvider
                 .get(new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(LoginName.class)));
 
-        final var respons = restFn.applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler))
-                .body();
+        final var respons = restFn.applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler)).body();
 
         /*
          * The provided handler doesn't support view. All properties should be /*
@@ -406,8 +410,8 @@ class RestFnTest {
         /*
          * Get a handler that does support View.
          */
-        final var handlerWithView = this.handlerProvider.get(new BodyHandlerType.Inferring<LoginName>(
-                new BodyOf<>(RestView.class, LoginName.class)));
+        final var handlerWithView = this.handlerProvider
+                .get(new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(RestView.class, LoginName.class)));
 
         /**
          * Use it on the response.
@@ -593,8 +597,128 @@ class RestFnTest {
 
                 })).getCause();
 
-        Assertions.assertEquals(ClientErrorException.class, cause.getClass());
+        Assertions.assertEquals(BadRequestException.class, cause.getClass());
         Assertions.assertEquals(400, cause.statusCode());
+    }
+
+    @Test
+    void status_401() {
+        final var cause = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/status";
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("401"));
+                    }
+
+                })).getCause();
+
+        Assertions.assertEquals(NotAuthorizedException.class, cause.getClass());
+    }
+
+    @Test
+    void status_403() {
+        final var cause = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/status";
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("403"));
+                    }
+
+                })).getCause();
+
+        Assertions.assertEquals(ForbiddenException.class, cause.getClass());
+    }
+
+    @Test
+    void status_404() {
+        final var cause = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/status";
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("404"));
+                    }
+
+                })).getCause();
+
+        Assertions.assertEquals(NotFoundException.class, cause.getClass());
+    }
+
+    @Test
+    void status_405() {
+        final var cause = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/status";
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("405"));
+                    }
+
+                })).getCause();
+
+        Assertions.assertEquals(NotAllowedException.class, cause.getClass());
+    }
+
+    @Test
+    void status_406() {
+        final var cause = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/status";
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("406"));
+                    }
+
+                })).getCause();
+
+        Assertions.assertEquals(NotAcceptableException.class, cause.getClass());
+    }
+
+    @Test
+    void status_415() {
+        final var cause = Assertions
+                .assertThrows(UnhandledResponseException.class, () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/status";
+                    }
+
+                    @Override
+                    public Map<String, List<String>> headers() {
+                        return Map.of("code", List.of("415"));
+                    }
+
+                })).getCause();
+
+        Assertions.assertEquals(NotSupportedException.class, cause.getClass());
     }
 
     @Test
@@ -616,5 +740,30 @@ class RestFnTest {
 
         Assertions.assertEquals(RedirectionException.class, cause.getClass());
         Assertions.assertEquals(300, cause.statusCode());
+    }
+
+    @Test
+    void status_3xx() {
+        final var ref = new int[1];
+        for (int i = 300; i < 400; i++) {
+            ref[0] = i;
+            final var cause = Assertions.assertThrows(UnhandledResponseException.class,
+                    () -> this.restFn.applyForResponse(new RestRequest() {
+
+                        @Override
+                        public String uri() {
+                            return "http://localhost:" + port + "/restfn/status";
+                        }
+
+                        @Override
+                        public Map<String, List<String>> headers() {
+                            return Map.of("code", List.of(ref[0] + ""));
+                        }
+
+                    })).getCause();
+
+            Assertions.assertEquals(RedirectionException.class, cause.getClass());
+            Assertions.assertEquals(i, cause.statusCode());
+        }
     }
 }
