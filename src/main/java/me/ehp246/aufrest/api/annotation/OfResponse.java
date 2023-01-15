@@ -60,7 +60,8 @@ public @interface OfResponse {
     /**
      * Defines how to transform the response body to the return value.
      * <p>
-     * Only applicable when binding to {@linkplain Bind#BODY}.
+     * Only applicable when binding to {@linkplain Bind#BODY} and the response is a
+     * success. Ignored when {@linkplain OfResponse#handler()} is defined.
      */
     BodyOf body() default @BodyOf({});
 
@@ -83,7 +84,10 @@ public @interface OfResponse {
      * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
      * that would be called to handle the responses on the method.
      * <p>
-     * Only applicable when binding to {@linkplain Bind#BODY}.
+     * Only applicable when binding to {@linkplain Bind#BODY} and the response is a
+     * success.
+     * <p>
+     * Overwrites {@linkplain OfResponse#body()}.
      *
      * @see HttpClient#send(java.net.http.HttpRequest,
      *      java.net.http.HttpResponse.BodyHandler)
