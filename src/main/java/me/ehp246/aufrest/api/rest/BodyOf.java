@@ -2,7 +2,6 @@ package me.ehp246.aufrest.api.rest;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -15,12 +14,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  */
 public final class BodyOf<T> {
     public static final BodyOf<Map<String, Object>> MAP = new BodyOf<Map<String, Object>>(null, Map.class);
-    /**
-     * The declared type of the body. The type parameters if
-     * {@linkplain #contentType()} is a generic {@linkplain List} or
-     * {@linkplain Set}.
-     */
-    private final Class<?>[] reifying;
+
+    private final List<Class<?>> reifying;
+
     /**
      * For {@linkplain ObjectWriter#withView(Class)} and
      * {@linkplain ObjectReader#withView(Class)}.
@@ -32,20 +28,21 @@ public final class BodyOf<T> {
     }
 
     /**
-     * At least one type should be specified.
+     * At least one type should be specified. Does not accept <code>null</code>'s.
      */
     public BodyOf(final Class<?> view, final Class<?>... reifying) {
-        if (reifying == null || reifying.length == 0 || reifying[0] == null) {
-            throw new IllegalArgumentException("At least one type needed");
-        }
         this.view = view;
-        this.reifying = reifying;
+        this.reifying = List.of(reifying);
+    }
+
+    public Class<?> first() {
+        return this.reifying.get(0);
     }
 
     /**
-     * Should have at least one type.
+     * Should have at least one type. Non-modifiable.
      */
-    public Class<?>[] reifying() {
+    public List<Class<?>> reifying() {
         return this.reifying;
     }
 

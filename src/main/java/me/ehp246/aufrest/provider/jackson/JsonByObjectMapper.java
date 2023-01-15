@@ -1,7 +1,6 @@
 package me.ehp246.aufrest.provider.jackson;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -39,7 +38,7 @@ public final class JsonByObjectMapper implements FromJson, ToJson {
             return null;
         }
 
-        final var type = valueInfo == null ? value.getClass() : valueInfo.reifying()[0];
+        final var type = valueInfo == null ? value.getClass() : valueInfo.first();
         final var view = valueInfo == null ? null : valueInfo.view();
 
         try {
@@ -62,17 +61,17 @@ public final class JsonByObjectMapper implements FromJson, ToJson {
             return null;
         }
 
-        final var type = Objects.requireNonNull(descriptor.reifying()[0]);
+        final var type = Objects.requireNonNull(descriptor.reifying().get(0));
         final var reifying = descriptor.reifying();
 
         final var reader = Optional.ofNullable(descriptor.view())
                 .map(view -> objectMapper.readerWithView(view)).orElseGet(objectMapper::reader);
         try {
-            if (reifying.length == 1) {
+            if (reifying.size() == 1) {
                 return reader.forType(type).readValue(json);
             } else {
                 final var typeFactory = objectMapper.getTypeFactory();
-                final var types = new ArrayList<Class<?>>(List.of(reifying));
+                final var types = new ArrayList<Class<?>>(reifying);
 
                 final var size = types.size();
                 var javaType = typeFactory.constructParametricType(types.get(size - 2), types.get(size - 1));

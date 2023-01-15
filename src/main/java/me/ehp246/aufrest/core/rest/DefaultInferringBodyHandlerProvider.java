@@ -77,7 +77,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
              * to infer by the content type.
              */
             final var resposneDescriptor = isSuccess ? successDescriptor : errorDescriptor;
-            final var type = resposneDescriptor == null ? null : resposneDescriptor.reifying()[0];
+            final var type = resposneDescriptor == null ? null : resposneDescriptor.reifying().get(0);
             if (statusCode == 204 || type == void.class || type == Void.class) {
                 return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
             }

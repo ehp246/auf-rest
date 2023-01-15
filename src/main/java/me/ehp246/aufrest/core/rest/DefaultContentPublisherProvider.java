@@ -63,7 +63,7 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + descriptor.reifying()[0] + "'");
+                + body.toString() + "' of type '" + descriptor.reifying().get(0) + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {
