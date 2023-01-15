@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.auth.controller;
+package me.ehp246.test.embedded.auth.basic;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;

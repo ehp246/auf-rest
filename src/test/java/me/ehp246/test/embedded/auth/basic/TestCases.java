@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.auth;
+package me.ehp246.test.embedded.auth.basic;
 
 import java.net.http.HttpResponse;
 

@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.auth;
+package me.ehp246.test.embedded.auth.basic;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,8 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
-import me.ehp246.test.embedded.auth.TestCases.BeanAuth02;
-import me.ehp246.test.embedded.auth.TestCases.BeanAuth03;
+import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuth02;
+import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuth03;
 
 /**
  * @author Lei Yang

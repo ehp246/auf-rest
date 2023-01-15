@@ -1,17 +1,15 @@
-package me.ehp246.test.embedded.auth;
+package me.ehp246.test.embedded.auth.basic;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BasicAuth;
-import me.ehp246.test.mock.Jackson;
 
 /**
  * @author Lei Yang
@@ -19,7 +17,6 @@ import me.ehp246.test.mock.Jackson;
  */
 @SpringBootApplication
 @EnableByRest
-@Import(Jackson.class)
 class AppConfig {
     final NullPointerException ex = new NullPointerException("What happened?");
 
@@ -58,12 +55,12 @@ class AppConfig {
 
     public class AuthHeaderBuilder {
         @AuthBean.Invoking
-        public String basic(String username, String password) {
+        public String basic(final String username, final String password) {
             return new BasicAuth(username, password).header();
         }
 
         @AuthBean.Invoking("wrongName")
-        public String basic1(String username, String password) {
+        public String basic1(final String username, final String password) {
             return new BasicAuth(username + "1", password).header();
         }
     }
