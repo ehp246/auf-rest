@@ -18,7 +18,7 @@ interface TestCases {
         int getBalance(@OfAuth String token);
     }
 
-    @ByRest(value = "http://localhost:${local.server.port}/auth/login/", name = "loginBean")
+    @ByRest(value = "http://localhost:${local.server.port}/auth/login/")
     interface Login {
         @OfRequest(value = "token", method = "POST")
         Token getToken(Account account);
@@ -29,7 +29,7 @@ interface TestCases {
     }
 
     @ByRest(value = "http://localhost:${local.server.port}/auth/login/", auth = @Auth(value = {
-            "loginBean", "getAuthHeader" }, scheme = AuthScheme.BEAN))
+            "login", "getAuthHeader" }, scheme = AuthScheme.BEAN))
     interface Case02 {
         @OfRequest("account/balance")
         int getBalance(@AuthBean.Param Account account);
