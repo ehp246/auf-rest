@@ -20,37 +20,37 @@ class ServerErrorExceptionTest {
         Assertions.assertDoesNotThrow(() -> new ErrorResponseException(req, new MockHttpResponse<Object>(0)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new BadGatewayException(req, new MockHttpResponse<Object>(0)));
+                () -> new BadGatewayException(req, new MockHttpResponse<Object>(532)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new BadRequestException(req, new MockHttpResponse<Object>(0)));
+                () -> new BadRequestException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ClientErrorException(req, new MockHttpResponse<Object>(0)));
+                () -> new ClientErrorException(req, new MockHttpResponse<Object>(599)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ForbiddenException(req, new MockHttpResponse<Object>(0)));
+                () -> new ForbiddenException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new GatewayTimeoutException(req, new MockHttpResponse<Object>(0)));
+                () -> new GatewayTimeoutException(req, new MockHttpResponse<Object>(530)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new InternalServerErrorException(req, new MockHttpResponse<Object>(0)));
+                () -> new InternalServerErrorException(req, new MockHttpResponse<Object>(530)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new NotAcceptableException(req, new MockHttpResponse<Object>(0)));
+                () -> new NotAcceptableException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new NotAllowedException(req, new MockHttpResponse<Object>(0)));
+                () -> new NotAllowedException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new NotAuthorizedException(req, new MockHttpResponse<Object>(0)));
+                () -> new NotAuthorizedException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new NotFoundException(req, new MockHttpResponse<Object>(0)));
+                () -> new NotFoundException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new NotSupportedException(req, new MockHttpResponse<Object>(0)));
+                () -> new NotSupportedException(req, new MockHttpResponse<Object>(430)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new RedirectionException(req, new MockHttpResponse<Object>(0)));
@@ -59,10 +59,10 @@ class ServerErrorExceptionTest {
                 () -> new ServerErrorException(req, new MockHttpResponse<Object>(0)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ServiceUnavailableException(req, new MockHttpResponse<Object>(0)));
+                () -> new ServiceUnavailableException(req, new MockHttpResponse<Object>(513)));
 
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new BadRequestException(req, new MockHttpResponse<Object>(0)));
+                () -> new BadRequestException(req, new MockHttpResponse<Object>(430)));
     }
 
 }

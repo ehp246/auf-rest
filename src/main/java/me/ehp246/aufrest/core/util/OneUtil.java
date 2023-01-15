@@ -24,14 +24,6 @@ public final class OneUtil {
         return value == null ? null : value.toString();
     }
 
-    public static String nullIfBlank(final Object value) {
-        return nullIfBlank(toString(value));
-    }
-
-    public static String nullIfBlank(final String value) {
-        return value != null && !value.isBlank() ? value : null;
-    }
-
     public static boolean hasValue(final String value) {
         return value != null && !value.isBlank();
     }
@@ -48,27 +40,11 @@ public final class OneUtil {
         return streamValues(values).collect(Collectors.toList());
     }
 
-    public static <V> V orElse(final Callable<V> callable, final V v) {
-        try {
-            return callable.call();
-        } catch (final Exception e) {
-            return v;
-        }
-    }
-
     public static <V> V orThrow(final Callable<V> callable) {
         try {
             return callable.call();
         } catch (final Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public static <V> V orThrow(final Callable<V> callable, final String msg) {
-        try {
-            return callable.call();
-        } catch (final Exception e) {
-            throw new RuntimeException(msg, e);
         }
     }
 
