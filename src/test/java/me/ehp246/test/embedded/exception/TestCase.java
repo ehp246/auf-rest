@@ -1,11 +1,18 @@
 package me.ehp246.test.embedded.exception;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
-import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
+import me.ehp246.aufrest.api.annotation.OfRequest;
+import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.exception.ForbiddenException;
+import me.ehp246.aufrest.api.exception.NotAcceptableException;
+import me.ehp246.aufrest.api.exception.NotAllowedException;
+import me.ehp246.aufrest.api.exception.NotAuthorizedException;
+import me.ehp246.aufrest.api.exception.NotFoundException;
+import me.ehp246.aufrest.api.exception.NotSupportedException;
 import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 
@@ -26,7 +33,9 @@ interface TestCase {
             throws ClientErrorException, ServerErrorException, RedirectionException;
 
     @OfRequest("{statusCode}")
-    void getClientError(@OfPath("statusCode") int statusCode) throws ClientErrorException;
+    void getClientError(@OfPath("statusCode") int statusCode)
+            throws ClientErrorException, BadRequestException, ForbiddenException, NotAcceptableException,
+            NotAllowedException, NotAuthorizedException, NotFoundException, NotSupportedException;
 
     @OfRequest("{statusCode}")
     void getRedirect(@OfPath("statusCode") int statusCode)

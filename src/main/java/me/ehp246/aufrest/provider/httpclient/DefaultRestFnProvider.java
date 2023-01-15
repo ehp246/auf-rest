@@ -11,26 +11,33 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
+import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.exception.ForbiddenException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
+import me.ehp246.aufrest.api.exception.NotAcceptableException;
+import me.ehp246.aufrest.api.exception.NotAllowedException;
+import me.ehp246.aufrest.api.exception.NotAuthorizedException;
+import me.ehp246.aufrest.api.exception.NotFoundException;
+import me.ehp246.aufrest.api.exception.NotSupportedException;
 import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
@@ -117,9 +124,23 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             throw new ServiceUnavailableException(req, httpResponse);
                         } else if (statusCode == 504) {
                             throw new GatewayTimeoutException(req, httpResponse);
-                        } else if (statusCode >= 500) {
+                        } else if (statusCode > 500) {
                             throw new ServerErrorException(req, httpResponse);
-                        } else if (statusCode >= 400) {
+                        } else if (statusCode == 400) {
+                            throw new BadRequestException(req, httpResponse);
+                        } else if (statusCode == 401) {
+                            throw new NotAuthorizedException(req, httpResponse);
+                        } else if (statusCode == 403) {
+                            throw new ForbiddenException(req, httpResponse);
+                        } else if (statusCode == 404) {
+                            throw new NotFoundException(req, httpResponse);
+                        } else if (statusCode == 405) {
+                            throw new NotAllowedException(req, httpResponse);
+                        } else if (statusCode == 406) {
+                            throw new NotAcceptableException(req, httpResponse);
+                        } else if (statusCode == 415) {
+                            throw new NotSupportedException(req, httpResponse);
+                        } else if (statusCode > 400) {
                             throw new ClientErrorException(req, httpResponse);
                         }
 
@@ -144,5 +165,4 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 return (HttpResponse<T>) httpResponse;
             }
         };
-    }
-}
+}}

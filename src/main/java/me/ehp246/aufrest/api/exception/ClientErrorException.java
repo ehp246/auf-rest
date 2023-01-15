@@ -12,7 +12,9 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @since 4.0
  *
  */
-public final class ClientErrorException extends ErrorResponseException {
+public sealed class ClientErrorException
+        extends
+        ErrorResponseException permits BadRequestException, ForbiddenException, NotAcceptableException, NotAllowedException, NotAuthorizedException, NotFoundException, NotSupportedException {
     private static final long serialVersionUID = 3539564874094568554L;
 
     public ClientErrorException(final RestRequest request, final HttpResponse<?> response) {

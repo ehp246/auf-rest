@@ -13,10 +13,17 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ehp246.aufrest.api.exception.BadGatewayException;
+import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
+import me.ehp246.aufrest.api.exception.ForbiddenException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
+import me.ehp246.aufrest.api.exception.NotAcceptableException;
+import me.ehp246.aufrest.api.exception.NotAllowedException;
+import me.ehp246.aufrest.api.exception.NotAuthorizedException;
+import me.ehp246.aufrest.api.exception.NotFoundException;
+import me.ehp246.aufrest.api.exception.NotSupportedException;
 import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
@@ -98,7 +105,7 @@ class ExceptionTest {
     }
 
     @Test
-    void test_client_001() {
+    void test_client_300() {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> testCase.getClientError(300),
                 "Should be wrapped");
 
@@ -107,14 +114,56 @@ class ExceptionTest {
     }
 
     @Test
-    void test_client_002() {
-        final var ex = Assertions.assertThrows(ClientErrorException.class, () -> testCase.getClientError(400));
+    void test_client_400() {
+        final var ex = Assertions.assertThrows(BadRequestException.class, () -> testCase.getClientError(400));
 
         Assertions.assertEquals(400, ex.statusCode());
     }
 
     @Test
-    void test_client_003() {
+    void test_client_401() {
+        final var ex = Assertions.assertThrows(NotAuthorizedException.class, () -> testCase.getClientError(401));
+
+        Assertions.assertEquals(401, ex.statusCode());
+    }
+
+    @Test
+    void test_client_403() {
+        final var ex = Assertions.assertThrows(ForbiddenException.class, () -> testCase.getClientError(403));
+
+        Assertions.assertEquals(403, ex.statusCode());
+    }
+
+    @Test
+    void test_client_404() {
+        final var ex = Assertions.assertThrows(NotFoundException.class, () -> testCase.getClientError(404));
+
+        Assertions.assertEquals(404, ex.statusCode());
+    }
+
+    @Test
+    void test_client_405() {
+        final var ex = Assertions.assertThrows(NotAllowedException.class, () -> testCase.getClientError(405));
+
+        Assertions.assertEquals(405, ex.statusCode());
+    }
+
+    @Test
+    void test_client_406() {
+        final var ex = Assertions.assertThrows(NotAcceptableException.class, () -> testCase.getClientError(406));
+
+        Assertions.assertEquals(406, ex.statusCode());
+    }
+
+    @Test
+    void test_client_415() {
+        final var ex = Assertions.assertThrows(NotSupportedException.class, () -> testCase.getClientError(415));
+
+        Assertions.assertEquals(415, ex.statusCode());
+    }
+
+    @Test
+    void test_server_003() {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> testCase.getClientError(500),
                 "Should be wrapped");
 
@@ -122,7 +171,7 @@ class ExceptionTest {
     }
 
     @Test
-    void test_client_004() {
+    void test_server_004() {
         final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> testCase.getClientError(600),
                 "Should be wrapped");
 
@@ -141,7 +190,7 @@ class ExceptionTest {
         final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> testCase.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
-        Assertions.assertTrue(ex.getClass() == ClientErrorException.class);
+        Assertions.assertEquals(BadRequestException.class, ex.getClass());
     }
 
     @Test
