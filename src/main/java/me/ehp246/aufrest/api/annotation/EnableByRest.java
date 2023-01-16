@@ -8,10 +8,10 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import me.ehp246.aufrest.core.byrest.AufRestConfiguration;
-import me.ehp246.aufrest.core.byrest.ByRestProxyFactory;
-import me.ehp246.aufrest.core.byrest.ByRestRegistrar;
-import me.ehp246.aufrest.core.byrest.DefaultProxyMethodParser;
+import me.ehp246.aufrest.core.rest.AufRestConfiguration;
+import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
+import me.ehp246.aufrest.core.rest.ByRestRegistrar;
+import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
 
 /**
  * Enables Auf REST's annotation-driven REST-proxing capability for client-side

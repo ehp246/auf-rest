@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>me.ehp246</groupId>
 	<artifactId>auf-rest</artifactId>
-	<version>3.1.1</version>
+	<version>4.0.0</version>
 	<name>Auf REST</name>
 	<description>An annotation-driven declarative REST development
 		framework</description>
@@ -41,10 +41,10 @@
 
 		<mockito.version>4.3.1</mockito.version>
 
-		<jackson.version>2.13.1</jackson.version>
+		<jackson.version>2.13.3</jackson.version>
 
-		<spring-framework.version>5.3.9</spring-framework.version>
-		<spring-boot.version>2.5.3</spring-boot.version>
+		<spring-framework.version>5.3.22</spring-framework.version>
+		<spring-boot.version>2.7.2</spring-boot.version>
 
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
@@ -82,42 +82,11 @@
 			<artifactId>spring-context</artifactId>
 			<version>${spring-framework.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>${spring-framework.version}</version>
-		</dependency>
-
 		<!-- Test -->
 		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>${junit-jupiter.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit-jupiter.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-engine</artifactId>
-			<version>${junit-platform.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-runner</artifactId>
-			<version>${junit-platform.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-commons</artifactId>
-			<version>${junit-platform.version}</version>
-			<scope>test</scope>
+		    <groupId>org.junit.platform</groupId>
+		    <artifactId>junit-platform-suite-engine</artifactId>
+		    <version>1.9.1</version>
 		</dependency>
 
 		<dependency>
@@ -258,7 +227,7 @@
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
 					<systemPropertyVariables>
-						<me.ehp246.aufrest.restLogger>true</me.ehp246.aufrest.restLogger>
+						<me.ehp246.aufrest.restlogger.enabled>false</me.ehp246.aufrest.restlogger.enabled>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>

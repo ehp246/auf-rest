@@ -10,9 +10,9 @@ import java.lang.annotation.Target;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
- * Indicates the Authorization header should be provided by a bean as specified
- * via {@linkplain AuthScheme#BEAN}.
- * 
+ * Indicates Authorization header should be provided by a bean as specified via
+ * {@linkplain AuthScheme#BEAN}.
+ *
  * @author Lei Yang
  * @see ByRest#auth
  */

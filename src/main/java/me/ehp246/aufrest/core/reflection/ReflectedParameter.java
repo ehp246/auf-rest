@@ -7,5 +7,4 @@ import java.lang.reflect.Parameter;
  *
  */
 public record ReflectedParameter(Parameter parameter, int index) {
-
 }

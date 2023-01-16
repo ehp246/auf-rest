@@ -5,35 +5,38 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.time.Duration;
-
-import org.springframework.web.bind.annotation.RequestHeader;
+import java.util.List;
 
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
 /**
- * Indicates that the annotated interface should be scanned by Auf REST as a
- * proxy of a REST endpoint.
+ * Indicates that the annotated interface should be registered as a proxy of a
+ * REST endpoint.
  * <p>
- * For each annotated interface, the framework defines a bean of the type and
- * makes it available for injection. On behalf of the application the framework
- * implements invocations on the interface as HTTP requests/responses.
+ * For each annotated interface, Auf REST defines a bean of the type and makes
+ * it available for injection.
  *
  * @author Lei Yang
  * @since 1.0
  * @see EnableByRest
+ * @version 4.0
  */
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface ByRest {
 
     /**
-     * Full URL of the REST endpoint that the interface proxies. The element
-     * supports Spring property placeholder (e.g. <code>"/${api.base}"</code>). The
-     * value must resolve to a full HTTP-based URL.
+     * Defines the base URL of the REST endpoint that the interface proxies for.
+     * <p>
+     * The value specified is not validated until used. Simple path only without
+     * parameters.
+     * <p>
+     * Supports Spring property placeholder (e.g. <code>"/${api.base}"</code>).
+     *
+     * @see <a href=
+     *      "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#:~:text=With%20Hypertext%20and%20HTTP%2C%20URL,unique%20resource%20on%20the%20Web.">URL</a>
      */
     String value();
 
@@ -41,7 +44,7 @@ public @interface ByRest {
      * Defines an optional bean name by which the proxy interface can be injected.
      * <p>
      * The default name is {@link Class#getSimpleName()}.
-     * 
+     *
      * @return the bean name of the proxy interface.
      */
     String name() default "";
@@ -103,26 +106,15 @@ public @interface ByRest {
     Auth auth() default @Auth(value = {}, scheme = AuthScheme.DEFAULT);
 
     /**
-     * Defines the name of a Spring bean of {@link HttpResponse.BodyHandler} type
-     * that would be called to handle the response on the methods that do not
-     * specify its own handler.
-     * 
-     * @return a bean name
-     * @see HttpClient#send(java.net.http.HttpRequest,
-     *      java.net.http.HttpResponse.BodyHandler)
-     */
-    String responseBodyHandler() default "";
-
-    /**
      * Defines request header names and values in pairs. E.g.,
      * <p>
      * <code>
      *     { "x-app-name", "AufRest", "x-app-version", "1.0", ... }
      * </code>
      * <p>
-     * Must be in pairs. Missing value will trigger an exception. E.g., the
-     * following is missing value for header '{@code x-app-version}' and will result
-     * an exception.
+     * Must be specified in pairs. Missing value will trigger an exception. E.g.,
+     * the following is missing value for header '{@code x-app-version}' and will
+     * result an exception.
      * <p>
      * <code>
      *     { "x-app-name", "AufRest", "x-app-version" }
@@ -131,18 +123,39 @@ public @interface ByRest {
      * Header names are converted to lower case and can not be repeated. Values are
      * accepted as-is.
      * <p>
-     * If the same header is defined by a {@linkplain RequestHeader} parameter as
-     * well, the parameter argument takes the precedence and is accepted. The value
+     * If the same header is defined by a {@linkplain OfHeader} parameter as well,
+     * the parameter argument takes the precedence and is accepted. The value
      * defined here is ignored.
      * <p>
      * Spring property placeholder is supported on values but not on names.
-     * 
+     *
      */
     String[] headers() default {};
 
     /**
+     * Defines queries in name and value pairs to be applied to all HTTP requests
+     * from the interface.
+     * <p>
+     * Must be specified in pairs. Missing value will trigger an exception.
+     * <p>
+     * Both names and values are accepted as-is. I.e., they would be case-sensitive.
+     * <p>
+     * Parameter names can be repeated on the annotation. All the values on the
+     * annotation are collected into a {@linkplain List} and applied to HTTP
+     * requests.
+     * <p>
+     * If the same parameter name is specified by a {@linkplain OfQuery}, the
+     * parameter argument takes the precedence and the annotation will be ignored.
+     * <p>
+     * Spring property placeholder is supported on values, not on names.
+     *
+     */
+    String[] queries() default {};
+
+    /**
      * Defines the Authorization types supported.
      */
+    @Target({})
     @interface Auth {
         /**
          * Defines the type of the Authorization required by the endpoint.

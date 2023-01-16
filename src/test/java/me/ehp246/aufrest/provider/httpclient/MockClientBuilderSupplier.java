@@ -9,7 +9,8 @@ import java.util.function.Supplier;
 
 import org.mockito.Mockito;
 
-import me.ehp246.aufrest.mock.MockHttpResponse;
+import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
+import me.ehp246.test.mock.MockHttpResponse;
 
 /**
  * @author Lei Yang
@@ -27,7 +28,7 @@ class MockClientBuilderSupplier {
         this.e = null;
     }
 
-    MockClientBuilderSupplier(Exception e) {
+    MockClientBuilderSupplier(final Exception e) {
         super();
         this.responseSupplier = null;
         this.e = e;
@@ -71,13 +72,11 @@ class MockClientBuilderSupplier {
         return builder;
     }
 
-    static HttpClient.Builder builder(HttpResponse<?> httpResponse) {
+    static HttpClient.Builder builder(final HttpResponse<?> httpResponse) {
         final HttpClient client = Mockito.mock(HttpClient.class);
 
         try {
-            Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
-                return httpResponse;
-            });
+            Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> httpResponse);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException();
         }
@@ -89,7 +88,7 @@ class MockClientBuilderSupplier {
         return builder;
     }
 
-    static Supplier<HttpClient.Builder> supplier(HttpResponse<?> httpResponse) {
+    public static HttpClientBuilderSupplier supplier(final HttpResponse<?> httpResponse) {
         return () -> builder(httpResponse);
     }
 
