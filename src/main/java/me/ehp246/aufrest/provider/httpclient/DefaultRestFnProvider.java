@@ -52,8 +52,9 @@ import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
  * @author Lei Yang
  * @since 1.0
  * @version 4.0
- * @see {@link RestFnProvider}, {@link RestFn},
- *      {@linkplain AufRestConfiguration}
+ * @see RestFnProvider
+ * @see RestFn
+ * @see AufRestConfiguration
  */
 public final class DefaultRestFnProvider implements RestFnProvider {
     private final HttpClientBuilderSupplier clientBuilderSupplier;

@@ -20,7 +20,7 @@ import me.ehp246.aufrest.core.rest.AufRestConfiguration;
  * {@linkplain AufRestConstants#BEAN_OBJECT_MAPPER} bean.
  *
  * @author Lei Yang
- * @see {@linkplain AufRestConfiguration#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)}
+ * @see AufRestConfiguration#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)
  */
 public final class ObjectMapperConfiguration {
     private final static Logger LOGGER = LogManager.getLogger();

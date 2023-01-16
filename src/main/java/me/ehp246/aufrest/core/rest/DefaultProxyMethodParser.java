@@ -39,7 +39,7 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyHandlerNameResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -69,10 +69,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
     private final InferringBodyHandlerProvider inferredHandlerProvider;
-    private final BodyHandlerNameResolver bodyHandlerResolver;
+    private final BodyHandlerResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerNameResolver bodyHandlerResolver,
+            final BodyHandlerResolver bodyHandlerResolver,
             final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;

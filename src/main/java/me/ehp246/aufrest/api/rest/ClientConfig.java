@@ -10,8 +10,8 @@ import me.ehp246.aufrest.core.rest.AufRestConfiguration;
  *
  * @author Lei Yang
  * @since 1.0
- * @see {@linkplain HttpClient#connectTimeout()},
- *      {@linkplain AufRestConfiguration#clientConfig(String)}
+ * @see HttpClient#connectTimeout()
+ * @see AufRestConfiguration#clientConfig(String)
  */
 public record ClientConfig(Duration connectTimeout) {
     public ClientConfig() {

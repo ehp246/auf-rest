@@ -22,7 +22,8 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
  * {@linkplain ByRestRegistrar}.
  *
  * @author Lei Yang
- * @see {@link EnableByRest}, {@link ByRestRegistrar}
+ * @see EnableByRest
+ * @see ByRestRegistrar
  * @since 1.0
  */
 public final class ByRestProxyFactory {

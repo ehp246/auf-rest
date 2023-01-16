@@ -8,7 +8,7 @@ import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 /**
  * @author Lei Yang
  * @since 4.0
- * @see {@linkplain AufRestConfiguration#httpClientBuilderSupplier()}
+ * @see AufRestConfiguration#httpClientBuilderSupplier()
  */
 @FunctionalInterface
 public interface HttpClientBuilderSupplier extends Supplier<HttpClient.Builder> {

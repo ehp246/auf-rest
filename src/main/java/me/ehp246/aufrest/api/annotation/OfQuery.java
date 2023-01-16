@@ -11,23 +11,22 @@ import java.lang.reflect.Parameter;
  * Indicates that the parameter specifies a query parameter.
  * <p>
  * The following Java types are supported:
- * <p>
- * <li>String</li>
+ * <ul>
+ * <li>{@linkplain String}
  * <p>
  * In this case, the query parameter name is from {@linkplain OfQuery#value()}
  * and it will have a single value.
- * <p>
- * <li>{@link java.util.List List&lt;String&gt;}</li>
+ * <li>{@link java.util.List List&lt;String&gt;}
  * <p>
  * In this case, the query parameter name is from {@linkplain OfQuery#value()}.
  * It will have a list of values.
  * <p>
- * <li>{@link java.util.Map Map&lt;String, String&gt;}</li>
- * <li>{@link java.util.Map Map&lt;String, List&lt;String, String&gt;&gt;}</li>
+ * <li>{@link java.util.Map Map&lt;String, String&gt;}
+ * <li>{@link java.util.Map Map&lt;String, List&lt;String, String&gt;&gt;}
  * <p>
  * Map keys will be the query names and map values will query values.
  * {@linkplain OfQuery#value()} is ignored in this case.
- *
+ * </ul>
  * <p>
  * The values should not be encoded.
  * <p>
