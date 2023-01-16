@@ -32,7 +32,8 @@ public @interface OfResponse {
      * When binding to {@linkplain Bind#HEADER}, the response body will be
      * {@linkplain BodyHandlers#discarding() discarded}.
      *
-     * @see {@linkplain Bind}, {@linkplain HttpResponse}
+     * @see Bind
+     * @see HttpResponse
      */
     Bind value() default Bind.BODY;
 
@@ -42,16 +43,18 @@ public @interface OfResponse {
      * Only applicable when binding to {@linkplain Bind#HEADER}.
      * <p>
      * The following return types are supported:
-     * <li>{@linkplain String}</li>
+     * <ul>
+     * <li>{@linkplain String}
      * <p>
      * The first value of the header if there is one. Otherwise, <code>null</code>.
-     * <li>{@link java.util.List List&lt;String&gt;}</li>
+     * <li>{@link java.util.List List&lt;String&gt;}
      * <p>
      * All values of the named header if it exists. Otherwise, an empty
      * {@linkplain List}.
-     * <li>{@link java.util.Map Map&lt;String, List&lt;String&gt;&gt;}</li>
+     * <li>{@link java.util.Map Map&lt;String, List&lt;String&gt;&gt;}
      * <p>
      * All headers on the response are returned. The name is ignored.
+     * </ul>
      *
      * @see HttpResponse#headers()
      */

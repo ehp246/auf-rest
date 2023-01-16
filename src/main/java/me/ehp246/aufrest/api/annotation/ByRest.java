@@ -71,7 +71,7 @@ public @interface ByRest {
      * serialization strategy by the request body type.
      * <p>
      * For all un-recognized types, the content type is set to
-     * <code>application/json</code and body is serialized as JSON.
+     * <code>application/json</code> and body is serialized as JSON.
      */
     String contentType() default "";
 

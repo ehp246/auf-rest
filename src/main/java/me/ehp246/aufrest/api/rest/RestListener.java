@@ -54,7 +54,7 @@ public interface RestListener {
      * @param exception
      * @param httpRequest
      * @param req
-     * @see {@linkplain HttpClient#send(HttpRequest, java.net.http.HttpResponse.BodyHandler)}
+     * @see HttpClient#send(HttpRequest, java.net.http.HttpResponse.BodyHandler)
      */
     default void onException(final Exception exception, final HttpRequest httpRequest, final RestRequest req) {
     }

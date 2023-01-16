@@ -86,8 +86,10 @@ public interface RestRequest {
     /**
      * Defines the request body/payload. There is built-in support for the following
      * types:
-     * <li>{@linkplain InputStream}</li>
-     * <li>{@linkplain Path}</li>
+     * <ul>
+     * <li>{@linkplain InputStream}
+     * <li>{@linkplain Path}
+     * </ul>
      * <p>
      * Un-recognized Java types will be sent as <code>application/json</code>.
      */

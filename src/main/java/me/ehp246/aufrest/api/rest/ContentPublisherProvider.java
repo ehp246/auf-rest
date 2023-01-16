@@ -7,7 +7,7 @@ import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 /**
  * @author Lei Yang
  * @since 4.0
- * @see {@linkplain AufRestConfiguration}
+ * @see AufRestConfiguration
  */
 public interface ContentPublisherProvider {
     /**
@@ -23,7 +23,6 @@ public interface ContentPublisherProvider {
      *                   on the Java type of the <code>body</code>. Defaults to
      *                   <code>application/json</code>.
      * @param descriptor
-     * @return
      */
     <T> ContentPublisher get(T body, String mimeType, BodyOf<T> descriptor);
 

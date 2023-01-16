@@ -63,7 +63,7 @@ public sealed interface BodyHandlerType<T> {
      *
      * @author Lei Yang
      * @since 4.0
-     * @see {@linkplain InferringBodyHandlerProvider}
+     * @see InferringBodyHandlerProvider
      */
     public final class Inferring<T> implements BodyHandlerType<T> {
         private final BodyOf<T> bodyDescriptor;

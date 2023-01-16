@@ -25,7 +25,7 @@ import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.configuration.ObjectMapperConfiguration;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyHandlerNameResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
@@ -94,7 +94,7 @@ public final class AufRestConfiguration implements BeanDefinitionRegistryPostPro
     }
 
     @Bean("216fbb62-0701-43fb-9fdd-a6df279c92bc")
-    public BodyHandlerNameResolver invocationBodyHandlerProvider(final BeanFactory env) {
+    public BodyHandlerResolver invocationBodyHandlerProvider(final BeanFactory env) {
         return name -> env.getBean(name, BodyHandler.class);
     }
 

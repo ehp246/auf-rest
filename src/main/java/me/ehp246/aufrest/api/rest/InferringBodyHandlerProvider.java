@@ -7,7 +7,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
  * The abstraction that provides a {@linkplain BodyHandler} given a
- * {@linkplain ReturnValue} object which typically comes from a
+ * {@linkplain BodyHandlerType} object which typically comes from a
  * {@linkplain ByRest} method return signature.
  * <p>
  * Available as a Spring bean at runtime.
@@ -27,8 +27,6 @@ public interface InferringBodyHandlerProvider {
      * {@linkplain Map Map&lt;String, Object;&gt;}. Other text types will be raw
      * {@linkplain String}.
      *
-     * @param successDescriptor the descriptor on how to handle a success response.
-     * @param errorDescriptor   the descriptor on how to handle an error response.
      */
     <T> BodyHandler<T> get(BodyHandlerType<T> descriptor);
 }

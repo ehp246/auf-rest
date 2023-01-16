@@ -35,7 +35,7 @@ class LoginController {
         if (!this.createToken(loggedIn).equals(token)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        return (int) (Math.random() * 1000);
+        return (int) (Math.random() * 1000) + 100;
     }
 
     private String createToken(final Account account) {

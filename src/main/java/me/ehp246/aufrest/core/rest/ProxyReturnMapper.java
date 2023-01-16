@@ -13,8 +13,10 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * Produced by {@linkplain ProxyMethodParser}.
  *
  * @author Lei Yang
- * @see {@link ErrorResponseException}, {@link UnhandledResponseException},
- *      {@linkplain DefaultProxyMethodParser}, {@linkplain ByRestProxyFactory}
+ * @see ErrorResponseException
+ * @see UnhandledResponseException
+ * @see DefaultProxyMethodParser
+ * @see ByRestProxyFactory
  * @since 4.0
  */
 @FunctionalInterface
