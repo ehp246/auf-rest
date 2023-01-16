@@ -39,7 +39,7 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerNameResolver;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -69,10 +69,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final PropertyResolver propertyResolver;
     private final AuthBeanResolver authBeanResolver;
     private final InferringBodyHandlerProvider inferredHandlerProvider;
-    private final BodyHandlerBeanResolver bodyHandlerResolver;
+    private final BodyHandlerNameResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerBeanResolver bodyHandlerResolver,
+            final BodyHandlerNameResolver bodyHandlerResolver,
             final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
@@ -131,7 +131,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
-                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), responseReturnMapper(reflected));
+                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
     }
 
     /*
@@ -188,7 +188,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
      * Exception propagation is implemented here.
      *
      */
-    private ResponseReturnMapper responseReturnMapper(final ReflectedMethod reflected) {
+    private ProxyReturnMapper proxyReturnMapper(final ReflectedMethod reflected) {
         final Class<?> returnType = reflected.getReturnType();
         final var ofResponse = reflected.findOnMethod(OfResponse.class);
         final var bindToHeader = ofResponse.map(OfResponse::value).map(value -> value == Bind.HEADER).orElse(false);
@@ -226,7 +226,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          *
          * An Response Exception based on the status code is always raised first.
          */
-        final ResponseReturnMapper mapper = (restReq, outcome) -> {
+        final ProxyReturnMapper mapper = (restReq, outcome) -> {
             final var received = outcome.received();
             /*
              * Was a response received?

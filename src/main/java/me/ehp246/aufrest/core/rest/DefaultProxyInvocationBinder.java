@@ -45,7 +45,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final BodyOf<?> bodyOf;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
-    private final ResponseReturnMapper returnMapper;
+    private final ProxyReturnMapper returnMapper;
 
     DefaultProxyInvocationBinder(final String method, final String accept, final boolean acceptGZip,
             final String contentType, final Duration timeout, final String baseUrl,
@@ -53,7 +53,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ResponseReturnMapper returnMapper) {
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;

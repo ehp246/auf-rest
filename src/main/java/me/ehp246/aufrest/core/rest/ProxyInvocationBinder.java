@@ -20,6 +20,6 @@ public interface ProxyInvocationBinder {
     Bound apply(Object target, Object[] args);
 
     record Bound(RestRequest request, BodyOf<?> requestBodyDescriptor, BodyHandlerType<?> responseDescriptor,
-            ResponseReturnMapper returnMapper) {
+            ProxyReturnMapper returnMapper) {
     }
 }

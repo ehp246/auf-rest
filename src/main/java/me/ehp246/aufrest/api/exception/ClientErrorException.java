@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * and 499.
  *
  * @author Lei Yang
- * @since 4.0
+ * @since 2.3.7
  *
  */
 public sealed class ClientErrorException

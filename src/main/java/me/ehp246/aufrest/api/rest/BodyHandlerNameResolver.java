@@ -13,6 +13,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * @see ByRest#responseHandler()
  */
 @FunctionalInterface
-public interface BodyHandlerBeanResolver {
+public interface BodyHandlerNameResolver {
     BodyHandler<?> get(String name);
 }

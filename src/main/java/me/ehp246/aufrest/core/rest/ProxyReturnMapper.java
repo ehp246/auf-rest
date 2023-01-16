@@ -18,6 +18,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @since 4.0
  */
 @FunctionalInterface
-public interface ResponseReturnMapper {
+public interface ProxyReturnMapper {
     Object apply(RestRequest restRequest, FnOutcome outcome) throws Throwable;
 }
