@@ -19,7 +19,7 @@ import me.ehp246.aufrest.core.rest.ToJson;
  * Implements internal JSON operations on {@linkplain ObjectMapper}.
  *
  * @author Lei Yang
- * @see AufRestConfiguration#jsonByObjectMapper(ObjectMapper)
+ * @see AufRestConfiguration#jsonByObjectMapper(ObjectMapper, ObjectMapper)
  * @version 4.0
  */
 public final class JsonByObjectMapper implements FromJson, ToJson {

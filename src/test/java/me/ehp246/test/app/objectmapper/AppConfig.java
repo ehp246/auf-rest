@@ -1,6 +1,7 @@
 package me.ehp246.test.app.objectmapper;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,6 +41,7 @@ class AppConfig {
         }
 
         @Bean
+        @Primary
         public ObjectMapper objectMapper() {
             return Jackson.OBJECT_MAPPER;
         }

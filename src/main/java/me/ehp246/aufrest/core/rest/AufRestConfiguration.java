@@ -1,28 +1,29 @@
 package me.ehp246.aufrest.core.rest;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.util.ClassUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
-import me.ehp246.aufrest.api.configuration.ObjectMapperConfiguration;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
@@ -50,9 +51,13 @@ import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class, DefaultContentPublisherProvider.class,
-        ObjectMapperConfiguration.class })
-public final class AufRestConfiguration implements BeanDefinitionRegistryPostProcessor {
+@Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class,
+        DefaultContentPublisherProvider.class })
+public final class AufRestConfiguration {
+    private final static List<String> MODULES = List.of("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
+            "com.fasterxml.jackson.module.mrbean.MrBeanModule",
+            "com.fasterxml.jackson.module.paramnames.ParameterNamesModule");
+
     @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
             @Value("${" + AufRestConstants.REST_LOGGER_MASKED + ":authorization}") final Set<String> masked) {
@@ -103,33 +108,34 @@ public final class AufRestConfiguration implements BeanDefinitionRegistryPostPro
         return HttpClient::newBuilder;
     }
 
-    @Bean
+    @Bean("96eb8fd6-602c-4f61-8621-f29f70365be5")
     public JsonByObjectMapper jsonByObjectMapper(
-            @Qualifier(AufRestConstants.BEAN_OBJECT_MAPPER) final ObjectMapper objectMapper) {
-        return new JsonByObjectMapper(objectMapper);
-    }
-
-    @Override
-    public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException {
-        if (registry.containsBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER)) {
-            return;
+            @Autowired(required = false) @Qualifier(AufRestConstants.AUF_REST_OBJECT_MAPPER) final ObjectMapper aufRestMapper,
+            @Autowired(required = false) final ObjectMapper defaultObjectMapper) {
+        if (aufRestMapper != null) {
+            return new JsonByObjectMapper(aufRestMapper);
         }
 
-        if (registry.containsBeanDefinition("objectMapper")) {
-            registry.registerBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER,
-                    registry.getBeanDefinition("objectMapper"));
-            return;
+        if (defaultObjectMapper != null) {
+            return new JsonByObjectMapper(defaultObjectMapper);
         }
 
-        final var beanDef = new GenericBeanDefinition();
-        beanDef.setBeanClass(ObjectMapper.class);
-        beanDef.setFactoryBeanName(ObjectMapperConfiguration.class.getName());
-        beanDef.setFactoryMethodName(AufRestConstants.BEAN_OBJECT_MAPPER);
+        final ObjectMapper newMapper = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        registry.registerBeanDefinition(AufRestConstants.BEAN_OBJECT_MAPPER, beanDef);
-    }
+        for (final var name : MODULES) {
+            if (ClassUtils.isPresent(name, this.getClass().getClassLoader())) {
+                try {
+                    newMapper.registerModule((Module) Class.forName(name).getDeclaredConstructor((Class[]) null)
+                            .newInstance((Object[]) null));
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException | NoSuchMethodException | SecurityException
+                        | ClassNotFoundException e) {
+                }
+            }
+        }
 
-    @Override
-    public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        return new JsonByObjectMapper(newMapper);
     }
 }

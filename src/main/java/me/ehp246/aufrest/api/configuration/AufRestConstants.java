@@ -1,5 +1,7 @@
 package me.ehp246.aufrest.api.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Defines the constants supported by the framework.
  *
@@ -41,9 +43,9 @@ public final class AufRestConstants {
     public static final String REST_LOGGER_MASKED = "me.ehp246.aufrest.restlogger.masked-headers";
 
     /**
-     * Object mapper name used by Auf REST.
+     * Can be used to customize an {@linkplain ObjectMapper} for Auf REST.
      */
-    public static final String BEAN_OBJECT_MAPPER = "aufRestObjectMapper";
+    public static final String AUF_REST_OBJECT_MAPPER = "aufRestObjectMapper";
 
     private AufRestConstants() {
         super();
