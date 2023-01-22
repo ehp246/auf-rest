@@ -107,15 +107,13 @@ class RestFnTest {
         };
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void auth_01() {
         final var threw = Assertions.assertThrows(UnhandledResponseException.class,
                 () -> this.restFn.applyForResponse(new401Req()));
 
         Assertions.assertEquals(401, threw.statusCode());
-        Assertions.assertEquals(true, threw.getCause().body() instanceof Map);
-        Assertions.assertEquals(4, ((Map<String, Object>) threw.getCause().body()).entrySet().size());
+        Assertions.assertEquals(true, threw.getCause().body() == null);
     }
 
     @Test

@@ -1,11 +1,11 @@
 package me.ehp246.test.embedded.method.controller;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Lei Yang
