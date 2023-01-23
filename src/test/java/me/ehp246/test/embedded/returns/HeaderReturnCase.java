@@ -13,7 +13,7 @@ import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
  * @author Lei Yang
  *
  */
-@ByRest("http://localhost:${local.server.port}/header/")
+@ByRest("http://localhost:${local.server.port}/header")
 interface HeaderReturnCase {
     HttpHeaders get(@OfQuery("value") String value);
 
