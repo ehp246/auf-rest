@@ -48,8 +48,7 @@ import me.ehp246.test.embedded.restfn.Logins.LoginName;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restlogger.enabled=false" })
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class RestFnTest {
     @Value("${local.server.port}")
     private int port;
@@ -110,7 +109,7 @@ class RestFnTest {
     @Test
     void auth_01() {
         final var threw = Assertions.assertThrows(UnhandledResponseException.class,
-                () -> this.restFn.applyForResponse(new401Req()));
+                () -> this.restFn.applyForResponse(new401Req()), "should use the provided header");
 
         Assertions.assertEquals(401, threw.statusCode());
     }
@@ -133,6 +132,25 @@ class RestFnTest {
         Assertions.assertEquals(200,
                 restFn.applyForResponse(() -> "http://localhost:" + port + "/restfn/auth").statusCode(),
                 "should authorize from the global bean");
+    }
+
+    @Test
+    void auth_04() {
+        final var threw = Assertions.assertThrows(UnhandledResponseException.class,
+                () -> this.restFn.applyForResponse(new RestRequest() {
+
+                    @Override
+                    public String uri() {
+                        return "http://localhost:" + port + "/restfn/auth";
+                    }
+
+                    @Override
+                    public Supplier<String> authSupplier() {
+                        return () -> null;
+                    }
+                }), "should suppress the global provider");
+
+        Assertions.assertEquals(401, threw.statusCode());
     }
 
     @Test
