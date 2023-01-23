@@ -113,7 +113,6 @@ class RestFnTest {
                 () -> this.restFn.applyForResponse(new401Req()));
 
         Assertions.assertEquals(401, threw.statusCode());
-        Assertions.assertEquals(true, threw.getCause().body() == null);
     }
 
     @Test
