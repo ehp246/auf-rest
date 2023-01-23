@@ -31,7 +31,7 @@ class WebSecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeHttpRequests().mvcMatchers("/auth/basic/**").authenticated().and()
+        http.csrf().disable().authorizeHttpRequests().requestMatchers("/auth/basic/**").authenticated().and()
                 .httpBasic()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
