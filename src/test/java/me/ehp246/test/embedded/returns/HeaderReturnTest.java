@@ -8,14 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import me.ehp246.aufrest.api.configuration.AufRestConstants;
-
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        AufRestConstants.REST_LOGGER_ENABLED + "=true" })
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class HeaderReturnTest {
     @Autowired
     private HeaderReturnCase testCase;

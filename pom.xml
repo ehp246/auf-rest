@@ -43,8 +43,8 @@
 
 		<jackson.version>2.13.3</jackson.version>
 
-		<spring-framework.version>5.3.22</spring-framework.version>
-		<spring-boot.version>2.7.2</spring-boot.version>
+		<spring-framework.version>5.3.25</spring-framework.version>
+		<spring-boot.version>2.7.4</spring-boot.version>
 
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
