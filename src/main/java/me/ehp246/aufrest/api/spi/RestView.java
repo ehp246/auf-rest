@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonView;
  *
  */
 public class RestView {
-    private RestView() {
+    protected RestView() {
         super();
     }
 }

@@ -1,0 +1,23 @@
+{"properties": [
+  {
+    "name": "me.ehp246.aufrest.connect-timeout",
+    "type": "java.lang.String",
+    "description": "Global timeout on waiting for connection. In ISO 8601 Duration. No timeout by default"
+  },
+  {
+    "name": "me.ehp246.aufrest.response-timeout",
+    "type": "java.lang.String",
+    "description": "Global timeout on waiting for response. In ISO 8601 Duration. No timeout by default."
+  },
+  {
+    "name": "me.ehp246.aufrest.restlogger.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to enable the built-in RestLogger.",
+    "defaultValue": false
+  },
+  {
+    "name": "me.ehp246.aufrest.restlogger.masked-headers",
+    "type": "java.lang.String",
+    "description": "Comma-separated list of header names that should be masked by.",
+    "defaultValue": ["authorization"]
+  }]}

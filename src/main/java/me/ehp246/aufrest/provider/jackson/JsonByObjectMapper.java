@@ -19,7 +19,7 @@ import me.ehp246.aufrest.core.rest.ToJson;
  * Implements internal JSON operations on {@linkplain ObjectMapper}.
  *
  * @author Lei Yang
- * @see AufRestConfiguration#jsonByObjectMapper(ObjectMapper, ObjectMapper)
+ * @see AufRestConfiguration#jsonByObjectMapper(org.springframework.context.ApplicationContext)
  * @version 4.0
  */
 public final class JsonByObjectMapper implements FromJson, ToJson {
@@ -33,13 +33,13 @@ public final class JsonByObjectMapper implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final BodyOf<?> valueInfo) {
+    public String apply(final Object value, final BodyOf<?> descriptor) {
         if (value == null) {
             return null;
         }
 
-        final var type = valueInfo == null ? value.getClass() : valueInfo.first();
-        final var view = valueInfo == null ? null : valueInfo.view();
+        final var type = descriptor == null ? value.getClass() : descriptor.first();
+        final var view = descriptor == null ? null : descriptor.view();
 
         try {
             if (view == null) {

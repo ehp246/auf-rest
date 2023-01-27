@@ -6,7 +6,7 @@ import me.ehp246.aufrest.api.rest.BodyOf;
 
 /**
  * @author Lei Yang
- * @since 4.0
+ * @since 2.1
  */
 public final class BodyOfBuilder {
     private BodyOfBuilder() {

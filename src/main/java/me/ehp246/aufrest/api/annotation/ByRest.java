@@ -8,6 +8,10 @@ import java.lang.annotation.Target;
 import java.time.Duration;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import com.fasterxml.jackson.annotation.JsonView;
+
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
@@ -17,10 +21,14 @@ import me.ehp246.aufrest.api.rest.AuthScheme;
  * <p>
  * For each annotated interface, Auf REST defines a bean of the type and makes
  * it available for injection.
+ * <p>
+ * Body serialization and de-serialization by {@linkplain JsonView} are
+ * supported .
  *
  * @author Lei Yang
  * @since 1.0
  * @see EnableByRest
+ * @see OfBody
  * @version 4.0
  */
 @Retention(RUNTIME)
@@ -43,9 +51,11 @@ public @interface ByRest {
     /**
      * Defines an optional bean name by which the proxy interface can be injected.
      * <p>
-     * The default name is {@link Class#getSimpleName()}.
+     * The default is from {@link Class#getSimpleName()} with the first letter in
+     * lower-case.
      *
      * @return the bean name of the proxy interface.
+     * @see Qualifier
      */
     String name() default "";
 
