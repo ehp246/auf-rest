@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 import java.time.Duration;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 
@@ -43,9 +45,11 @@ public @interface ByRest {
     /**
      * Defines an optional bean name by which the proxy interface can be injected.
      * <p>
-     * The default name is {@link Class#getSimpleName()}.
+     * The default is from {@link Class#getSimpleName()} with the first letter in
+     * lower-case.
      *
      * @return the bean name of the proxy interface.
+     * @see Qualifier
      */
     String name() default "";
 
