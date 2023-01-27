@@ -11,8 +11,8 @@ import java.util.Set;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.ClassUtils;
@@ -109,15 +109,17 @@ public final class AufRestConfiguration {
     }
 
     @Bean("96eb8fd6-602c-4f61-8621-f29f70365be5")
-    public JsonByObjectMapper jsonByObjectMapper(
-            @Autowired(required = false) @Qualifier(AufRestConstants.AUF_REST_OBJECT_MAPPER) final ObjectMapper aufRestMapper,
-            @Autowired(required = false) final ObjectMapper defaultObjectMapper) {
-        if (aufRestMapper != null) {
-            return new JsonByObjectMapper(aufRestMapper);
+    public JsonByObjectMapper jsonByObjectMapper(final ApplicationContext appCtx) {
+        final var aufRestObjectMapper = appCtx.getBeansOfType(ObjectMapper.class)
+                .get(AufRestConstants.AUF_REST_OBJECT_MAPPER);
+        if (aufRestObjectMapper != null) {
+            return new JsonByObjectMapper(aufRestObjectMapper);
         }
 
-        if (defaultObjectMapper != null) {
-            return new JsonByObjectMapper(defaultObjectMapper);
+        try {
+            return new JsonByObjectMapper(appCtx.getBean(ObjectMapper.class));
+        } catch (final Exception e) {
+            // Can not find a default. Creating private.
         }
 
         final ObjectMapper newMapper = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)

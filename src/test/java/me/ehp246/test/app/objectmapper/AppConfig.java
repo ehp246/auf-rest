@@ -46,4 +46,51 @@ class AppConfig {
             return Jackson.OBJECT_MAPPER;
         }
     }
+
+    @EnableByRest
+    static class Config05 {
+        @Bean
+        public ObjectMapper aufJmsObjectMapper() {
+            return Jackson.OBJECT_MAPPER;
+        }
+
+        @Bean
+        public ObjectMapper objectMapper() {
+            return Jackson.OBJECT_MAPPER;
+        }
+    }
+
+    @EnableByRest
+    static class Config06 {
+        @Bean
+        public ObjectMapper aufJmsObjectMapper() {
+            return Jackson.OBJECT_MAPPER;
+        }
+
+        @Bean
+        public ObjectMapper aufRestObjectMapper() {
+            return Jackson.OBJECT_MAPPER;
+        }
+    }
+
+    @EnableByRest
+    static class Config07 {
+        @Bean
+        public ObjectMapper objectMapper() {
+            return Jackson.OBJECT_MAPPER;
+        }
+
+        @Bean
+        public ObjectMapper aufRestObjectMapper() {
+            return Jackson.OBJECT_MAPPER;
+        }
+    }
+
+    @EnableByRest
+    static class Config08 {
+        @Bean
+        public Integer aufJmsObjectMapper() {
+            return Integer.SIZE;
+        }
+    }
 }

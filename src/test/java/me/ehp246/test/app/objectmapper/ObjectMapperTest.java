@@ -27,18 +27,28 @@ class ObjectMapperTest {
 
     @Test
     void provided_01() {
-        appCtx = new AnnotationConfigApplicationContext();
-        appCtx.register(AppConfig.Config01.class);
-        appCtx.refresh();
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config01.class);
 
         Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
     }
 
     @Test
     void provided_02() {
-        appCtx = new AnnotationConfigApplicationContext();
-        appCtx.register(AppConfig.Config04.class);
-        appCtx.refresh();
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config04.class);
+
+        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+    }
+
+    @Test
+    void provided_03() {
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config06.class);
+
+        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+    }
+
+    @Test
+    void provided_04() {
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config07.class);
 
         Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
     }
@@ -53,10 +63,22 @@ class ObjectMapperTest {
     }
 
     @Test
-    void default_01() {
-        appCtx = new AnnotationConfigApplicationContext();
-        appCtx.register(AppConfig.Config03.class);
-        appCtx.refresh();
+    void private_01() {
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config03.class);
+
+        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+    }
+
+    @Test
+    void private_02() {
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config05.class);
+
+        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+    }
+
+    @Test
+    void private_03() {
+        appCtx = new AnnotationConfigApplicationContext(AppConfig.Config08.class);
 
         Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
     }

@@ -33,13 +33,13 @@ public final class JsonByObjectMapper implements FromJson, ToJson {
     }
 
     @Override
-    public String apply(final Object value, final BodyOf<?> valueInfo) {
+    public String apply(final Object value, final BodyOf<?> descriptor) {
         if (value == null) {
             return null;
         }
 
-        final var type = valueInfo == null ? value.getClass() : valueInfo.first();
-        final var view = valueInfo == null ? null : valueInfo.view();
+        final var type = descriptor == null ? value.getClass() : descriptor.first();
+        final var view = descriptor == null ? null : descriptor.view();
 
         try {
             if (view == null) {
