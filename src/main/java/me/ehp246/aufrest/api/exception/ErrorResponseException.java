@@ -4,6 +4,7 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -22,12 +23,13 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @author Lei Yang
  * @since 2.5.0
  */
-public sealed class ErrorResponseException extends
-        Exception permits ClientErrorException, ServerErrorException, RedirectionException {
+public sealed class ErrorResponseException
+        extends Exception permits ClientErrorException, ServerErrorException, RedirectionException {
     private static final long serialVersionUID = -182048232082907551L;
 
     protected final RestRequest request;
     protected final HttpResponse<?> response;
+    protected final String message;
 
     public <T> ErrorResponseException(final RestRequest request, final HttpResponse<T> response) {
         if (request == null || response == null || HttpUtils.isSuccess(response.statusCode())) {
@@ -36,6 +38,8 @@ public sealed class ErrorResponseException extends
 
         this.request = request;
         this.response = response;
+        this.message = this.request.method() + " " + this.request.uri() + ", " + response.statusCode() + " "
+                + Optional.ofNullable(response.body()).map(Object::toString).orElse("");
     }
 
     @SuppressWarnings("unchecked")
@@ -104,4 +108,8 @@ public sealed class ErrorResponseException extends
         return request;
     }
 
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }
