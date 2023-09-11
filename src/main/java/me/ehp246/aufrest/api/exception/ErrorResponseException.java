@@ -38,9 +38,10 @@ public sealed class ErrorResponseException
 
         this.request = request;
         this.response = response;
-        this.message = this.response.request().method() + " " + this.response.request().uri() + " failed because of "
+        this.message = "'" + this.response.request().method() + " " + this.response.request().uri()
+                + "' failed because '"
                 + response.statusCode() + " "
-                + Optional.ofNullable(response.body()).map(Object::toString).orElse("");
+                + Optional.ofNullable(response.body()).map(Object::toString).orElse("") + "'";
     }
 
     @SuppressWarnings("unchecked")

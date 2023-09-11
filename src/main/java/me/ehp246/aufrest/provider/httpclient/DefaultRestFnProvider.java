@@ -107,6 +107,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 try {
                     httpResponse = client.send(httpReq, handler);
 
+                    listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
+
                     if (!HttpUtils.isSuccess(httpResponse.statusCode())) {
                         // Should throw the more specific type if possible.
                         final var statusCode = httpResponse.statusCode();
@@ -153,8 +155,6 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                      */
                     throw new RestFnException(req, httpReq, e);
                 }
-
-                listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
 
                 return (HttpResponse<T>) httpResponse;
             }

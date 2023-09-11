@@ -31,7 +31,7 @@ public final class RestFnException extends RuntimeException {
         super(e);
         this.request = request;
         this.httpRequest = httpRequest;
-        this.message = httpRequest.method() + " " + httpRequest.uri() + " failed because of " + e.toString();
+        this.message = "'" + httpRequest.method() + " " + httpRequest.uri() + "' failed because '" + e.toString() + "'";
     }
 
     @Override

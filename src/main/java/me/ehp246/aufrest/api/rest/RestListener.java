@@ -6,6 +6,8 @@ import java.net.http.HttpResponse;
 
 import org.springframework.core.annotation.Order;
 
+import me.ehp246.aufrest.api.exception.ErrorResponseException;
+
 /**
  * Defines a Spring bean that can receive request/response events. Multiple
  * beans are supported and to be invoked in {@link Order}.
@@ -28,10 +30,12 @@ public interface RestListener {
     }
 
     /**
-     * Invoked when and only when a HTTP response is received. The status code
-     * doesn't matter.
+     * Invoked as soon as a {@linkplain HttpResponse} is received for a request. The
+     * status code doesn't matter.
      * <p>
      * Only applies when there is a response.
+     * <p>
+     * {@linkplain ErrorResponseException} propagation has no impact.
      * <p>
      * The default implementation does nothing.
      *

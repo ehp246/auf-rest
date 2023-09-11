@@ -35,13 +35,13 @@ class AppConfig {
     }
 
     @Bean
-    @Profile("listenerEx")
+    @Profile("listenerException")
     RestListener listenerEx() {
         return new RestListener() {
 
             @Override
-            public void onRequest(HttpRequest httpRequest, RestRequest req) {
-                throw new NullPointerException("onRequest");
+            public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
+                throw new NullPointerException("onRequest from listenerException");
             }
 
         };
