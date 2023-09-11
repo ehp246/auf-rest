@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
  * @author Lei Yang
  *
  */
-@ByRest(value = "http://localhost:0")
+@ByRest(value = "http://localhost:80")
 interface ErrorRequestTestCase {
     void get();
 

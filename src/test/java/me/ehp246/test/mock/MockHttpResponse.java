@@ -11,6 +11,8 @@ import java.util.Optional;
 
 import javax.net.ssl.SSLSession;
 
+import org.mockito.Mockito;
+
 /**
  * @author Lei Yang
  *
@@ -19,6 +21,7 @@ public class MockHttpResponse<T> implements HttpResponse<T> {
     private final int statusCode;
     private final T body;
     private final Map<String, List<String>> headers;
+    private final HttpRequest httpRequest = Mockito.mock(HttpRequest.class);
 
     public MockHttpResponse() {
         super();
@@ -62,8 +65,7 @@ public class MockHttpResponse<T> implements HttpResponse<T> {
 
     @Override
     public HttpRequest request() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.httpRequest;
     }
 
     @Override

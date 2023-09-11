@@ -1,9 +1,11 @@
 package me.ehp246.aufrest.api.exception;
 
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
  * Wraps any checked exceptions raised during
@@ -21,7 +23,27 @@ import me.ehp246.aufrest.api.rest.RestFn;
 public final class RestFnException extends RuntimeException {
     private static final long serialVersionUID = 7172740406607274087L;
 
-    public RestFnException(final Exception e) {
+    private final RestRequest request;
+    private final HttpRequest httpRequest;
+    private final String message;
+
+    public RestFnException(final RestRequest request, final HttpRequest httpRequest, final Exception e) {
         super(e);
+        this.request = request;
+        this.httpRequest = httpRequest;
+        this.message = httpRequest.method() + " " + httpRequest.uri() + " failed because of " + e.toString();
+    }
+
+    @Override
+    public String getMessage() {
+        return this.message;
+    }
+
+    public RestRequest getRestRequest() {
+        return this.request;
+    }
+
+    public HttpRequest getHttpRequest() {
+        return this.httpRequest;
     }
 }

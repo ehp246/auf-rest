@@ -151,7 +151,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     /*
                      * Wrap only the checked.
                      */
-                    throw new RestFnException(e);
+                    throw new RestFnException(req, httpReq, e);
                 }
 
                 listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
