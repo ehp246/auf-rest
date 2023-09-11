@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.exception;
+package me.ehp246.test.embedded.exception.response.controller;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfPath;
@@ -21,7 +21,7 @@ import me.ehp246.aufrest.api.exception.ServerErrorException;
  *
  */
 @ByRest(value = "http://localhost:${local.server.port}/status-code/")
-interface TestCase {
+interface ErrorResponseTestCase {
     @OfRequest("runtime")
     void get();
 

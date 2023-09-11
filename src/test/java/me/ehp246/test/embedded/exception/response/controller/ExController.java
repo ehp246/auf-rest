@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.exception.controller;
+package me.ehp246.test.embedded.exception.response.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
