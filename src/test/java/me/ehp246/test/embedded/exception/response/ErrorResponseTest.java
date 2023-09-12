@@ -34,7 +34,7 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restlogger.enabled=false" })
+        "me.ehp246.aufrest.restlogger.enabled=true" })
 class ErrorResponseTest {
     @Autowired
     private ObjectMapper objectMapper;
