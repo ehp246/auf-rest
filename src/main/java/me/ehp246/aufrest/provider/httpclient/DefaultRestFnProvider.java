@@ -87,8 +87,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> applyForResponse(final RestRequest req,
-                    final BodyOf<?> requestBodyDescriptor,
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final BodyOf<?> requestBodyDescriptor,
                     final BodyHandlerType<T> responseBodyDescriptor) {
                 final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
@@ -145,18 +144,23 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         throw new RedirectionException(req, httpResponse);
                     }
                 } catch (IOException | InterruptedException | ErrorResponseException e) {
-                    listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
-
                     if (e instanceof final ErrorResponseException error) {
                         throw new UnhandledResponseException(error);
+                    } else {
+                        try {
+                            listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
+                        } catch (Exception le) {
+                            e.addSuppressed(le);
+                        }
                     }
                     /*
                      * Wrap only the checked.
                      */
-                    throw new RestFnException(req, httpReq, e);
+                    throw new RestFnException(e, httpReq, req);
                 }
 
                 return (HttpResponse<T>) httpResponse;
             }
         };
-}}
+    }
+}

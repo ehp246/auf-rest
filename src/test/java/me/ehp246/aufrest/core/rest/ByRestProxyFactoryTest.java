@@ -495,8 +495,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_01() {
         final var checked = new IOException();
-        final var restFnException = new RestFnException(Mockito.mock(RestRequest.class),
-                Mockito.mock(HttpRequest.class), checked);
+        final var restFnException = new RestFnException(checked,
+                Mockito.mock(HttpRequest.class), Mockito.mock(RestRequest.class));
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase.class);
 
@@ -508,8 +508,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_02() {
         final var checked = new IOException();
-        final var restFnException = new RestFnException(Mockito.mock(RestRequest.class),
-                Mockito.mock(HttpRequest.class), checked);
+        final var restFnException = new RestFnException(checked,
+                Mockito.mock(HttpRequest.class), Mockito.mock(RestRequest.class));
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase.class);
 
@@ -521,8 +521,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_03() {
         final var checked = new InterruptedException();
-        final var restFnException = new RestFnException(Mockito.mock(RestRequest.class),
-                Mockito.mock(HttpRequest.class), checked);
+        final var restFnException = new RestFnException(checked,
+                Mockito.mock(HttpRequest.class), Mockito.mock(RestRequest.class));
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase.class);
 

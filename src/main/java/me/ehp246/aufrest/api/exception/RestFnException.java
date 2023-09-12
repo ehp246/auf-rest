@@ -14,7 +14,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * <p>
  * It covers and only covers checked exceptions during the send/receive
  * operation. What happens after the response is received is covered by
- * {@linkplain ErrorResponseException}.
+ * {@linkplain UnhandledResponseException}.
  *
  * @author Lei Yang
  * @see HttpClient#send(java.net.http.HttpRequest,
@@ -23,13 +23,13 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 public final class RestFnException extends RuntimeException {
     private static final long serialVersionUID = 7172740406607274087L;
 
-    private final RestRequest request;
+    private final RestRequest restRequest;
     private final HttpRequest httpRequest;
     private final String message;
 
-    public RestFnException(final RestRequest request, final HttpRequest httpRequest, final Exception e) {
+    public RestFnException(final Exception e, final HttpRequest httpRequest, final RestRequest restRequest) {
         super(e);
-        this.request = request;
+        this.restRequest = restRequest;
         this.httpRequest = httpRequest;
         this.message = "'" + httpRequest.method() + " " + httpRequest.uri() + "' failed because '" + e.toString() + "'";
     }
@@ -40,7 +40,7 @@ public final class RestFnException extends RuntimeException {
     }
 
     public RestRequest getRestRequest() {
-        return this.request;
+        return this.restRequest;
     }
 
     public HttpRequest getHttpRequest() {
