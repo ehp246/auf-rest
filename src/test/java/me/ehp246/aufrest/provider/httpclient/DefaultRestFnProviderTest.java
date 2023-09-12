@@ -183,6 +183,43 @@ class DefaultRestFnProviderTest {
     }
 
     @Test
+    void listener_onException_01() {
+        final var mockedReq = Mockito.mock(HttpRequest.class);
+        final HttpRequestBuilder reqBuilder = new MockHttpRequestBuilder(mockedReq);
+
+        final var req = (RestRequest) () -> "http://nowhere";
+
+        final var map = new HashMap<>();
+        final var le = new RuntimeException();
+        final var orig = new IOException("This is a test");
+
+        Exception ex = null;
+        try {
+            new DefaultRestFnProvider(reqBuilder, handlerProvider.toProvider(),
+                    new MockClientBuilderSupplier(orig)::builder, List.of(new RestListener() {
+
+                        @Override
+                        public void onException(final Exception exception, final HttpRequest httpRequest,
+                                final RestRequest req) {
+                            throw le;
+                        }
+                    }, new RestListener() {
+
+                        @Override
+                        public void onException(final Exception exception, final HttpRequest httpRequest,
+                                final RestRequest req) {
+                            map.put("5", exception);
+                        }
+                    }), null).get(new ClientConfig()).applyForResponse(req);
+        } catch (final Exception e) {
+            ex = e;
+        }
+
+        Assertions.assertEquals(true, map.get("5") == null, "should be skipped");
+        Assertions.assertEquals(true, ex.getCause().getSuppressed()[0] == le, "should have the suppressed");
+    }
+
+    @Test
     void listener_004() {
         final var mockedReq = Mockito.mock(HttpRequest.class);
         final HttpRequestBuilder reqBuilder = new MockHttpRequestBuilder(mockedReq);

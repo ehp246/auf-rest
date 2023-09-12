@@ -14,16 +14,15 @@ import org.springframework.test.context.ActiveProfiles;
  *
  */
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("listenerEx")
-class ListenerExTest {
+@ActiveProfiles("listenerException")
+class ListenerExceptionTest {
     @Autowired
-    private TestCase001 case001;
+    private TestCase case1;
 
     @Test
     void test_001() {
-        final var ex = Assertions.assertThrows(NullPointerException.class, () -> case001.post(Instant.now()));
+        final var ex = Assertions.assertThrows(NullPointerException.class, () -> case1.post(Instant.now()));
 
-        Assertions.assertEquals("onRequest", ex.getMessage());
+        Assertions.assertEquals("onRequest from listenerException", ex.getMessage());
     }
-
 }

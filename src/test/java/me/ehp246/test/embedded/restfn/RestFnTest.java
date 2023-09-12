@@ -48,7 +48,8 @@ import me.ehp246.test.embedded.restfn.Logins.LoginName;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = {
+        AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class RestFnTest {
     @Value("${local.server.port}")
     private int port;

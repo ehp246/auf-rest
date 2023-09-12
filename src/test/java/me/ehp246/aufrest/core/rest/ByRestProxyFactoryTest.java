@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.rest;
 
 import java.io.IOException;
+import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -13,12 +14,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase02;
@@ -492,7 +495,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_01() {
         final var checked = new IOException();
-        final var restFnException = new RestFnException(checked);
+        final var restFnException = new RestFnException(checked,
+                Mockito.mock(HttpRequest.class), Mockito.mock(RestRequest.class));
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase.class);
 
@@ -504,7 +508,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_02() {
         final var checked = new IOException();
-        final var restFnException = new RestFnException(checked);
+        final var restFnException = new RestFnException(checked,
+                Mockito.mock(HttpRequest.class), Mockito.mock(RestRequest.class));
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase.class);
 
@@ -516,7 +521,8 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_03() {
         final var checked = new InterruptedException();
-        final var restFnException = new RestFnException(checked);
+        final var restFnException = new RestFnException(checked,
+                Mockito.mock(HttpRequest.class), Mockito.mock(RestRequest.class));
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), clientConfig, parser)
                 .newInstance(ExceptionCase.class);
 

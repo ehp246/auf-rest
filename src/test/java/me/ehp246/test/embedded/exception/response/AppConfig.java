@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.exception;
+package me.ehp246.test.embedded.exception.response;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;

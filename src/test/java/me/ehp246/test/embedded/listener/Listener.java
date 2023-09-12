@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package me.ehp246.test.embedded.listener;
 
@@ -19,11 +19,16 @@ class Listener implements RestListener {
     private HttpRequest httpReq;
     private HttpResponse<?> httpResponse;
     private RestRequest reqReq;
-    private RestRequest reqResp;
 
-    public Listener(int id) {
+    public Listener(final int id) {
         super();
         this.id = id;
+    }
+
+    void clear() {
+        this.httpReq = null;
+        this.httpResponse = null;
+        this.reqReq = null;
     }
 
     RestRequest reqByReq() {
@@ -39,19 +44,19 @@ class Listener implements RestListener {
     }
 
     @Override
-    public void onRequest(HttpRequest httpRequest, RestRequest req) {
+    public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
         this.httpReq = httpRequest;
         this.reqReq = req;
     }
 
     @Override
-    public void onResponse(HttpResponse<?> httpResponse, RestRequest req) {
+    public void onResponse(final HttpResponse<?> httpResponse, final RestRequest req) {
         this.httpResponse = httpResponse;
-        this.reqResp = req;
+        this.reqReq = req;
     }
 
     @Override
-    public void onException(Exception exception, HttpRequest httpRequest, RestRequest req) {
+    public void onException(final Exception exception, final HttpRequest httpRequest, final RestRequest req) {
     }
 
     /**
@@ -59,12 +64,5 @@ class Listener implements RestListener {
      */
     public HttpResponse<?> getHttpResponse() {
         return httpResponse;
-    }
-
-    /**
-     * @return the reqResp
-     */
-    public RestRequest getReqResp() {
-        return reqResp;
     }
 }

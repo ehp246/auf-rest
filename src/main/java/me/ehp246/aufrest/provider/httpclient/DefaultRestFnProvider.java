@@ -87,8 +87,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> applyForResponse(final RestRequest req,
-                    final BodyOf<?> requestBodyDescriptor,
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final BodyOf<?> requestBodyDescriptor,
                     final BodyHandlerType<T> responseBodyDescriptor) {
                 final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
@@ -106,6 +105,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 // Try/catch on send only.
                 try {
                     httpResponse = client.send(httpReq, handler);
+
+                    listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
 
                     if (!HttpUtils.isSuccess(httpResponse.statusCode())) {
                         // Should throw the more specific type if possible.
@@ -143,20 +144,23 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         throw new RedirectionException(req, httpResponse);
                     }
                 } catch (IOException | InterruptedException | ErrorResponseException e) {
-                    listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
-
                     if (e instanceof final ErrorResponseException error) {
                         throw new UnhandledResponseException(error);
+                    } else {
+                        try {
+                            listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
+                        } catch (Exception le) {
+                            e.addSuppressed(le);
+                        }
                     }
                     /*
                      * Wrap only the checked.
                      */
-                    throw new RestFnException(e);
+                    throw new RestFnException(e, httpReq, req);
                 }
-
-                listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
 
                 return (HttpResponse<T>) httpResponse;
             }
         };
-}}
+    }
+}
