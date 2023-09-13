@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.rest;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.http.HttpHeaders;
@@ -72,8 +73,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final BodyHandlerResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerResolver bodyHandlerResolver,
-            final InferringBodyHandlerProvider inferredHandlerProvider) {
+            final BodyHandlerResolver bodyHandlerResolver, final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
         this.inferredHandlerProvider = inferredHandlerProvider;
@@ -428,9 +428,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
                 final String header;
                 try {
-                    header = OneUtil.toString(method.invoke(bean, beanArgs));
-                } catch (final Throwable e) {
-                    throw e instanceof final RuntimeException re ? re : new RuntimeException(e);
+                    try {
+                        header = OneUtil.toString(method.invoke(bean, beanArgs));
+                    } catch (final IllegalAccessException | IllegalArgumentException e) {
+                        throw new RuntimeException(e);
+                    }
+                } catch (final InvocationTargetException e) {
+                    final var targetException = e.getTargetException();
+                    throw targetException instanceof RuntimeException re ? re : new RuntimeException(targetException);
                 }
 
                 return () -> header;

@@ -21,7 +21,10 @@ import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth03;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth04;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth05;
+import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuthThrowing01;
+import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuthThrowing02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.MockAuthBean;
+import me.ehp246.aufrest.core.rest.AuthTestCases.MockThrowingAuthBean;
 import me.ehp246.aufrest.core.rest.AuthTestCases.NoneAuth01;
 import me.ehp246.aufrest.core.rest.requestbody.BodyTestCases;
 import me.ehp246.test.Invocation;
@@ -107,8 +110,7 @@ class DefaultProxyMethodParserTest {
 
         final var authSupplier = new DefaultProxyMethodParser(propertyResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
-                        .request()
-                        .authSupplier();
+                        .request().authSupplier();
 
         Assertions.assertEquals(expected, authSupplier.get(), "should have the AuthHeader value");
     }
@@ -124,8 +126,7 @@ class DefaultProxyMethodParserTest {
 
         final var authSupplier = new DefaultProxyMethodParser(propertyResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
-                        .request()
-                        .authSupplier();
+                        .request().authSupplier();
 
         Assertions.assertEquals(expected, authSupplier.get(), "should have the AuthHeader value");
     }
@@ -133,6 +134,7 @@ class DefaultProxyMethodParserTest {
     @Test
     void authBean_04() {
         final var authBean = new MockAuthBean();
+
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(authResolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
 
@@ -142,9 +144,49 @@ class DefaultProxyMethodParserTest {
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuth01.class, captRef).get();
 
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()));
+    }
+
+    @Test
+    void authBean_throws_01() {
+        final var expected = new NullPointerException();
+        final var authBean = new MockThrowingAuthBean();
+
+        final var authResolver = Mockito.mock(AuthBeanResolver.class);
+        Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuthThrowing01.class, captRef).get(expected);
+
+        Assertions.assertEquals(expected,
+                Assertions.assertThrows(NullPointerException.class, () -> parser.parse(captRef[0].method())
+                        .apply(captRef[0].target(), captRef[0].args()).request().authSupplier().get()));
+    }
+
+    @Test
+    void authBean_throws_02() {
+        final var expected = new Exception();
+        final var authBean = new MockThrowingAuthBean();
+
+        final var authResolver = Mockito.mock(AuthBeanResolver.class);
+        Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
+
+        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).get(expected);
+
+        Assertions.assertEquals(expected,
+                Assertions
+                        .assertThrows(RuntimeException.class, () -> parser.parse(captRef[0].method())
+                                .apply(captRef[0].target(), captRef[0].args()).request().authSupplier().get())
+                        .getCause(),
+                "should wrap the checked in a Runtime");
     }
 
     @Test
@@ -229,10 +271,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                ;
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
     }
 
     @Test
@@ -244,8 +284,7 @@ class DefaultProxyMethodParserTest {
         final var invocation = captor.invocation();
 
         final var header = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
-                .headers()
-                .get("accept-language");
+                .headers().get("accept-language");
 
         Assertions.assertEquals(3, header.size());
         Assertions.assertEquals("CN", header.get(0));
@@ -378,8 +417,7 @@ class DefaultProxyMethodParserTest {
         final var invocation = captor.invocation();
 
         final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
-                .headers()
-                .get("x-api-key");
+                .headers().get("x-api-key");
 
         Assertions.assertEquals(1, apiKey.size());
         Assertions.assertEquals("api.key", apiKey.get(0));
@@ -394,8 +432,7 @@ class DefaultProxyMethodParserTest {
         final var invocation = captor.invocation();
 
         final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
-                .headers()
-                .get("x-api-key");
+                .headers().get("x-api-key");
 
         // No order is defined.
         Assertions.assertEquals(1, apiKey.size());
@@ -410,9 +447,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        Assertions.assertEquals(null,
-                parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request().headers()
-                        .get("x-api-key"));
+        Assertions.assertEquals(null, parser.parse(invocation.method()).apply(captor.proxy(), invocation.args())
+                .request().headers().get("x-api-key"));
     }
 
     @Test
@@ -424,8 +460,7 @@ class DefaultProxyMethodParserTest {
         final var invocation = captor.invocation();
 
         final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
-                .headers()
-                .get("x-api-key");
+                .headers().get("x-api-key");
 
         Assertions.assertEquals(null, apiKey);
     }
@@ -440,8 +475,7 @@ class DefaultProxyMethodParserTest {
         final var invocation = captor.invocation();
 
         final var apiKey = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
-                .headers()
-                .get("x-api-key");
+                .headers().get("x-api-key");
 
         Assertions.assertEquals(1, apiKey.size());
         Assertions.assertEquals(expected, apiKey.get(0));
@@ -454,10 +488,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                ;
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
     }
 
     @Test
@@ -484,10 +516,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                ;
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
     }
 
     @Test
@@ -509,10 +539,8 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        Assertions
-                .assertThrows(IllegalArgumentException.class,
-                        () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()))
-                ;
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
     }
 
     @Test

@@ -4,9 +4,9 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
-import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Auth;
+import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.rest.AuthScheme;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
@@ -116,6 +116,16 @@ interface AuthTestCases {
         void get();
     }
 
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = { "throwingBean", "throwRuntime" }))
+    interface BeanAuthThrowing01 {
+        void get(@AuthBean.Param RuntimeException exception);
+    }
+
+    @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = { "throwingBean", "throwChecked" }))
+    interface BeanAuthThrowing02 {
+        void get(@AuthBean.Param Exception exception);
+    }
+
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE))
     interface NoneAuth01 {
         // Should have no Auth
@@ -158,13 +168,13 @@ interface AuthTestCases {
         private int randomCount = 0;
 
         @AuthBean.Invoking
-        public String basic(String username, String password) {
+        public String basic(final String username, final String password) {
             basiCount++;
             return new BasicAuth(username, password).header();
         }
 
         @AuthBean.Invoking
-        public String bearerToken(String token) {
+        public String bearerToken(final String token) {
             bearerTokenCount++;
             return new BearerToken(token).header();
         }
@@ -191,6 +201,16 @@ interface AuthTestCases {
             final var now = randomCount;
             randomCount = 0;
             return now;
+        }
+    }
+
+    class MockThrowingAuthBean {
+        public Object throwRuntime(final RuntimeException exception) {
+            throw exception;
+        }
+
+        public Object throwChecked(final Exception exception) throws Exception {
+            throw exception;
         }
     }
 }
