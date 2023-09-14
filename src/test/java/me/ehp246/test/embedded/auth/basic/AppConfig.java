@@ -53,6 +53,11 @@ class AppConfig {
         return new AuthHeaderBuilder();
     }
 
+    @Bean("throwingAuthBean")
+    public ThrowingAuthBean throwingAuthBean() {
+        return new ThrowingAuthBean();
+    }
+
     public class AuthHeaderBuilder {
         @AuthBean.Invoking
         public String basic(final String username, final String password) {

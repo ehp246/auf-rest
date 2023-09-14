@@ -74,7 +74,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     }
 
     @Override
-    public Bound apply(final Object target, final Object[] args) {
+    public Bound apply(final Object target, final Object[] args) throws Throwable {
         final var paths = paths(args);
 
         final var queryBound = new HashMap<String, List<String>>();

@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
  * @see DefaultProxyInvocationBinder
  */
 public interface ProxyInvocationBinder {
-    Bound apply(Object target, Object[] args);
+    Bound apply(Object target, Object[] args) throws Throwable;
 
     record Bound(RestRequest request, BodyOf<?> requestBodyDescriptor, BodyHandlerType<?> responseDescriptor,
             ProxyReturnMapper returnMapper) {

@@ -50,7 +50,7 @@ class DefaultProxyMethodParserTest {
             bodyHandlerResolver, bindingBodyHandlerProvider);
 
     @Test
-    void body_01() {
+    void body_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(BodyTestCases.RequestCase01.class);
 
         captor.proxy().getWithAuthParam("");
@@ -63,7 +63,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void body_02() {
+    void body_02() throws Throwable {
         final var captor = InvocationUtil.newCaptor(BodyTestCases.RequestCase01.class);
         final var expected = UUID.randomUUID().toString();
         captor.proxy().getWithAuthParam("", expected);
@@ -76,7 +76,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authBean_01() {
+    void authBean_01() throws Throwable {
         final var authBean = new MockAuthBean();
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(authResolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
@@ -100,7 +100,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authBean_02() {
+    void authBean_02() throws Throwable {
         final var expected = "username";
         final var captor = InvocationUtil.newCaptor(BeanAuth01.class);
 
@@ -116,7 +116,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authBean_03() {
+    void authBean_03() throws Throwable {
         final var expected = (String) null;
         final var captor = InvocationUtil.newCaptor(BeanAuth01.class);
 
@@ -190,7 +190,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authBean_method_01() {
+    void authBean_method_01() throws Throwable {
         final var authBean = new MockAuthBean();
         final var resolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
@@ -207,7 +207,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authBean_method_02() {
+    void authBean_method_02() throws Throwable {
         final var authBean = new MockAuthBean();
         final var resolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
@@ -224,7 +224,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authBean_08() {
+    void authBean_08() throws Throwable {
         final var authBean = new BasicAuth(UUID.randomUUID().toString(), UUID.randomUUID().toString());
         final var resolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
@@ -253,7 +253,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void authNone_01() {
+    void authNone_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(NoneAuth01.class);
         captor.proxy().get();
 
@@ -276,7 +276,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_02() {
+    void header_02() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().get(List.of("CN", "EN", "   "));
@@ -293,7 +293,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_03() {
+    void header_03() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().get(Map.of("x-correl-id", "mapped", "accept-language", "CN"), "uuid");
@@ -311,7 +311,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_04() {
+    void header_04() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().get(CollectionUtils
@@ -328,7 +328,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_05() {
+    void header_05() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().getMapOfList(Map.of("accept-language", List.of("CN", "EN"), "x-correl-id", List.of("uuid")));
@@ -344,7 +344,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_06() {
+    void header_06() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().getListOfList(List.of(List.of("DE"), List.of("CN", "EN"), List.of("JP")));
@@ -359,7 +359,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_07() {
+    void header_07() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         final var nullList = new ArrayList<String>();
@@ -379,7 +379,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_08() {
+    void header_08() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().get(Map.of("x-correl-id", "id from map", "accept-language", "CN"), null);
@@ -394,7 +394,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_09() {
+    void header_09() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
 
         captor.proxy().get(Map.of("CN", "EN", "   ", ""));
@@ -410,7 +410,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_byRest_01() {
+    void headers_byRest_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
         captor.proxy().get();
 
@@ -424,7 +424,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_case02_01() {
+    void headers_case02_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
         final var expected = new String[] { UUID.randomUUID().toString() };
         captor.proxy().get(expected[0]);
@@ -440,7 +440,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_case02_02() {
+    void headers_case02_02() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
 
         captor.proxy().get(null);
@@ -452,7 +452,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_case02_03() {
+    void headers_case02_03() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
 
         captor.proxy().getCasing(null);
@@ -466,7 +466,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_case02_04() {
+    void headers_case02_04() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase02.class);
 
         final var expected = UUID.randomUUID().toString();
@@ -493,7 +493,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void headers_byRest_04() {
+    void headers_byRest_04() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase04.class);
         captor.proxy().get();
 

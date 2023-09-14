@@ -122,11 +122,13 @@ public final class ReflectedMethod {
     }
 
     /**
-     * Is the given type on the <code>throws</code>. Must be explicitly declared.
-     * Not on the clause doesn't mean the exception can not be thrown by the method,
-     * e.g., all runtime exceptions.
+     * Returns if the method can throw the {@linkplain Throwable}.
+     * {@linkplain RuntimeException} can always be thrown.
+     *
+     * @param e
      */
-    public boolean isOnThrows(final Class<?> type) {
+    public boolean canThrow(final Throwable e) {
+        final var type = e.getClass();
         return RuntimeException.class.isAssignableFrom(type)
                 || this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
     }
