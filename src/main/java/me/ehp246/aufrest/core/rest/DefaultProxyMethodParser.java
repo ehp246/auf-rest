@@ -35,7 +35,7 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
 import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
-import me.ehp246.aufrest.api.exception.InvocationBindingException;
+import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
@@ -435,12 +435,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     if (reflected.canThrow(t)) {
                         throw t;
                     }
-                    throw new InvocationBindingException(t);
+                    throw new ProxyInvocationBinderException(t);
                 } catch (final Throwable e) {
                     if (reflected.canThrow(e)) {
                         throw e;
                     }
-                    throw new InvocationBindingException(e);
+                    throw new ProxyInvocationBinderException(e);
                 }
 
                 // Header could be null.

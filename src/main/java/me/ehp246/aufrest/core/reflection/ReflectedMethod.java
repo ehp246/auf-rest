@@ -124,10 +124,15 @@ public final class ReflectedMethod {
     /**
      * Returns if the method can throw the {@linkplain Throwable}.
      * {@linkplain RuntimeException} can always be thrown.
+     * <p>
+     * Returns <code>false</code> if <code>e</code> is <code>null</code>.
      *
      * @param e
      */
     public boolean canThrow(final Throwable e) {
+        if (e == null) {
+            return false;
+        }
         final var type = e.getClass();
         return RuntimeException.class.isAssignableFrom(type)
                 || this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
