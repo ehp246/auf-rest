@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.CollectionUtils;
 
+import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
@@ -183,7 +184,7 @@ class DefaultProxyMethodParserTest {
 
         Assertions.assertEquals(expected,
                 Assertions
-                        .assertThrows(RuntimeException.class, () -> parser.parse(captRef[0].method())
+                        .assertThrows(ProxyInvocationBinderException.class, () -> parser.parse(captRef[0].method())
                                 .apply(captRef[0].target(), captRef[0].args()).request().authSupplier().get())
                         .getCause(),
                 "should wrap the checked in a Runtime");

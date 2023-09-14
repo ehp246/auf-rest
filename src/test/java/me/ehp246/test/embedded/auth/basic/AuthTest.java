@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuth02;
@@ -117,5 +118,13 @@ class AuthTest {
 
         Assertions.assertEquals(expected, Assertions.assertThrows(IllegalAccessException.class,
                 () -> factory.getBean(BeanAuthThrowing02.class).getWithThrows(expected)));
+    }
+
+    @Test
+    void authBean_throwing_03() {
+        final var expected = new IllegalAccessException();
+
+        Assertions.assertEquals(expected, Assertions.assertThrows(ProxyInvocationBinderException.class,
+                () -> factory.getBean(BeanAuthThrowing02.class).get(expected)).getCause());
     }
 }
