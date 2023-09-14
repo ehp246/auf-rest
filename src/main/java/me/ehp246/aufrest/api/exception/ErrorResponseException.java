@@ -39,9 +39,7 @@ public sealed class ErrorResponseException
         this.request = request;
         this.response = response;
         this.message = "'" + this.response.request().method() + " " + this.response.request().uri()
-                + "' failed because '"
-                + response.statusCode() + " "
-                + Optional.ofNullable(response.body()).map(Object::toString).orElse("") + "'";
+                + "' failed because of '" + response.statusCode() + "'";
     }
 
     @SuppressWarnings("unchecked")
@@ -74,6 +72,15 @@ public sealed class ErrorResponseException
      */
     public List<String> headerValues(final String name) {
         return this.response.headers().allValues(name);
+    }
+
+    /**
+     * Returns the response body by {@linkplain Object#toString()}.
+     *
+     * @return blank string if the response body is <code>null</code>.
+     */
+    public String bodyTotring() {
+        return Optional.ofNullable(response.body()).map(Object::toString).orElse("");
     }
 
     /**
