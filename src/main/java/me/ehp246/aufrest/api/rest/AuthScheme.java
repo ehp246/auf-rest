@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 /**
  * Indicates to the framework how to construct the value of Authorization header
  * for the endpoint with given scheme and arguments.
- * 
+ *
  * @author Lei Yang
  * @since 1.0
  * @see ByRest
@@ -43,7 +43,7 @@ public enum AuthScheme {
      * Blank string is accepted as-is. The framework does not validate the value.
      * <p>
      * Additional values are ignored.
-     * 
+     *
      */
     BEARER,
     /**
@@ -53,7 +53,7 @@ public enum AuthScheme {
      * <p>
      * Requires a single value. Only the first is accepted. Additional values are
      * ignored.
-     * 
+     *
      */
     SIMPLE,
 
@@ -68,11 +68,11 @@ public enum AuthScheme {
      * {@linkplain AuthBean.Param}-annotated parameters exactly. Its return value
      * must be assignable to {@linkplain Object} which will be converted to
      * {@linkplain String} as the header value by {@linkplain Object#toString}. If
-     * {@code null} is returned, the header value will be {@code null}.
+     * the return value is {@code null}, the header value will be {@code null}.
      * <p>
      * If no bean as such can be found at invocation,
      * {@link NoSuchBeanDefinitionException} will be thrown.
-     * 
+     *
      * @see AuthBean
      */
     BEAN,

@@ -9,10 +9,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import me.ehp246.aufrest.api.exception.ClientErrorException;
+import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuth02;
 import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuth03;
+import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuthThrowing01;
+import me.ehp246.test.embedded.auth.basic.TestCases.BeanAuthThrowing02;
 
 /**
  * @author Lei Yang
@@ -99,5 +102,29 @@ class AuthTest {
                 () -> factory.getBean(BeanAuth03.class).get("basicuser", "password"));
 
         Assertions.assertEquals(401, actual.statusCode());
+    }
+
+    @Test
+    void authBean_throwing_01() {
+        final var expected = new RuntimeException();
+
+        Assertions.assertEquals(expected, Assertions.assertThrows(RuntimeException.class,
+                () -> factory.getBean(BeanAuthThrowing01.class).get(expected)));
+    }
+
+    @Test
+    void authBean_throwing_02() {
+        final var expected = new IllegalAccessException();
+
+        Assertions.assertEquals(expected, Assertions.assertThrows(IllegalAccessException.class,
+                () -> factory.getBean(BeanAuthThrowing02.class).getWithThrows(expected)));
+    }
+
+    @Test
+    void authBean_throwing_03() {
+        final var expected = new IllegalAccessException();
+
+        Assertions.assertEquals(expected, Assertions.assertThrows(ProxyInvocationBinderException.class,
+                () -> factory.getBean(BeanAuthThrowing02.class).get(expected)).getCause());
     }
 }

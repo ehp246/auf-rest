@@ -68,4 +68,18 @@ interface TestCases {
     interface BeanAuth03 {
         void get(@AuthBean.Param String username, @AuthBean.Param String password) throws ClientErrorException;
     }
+
+    @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "throwingAuthBean",
+            "throwRuntime" }, scheme = AuthScheme.BEAN))
+    interface BeanAuthThrowing01 {
+        void get(@AuthBean.Param RuntimeException e);
+    }
+
+    @ByRest(value = "http://localhost:${local.server.port}/auth/basic", auth = @Auth(value = { "throwingAuthBean",
+            "throwChecked" }, scheme = AuthScheme.BEAN))
+    interface BeanAuthThrowing02 {
+        void get(@AuthBean.Param Exception e);
+
+        void getWithThrows(@AuthBean.Param Exception e) throws Exception;
+    }
 }

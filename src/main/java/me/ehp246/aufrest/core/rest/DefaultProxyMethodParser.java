@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.rest;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.http.HttpHeaders;
@@ -34,6 +35,7 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
 import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
+import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
@@ -72,8 +74,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final BodyHandlerResolver bodyHandlerResolver;
 
     public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerResolver bodyHandlerResolver,
-            final InferringBodyHandlerProvider inferredHandlerProvider) {
+            final BodyHandlerResolver bodyHandlerResolver, final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.propertyResolver = propertyResolver;
         this.authBeanResolver = authBeanResolver;
         this.inferredHandlerProvider = inferredHandlerProvider;
@@ -243,7 +244,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
              * wrong status code.
              */
             if (received instanceof final UnhandledResponseException unhandledResponse) {
-                if (reflected.isOnThrows(unhandledResponse.getCause().getClass())) {
+                if (reflected.canThrow(unhandledResponse.getCause())) {
                     throw unhandledResponse.getCause();
                 }
 
@@ -255,7 +256,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
              */
             if (received instanceof final RestFnException restFnException) {
                 final var cause = restFnException.getCause();
-                if (cause != null && reflected.isOnThrows(cause.getClass())) {
+                if (cause != null && reflected.canThrow(cause)) {
                     throw cause;
                 }
                 throw restFnException;
@@ -429,10 +430,20 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 final String header;
                 try {
                     header = OneUtil.toString(method.invoke(bean, beanArgs));
+                } catch (final InvocationTargetException e) {
+                    final var t = e.getTargetException();
+                    if (reflected.canThrow(t)) {
+                        throw t;
+                    }
+                    throw new ProxyInvocationBinderException(t);
                 } catch (final Throwable e) {
-                    throw e instanceof final RuntimeException re ? re : new RuntimeException(e);
+                    if (reflected.canThrow(e)) {
+                        throw e;
+                    }
+                    throw new ProxyInvocationBinderException(e);
                 }
 
+                // Header could be null.
                 return () -> header;
             };
         case NONE:

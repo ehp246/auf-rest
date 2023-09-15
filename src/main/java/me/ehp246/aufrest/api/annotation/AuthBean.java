@@ -38,8 +38,12 @@ public @interface AuthBean {
      * Authorization header.
      * <p>
      * The return value from the method is converted to {@linkplain String} via
-     * {@linkplain Object#toString()}. <code>null</code> is accepted and means no
-     * header.
+     * {@linkplain Object#toString()}. <code>null</code> means no
+     * <code>Authorization</code> header.
+     * <p>
+     * If the method throws a {@linkplain RuntimeException} during invocation, the
+     * exception will be propagated as-is. If the thrown is a checked exception, it
+     * will be wrapped in a {@linkplain RuntimeException} first.
      */
     @Retention(RUNTIME)
     @Target(ElementType.METHOD)

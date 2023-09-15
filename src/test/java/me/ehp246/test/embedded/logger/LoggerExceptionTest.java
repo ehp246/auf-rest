@@ -18,7 +18,7 @@ import me.ehp246.aufrest.api.rest.RestLogger;
  *
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-class LoggerTest2 {
+class LoggerExceptionTest {
     @Autowired
     private ApplicationContext appCtx;
 

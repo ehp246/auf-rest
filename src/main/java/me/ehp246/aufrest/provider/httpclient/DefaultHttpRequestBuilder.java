@@ -80,6 +80,13 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
                 });
 
         /**
+         * Request id
+         */
+        if (req.id() != null) {
+            builder.header(HttpUtils.REQUEST_ID, req.id());
+        }
+
+        /**
          * Required headers. Null and blank not allowed.
          *
          * accept, accept-encoding
