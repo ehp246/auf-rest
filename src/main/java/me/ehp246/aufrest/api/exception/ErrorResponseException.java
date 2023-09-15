@@ -38,7 +38,8 @@ public sealed class ErrorResponseException
 
         this.request = request;
         this.response = response;
-        this.message = "Request " + request.id() + " failed: " + response.statusCode();
+        this.message = "Request " + request.id() + ", '" + response.request().method() + " " + response.request().uri()
+                + "' failed: " + response.statusCode();
     }
 
     @SuppressWarnings("unchecked")
