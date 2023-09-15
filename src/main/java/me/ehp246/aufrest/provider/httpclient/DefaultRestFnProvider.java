@@ -35,6 +35,7 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.spi.Log4jContext;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
@@ -89,6 +90,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest req, final BodyOf<?> requestBodyDescriptor,
                     final BodyHandlerType<T> responseBodyDescriptor) {
+
+                Log4jContext.set(req);
+
                 final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
                 listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
@@ -104,7 +108,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 final HttpResponse<?> httpResponse;
                 // Try/catch on send only.
                 try {
-                    httpResponse = client.send(httpReq, handler);
+                    httpResponse = client.send(httpReq, Log4jContext.wrap(req, handler));
 
                     listeners.stream().forEach(listener -> listener.onResponse(httpResponse, req));
 
@@ -157,7 +161,11 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                      * Wrap only the checked.
                      */
                     throw new RestFnException(e, httpReq, req);
+                } finally {
+                    Log4jContext.clear(req);
                 }
+
+                Log4jContext.clear(req);
 
                 return (HttpResponse<T>) httpResponse;
             }

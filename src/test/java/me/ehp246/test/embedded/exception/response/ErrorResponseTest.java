@@ -226,7 +226,9 @@ class ErrorResponseTest {
     void test_error_001() {
         final var ex = Assertions.assertThrows(RedirectionException.class, () -> errorResponseTestCase.getError(399));
 
+        Assertions.assertEquals(true, ex.getMessage().contains(ex.restRequest().id()));
         Assertions.assertEquals(399, ex.statusCode());
+        Assertions.assertEquals("399", ex.bodyTotring());
     }
 
     @Test
