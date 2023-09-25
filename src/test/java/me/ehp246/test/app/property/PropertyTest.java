@@ -3,12 +3,13 @@ package me.ehp246.test.app.property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.RestLogger;
 
 /**
@@ -34,7 +35,7 @@ class PropertyTest {
 
         final var e = Assertions.assertThrows(BeanCreationException.class, appCtx::refresh);
 
-        Assertions.assertEquals(IllegalArgumentException.class, e.getCause().getCause().getClass());
+        Assertions.assertEquals(BeanInstantiationException.class, e.getCause().getCause().getClass());
     }
 
     @Test
@@ -45,7 +46,8 @@ class PropertyTest {
 
         appCtx.refresh();
 
-        Assertions.assertEquals(null, appCtx.getBean(ClientConfig.class).connectTimeout());
+        Assertions.assertEquals(true,
+                appCtx.getBean(HttpClientBuilderSupplier.class).get().build().connectTimeout().isEmpty());
     }
 
     @Test
@@ -56,7 +58,8 @@ class PropertyTest {
 
         appCtx.refresh();
 
-        Assertions.assertEquals(1, appCtx.getBean(ClientConfig.class).connectTimeout().toMinutes());
+        Assertions.assertEquals(1,
+                appCtx.getBean(HttpClientBuilderSupplier.class).get().build().connectTimeout().get().toMinutes());
     }
 
     @Test

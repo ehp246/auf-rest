@@ -22,11 +22,11 @@ class ErrorRequestTest {
 
     @Test
     void restFn_01() {
-        Assertions.assertThrows(RestFnException.class, case01::get).printStackTrace();
+        Assertions.assertThrows(RestFnException.class, case01::get);
     }
 
     @Test
     void throwing_01() {
-        Assertions.assertThrows(ConnectException.class, case01::getThrowing).printStackTrace();
+        Assertions.assertThrows(ConnectException.class, case01::getThrowing);
     }
 }

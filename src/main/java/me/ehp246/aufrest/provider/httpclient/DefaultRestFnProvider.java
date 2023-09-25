@@ -26,7 +26,7 @@ import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
@@ -77,14 +77,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     }
 
     @Override
-    public RestFn get(final ClientConfig clientConfig) {
-        final var clientBuilder = clientBuilderSupplier.get();
-        if (clientConfig.connectTimeout() != null) {
-            clientBuilder.connectTimeout(clientConfig.connectTimeout());
-        }
-
+    public RestFn get(final RestFnConfig restFnConfig) {
         return new RestFn() {
-            private final HttpClient client = clientBuilder.build();
+            private final HttpClient client = clientBuilderSupplier.get().build();
 
             @SuppressWarnings("unchecked")
             @Override

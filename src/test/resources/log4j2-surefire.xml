@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="off">
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="%d{HH:mm:ss.SSS} [%-5level] [%X] [%t] %c{1} [%marker] - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="me.ehp246" level="warn" additivity="false">
+            <AppenderRef ref="console" />
+		</Logger>
+		<Logger name="org.apache.qpid" level="warn" additivity="false">
+            <AppenderRef ref="console" />
+		</Logger>
+		<Root level="warn" additivity="false">
+			<AppenderRef ref="console" />
+		</Root>
+	</Loggers>
+</Configuration>

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
@@ -20,7 +19,7 @@ class TimeoutTest {
     private final PropertyResolver env = new MockEnvironment().withProperty("api.timeout.5s", "PT5S")
             .withProperty("api.timeout.illegal", "5")::resolveRequiredPlaceholders;
 
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn, new ClientConfig(),
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(cfg -> restFn,
             new DefaultProxyMethodParser(env, name -> null, name -> r -> null, new MockBodyHandlerProvider()));
 
     @Test
