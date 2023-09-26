@@ -31,13 +31,13 @@ public final class RestLogger {
     private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
 
     private final static List<String> MASKED = List.of("*");
-    private final static Marker REQUEST = MarkerManager.getMarker("AUFREST_REQUEST");
-    private final static Marker REQUEST_HEADERS = MarkerManager.getMarker("AUFREST_REQUEST_HEADERS");
-    private final static Marker REQUEST_BODY = MarkerManager.getMarker("AUFREST_REQUEST_BODY");
+    private final static Marker REQUEST = MarkerManager.getMarker("REQUEST");
+    private final static Marker REQUEST_HEADERS = MarkerManager.getMarker("REQUEST_HEADERS");
+    private final static Marker REQUEST_BODY = MarkerManager.getMarker("REQUEST_BODY");
 
-    private final static Marker RESPONSE = MarkerManager.getMarker("AUFREST_RESPONSE");
-    private final static Marker RESPONSE_HEADERS = MarkerManager.getMarker("AUFREST_RESPONSE_HEADERS");
-    private final static Marker RESPONSE_BODY = MarkerManager.getMarker("AUFREST_RESPONSE_BODY");
+    private final static Marker RESPONSE = MarkerManager.getMarker("RESPONSE");
+    private final static Marker RESPONSE_HEADERS = MarkerManager.getMarker("RESPONSE_HEADERS");
+    private final static Marker RESPONSE_BODY = MarkerManager.getMarker("RESPONSE_BODY");
 
     private final static Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
 
