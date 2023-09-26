@@ -15,6 +15,7 @@ import org.springframework.core.type.AnnotationMetadata;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
     private final static Logger LOGGER = LogManager.getLogger(ByRestRegistrar.class);
@@ -35,7 +36,7 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
                 throw new RuntimeException("Class scanning started this. Should not happen.");
             }
 
-            final var beanName = beanName(byRestInterface);
+            final var beanName = OneUtil.beanName(byRestInterface);
             final var proxyBeanDefinition = this.getProxyBeanDefinition(
                     metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName()), byRestInterface);
 
@@ -46,18 +47,6 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
 
             registry.registerBeanDefinition(beanName, proxyBeanDefinition);
         }
-    }
-
-    private String beanName(final Class<?> byRestInterface) {
-        final var name = byRestInterface.getAnnotation(ByRest.class).name();
-        if (!name.isBlank()) {
-            return name;
-        }
-
-        final char c[] = byRestInterface.getSimpleName().toCharArray();
-        c[0] = Character.toLowerCase(c[0]);
-
-        return new String(c);
     }
 
     private BeanDefinition getProxyBeanDefinition(final Map<String, Object> map, final Class<?> byRestInterface) {

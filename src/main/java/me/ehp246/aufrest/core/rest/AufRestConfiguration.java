@@ -52,7 +52,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
  * @since 1.0
  */
 @Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class,
-        DefaultContentPublisherProvider.class })
+        DefaultContentPublisherProvider.class, DefaultHttpClientExecutorProvider.class })
 public final class AufRestConfiguration {
     private final static List<String> MODULES = List.of("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
             "com.fasterxml.jackson.module.mrbean.MrBeanModule",
@@ -94,7 +94,7 @@ public final class AufRestConfiguration {
     }
 
     @Bean("404d421e-45a8-483e-9f62-2367cfda4a80")
-    public HttpClientBuilderSupplier httpClientBuilderSupplier(
+    public HttpClientBuilderSupplier httpClientBuilderProvider(
             @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
         final var conTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
                 .map(value -> OneUtil.orThrow(() -> Duration.parse(value),

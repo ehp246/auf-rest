@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import me.ehp246.aufrest.api.annotation.ByRest;
 
 /**
  * @author Lei Yang
@@ -95,5 +98,22 @@ public final class OneUtil {
         }
 
         return map;
+    }
+
+    public static String beanName(final Class<?> byRestInterface) {
+        final var name = byRestInterface.getAnnotation(ByRest.class).name();
+        if (!name.isBlank()) {
+            return name;
+        }
+
+        final char c[] = byRestInterface.getSimpleName().toCharArray();
+        c[0] = Character.toLowerCase(c[0]);
+
+        return new String(c);
+    }
+
+    public static String firstUpper(final String value) {
+        return value == null || value.length() == 0 ? value
+                : value.substring(0, 1).toUpperCase(Locale.US) + value.substring(1);
     }
 }

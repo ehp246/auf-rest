@@ -25,23 +25,23 @@ class ByRestConfigurationTest01 {
     @Test
     void test_001() {
         Assertions.assertEquals(true,
-                new AufRestConfiguration().httpClientBuilderSupplier("").get().build().connectTimeout().isEmpty());
+                new AufRestConfiguration().httpClientBuilderProvider("").get().build().connectTimeout().isEmpty());
     }
 
     @Test
     void test_002() {
         Assertions.assertEquals(true,
-                new AufRestConfiguration().httpClientBuilderSupplier(null).get().build().connectTimeout().isEmpty());
+                new AufRestConfiguration().httpClientBuilderProvider(null).get().build().connectTimeout().isEmpty());
     }
 
     @Test
     void test_004() {
-        Assertions.assertDoesNotThrow(() -> new AufRestConfiguration().httpClientBuilderSupplier(null));
+        Assertions.assertDoesNotThrow(() -> new AufRestConfiguration().httpClientBuilderProvider(null));
     }
 
     @Test
     void test_005() {
-        Assertions.assertEquals(1000, new AufRestConfiguration().httpClientBuilderSupplier("PT1S").get().build()
+        Assertions.assertEquals(1000, new AufRestConfiguration().httpClientBuilderProvider("PT1S").get().build()
                 .connectTimeout().get().toMillis());
     }
 
