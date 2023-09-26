@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
@@ -26,11 +28,12 @@ import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
+import me.ehp246.aufrest.api.rest.HttpClientExecutorProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
@@ -59,15 +62,18 @@ import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
  */
 public final class DefaultRestFnProvider implements RestFnProvider {
     private final HttpClientBuilderSupplier clientBuilderSupplier;
+    private final HttpClientExecutorProvider executorProvider;
     private final HttpRequestBuilder reqBuilder;
     private final List<RestListener> listeners;
     private final InferringBodyHandlerProvider handlerProvider;
     private final RestLogger restLogger;
 
-    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
+    @Autowired
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final HttpClientExecutorProvider executorProvider,
             final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
             final List<RestListener> listeners, final RestLogger restLogger) {
         this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder : clientBuilderSupplier;
+        this.executorProvider = executorProvider;
         this.reqBuilder = Objects.requireNonNull(reqBuilder,
                 HttpRequestBuilder.class.getSimpleName() + " must be specified");
         this.listeners = listeners == null ? List.of() : Collections.unmodifiableList(listeners);
@@ -76,15 +82,20 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 InferringBodyHandlerProvider.class.getSimpleName() + " must be specified");
     }
 
-    @Override
-    public RestFn get(final ClientConfig clientConfig) {
-        final var clientBuilder = clientBuilderSupplier.get();
-        if (clientConfig.connectTimeout() != null) {
-            clientBuilder.connectTimeout(clientConfig.connectTimeout());
-        }
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
+            final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
+            final List<RestListener> listeners, final RestLogger restLogger) {
+        this(reqBuilder, null, handlerProvider, clientBuilderSupplier, listeners, restLogger);
+    }
 
+    @Override
+    public RestFn get(final RestFnConfig restFnConfig) {
+        final var builder = clientBuilderSupplier.get();
+        if (executorProvider != null) {
+            builder.executor(executorProvider.get(new HttpClientExecutorProvider.Config(restFnConfig.name())));
+        }
         return new RestFn() {
-            private final HttpClient client = clientBuilder.build();
+            private final HttpClient client = builder.build();
 
             @SuppressWarnings("unchecked")
             @Override

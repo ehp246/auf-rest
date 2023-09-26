@@ -2,7 +2,7 @@ package me.ehp246.test.mock;
 
 import java.net.http.HttpResponse;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
+import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -31,7 +31,7 @@ public class MockRestFnProvider implements RestFnProvider {
     }
 
     @Override
-    public RestFn get(final ClientConfig clientConfig) {
+    public RestFn get(final RestFnConfig restFnConfig) {
         if (this.except != null) {
             return new RestFn() {
 

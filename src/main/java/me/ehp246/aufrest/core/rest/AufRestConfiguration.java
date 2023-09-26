@@ -27,11 +27,11 @@ import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.spi.PropertyResolver;
@@ -52,7 +52,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
  * @since 1.0
  */
 @Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class,
-        DefaultContentPublisherProvider.class })
+        DefaultContentPublisherProvider.class, DefaultHttpClientExecutorProvider.class })
 public final class AufRestConfiguration {
     private final static List<String> MODULES = List.of("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
             "com.fasterxml.jackson.module.mrbean.MrBeanModule",
@@ -62,16 +62,6 @@ public final class AufRestConfiguration {
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
             @Value("${" + AufRestConstants.REST_LOGGER_MASKED + ":authorization}") final Set<String> masked) {
         return enabled ? new RestLogger(masked) : null;
-    }
-
-    @Bean("8d4bb36b-67e6-4af9-8d27-c69ed217e235")
-    public ClientConfig clientConfig(
-            @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
-        return new ClientConfig(
-                Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
-                        .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
-                                e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
-                        .orElse(null));
     }
 
     @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
@@ -94,8 +84,8 @@ public final class AufRestConfiguration {
     }
 
     @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")
-    public RestFn restFn(final RestFnProvider restFnProvider, final ClientConfig clientConfig) {
-        return restFnProvider.get(clientConfig);
+    public RestFn restFn(final RestFnProvider restFnProvider) {
+        return restFnProvider.get(new RestFnConfig("ac6621d6-1220-4248-ba3f-29f9dc54499b"));
     }
 
     @Bean("216fbb62-0701-43fb-9fdd-a6df279c92bc")
@@ -104,8 +94,19 @@ public final class AufRestConfiguration {
     }
 
     @Bean("404d421e-45a8-483e-9f62-2367cfda4a80")
-    public HttpClientBuilderSupplier httpClientBuilderSupplier() {
-        return HttpClient::newBuilder;
+    public HttpClientBuilderSupplier httpClientBuilderProvider(
+            @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
+        final var conTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
+                .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
+                        e -> new IllegalArgumentException("Invalid Connection Timeout: " + value)))
+                .orElse(null);
+        return () -> {
+            final var newBuilder = HttpClient.newBuilder();
+            if (conTimeout != null) {
+                newBuilder.connectTimeout(conTimeout);
+            }
+            return newBuilder;
+        };
     }
 
     @Bean("96eb8fd6-602c-4f61-8621-f29f70365be5")

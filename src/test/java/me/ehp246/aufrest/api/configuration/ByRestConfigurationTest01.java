@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
@@ -25,33 +24,25 @@ class ByRestConfigurationTest01 {
 
     @Test
     void test_001() {
-        final var clientConfig = new AufRestConfiguration().clientConfig("");
-
-        Assertions.assertEquals(null, clientConfig.connectTimeout());
+        Assertions.assertEquals(true,
+                new AufRestConfiguration().httpClientBuilderProvider("").get().build().connectTimeout().isEmpty());
     }
 
     @Test
     void test_002() {
-        final var clientConfig = new AufRestConfiguration().clientConfig(null);
-
-        Assertions.assertEquals(null, clientConfig.connectTimeout());
+        Assertions.assertEquals(true,
+                new AufRestConfiguration().httpClientBuilderProvider(null).get().build().connectTimeout().isEmpty());
     }
 
     @Test
     void test_004() {
-        Assertions.assertDoesNotThrow(() -> new AufRestConfiguration().clientConfig(null));
+        Assertions.assertDoesNotThrow(() -> new AufRestConfiguration().httpClientBuilderProvider(null));
     }
 
     @Test
     void test_005() {
-        final var clientConfig = new AufRestConfiguration().clientConfig("PT1S");
-
-        Assertions.assertEquals(1000, clientConfig.connectTimeout().toMillis());
-    }
-
-    @Test
-    void timeout_001() {
-        Assertions.assertEquals(null, beanFactory.getBean(ClientConfig.class).connectTimeout());
+        Assertions.assertEquals(1000, new AufRestConfiguration().httpClientBuilderProvider("PT1S").get().build()
+                .connectTimeout().get().toMillis());
     }
 
     @Test

@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
@@ -20,9 +19,8 @@ import me.ehp246.test.mock.MockRestFn;
 class ReturnTypeTest {
     private final AtomicReference<RestRequest> reqRef = new AtomicReference<>();
     private final MockRestFn restFn = new MockRestFn();
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
-            new DefaultProxyMethodParser(Object::toString, name -> null, name -> r -> null,
-                    new MockBodyHandlerProvider()));
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), new DefaultProxyMethodParser(
+            Object::toString, name -> null, name -> r -> null, new MockBodyHandlerProvider()));
 
     @BeforeEach
     void beforeEach() {

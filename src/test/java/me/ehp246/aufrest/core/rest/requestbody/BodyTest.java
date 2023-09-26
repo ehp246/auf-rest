@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.core.rest.ByRestProxyFactory;
 import me.ehp246.aufrest.core.rest.DefaultProxyMethodParser;
@@ -35,8 +34,7 @@ class BodyTest {
     private final BodyHandlerResolver bodyHandlerResolver = name -> resolvedBodyHandler;
     private final ProxyMethodParser parser = new DefaultProxyMethodParser(Object::toString, name -> null,
             bodyHandlerResolver, mockBodyHandler.toProvider());
-    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
-            parser);
+    private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), parser);
 
     @Test
     void request_01() {
@@ -117,10 +115,10 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("named"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase01.class)
-                                .getOfMappingNamed();
+                        Mockito.mock(InferringBodyHandlerProvider.class)))
+                                .newInstance(BodyTestCases.ResponseCase01.class).getOfMappingNamed();
 
         Assertions.assertEquals(expected, restFn.handler());
     }
@@ -130,10 +128,10 @@ class BodyTest {
         final var expected = Mockito.mock(BodyHandler.class);
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
 
-        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
-                                .getOnMethod(0, expected);
+                        Mockito.mock(InferringBodyHandlerProvider.class)))
+                                .newInstance(BodyTestCases.ResponseCase02.class).getOnMethod(0, expected);
 
         /*
          * Should not call the resolver
@@ -146,10 +144,10 @@ class BodyTest {
     void response_06() {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
 
-        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
-                                .get(null);
+                        Mockito.mock(InferringBodyHandlerProvider.class)))
+                                .newInstance(BodyTestCases.ResponseCase02.class).get(null);
 
         Assertions.assertEquals(null, restFn.handler());
     }
@@ -160,10 +158,10 @@ class BodyTest {
         final var namedResolver = Mockito.mock(BodyHandlerResolver.class);
         Mockito.when(namedResolver.get(Mockito.eq("methodNamed"))).thenReturn(expected);
 
-        new ByRestProxyFactory(restFn.toProvider(), new ClientConfig(),
+        new ByRestProxyFactory(restFn.toProvider(),
                 new DefaultProxyMethodParser(Object::toString, name -> null, namedResolver,
-                        Mockito.mock(InferringBodyHandlerProvider.class))).newInstance(BodyTestCases.ResponseCase02.class)
-                                .getOfMappingNamed();
+                        Mockito.mock(InferringBodyHandlerProvider.class)))
+                                .newInstance(BodyTestCases.ResponseCase02.class).getOfMappingNamed();
 
         Assertions.assertEquals(expected, restFn.handler());
     }

@@ -10,9 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestFn;
+import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
+import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * Factory of {@linkplain ByRest} beans. Depended by
@@ -27,14 +28,11 @@ public final class ByRestProxyFactory {
     private final Map<Method, ProxyInvocationBinder> parsedCache = new ConcurrentHashMap<>();
 
     private final RestFnProvider clientProvider;
-    private final ClientConfig clientConfig;
     private final ProxyMethodParser methodParser;
 
-    public ByRestProxyFactory(final RestFnProvider restFnProvider, final ClientConfig clientConfig,
-            final ProxyMethodParser methodParser) {
+    public ByRestProxyFactory(final RestFnProvider restFnProvider, final ProxyMethodParser methodParser) {
         super();
         this.clientProvider = restFnProvider;
-        this.clientConfig = clientConfig;
         this.methodParser = methodParser;
     }
 
@@ -42,7 +40,8 @@ public final class ByRestProxyFactory {
     public <T> T newInstance(final Class<T> byRestInterface) {
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
-                    private final RestFn restFn = clientProvider.get(clientConfig);
+                    private final RestFn restFn = clientProvider
+                            .get(new RestFnConfig(OneUtil.firstUpper(OneUtil.beanName(byRestInterface))));
 
                     @Override
                     public Object invoke(final Object proxy, final Method method, final Object[] args)

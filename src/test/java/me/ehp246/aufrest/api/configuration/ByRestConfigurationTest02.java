@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import me.ehp246.aufrest.api.rest.ClientConfig;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
@@ -23,11 +22,6 @@ import me.ehp246.test.mock.Jackson;
 class ByRestConfigurationTest02 {
     @Autowired
     private ListableBeanFactory beanFactory;
-
-    @Test
-    void timeout_001() {
-        Assertions.assertEquals("PT0.01S", beanFactory.getBean(ClientConfig.class).connectTimeout().toString());
-    }
 
     @Test
     void timeout_002() {

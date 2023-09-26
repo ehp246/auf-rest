@@ -49,7 +49,7 @@ class LoggerTest {
     @Test
     void onException_02() {
         Assertions.assertThrows(NotFoundException.class,
-                () -> case01.postNullThrowing(Instant.now(), Instant.now().toString())).printStackTrace();
+                () -> case01.postNullThrowing(Instant.now(), Instant.now().toString()));
     }
 
 }
