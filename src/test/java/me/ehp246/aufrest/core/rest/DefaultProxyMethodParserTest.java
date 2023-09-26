@@ -545,7 +545,40 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void uri_01() {
+    void threadContext_01() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var name = UUID.randomUUID().toString();
 
+        captor.proxy().get(name, 10);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(3, threadContext.size());
+        Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
+        Assertions.assertEquals(name, threadContext.get("name"));
+        Assertions.assertEquals("10", threadContext.get("SSN"));
+    }
+
+    @Test
+    void threadContext_02() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var expected = new ThreadContextTestCases.Person(UUID.randomUUID().toString(),
+                UUID.randomUUID().toString());
+
+        captor.proxy().getOnBody(expected);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(2, threadContext.size());
+        Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
+        Assertions.assertEquals(expected.toString(), threadContext.get("person"));
     }
 }

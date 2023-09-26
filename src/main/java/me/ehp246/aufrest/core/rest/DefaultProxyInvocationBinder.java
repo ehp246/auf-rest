@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -39,6 +40,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Map<Integer, String> queryParams;
     private final Map<String, List<String>> queryStatic;
     private final Map<Integer, String> headerParams;
+    private final Map<Integer, String> threadContexParams;
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     // Request body related.
@@ -54,7 +56,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final Map<Integer, String> threadContexParams,
+            final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -67,6 +70,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.queryStatic = queryStatic;
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
+        this.threadContexParams = threadContexParams;
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyOf = bodyInfo;
@@ -148,6 +152,11 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
         final var id = UUID.randomUUID().toString();
 
+        final var threadContextBound = new HashMap<String, String>(this.threadContexParams.size());
+        this.threadContexParams.entrySet().stream().forEach(
+                entry -> threadContextBound.put(entry.getValue(), OneUtil.toString(args[entry.getKey()])));
+        threadContextBound.put(AufRestConstants.AUFRESTREQUESTID, id);
+
         return new Bound(new RestRequest() {
 
             @Override
@@ -209,7 +218,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+        }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper, threadContextBound);
     }
 
     private Map<String, ?> paths(final Object[] args) {

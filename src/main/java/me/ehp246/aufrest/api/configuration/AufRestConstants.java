@@ -47,6 +47,8 @@ public final class AufRestConstants {
      */
     public static final String AUF_REST_OBJECT_MAPPER = "aufRestObjectMapper";
 
+    public static final String AUFRESTREQUESTID = "AufRestRequestId";
+
     private AufRestConstants() {
         super();
     }

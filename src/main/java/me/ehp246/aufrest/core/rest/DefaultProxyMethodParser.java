@@ -35,6 +35,7 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
 import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
+import me.ehp246.aufrest.api.annotation.OfThreadContext;
 import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
@@ -132,7 +133,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
-                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
+                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), threadContextParams(reflected),
+                proxyReturnMapper(reflected));
     }
 
     /*
@@ -311,6 +313,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     .add(propertyResolver.resolve(headers.get(i + 1)));
         }
         return headerStatic;
+    }
+
+    private Map<Integer, String> threadContextParams(final ReflectedMethod reflected) {
+        return reflected.allParametersWith(OfThreadContext.class).stream()
+                .collect(Collectors.toMap(ReflectedParameter::index, p -> {
+                    final var name = p.parameter().getAnnotation(OfThreadContext.class).value();
+                    return OneUtil.hasValue(name) ? name : p.parameter().getName();
+                }));
     }
 
     private Map<String, List<String>> queryStatic(final ByRest byRest) {

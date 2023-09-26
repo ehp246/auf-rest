@@ -8,6 +8,8 @@ import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.ThreadContext;
+
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -67,10 +69,16 @@ public final class ByRestProxyFactory {
                         final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
+                        ThreadContext.putAll(bound.threadContext());
+
                         final var outcome = FnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
                                 bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
-                        return bound.returnMapper().apply(bound.request(), outcome);
+                        final var returnValue = bound.returnMapper().apply(bound.request(), outcome);
+
+                        ThreadContext.removeAll(bound.threadContext().keySet());
+
+                        return returnValue;
                     }
                 });
     }
