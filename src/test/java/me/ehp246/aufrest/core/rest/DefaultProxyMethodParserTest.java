@@ -182,12 +182,13 @@ class DefaultProxyMethodParserTest {
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).get(expected);
 
-        Assertions.assertEquals(expected,
-                Assertions
-                        .assertThrows(ProxyInvocationBinderException.class, () -> parser.parse(captRef[0].method())
-                                .apply(captRef[0].target(), captRef[0].args()).request().authSupplier().get())
-                        .getCause(),
-                "should wrap the checked in a Runtime");
+        Assertions
+                .assertEquals(expected,
+                        Assertions.assertThrows(ProxyInvocationBinderException.class,
+                                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args())
+                                        .request().authSupplier().get())
+                                .getCause(),
+                        "should wrap the checked in a Runtime");
     }
 
     @Test
@@ -581,4 +582,37 @@ class DefaultProxyMethodParserTest {
         Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
         Assertions.assertEquals(expected.toString(), threadContext.get("person"));
     }
+
+    @Test
+    void threadContext_03() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+
+        captor.proxy().getOnBody(null);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(2, threadContext.size());
+        Assertions.assertEquals("null", threadContext.get("person"));
+    }
+
+    @Test
+    void threadContext_04() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+
+        captor.proxy().get();
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(1, threadContext.size());
+        Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
+    }
+
 }

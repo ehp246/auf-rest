@@ -154,7 +154,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
         final var threadContextBound = new HashMap<String, String>(this.threadContexParams.size());
         this.threadContexParams.entrySet().stream().forEach(
-                entry -> threadContextBound.put(entry.getValue(), OneUtil.toString(args[entry.getKey()])));
+                entry -> threadContextBound.put(entry.getValue(), args[entry.getKey()] + ""));
+
         threadContextBound.put(AufRestConstants.AUFRESTREQUESTID, id);
 
         return new Bound(new RestRequest() {
