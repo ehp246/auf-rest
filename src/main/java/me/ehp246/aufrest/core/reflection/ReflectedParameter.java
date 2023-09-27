@@ -6,5 +6,5 @@ import java.lang.reflect.Parameter;
  * @author Lei Yang
  *
  */
-public record ReflectedParameter(Parameter parameter, int index) {
+public record ReflectedParameter(Parameter parameter, int index, ReflectedMethod reflectedFrom) {
 }

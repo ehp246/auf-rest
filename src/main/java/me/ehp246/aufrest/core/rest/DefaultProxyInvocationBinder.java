@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
+    private final Function<Object, Map<String, String>> threadContextBodyArgBinder;
     private final BodyOf<?> bodyOf;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
@@ -56,6 +58,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
+            final Function<Object, Map<String, String>> threadContextBodyArgBinder,
             final ArgBinder<Object, BodyHandler<?>> consumerBinder, final Map<Integer, String> threadContexParams,
             final ProxyReturnMapper returnMapper) {
         super();
@@ -71,6 +74,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.headerParams = headerParams;
         this.headerStatic = headerStatic;
         this.threadContexParams = threadContexParams;
+        this.threadContextBodyArgBinder = threadContextBodyArgBinder;
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyOf = bodyInfo;
@@ -155,6 +159,10 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         final var threadContextBound = new HashMap<String, String>(this.threadContexParams.size());
         this.threadContexParams.entrySet().stream().forEach(
                 entry -> threadContextBound.put(entry.getValue(), args[entry.getKey()] + ""));
+
+        if (this.threadContextBodyArgBinder != null) {
+            threadContextBound.putAll(this.threadContextBodyArgBinder.apply(body));
+        }
 
         threadContextBound.put(AufRestConstants.AUFRESTREQUESTID, id);
 

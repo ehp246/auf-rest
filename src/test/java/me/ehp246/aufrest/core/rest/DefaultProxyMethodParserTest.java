@@ -3,6 +3,7 @@ package me.ehp246.aufrest.core.rest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -567,7 +568,7 @@ class DefaultProxyMethodParserTest {
     @Test
     void threadContext_02() throws Throwable {
         final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
-        final var expected = new ThreadContextTestCases.Person(UUID.randomUUID().toString(),
+        final var expected = new ThreadContextTestCases.Name(UUID.randomUUID().toString(),
                 UUID.randomUUID().toString());
 
         captor.proxy().getOnBody(expected);
@@ -580,7 +581,7 @@ class DefaultProxyMethodParserTest {
 
         Assertions.assertEquals(2, threadContext.size());
         Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
-        Assertions.assertEquals(expected.toString(), threadContext.get("person"));
+        Assertions.assertEquals(expected.toString(), threadContext.get("name"));
     }
 
     @Test
@@ -596,7 +597,7 @@ class DefaultProxyMethodParserTest {
         final var threadContext = bound.threadContext();
 
         Assertions.assertEquals(2, threadContext.size());
-        Assertions.assertEquals("null", threadContext.get("person"));
+        Assertions.assertEquals("null", threadContext.get("name"));
     }
 
     @Test
@@ -615,4 +616,76 @@ class DefaultProxyMethodParserTest {
         Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
     }
 
+    @Test
+    void threadContext_05() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var expected = new ThreadContextTestCases.Name(UUID.randomUUID().toString(),
+                UUID.randomUUID().toString());
+
+        captor.proxy().getInBody(expected);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(expected.firstName(), threadContext.get("FirstName"));
+        Assertions.assertEquals(expected.lastName(), threadContext.get("LastName"));
+        Assertions.assertEquals(expected.fullName(), threadContext.get("FullName"));
+    }
+
+    @Test
+    void threadContext_06() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+
+        captor.proxy().getInBody((ThreadContextTestCases.Name) null);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals("null", threadContext.get("FirstName"), "should follow ThreadContext convention");
+        Assertions.assertEquals("null", threadContext.get("LastName"));
+    }
+
+    @Test
+    void threadContext_07() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+
+        final var expected = UUID.randomUUID().toString();
+
+        captor.proxy().get(UUID.randomUUID().toString(), expected);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(expected, threadContext.get("name"), "should follow the last");
+    }
+
+    @Test
+    void threadContext_08() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+
+        final var expected = new ThreadContextTestCases.DupName(UUID.randomUUID().toString(),
+                UUID.randomUUID().toString());
+
+        captor.proxy().getInBody(expected);
+
+        final var invocation = captor.invocation();
+
+        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+
+        final var threadContext = bound.threadContext();
+
+        Assertions.assertEquals(true,
+                Set.of(expected.firstName(), expected.lastName(), expected.fullName())
+                        .contains(threadContext.get("name")),
+                "should not be sure on the order");
+    }
 }

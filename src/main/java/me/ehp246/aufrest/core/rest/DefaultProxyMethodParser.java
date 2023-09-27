@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -124,20 +125,54 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new BodyOf<>(
-                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
-                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
+                .map(parameter -> new BodyOf<>(Optional.ofNullable(parameter.getAnnotation(JsonView.class))
+                        .map(JsonView::value).filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
                         parameter.getType()))
                 .orElse(null);
 
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
-                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), threadContextParams(reflected),
-                proxyReturnMapper(reflected));
+                bodyArgBinder, bodyOf, threadContextBodyArgBinder(bodyParam), responseHandlerBinder(byRest, reflected),
+                threadContextParams(reflected), proxyReturnMapper(reflected));
     }
 
-    /*
+    /**
+     * ThreadContext from the body argument. Only when there is a body argument and
+     * it's not annotated directly.
+     */
+    private Function<Object, Map<String, String>> threadContextBodyArgBinder(
+            final Optional<ReflectedParameter> bodyParam) {
+        if (bodyParam.isEmpty() || bodyParam.get().parameter().getAnnotation(OfThreadContext.class) != null) {
+            return null;
+        }
+
+        /*
+         * Duplicated names will overwrite each other un-deterministically.
+         */
+        final var binderMap = new ReflectedType<>(bodyParam.get().parameter().getType())
+                .streamSuppliersWith(OfThreadContext.class)
+                .collect(
+                        Collectors.toMap(
+                                m -> Optional.of(m.getAnnotation(OfThreadContext.class).value())
+                                        .filter(OneUtil::hasValue).orElseGet(() -> OneUtil.firstUpper(m.getName())),
+                                Function.identity(), (l, r) -> r))
+                .entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
+                    final var method = entry.getValue();
+                    return (Function<Object, String>) target -> {
+                        try {
+                            return method.invoke(target).toString();
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                            throw new RuntimeException(e);
+                        }
+                    };
+                }));
+
+        return target -> binderMap.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
+                entry -> target == null ? "null" : binderMap.get(entry.getKey()).apply(target)));
+    }
+
+    /**
      * Returns and response body handlers are coupled.
      */
     @SuppressWarnings("unchecked")
@@ -420,7 +455,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var methodName = value.get(1);
             final var bean = authBeanResolver.get(beanName);
             final var beanParams = reflected.allParametersWith(AuthBean.Param.class);
-            final var reflectedType = new ReflectedType(bean.getClass());
+            final var reflectedType = new ReflectedType<>(bean.getClass());
             final var method = reflectedType.streamMethodsWith(AuthBean.Invoking.class)
                     .filter(m -> Optional.ofNullable(m.getAnnotation(AuthBean.Invoking.class).value())
                             .filter(OneUtil::hasValue).orElseGet(m::getName).equals(methodName))
