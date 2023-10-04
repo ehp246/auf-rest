@@ -268,14 +268,18 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_01() {
+    void header_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
-        captor.proxy().getRepeated("", "");
+        captor.proxy().getRepeated("1", "2");
 
         final var invocation = captor.invocation();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
+        final var header = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers().get("x-correl-id");
+
+        Assertions.assertEquals(2, header.size(), "should be on the lower case");
+        Assertions.assertEquals("1", header.get(0));
+        Assertions.assertEquals("2", header.get(1));
     }
 
     @Test

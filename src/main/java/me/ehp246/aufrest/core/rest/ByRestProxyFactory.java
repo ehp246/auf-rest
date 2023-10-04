@@ -42,7 +42,7 @@ public final class ByRestProxyFactory {
                 new InvocationHandler() {
                     private final int hashCode = new Object().hashCode();
                     private final RestFn restFn = clientProvider
-                            .get(new RestFnConfig(OneUtil.firstUpper(OneUtil.beanName(byRestInterface))));
+                            .get(new RestFnConfig(OneUtil.firstUpper(OneUtil.byRestBeanName(byRestInterface))));
 
                     @Override
                     public Object invoke(final Object proxy, final Method method, final Object[] args)

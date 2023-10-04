@@ -36,7 +36,7 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
                 throw new RuntimeException("Class scanning started this. Should not happen.");
             }
 
-            final var beanName = OneUtil.beanName(byRestInterface);
+            final var beanName = OneUtil.byRestBeanName(byRestInterface);
             final var proxyBeanDefinition = this.getProxyBeanDefinition(
                     metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName()), byRestInterface);
 

@@ -100,7 +100,7 @@ public final class OneUtil {
         return map;
     }
 
-    public static String beanName(final Class<?> byRestInterface) {
+    public static String byRestBeanName(final Class<?> byRestInterface) {
         final var name = byRestInterface.getAnnotation(ByRest.class).name();
         if (!name.isBlank()) {
             return name;

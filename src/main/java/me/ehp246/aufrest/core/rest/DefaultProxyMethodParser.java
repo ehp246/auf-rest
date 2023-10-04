@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -316,21 +315,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
-        final var headerParams = reflected.allParametersWith(OfHeader.class).stream().map(p -> {
-            final var name = p.parameter().getAnnotation(OfHeader.class).value();
-            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
-                throw new IllegalArgumentException(
-                        "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
-            }
-            return p;
-        }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(OfHeader.class).value().toString().toLowerCase(Locale.US)));
-
-        final var namesOnParam = headerParams.values();
-        if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
-            throw new IllegalArgumentException("Duplicate header names on " + reflected.method());
-        }
-        return headerParams;
+        return reflected.allParametersWith(OfHeader.class).stream()
+                .collect(Collectors.toMap(ReflectedParameter::index, p -> {
+                    final var name = Optional.ofNullable(p.parameter().getAnnotation(OfHeader.class).value().toString())
+                            .filter(OneUtil::hasValue).orElseGet(() -> p.parameter().getName()).toLowerCase(Locale.US);
+                    if (HttpUtils.RESERVED_HEADERS.contains(name)) {
+                        throw new IllegalArgumentException("Illegal header '" + name + "' on "
+                                + p.parameter().getDeclaringExecutable().toString());
+                    }
+                    return name;
+                }));
     }
 
     /**
