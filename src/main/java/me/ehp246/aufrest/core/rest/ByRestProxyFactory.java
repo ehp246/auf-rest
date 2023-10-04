@@ -8,8 +8,6 @@ import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.logging.log4j.ThreadContext;
-
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.api.rest.RestFn;
@@ -42,6 +40,7 @@ public final class ByRestProxyFactory {
     public <T> T newInstance(final Class<T> byRestInterface) {
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
+                    private final int hashCode = new Object().hashCode();
                     private final RestFn restFn = clientProvider
                             .get(new RestFnConfig(OneUtil.firstUpper(OneUtil.beanName(byRestInterface))));
 
@@ -49,10 +48,10 @@ public final class ByRestProxyFactory {
                     public Object invoke(final Object proxy, final Method method, final Object[] args)
                             throws Throwable {
                         if (method.getName().equals("toString")) {
-                            return ByRestProxyFactory.this.toString();
+                            return byRestInterface.toString();
                         }
                         if (method.getName().equals("hashCode")) {
-                            return ByRestProxyFactory.this.hashCode();
+                            return hashCode;
                         }
                         if (method.getName().equals("equals")) {
                             return proxy == args[0];
@@ -69,14 +68,10 @@ public final class ByRestProxyFactory {
                         final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
-                        ThreadContext.putAll(bound.threadContext());
-
                         final var outcome = FnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
                                 bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
                         final var returnValue = bound.returnMapper().apply(bound.request(), outcome);
-
-                        ThreadContext.removeAll(bound.threadContext().keySet());
 
                         return returnValue;
                     }

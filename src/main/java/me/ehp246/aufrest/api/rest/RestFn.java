@@ -26,7 +26,7 @@ public interface RestFn {
      * {@linkplain UnhandledResponseException} will be raised.
      *
      * @param <T>                The expected payload type.
-     * @param request
+     * @param request            Required, can't be <code>null</code>.
      * @param requestDescriptor  Can be <code>null</code>. In which case, the object
      *                           reference type will be used for serialization.
      * @param responseDescriptor Defines how to de-serialize the response body. Both

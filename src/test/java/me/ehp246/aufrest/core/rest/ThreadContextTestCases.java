@@ -1,8 +1,8 @@
 package me.ehp246.aufrest.core.rest;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfLog4jContext;
 import me.ehp246.aufrest.api.annotation.OfQuery;
-import me.ehp246.aufrest.api.annotation.OfThreadContext;
 
 /**
  * @author Lei Yang
@@ -13,32 +13,31 @@ interface ThreadContextTestCases {
     interface Case01 {
         void get();
 
-        /**
-         * Should throw?
-         */
-        void get(@OfThreadContext("name") String firstName, @OfThreadContext("name") String lastName);
+        void get(@OfLog4jContext("name") String firstName, @OfLog4jContext("name") String lastName);
 
-        void get(@OfThreadContext String name, @OfThreadContext("SSN") int id);
+        void get(@OfLog4jContext String name, @OfLog4jContext("SSN") int id);
 
         void getInBody(Name name);
+
         void getInBody(Name name, @OfQuery String zipCode);
+
         void getInBody(DupName name);
 
         void getInBody(Name name, Name old);
 
-        void getOnBody(@OfThreadContext Name name);
+        void getOnBody(@OfLog4jContext Name name);
 
     }
 
-    record Name(@OfThreadContext String firstName, @OfThreadContext String lastName) {
-        @OfThreadContext
+    record Name(@OfLog4jContext String firstName, @OfLog4jContext String lastName) {
+        @OfLog4jContext
         String fullName() {
             return firstName + lastName;
         }
     }
 
-    record DupName(@OfThreadContext("name") String firstName, @OfThreadContext("name") String lastName) {
-        @OfThreadContext("name")
+    record DupName(@OfLog4jContext("name") String firstName, @OfLog4jContext("name") String lastName) {
+        @OfLog4jContext("name")
         String fullName() {
             return firstName + lastName;
         }

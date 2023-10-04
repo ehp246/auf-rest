@@ -557,7 +557,7 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
         Assertions.assertEquals(3, threadContext.size());
         Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
@@ -577,11 +577,14 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
-        Assertions.assertEquals(2, threadContext.size());
+        Assertions.assertEquals(5, threadContext.size());
         Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
         Assertions.assertEquals(expected.toString(), threadContext.get("name"));
+        Assertions.assertEquals(expected.firstName(), threadContext.get("name.firstName"));
+        Assertions.assertEquals(expected.lastName(), threadContext.get("name.lastName"));
+        Assertions.assertEquals(expected.fullName(), threadContext.get("name.fullName"));
     }
 
     @Test
@@ -594,10 +597,14 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
-        Assertions.assertEquals(2, threadContext.size());
+        Assertions.assertEquals(5, threadContext.size());
         Assertions.assertEquals("null", threadContext.get("name"));
+        Assertions.assertEquals("null", threadContext.get("name"));
+        Assertions.assertEquals("null", threadContext.get("name.firstName"));
+        Assertions.assertEquals("null", threadContext.get("name.lastName"));
+        Assertions.assertEquals("null", threadContext.get("name.fullName"));
     }
 
     @Test
@@ -610,7 +617,7 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
         Assertions.assertEquals(1, threadContext.size());
         Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
@@ -628,11 +635,12 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
-        Assertions.assertEquals(expected.firstName(), threadContext.get("FirstName"));
-        Assertions.assertEquals(expected.lastName(), threadContext.get("LastName"));
-        Assertions.assertEquals(expected.fullName(), threadContext.get("FullName"));
+        Assertions.assertEquals(4, threadContext.size());
+        Assertions.assertEquals(expected.firstName(), threadContext.get("name.firstName"));
+        Assertions.assertEquals(expected.lastName(), threadContext.get("name.lastName"));
+        Assertions.assertEquals(expected.fullName(), threadContext.get("name.fullName"));
     }
 
     @Test
@@ -645,10 +653,10 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
-        Assertions.assertEquals("null", threadContext.get("FirstName"), "should follow ThreadContext convention");
-        Assertions.assertEquals("null", threadContext.get("LastName"));
+        Assertions.assertEquals("null", threadContext.get("name.firstName"), "should follow ThreadContext convention");
+        Assertions.assertEquals("null", threadContext.get("name.lastName"));
     }
 
     @Test
@@ -663,7 +671,7 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
         Assertions.assertEquals(expected, threadContext.get("name"), "should follow the last");
     }
@@ -681,11 +689,11 @@ class DefaultProxyMethodParserTest {
 
         final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
 
-        final var threadContext = bound.threadContext();
+        final var threadContext = bound.request().log4jContext();
 
         Assertions.assertEquals(true,
                 Set.of(expected.firstName(), expected.lastName(), expected.fullName())
-                        .contains(threadContext.get("name")),
+                        .contains(threadContext.get("name.name")),
                 "should not be sure on the order");
     }
 }

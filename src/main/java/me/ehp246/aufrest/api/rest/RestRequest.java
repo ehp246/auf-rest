@@ -126,4 +126,8 @@ public interface RestRequest {
     default String id() {
         return null;
     }
+
+    default Map<String, String> log4jContext() {
+        return null;
+    }
 }

@@ -1,6 +1,6 @@
 package me.ehp246.aufrest.core.reflection;
 
-import me.ehp246.aufrest.api.annotation.OfThreadContext;
+import me.ehp246.aufrest.api.annotation.OfLog4jContext;
 
 /**
  * @author Lei Yang
@@ -10,8 +10,8 @@ class ReflectedTypeTestCases {
     static class Case01 {
     }
 
-    static record Case02(@OfThreadContext String firstName, String middleName, @OfThreadContext String lastName) {
-        @OfThreadContext("fullName")
+    static record Case02(@OfLog4jContext String firstName, String middleName, @OfLog4jContext String lastName) {
+        @OfLog4jContext("fullName")
         String toFullName() {
             return this.firstName + this.middleName + this.lastName;
         }
@@ -21,21 +21,21 @@ class ReflectedTypeTestCases {
     }
 
     static class Case04 {
-        @OfThreadContext
+        @OfLog4jContext
         void m1() {
         }
 
-        @OfThreadContext
+        @OfLog4jContext
         Void m2() {
             return null;
         }
 
-        @OfThreadContext
+        @OfLog4jContext
         String m3(final String name) {
             return name;
         }
 
-        @OfThreadContext
+        @OfLog4jContext
         String m4() {
             return null;
         }

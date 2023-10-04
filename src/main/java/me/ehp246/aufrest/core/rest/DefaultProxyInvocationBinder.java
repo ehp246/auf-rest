@@ -4,6 +4,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -41,12 +42,11 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Map<Integer, String> queryParams;
     private final Map<String, List<String>> queryStatic;
     private final Map<Integer, String> headerParams;
-    private final Map<Integer, String> threadContexParams;
+    private final Map<String, Function<Object[], String>> log4jContexBinders;
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final Function<Object, Map<String, String>> threadContextBodyArgBinder;
     private final BodyOf<?> bodyOf;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
@@ -58,9 +58,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
-            final Function<Object, Map<String, String>> threadContextBodyArgBinder,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final Map<Integer, String> threadContexParams,
-            final ProxyReturnMapper returnMapper) {
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder,
+            final Map<String, Function<Object[], String>> log4jContextBinders, final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -68,13 +67,12 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.contentType = contentType;
         this.baseUri = baseUrl;
         this.authSupplierFn = authSupplierFn;
-        this.pathParams = pathParams;
-        this.queryParams = queryParams;
-        this.queryStatic = queryStatic;
-        this.headerParams = headerParams;
-        this.headerStatic = headerStatic;
-        this.threadContexParams = threadContexParams;
-        this.threadContextBodyArgBinder = threadContextBodyArgBinder;
+        this.pathParams = Collections.unmodifiableMap(pathParams);
+        this.queryParams = Collections.unmodifiableMap(queryParams);
+        this.queryStatic = Collections.unmodifiableMap(queryStatic);
+        this.headerParams = Collections.unmodifiableMap(headerParams);
+        this.headerStatic = Collections.unmodifiableMap(headerStatic);
+        this.log4jContexBinders = Collections.unmodifiableMap(log4jContextBinders);
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyOf = bodyInfo;
@@ -156,15 +154,13 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
         final var id = UUID.randomUUID().toString();
 
-        final var threadContextBound = new HashMap<String, String>(this.threadContexParams.size());
-        this.threadContexParams.entrySet().stream().forEach(
-                entry -> threadContextBound.put(entry.getValue(), args[entry.getKey()] + ""));
+        final var log4jContext = new HashMap<String, String>(this.log4jContexBinders.size() + 1);
+        log4jContext.put(AufRestConstants.AUFRESTREQUESTID, id);
 
-        if (this.threadContextBodyArgBinder != null) {
-            threadContextBound.putAll(this.threadContextBodyArgBinder.apply(body));
+        if (this.log4jContexBinders != null && this.log4jContexBinders.size() > 0) {
+            this.log4jContexBinders.entrySet().stream()
+                    .forEach(entry -> log4jContext.put(entry.getKey(), entry.getValue().apply(args)));
         }
-
-        threadContextBound.put(AufRestConstants.AUFRESTREQUESTID, id);
 
         return new Bound(new RestRequest() {
 
@@ -227,7 +223,13 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper, threadContextBound);
+
+            @Override
+            public Map<String, String> log4jContext() {
+                return log4jContext;
+            }
+
+        }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 
     private Map<String, ?> paths(final Object[] args) {
