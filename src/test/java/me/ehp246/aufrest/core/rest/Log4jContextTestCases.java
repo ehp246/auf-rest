@@ -9,7 +9,7 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
  * @author Lei Yang
  *
  */
-interface ThreadContextTestCases {
+interface Log4jContextTestCases {
     @ByRest("")
     interface Case01 {
         void get();
@@ -20,13 +20,16 @@ interface ThreadContextTestCases {
 
         void getInBody(Name name);
 
+        void getOnBody(@OfLog4jContext Name name);
+
+        void getOnBodyProperty(@OfLog4jContext Name name);
+
         void getInBody(Name name, @OfQuery String zipCode);
 
         void getInBody(DupName name);
 
         void getInBody(Name name, Name old);
 
-        void getOnBody(@OfLog4jContext Name name);
     }
 
     @ByRest(value = "", executor = @Executor(log4jContext = { "context_1", "context_2" }))

@@ -553,7 +553,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_01() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
         final var name = UUID.randomUUID().toString();
 
         captor.proxy().get(name, 10);
@@ -572,8 +572,8 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_02() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
-        final var expected = new ThreadContextTestCases.Name(UUID.randomUUID().toString(),
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(),
                 UUID.randomUUID().toString());
 
         captor.proxy().getOnBody(expected);
@@ -594,7 +594,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_03() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
         captor.proxy().getOnBody(null);
 
@@ -614,7 +614,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_04() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
         captor.proxy().get();
 
@@ -630,8 +630,8 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_05() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
-        final var expected = new ThreadContextTestCases.Name(UUID.randomUUID().toString(),
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(),
                 UUID.randomUUID().toString());
 
         captor.proxy().getInBody(expected);
@@ -650,9 +650,9 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_06() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
-        captor.proxy().getInBody((ThreadContextTestCases.Name) null);
+        captor.proxy().getInBody((Log4jContextTestCases.Name) null);
 
         final var invocation = captor.invocation();
 
@@ -666,7 +666,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_07() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
         final var expected = UUID.randomUUID().toString();
 
@@ -683,9 +683,9 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void threadContext_08() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case01.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
-        final var expected = new ThreadContextTestCases.DupName(UUID.randomUUID().toString(),
+        final var expected = new Log4jContextTestCases.DupName(UUID.randomUUID().toString(),
                 UUID.randomUUID().toString());
 
         captor.proxy().getInBody(expected);
@@ -704,7 +704,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void log4jContext_executor_01() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case02.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case02.class);
 
         captor.proxy().get();
 
@@ -720,7 +720,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void log4jContext_executor_02() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(ThreadContextTestCases.Case02.class);
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case02.class);
 
         captor.proxy().get();
 
