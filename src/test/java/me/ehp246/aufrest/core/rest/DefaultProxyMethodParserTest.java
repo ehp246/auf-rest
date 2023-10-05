@@ -3,7 +3,6 @@ package me.ehp246.aufrest.core.rest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.logging.log4j.ThreadContext;
@@ -552,7 +551,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void threadContext_01() throws Throwable {
+    void log4jContext_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
         final var name = UUID.randomUUID().toString();
 
@@ -571,49 +570,7 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void threadContext_02() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
-        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(),
-                UUID.randomUUID().toString());
-
-        captor.proxy().getOnBody(expected);
-
-        final var invocation = captor.invocation();
-
-        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
-
-        final var threadContext = bound.request().log4jContext();
-
-        Assertions.assertEquals(5, threadContext.size());
-        Assertions.assertEquals(bound.request().id(), threadContext.get("AufRestRequestId"));
-        Assertions.assertEquals(expected.toString(), threadContext.get("name"));
-        Assertions.assertEquals(expected.firstName(), threadContext.get("name.firstName"));
-        Assertions.assertEquals(expected.lastName(), threadContext.get("name.lastName"));
-        Assertions.assertEquals(expected.fullName(), threadContext.get("name.fullName"));
-    }
-
-    @Test
-    void threadContext_03() throws Throwable {
-        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
-
-        captor.proxy().getOnBody(null);
-
-        final var invocation = captor.invocation();
-
-        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
-
-        final var threadContext = bound.request().log4jContext();
-
-        Assertions.assertEquals(5, threadContext.size());
-        Assertions.assertEquals(null, threadContext.get("name"));
-        Assertions.assertEquals(null, threadContext.get("name"));
-        Assertions.assertEquals(null, threadContext.get("name.firstName"));
-        Assertions.assertEquals(null, threadContext.get("name.lastName"));
-        Assertions.assertEquals(null, threadContext.get("name.fullName"));
-    }
-
-    @Test
-    void threadContext_04() throws Throwable {
+    void log4jContext_02() throws Throwable {
         final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
         captor.proxy().get();
@@ -629,77 +586,119 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void threadContext_05() throws Throwable {
+    void log4jContext_03() throws Throwable {
         final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
-        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(),
-                UUID.randomUUID().toString());
 
-        captor.proxy().getInBody(expected);
+        captor.proxy().get(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var invocation = captor.invocation();
 
-        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
-
-        final var threadContext = bound.request().log4jContext();
-
-        Assertions.assertEquals(4, threadContext.size());
-        Assertions.assertEquals(expected.firstName(), threadContext.get("name.firstName"));
-        Assertions.assertEquals(expected.lastName(), threadContext.get("name.lastName"));
-        Assertions.assertEquals(expected.fullName(), threadContext.get("name.fullName"));
+        Assertions.assertEquals(invocation.args()[1], parser.parse(invocation.method())
+                .apply(captor.proxy(), invocation.args()).request().log4jContext().get("name"),
+                "should follow the last");
     }
 
     @Test
-    void threadContext_06() throws Throwable {
+    void log4jContext_04() throws Throwable {
         final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
-        captor.proxy().getInBody((Log4jContextTestCases.Name) null);
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+        captor.proxy().getBody(expected);
 
         final var invocation = captor.invocation();
 
-        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
-
-        final var threadContext = bound.request().log4jContext();
-
-        Assertions.assertEquals(null, threadContext.get("name.firstName"), "should follow ThreadContext convention");
-        Assertions.assertEquals(null, threadContext.get("name.lastName"));
+        Assertions.assertEquals(1, parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .log4jContext().size());
     }
 
     @Test
-    void threadContext_07() throws Throwable {
+    void log4jContext_05() throws Throwable {
         final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
-        final var expected = UUID.randomUUID().toString();
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-        captor.proxy().get(UUID.randomUUID().toString(), expected);
+        captor.proxy().getOnBodyToString(expected);
 
         final var invocation = captor.invocation();
 
-        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+        final var log4jContext = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .log4jContext();
 
-        final var threadContext = bound.request().log4jContext();
-
-        Assertions.assertEquals(expected, threadContext.get("name"), "should follow the last");
+        Assertions.assertEquals(2, log4jContext.size());
+        Assertions.assertEquals(expected.toString(), log4jContext.get("name"));
     }
 
     @Test
-    void threadContext_08() throws Throwable {
+    void log4jContext_06() throws Throwable {
         final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
 
-        final var expected = new Log4jContextTestCases.DupName(UUID.randomUUID().toString(),
-                UUID.randomUUID().toString());
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-        captor.proxy().getInBody(expected);
+        captor.proxy().getOnBodyToStringWithName(expected);
 
         final var invocation = captor.invocation();
 
-        final var bound = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args());
+        final var log4jContext = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .log4jContext();
 
-        final var threadContext = bound.request().log4jContext();
+        Assertions.assertEquals(2, log4jContext.size());
+        Assertions.assertEquals(expected.toString(), log4jContext.get("withName"));
+    }
 
-        Assertions.assertEquals(true,
-                Set.of(expected.firstName(), expected.lastName(), expected.fullName())
-                        .contains(threadContext.get("name.name")),
-                "should not be sure on the order");
+    @Test
+    void log4jContext_07() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
+
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+        captor.proxy().getOnBodyIntrospect(expected);
+
+        final var invocation = captor.invocation();
+
+        final var log4jContext = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .log4jContext();
+
+        Assertions.assertEquals(4, log4jContext.size());
+        Assertions.assertEquals(expected.firstName(), log4jContext.get("firstName"));
+        Assertions.assertEquals(expected.lastName(), log4jContext.get("lastName"));
+        Assertions.assertEquals(expected.fullName(), log4jContext.get("fullName"));
+    }
+
+    @Test
+    void log4jContext_08() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
+
+        captor.proxy().getOnBodyIntrospect(null);
+
+        final var invocation = captor.invocation();
+
+        final var log4jContext = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .log4jContext();
+
+        Assertions.assertEquals(4, log4jContext.size());
+        Assertions.assertEquals(null, log4jContext.get("firstName"));
+        Assertions.assertEquals(null, log4jContext.get("lastName"));
+        Assertions.assertEquals(null, log4jContext.get("fullName"));
+    }
+
+    @Test
+    void log4jContext_09() throws Throwable {
+        final var captor = InvocationUtil.newCaptor(Log4jContextTestCases.Case01.class);
+
+        final var expected = new Log4jContextTestCases.Name(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+        captor.proxy().getOnBodyIntrospectWithName(expected);
+
+        final var invocation = captor.invocation();
+
+        final var log4jContext = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .log4jContext();
+
+        Assertions.assertEquals(4, log4jContext.size());
+        Assertions.assertEquals(expected.firstName(), log4jContext.get("WithNamefirstName"));
+        Assertions.assertEquals(expected.lastName(), log4jContext.get("WithNamelastName"));
+        Assertions.assertEquals(expected.fullName(), log4jContext.get("WithNamefullName"));
     }
 
     @Test

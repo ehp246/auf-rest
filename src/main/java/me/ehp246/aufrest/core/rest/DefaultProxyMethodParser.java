@@ -135,12 +135,11 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          * ThreadContext, parameters, body, in ascending priority.
          */
         final Map<String, Function<Object[], String>> log4jContextBinders = Optional.ofNullable(byRest.executor())
-                .map(ByRest.Executor::log4jContext)
-                .filter(names -> names.length > 0)
-                .map(Arrays::asList).orElseGet(List::of).stream().filter(OneUtil::hasValue)
+                .map(ByRest.Executor::log4jContext).filter(names -> names.length > 0).map(Arrays::asList)
+                .orElseGet(List::of).stream().filter(OneUtil::hasValue)
                 .collect(Collectors.toMap(String::toString, name -> args -> ThreadContext.get(name)));
         log4jContextBinders.putAll(log4jContextParamBinders(reflected));
-        log4jContextBinders.putAll(log4jContextContextBodyParamBinders(bodyParam));
+        log4jContextBinders.putAll(log4jContextBodyBinders(bodyParam));
 
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
@@ -152,26 +151,35 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     /**
      * ThreadContext from the body argument. Only when there is a body argument.
      */
-    private Map<String, Function<Object[], String>> log4jContextContextBodyParamBinders(
+    private Map<String, Function<Object[], String>> log4jContextBodyBinders(
             final Optional<ReflectedParameter> optionalBodyParam) {
-        if (optionalBodyParam.isEmpty()) {
+        if (optionalBodyParam.isEmpty()
+                || optionalBodyParam.get().parameter().getAnnotation(OfLog4jContext.class) == null) {
             return new HashMap<>();
         }
 
+        final var reflectedParam = optionalBodyParam.get();
+        final var index = reflectedParam.index();
+        final var parameter = reflectedParam.parameter();
+        final var ofLog4jContext = optionalBodyParam.get().parameter().getAnnotation(OfLog4jContext.class);
+
+        if (!ofLog4jContext.introspect()) {
+            return Map.of(
+                    Optional.ofNullable(parameter.getAnnotation(OfLog4jContext.class)).map(OfLog4jContext::value)
+                            .filter(OneUtil::hasValue).orElseGet(parameter::getName),
+                    args -> args[index] == null ? null : args[index] + "");
+        }
+
+        final var bodyParamPrefix = Optional.ofNullable(parameter.getAnnotation(OfLog4jContext.class))
+                .map(OfLog4jContext::value).filter(OneUtil::hasValue).orElse("");
         /*
          * Duplicated names will overwrite each other un-deterministically.
          */
-        final var reflectedParam = optionalBodyParam.get();
-        final var parameter = reflectedParam.parameter();
-        final var bodyParamContextName = Optional.ofNullable(parameter.getAnnotation(OfLog4jContext.class))
-                .map(OfLog4jContext::value).filter(OneUtil::hasValue).orElseGet(parameter::getName);
-        final var index = reflectedParam.index();
         return new ReflectedType<>(parameter.getType()).streamSuppliersWith(OfLog4jContext.class)
                 .collect(
                         Collectors.toMap(
-                                m -> bodyParamContextName + "."
-                                        + Optional.of(m.getAnnotation(OfLog4jContext.class).value())
-                                                .filter(OneUtil::hasValue).orElseGet(m::getName),
+                                m -> bodyParamPrefix + Optional.of(m.getAnnotation(OfLog4jContext.class).value())
+                                        .filter(OneUtil::hasValue).orElseGet(m::getName),
                                 Function.identity(), (l, r) -> r))
                 .entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
                     final var method = entry.getValue();
@@ -191,13 +199,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private Map<String, Function<Object[], String>> log4jContextParamBinders(final ReflectedMethod reflected) {
-        return reflected.allParametersWith(OfLog4jContext.class).stream().collect(Collectors.toMap(p -> {
-            final var name = p.parameter().getAnnotation(OfLog4jContext.class).value();
-            return OneUtil.hasValue(name) ? name : p.parameter().getName();
-        }, p -> {
-            final var index = p.index();
-            return args -> (args[index] == null ? null : args[index] + "");
-        }, (l, r) -> r));
+        return reflected.allParametersWith(OfLog4jContext.class).stream()
+                .filter(p -> p.parameter().getAnnotation(OfLog4jContext.class).introspect() == false)
+                .collect(Collectors.toMap(p -> {
+                    final var name = p.parameter().getAnnotation(OfLog4jContext.class).value();
+                    return OneUtil.hasValue(name) ? name : p.parameter().getName();
+                }, p -> {
+                    final var index = p.index();
+                    return args -> (args[index] == null ? null : args[index] + "");
+                }, (l, r) -> r));
     }
 
     /**

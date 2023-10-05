@@ -2,8 +2,8 @@ package me.ehp246.aufrest.core.rest;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Executor;
+import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfLog4jContext;
-import me.ehp246.aufrest.api.annotation.OfQuery;
 
 /**
  * @author Lei Yang
@@ -14,22 +14,19 @@ interface Log4jContextTestCases {
     interface Case01 {
         void get();
 
-        void get(@OfLog4jContext("name") String firstName, @OfLog4jContext("name") String lastName);
+        void get(@OfLog4jContext("name") @OfHeader String firstName, @OfLog4jContext("name") @OfHeader String lastName);
 
-        void get(@OfLog4jContext String name, @OfLog4jContext("SSN") int id);
+        void get(@OfLog4jContext @OfHeader String name, @OfLog4jContext("SSN") @OfHeader int id);
 
-        void getInBody(Name name);
+        void getBody(Name name);
 
-        void getOnBody(@OfLog4jContext Name name);
+        void getOnBodyToString(@OfLog4jContext Name name);
 
-        void getOnBodyProperty(@OfLog4jContext Name name);
+        void getOnBodyToStringWithName(@OfLog4jContext("withName") Name name);
 
-        void getInBody(Name name, @OfQuery String zipCode);
+        void getOnBodyIntrospect(@OfLog4jContext(introspect = true) Name name);
 
-        void getInBody(DupName name);
-
-        void getInBody(Name name, Name old);
-
+        void getOnBodyIntrospectWithName(@OfLog4jContext(value = "WithName", introspect = true) Name name);
     }
 
     @ByRest(value = "", executor = @Executor(log4jContext = { "context_1", "context_2" }))

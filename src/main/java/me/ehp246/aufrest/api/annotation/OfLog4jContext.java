@@ -58,4 +58,6 @@ public @interface OfLog4jContext {
      * compiler option is desired.
      */
     String value() default "";
+
+    boolean introspect() default false;
 }

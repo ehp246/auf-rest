@@ -51,9 +51,8 @@ class Log4jContextTest {
 
         final var map = appConfig.takeContextMap();
 
-        Assertions.assertEquals(true, map.size() >= 3);
+        Assertions.assertEquals(4, map.size());
         Assertions.assertEquals(expectedContext1, map.get("accountId"));
-        Assertions.assertEquals(expectedContext1, map.get("order.orderId"));
         Assertions.assertEquals(expectedContext1, map.get("logger_context_1"));
         Assertions.assertEquals(expectedContext2, map.get("logger_context_2"));
     }
@@ -69,10 +68,28 @@ class Log4jContextTest {
 
         final var map = appConfig.takeContextMap();
 
-        Assertions.assertEquals(true, map.size() >= 3);
+        Assertions.assertEquals(4, map.size());
         Assertions.assertEquals("2", map.get("accountId"), "should follow the parameter");
-        Assertions.assertEquals("12", map.get("order.orderId"));
         Assertions.assertEquals(null, map.get("logger_context_1"));
         Assertions.assertEquals(expectedContext2, map.get("logger_context_2"));
+    }
+
+    @Test
+    void executor_03() throws InterruptedException, ExecutionException {
+        final var orderId = UUID.randomUUID().toString();
+
+        ThreadContext.put("logger_context_2", UUID.randomUUID().toString());
+        ThreadContext.getContext();
+
+        case01.postWithVoidHandlerWithIntrospect("2", new Order(orderId, 123));
+
+        final var map = appConfig.takeContextMap();
+
+        Assertions.assertEquals(4, map.size());
+        Assertions.assertEquals("2", map.get("accountId"), "should follow the parameter");
+        Assertions.assertEquals(null, map.get("logger_context_1"));
+        Assertions.assertEquals(orderId, map.get("logger_context_2"));
+
+        ThreadContext.getContext();
     }
 }

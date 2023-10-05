@@ -18,8 +18,12 @@ interface Log4jContextrCases {
 
         @OfResponse(handler = "responseHandler1")
         void postWithVoidHandler(@OfHeader @OfLog4jContext final String accountId, Order order);
+
+        @OfResponse(handler = "responseHandler1")
+        void postWithVoidHandlerWithIntrospect(@OfHeader @OfLog4jContext final String accountId,
+                @OfLog4jContext(introspect = true) Order order);
     }
 
-    record Order(@OfLog4jContext String orderId, int amount) {
+    record Order(@OfLog4jContext("logger_context_2") String orderId, int amount) {
     }
 }
