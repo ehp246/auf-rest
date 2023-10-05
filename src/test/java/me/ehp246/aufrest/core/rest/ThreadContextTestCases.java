@@ -1,6 +1,7 @@
 package me.ehp246.aufrest.core.rest;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.ByRest.Executor;
 import me.ehp246.aufrest.api.annotation.OfLog4jContext;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 
@@ -26,7 +27,11 @@ interface ThreadContextTestCases {
         void getInBody(Name name, Name old);
 
         void getOnBody(@OfLog4jContext Name name);
+    }
 
+    @ByRest(value = "", executor = @Executor(log4jContext = { "context_1", "context_2" }))
+    interface Case02 {
+        void get();
     }
 
     record Name(@OfLog4jContext String firstName, @OfLog4jContext String lastName) {

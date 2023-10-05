@@ -16,7 +16,8 @@ import org.apache.logging.log4j.ThreadContext;
  * {@linkplain ByRest} interface.
  * <p>
  * When applied to a parameter, the context value will be supplied by the
- * argument via {@linkplain Object#toString()}.
+ * argument via {@linkplain Object#toString()}. If the argument is
+ * <code>null</code>, the context value will be <code>null</code>.
  * <p>
  * The annotation can also be applied to a supplier method defined by the type
  * of the body parameter.
@@ -28,11 +29,11 @@ import org.apache.logging.log4j.ThreadContext;
  * <li>have no parameter</li>
  * <li>return a value</li>
  * </ul>
- * The return value will be converted to {@linkplain String} via
- * {@linkplain Object#toString()}. If no name is specified by the annotation,
- * the method name will be used as the prefix of the context key.
+ * The return value, if not <code>null</code>, will be converted to
+ * {@linkplain String} via {@linkplain Object#toString()}. If no name is
+ * specified by the annotation, the method name will be used as the prefix of
+ * the context key.
  * <p>
- * <code>null</code> will be converted to string <code>"null"</code>.
  *
  * @author Lei Yang
  * @since 4.1.2

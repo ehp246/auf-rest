@@ -23,6 +23,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.ThreadContext;
+
 import com.fasterxml.jackson.annotation.JsonView;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
@@ -129,7 +131,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         parameter.getType()))
                 .orElse(null);
 
-        final var log4jContextBinders = log4jContextParamBinders(reflected);
+        /*
+         * ThreadContext, parameters, body, in ascending priority.
+         */
+        final Map<String, Function<Object[], String>> log4jContextBinders = Optional.ofNullable(byRest.executor())
+                .map(ByRest.Executor::log4jContext)
+                .filter(names -> names.length > 0)
+                .map(Arrays::asList).orElseGet(List::of).stream().filter(OneUtil::hasValue)
+                .collect(Collectors.toMap(String::toString, name -> args -> ThreadContext.get(name)));
+        log4jContextBinders.putAll(log4jContextParamBinders(reflected));
         log4jContextBinders.putAll(log4jContextContextBodyParamBinders(bodyParam));
 
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
@@ -167,12 +177,27 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     final var method = entry.getValue();
                     return (Function<Object[], String>) args -> {
                         try {
-                            return args[index] == null ? "null" : method.invoke(args[index]) + "";
+                            if (args[index] == null) {
+                                return null;
+                            } else {
+                                final var value = method.invoke(args[index]);
+                                return value == null ? null : value + "";
+                            }
                         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                             throw new RuntimeException(e);
                         }
                     };
                 }));
+    }
+
+    private Map<String, Function<Object[], String>> log4jContextParamBinders(final ReflectedMethod reflected) {
+        return reflected.allParametersWith(OfLog4jContext.class).stream().collect(Collectors.toMap(p -> {
+            final var name = p.parameter().getAnnotation(OfLog4jContext.class).value();
+            return OneUtil.hasValue(name) ? name : p.parameter().getName();
+        }, p -> {
+            final var index = p.index();
+            return args -> (args[index] == null ? null : args[index] + "");
+        }, (l, r) -> r));
     }
 
     /**
@@ -346,16 +371,6 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     .add(propertyResolver.resolve(headers.get(i + 1)));
         }
         return headerStatic;
-    }
-
-    private Map<String, Function<Object[], String>> log4jContextParamBinders(final ReflectedMethod reflected) {
-        return reflected.allParametersWith(OfLog4jContext.class).stream().collect(Collectors.toMap(p -> {
-            final var name = p.parameter().getAnnotation(OfLog4jContext.class).value();
-            return OneUtil.hasValue(name) ? name : p.parameter().getName();
-        }, p -> {
-            final var index = p.index();
-            return args -> (args[index] + "");
-        }, (l, r) -> r));
     }
 
     private Map<String, List<String>> queryStatic(final ByRest byRest) {
