@@ -59,5 +59,12 @@ public @interface OfLog4jContext {
      */
     String value() default "";
 
-    boolean introspect() default false;
+    /**
+     * Specifies the operation of the annotation.
+     */
+    OP op() default OP.Default;
+
+    enum OP {
+        Default, Introspect
+    }
 }

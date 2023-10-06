@@ -14,9 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Flow.Subscription;
-import java.util.function.Function;
 
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +70,6 @@ import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
  * @see AufRestConfiguration
  */
 public final class DefaultRestFnProvider implements RestFnProvider {
-    private final static Map<Class<?>, Map<String, Function<Object, Map<String, String>>>> ThreadContextBodyArgBinderMap = new ConcurrentHashMap<>();
-
     private final HttpClientBuilderSupplier clientBuilderSupplier;
     private final HttpClientExecutorProvider executorProvider;
     private final HttpRequestBuilder reqBuilder;

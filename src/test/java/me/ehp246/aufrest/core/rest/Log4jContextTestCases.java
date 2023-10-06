@@ -4,6 +4,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Executor;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfLog4jContext;
+import me.ehp246.aufrest.api.annotation.OfLog4jContext.OP;
 
 /**
  * @author Lei Yang
@@ -24,9 +25,9 @@ interface Log4jContextTestCases {
 
         void getOnBodyToStringWithName(@OfLog4jContext("withName") Name name);
 
-        void getOnBodyIntrospect(@OfLog4jContext(introspect = true) Name name);
+        void getOnBodyIntrospect(@OfLog4jContext(op = OP.Introspect) Name name);
 
-        void getOnBodyIntrospectWithName(@OfLog4jContext(value = "WithName", introspect = true) Name name);
+        void getOnBodyIntrospectWithName(@OfLog4jContext(value = "WithName", op = OP.Introspect) Name name);
     }
 
     @ByRest(value = "", executor = @Executor(log4jContext = { "context_1", "context_2" }))

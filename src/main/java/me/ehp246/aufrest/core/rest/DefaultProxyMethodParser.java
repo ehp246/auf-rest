@@ -33,6 +33,7 @@ import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfLog4jContext;
+import me.ehp246.aufrest.api.annotation.OfLog4jContext.OP;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
@@ -163,7 +164,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var parameter = reflectedParam.parameter();
         final var ofLog4jContext = optionalBodyParam.get().parameter().getAnnotation(OfLog4jContext.class);
 
-        if (!ofLog4jContext.introspect()) {
+        if (ofLog4jContext.op() == OP.Introspect) {
             return Map.of(
                     Optional.ofNullable(parameter.getAnnotation(OfLog4jContext.class)).map(OfLog4jContext::value)
                             .filter(OneUtil::hasValue).orElseGet(parameter::getName),
@@ -200,7 +201,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
     private Map<String, Function<Object[], String>> log4jContextParamBinders(final ReflectedMethod reflected) {
         return reflected.allParametersWith(OfLog4jContext.class).stream()
-                .filter(p -> p.parameter().getAnnotation(OfLog4jContext.class).introspect() == false)
+                .filter(p -> p.parameter().getAnnotation(OfLog4jContext.class).op() == OP.Default)
                 .collect(Collectors.toMap(p -> {
                     final var name = p.parameter().getAnnotation(OfLog4jContext.class).value();
                     return OneUtil.hasValue(name) ? name : p.parameter().getName();

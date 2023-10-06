@@ -4,6 +4,7 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.ByRest.Executor;
 import me.ehp246.aufrest.api.annotation.OfHeader;
 import me.ehp246.aufrest.api.annotation.OfLog4jContext;
+import me.ehp246.aufrest.api.annotation.OfLog4jContext.OP;
 import me.ehp246.aufrest.api.annotation.OfResponse;
 
 /**
@@ -21,7 +22,7 @@ interface Log4jContextrCases {
 
         @OfResponse(handler = "responseHandler1")
         void postWithVoidHandlerWithIntrospect(@OfHeader @OfLog4jContext final String accountId,
-                @OfLog4jContext(introspect = true) Order order);
+                @OfLog4jContext(op = OP.Introspect) Order order);
     }
 
     record Order(@OfLog4jContext("logger_context_2") String orderId, int amount) {
