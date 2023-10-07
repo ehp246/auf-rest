@@ -9,12 +9,13 @@ import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.ResponseInfo;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow.Subscription;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,54 +104,48 @@ public final class DefaultRestFnProvider implements RestFnProvider {
         if (executorProvider != null) {
             builder.executor(executorProvider.get(new HttpClientExecutorProvider.Config(restFnConfig.name())));
         }
+
         return new RestFn() {
             private final HttpClient client = builder.build();
+            private final Map<String, Supplier<String>> workerLog4jContextSuppliers = restFnConfig
+                    .log4jContextSuppliers();
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest req, final BodyOf<?> requestBodyDescriptor,
                     final BodyHandlerType<T> responseBodyDescriptor) {
+                final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
-                /*
-                 * Set up the context
-                 */
-                Optional.ofNullable(req.log4jContext()).ifPresent(ThreadContext::putAll);
-                try {
-                    final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
+                listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 
-                    listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
-
-                    if (restLogger != null) {
-                        restLogger.onRequest(httpReq, req);
-                    }
-
-                    final var handler = responseBodyDescriptor instanceof final BodyHandlerType.Provided<T> handlerSupplier
-                            ? handlerSupplier.handler()
-                            : handlerProvider.get(responseBodyDescriptor);
-
-                    final HttpResponse<?> httpResponse;
-                    try {
-                        httpResponse = sendForResponse(req, httpReq, handler);
-                    } catch (IOException | InterruptedException | ErrorResponseException e) {
-                        if (e instanceof final ErrorResponseException error) {
-                            throw new UnhandledResponseException(error);
-                        } else {
-                            try {
-                                listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
-                            } catch (Exception le) {
-                                e.addSuppressed(le);
-                            }
-                        }
-                        /*
-                         * Wrap only the checked.
-                         */
-                        throw new RestFnException(e, httpReq, req);
-                    }
-
-                    return (HttpResponse<T>) httpResponse;
-                } finally {
-                    Optional.ofNullable(req.log4jContext()).map(Map::keySet).ifPresent(ThreadContext::removeAll);
+                if (restLogger != null) {
+                    restLogger.onRequest(httpReq, req);
                 }
+
+                final var handler = responseBodyDescriptor instanceof final BodyHandlerType.Provided<T> handlerSupplier
+                        ? handlerSupplier.handler()
+                        : handlerProvider.get(responseBodyDescriptor);
+
+                final HttpResponse<?> httpResponse;
+                try {
+                    httpResponse = sendForResponse(req, httpReq, handler);
+                } catch (IOException | InterruptedException | ErrorResponseException e) {
+                    if (e instanceof final ErrorResponseException error) {
+                        throw new UnhandledResponseException(error);
+                    } else {
+                        try {
+                            listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
+                        } catch (Exception le) {
+                            e.addSuppressed(le);
+                        }
+                    }
+                    /*
+                     * Wrap only the checked.
+                     */
+                    throw new RestFnException(e, httpReq, req);
+                }
+
+                return (HttpResponse<T>) httpResponse;
             }
 
             private <T> HttpResponse<?> sendForResponse(final RestRequest req, final HttpRequest httpReq,
@@ -202,11 +197,17 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 return httpResponse;
             }
 
-            private static <T> BodyHandler<T> wrapInContext(final RestRequest req, final BodyHandler<T> handler) {
+            private <T> BodyHandler<T> wrapInContext(final RestRequest req, final BodyHandler<T> handler) {
+                final var log4jContext = new HashMap<String, String>();
+
+                if (workerLog4jContextSuppliers != null && workerLog4jContextSuppliers.size() > 0) {
+                    workerLog4jContextSuppliers.entrySet().stream().forEach(entry ->log4jContext.put(entry.getKey(), entry.getValue().get()));
+                }
+
                 return new BodyHandler<T>() {
                     @Override
                     public BodySubscriber<T> apply(final ResponseInfo responseInfo) {
-                        Optional.ofNullable(req.log4jContext()).ifPresent(ThreadContext::putAll);
+                        ThreadContext.putAll(log4jContext);
 
                         final var target = handler.apply(responseInfo);
 
@@ -226,16 +227,14 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             public void onError(final Throwable throwable) {
                                 target.onError(throwable);
 
-                                Optional.ofNullable(req.log4jContext()).map(Map::keySet)
-                                        .ifPresent(ThreadContext::removeAll);
+                                ThreadContext.removeAll(log4jContext.keySet());
                             }
 
                             @Override
                             public void onComplete() {
                                 target.onComplete();
 
-                                Optional.ofNullable(req.log4jContext()).map(Map::keySet)
-                                        .ifPresent(ThreadContext::removeAll);
+                                ThreadContext.removeAll(log4jContext.keySet());
                             }
 
                             @Override

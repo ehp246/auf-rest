@@ -12,11 +12,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
@@ -42,7 +40,6 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Map<Integer, String> queryParams;
     private final Map<String, List<String>> queryStatic;
     private final Map<Integer, String> headerParams;
-    private final Map<String, Function<Object[], String>> log4jContexBinders;
     private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     // Request body related.
@@ -59,7 +56,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
             final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final Map<String, Function<Object[], String>> log4jContextBinders, final ProxyReturnMapper returnMapper) {
+            final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -72,7 +69,6 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.queryStatic = Collections.unmodifiableMap(queryStatic);
         this.headerParams = Collections.unmodifiableMap(headerParams);
         this.headerStatic = Collections.unmodifiableMap(headerStatic);
-        this.log4jContexBinders = Collections.unmodifiableMap(log4jContextBinders);
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyOf = bodyInfo;
@@ -154,14 +150,6 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
         final var id = UUID.randomUUID().toString();
 
-        final var log4jContext = new HashMap<String, String>(this.log4jContexBinders.size() + 1);
-        log4jContext.put(AufRestConstants.AUFRESTREQUESTID, id);
-
-        if (this.log4jContexBinders != null && this.log4jContexBinders.size() > 0) {
-            this.log4jContexBinders.entrySet().stream()
-                    .forEach(entry -> log4jContext.put(entry.getKey(), entry.getValue().apply(args)));
-        }
-
         return new Bound(new RestRequest() {
 
             @Override
@@ -223,12 +211,6 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             public Object body() {
                 return body;
             }
-
-            @Override
-            public Map<String, String> log4jContext() {
-                return log4jContext;
-            }
-
         }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 

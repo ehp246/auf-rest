@@ -16,14 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.ThreadContext;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -32,8 +29,6 @@ import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.OfAuth;
 import me.ehp246.aufrest.api.annotation.OfBody;
 import me.ehp246.aufrest.api.annotation.OfHeader;
-import me.ehp246.aufrest.api.annotation.OfLog4jContext;
-import me.ehp246.aufrest.api.annotation.OfLog4jContext.OP;
 import me.ehp246.aufrest.api.annotation.OfPath;
 import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
@@ -132,83 +127,10 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         parameter.getType()))
                 .orElse(null);
 
-        /*
-         * ThreadContext, parameters, body, in ascending priority.
-         */
-        final Map<String, Function<Object[], String>> log4jContextBinders = Optional.ofNullable(byRest.executor())
-                .map(ByRest.Executor::log4jContext).filter(names -> names.length > 0).map(Arrays::asList)
-                .orElseGet(List::of).stream().filter(OneUtil::hasValue)
-                .collect(Collectors.toMap(String::toString, name -> args -> ThreadContext.get(name)));
-        log4jContextBinders.putAll(log4jContextParamBinders(reflected));
-        log4jContextBinders.putAll(log4jContextBodyBinders(bodyParam));
-
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
-                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), log4jContextBinders,
-                proxyReturnMapper(reflected));
-    }
-
-    /**
-     * ThreadContext from the body argument. Only when there is a body argument.
-     */
-    private Map<String, Function<Object[], String>> log4jContextBodyBinders(
-            final Optional<ReflectedParameter> optionalBodyParam) {
-        if (optionalBodyParam.isEmpty()
-                || optionalBodyParam.get().parameter().getAnnotation(OfLog4jContext.class) == null) {
-            return new HashMap<>();
-        }
-
-        final var reflectedParam = optionalBodyParam.get();
-        final var index = reflectedParam.index();
-        final var parameter = reflectedParam.parameter();
-        final var ofLog4jContext = optionalBodyParam.get().parameter().getAnnotation(OfLog4jContext.class);
-
-        if (ofLog4jContext.op() == OP.Introspect) {
-            return Map.of(
-                    Optional.ofNullable(parameter.getAnnotation(OfLog4jContext.class)).map(OfLog4jContext::value)
-                            .filter(OneUtil::hasValue).orElseGet(parameter::getName),
-                    args -> args[index] == null ? null : args[index] + "");
-        }
-
-        final var bodyParamPrefix = Optional.ofNullable(parameter.getAnnotation(OfLog4jContext.class))
-                .map(OfLog4jContext::value).filter(OneUtil::hasValue).orElse("");
-        /*
-         * Duplicated names will overwrite each other un-deterministically.
-         */
-        return new ReflectedType<>(parameter.getType()).streamSuppliersWith(OfLog4jContext.class)
-                .collect(
-                        Collectors.toMap(
-                                m -> bodyParamPrefix + Optional.of(m.getAnnotation(OfLog4jContext.class).value())
-                                        .filter(OneUtil::hasValue).orElseGet(m::getName),
-                                Function.identity(), (l, r) -> r))
-                .entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
-                    final var method = entry.getValue();
-                    return (Function<Object[], String>) args -> {
-                        try {
-                            if (args[index] == null) {
-                                return null;
-                            } else {
-                                final var value = method.invoke(args[index]);
-                                return value == null ? null : value + "";
-                            }
-                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
-                    };
-                }));
-    }
-
-    private Map<String, Function<Object[], String>> log4jContextParamBinders(final ReflectedMethod reflected) {
-        return reflected.allParametersWith(OfLog4jContext.class).stream()
-                .filter(p -> p.parameter().getAnnotation(OfLog4jContext.class).op() == OP.Default)
-                .collect(Collectors.toMap(p -> {
-                    final var name = p.parameter().getAnnotation(OfLog4jContext.class).value();
-                    return OneUtil.hasValue(name) ? name : p.parameter().getName();
-                }, p -> {
-                    final var index = p.index();
-                    return args -> (args[index] == null ? null : args[index] + "");
-                }, (l, r) -> r));
+                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
     }
 
     /**
