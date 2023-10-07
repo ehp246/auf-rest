@@ -388,7 +388,7 @@ class ByRestProxyFactoryTest {
 
         newInstance.getBlank("1234");
 
-        Assertions.assertEquals("1234", restFn.req().headers().get("").get(0), "should take it as is");
+        Assertions.assertEquals("1234", restFn.req().headers().get("correlid").get(0), "should take it as is");
     }
 
     @Test

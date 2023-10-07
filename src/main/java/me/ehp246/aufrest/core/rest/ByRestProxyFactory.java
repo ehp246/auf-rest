@@ -5,8 +5,15 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.ThreadContext;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
@@ -38,19 +45,26 @@ public final class ByRestProxyFactory {
 
     @SuppressWarnings("unchecked")
     public <T> T newInstance(final Class<T> byRestInterface) {
+        final var byRest = byRestInterface.getAnnotation(ByRest.class);
+
         return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
                 new InvocationHandler() {
-                    private final RestFn restFn = clientProvider
-                            .get(new RestFnConfig(OneUtil.firstUpper(OneUtil.beanName(byRestInterface))));
+                    private final int hashCode = new Object().hashCode();
+                    private final RestFn restFn = clientProvider.get(new RestFnConfig(
+                            OneUtil.firstUpper(OneUtil.byRestBeanName(byRestInterface)),
+                            Optional.ofNullable(byRest.executor()).map(ByRest.Executor::log4jContext)
+                                    .filter(names -> names.length > 0).map(Arrays::asList).orElseGet(List::of).stream()
+                                    .filter(OneUtil::hasValue).collect(Collectors.toMap(String::toString,
+                                            name -> ((Supplier<String>) () -> ThreadContext.get(name))))));
 
                     @Override
                     public Object invoke(final Object proxy, final Method method, final Object[] args)
                             throws Throwable {
                         if (method.getName().equals("toString")) {
-                            return ByRestProxyFactory.this.toString();
+                            return byRestInterface.toString();
                         }
                         if (method.getName().equals("hashCode")) {
-                            return ByRestProxyFactory.this.hashCode();
+                            return hashCode;
                         }
                         if (method.getName().equals("equals")) {
                             return proxy == args[0];
@@ -70,7 +84,9 @@ public final class ByRestProxyFactory {
                         final var outcome = FnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
                                 bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
-                        return bound.returnMapper().apply(bound.request(), outcome);
+                        final var returnValue = bound.returnMapper().apply(bound.request(), outcome);
+
+                        return returnValue;
                     }
                 });
     }

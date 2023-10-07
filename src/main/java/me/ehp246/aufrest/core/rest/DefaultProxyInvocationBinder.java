@@ -4,6 +4,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -54,7 +55,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
             final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder,
+            final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -62,11 +64,11 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.contentType = contentType;
         this.baseUri = baseUrl;
         this.authSupplierFn = authSupplierFn;
-        this.pathParams = pathParams;
-        this.queryParams = queryParams;
-        this.queryStatic = queryStatic;
-        this.headerParams = headerParams;
-        this.headerStatic = headerStatic;
+        this.pathParams = Collections.unmodifiableMap(pathParams);
+        this.queryParams = Collections.unmodifiableMap(queryParams);
+        this.queryStatic = Collections.unmodifiableMap(queryStatic);
+        this.headerParams = Collections.unmodifiableMap(headerParams);
+        this.headerStatic = Collections.unmodifiableMap(headerStatic);
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
         this.bodyOf = bodyInfo;

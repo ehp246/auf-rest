@@ -21,7 +21,7 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 @SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class HeaderTest {
     @Autowired
-    private TestCase001 case001;
+    private TestCase01 case001;
 
     @AfterAll
     static void afterAll() {
@@ -115,6 +115,24 @@ class HeaderTest {
 
         Assertions.assertEquals(1, values.size());
         Assertions.assertEquals(value, values.get(0));
+    }
+
+    @Test
+    void header_07() {
+        final var headers = case001.get(123);
+
+        Assertions.assertEquals(1, headers.get("reqid").size());
+        Assertions.assertEquals("123", headers.get("reqid").get(0));
+    }
+
+    @Test
+    void header_08() {
+        final var id2 = UUID.randomUUID().toString();
+        final var headers = case001.get(123, id2);
+
+        Assertions.assertEquals(2, headers.get("x-req-id").size());
+        Assertions.assertEquals("123", headers.get("x-req-id").get(0));
+        Assertions.assertEquals(id2, headers.get("x-req-id").get(1));
     }
 
     @Test

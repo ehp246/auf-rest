@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -123,9 +122,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new BodyOf<>(
-                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
-                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
+                .map(parameter -> new BodyOf<>(Optional.ofNullable(parameter.getAnnotation(JsonView.class))
+                        .map(JsonView::value).filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
                         parameter.getType()))
                 .orElse(null);
 
@@ -135,7 +133,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
     }
 
-    /*
+    /**
      * Returns and response body handlers are coupled.
      */
     @SuppressWarnings("unchecked")
@@ -275,21 +273,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
-        final var headerParams = reflected.allParametersWith(OfHeader.class).stream().map(p -> {
-            final var name = p.parameter().getAnnotation(OfHeader.class).value();
-            if (HttpUtils.RESERVED_HEADERS.contains(name.toLowerCase(Locale.US))) {
-                throw new IllegalArgumentException(
-                        "Illegal header '" + name + "' on " + p.parameter().getDeclaringExecutable().toString());
-            }
-            return p;
-        }).collect(Collectors.toMap(ReflectedParameter::index,
-                p -> p.parameter().getAnnotation(OfHeader.class).value().toString().toLowerCase(Locale.US)));
-
-        final var namesOnParam = headerParams.values();
-        if (namesOnParam.size() > new HashSet<String>(namesOnParam).size()) {
-            throw new IllegalArgumentException("Duplicate header names on " + reflected.method());
-        }
-        return headerParams;
+        return reflected.allParametersWith(OfHeader.class).stream()
+                .collect(Collectors.toMap(ReflectedParameter::index, p -> {
+                    final var name = Optional.ofNullable(p.parameter().getAnnotation(OfHeader.class).value().toString())
+                            .filter(OneUtil::hasValue).orElseGet(() -> p.parameter().getName()).toLowerCase(Locale.US);
+                    if (HttpUtils.RESERVED_HEADERS.contains(name)) {
+                        throw new IllegalArgumentException("Illegal header '" + name + "' on "
+                                + p.parameter().getDeclaringExecutable().toString());
+                    }
+                    return name;
+                }));
     }
 
     /**
@@ -410,7 +403,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             final var methodName = value.get(1);
             final var bean = authBeanResolver.get(beanName);
             final var beanParams = reflected.allParametersWith(AuthBean.Param.class);
-            final var reflectedType = new ReflectedType(bean.getClass());
+            final var reflectedType = new ReflectedType<>(bean.getClass());
             final var method = reflectedType.streamMethodsWith(AuthBean.Invoking.class)
                     .filter(m -> Optional.ofNullable(m.getAnnotation(AuthBean.Invoking.class).value())
                             .filter(OneUtil::hasValue).orElseGet(m::getName).equals(methodName))

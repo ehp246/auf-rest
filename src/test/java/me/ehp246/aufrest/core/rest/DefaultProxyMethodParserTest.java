@@ -182,12 +182,13 @@ class DefaultProxyMethodParserTest {
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).get(expected);
 
-        Assertions.assertEquals(expected,
-                Assertions
-                        .assertThrows(ProxyInvocationBinderException.class, () -> parser.parse(captRef[0].method())
-                                .apply(captRef[0].target(), captRef[0].args()).request().authSupplier().get())
-                        .getCause(),
-                "should wrap the checked in a Runtime");
+        Assertions
+                .assertEquals(expected,
+                        Assertions.assertThrows(ProxyInvocationBinderException.class,
+                                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args())
+                                        .request().authSupplier().get())
+                                .getCause(),
+                        "should wrap the checked in a Runtime");
     }
 
     @Test
@@ -266,14 +267,18 @@ class DefaultProxyMethodParserTest {
     }
 
     @Test
-    void header_01() {
+    void header_01() throws Throwable {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase01.class);
-        captor.proxy().getRepeated("", "");
+        captor.proxy().getRepeated("1", "2");
 
         final var invocation = captor.invocation();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
+        final var header = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+                .headers().get("x-correl-id");
+
+        Assertions.assertEquals(2, header.size(), "should be on the lower case");
+        Assertions.assertEquals("1", header.get(0));
+        Assertions.assertEquals("2", header.get(1));
     }
 
     @Test
@@ -542,10 +547,5 @@ class DefaultProxyMethodParserTest {
 
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
-    }
-
-    @Test
-    void uri_01() {
-
     }
 }

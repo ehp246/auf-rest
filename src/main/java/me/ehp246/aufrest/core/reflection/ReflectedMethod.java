@@ -47,7 +47,7 @@ public final class ReflectedMethod {
                 continue;
             }
 
-            list.add(new ReflectedParameter(parameters[i], i));
+            list.add(new ReflectedParameter(parameters[i], i, this));
         }
 
         return list;
@@ -59,7 +59,7 @@ public final class ReflectedMethod {
         for (int i = 0; i < parameters.length; i++) {
             final var parameter = parameters[i];
             if (parameter.isAnnotationPresent(annotationType)) {
-                list.add(new ReflectedParameter(parameter, i));
+                list.add(new ReflectedParameter(parameter, i, this));
             }
         }
 
@@ -93,7 +93,7 @@ public final class ReflectedMethod {
 
         for (int i = 0; i < parameterTypes.length; i++) {
             if (type.isAssignableFrom(parameterTypes[i])) {
-                list.add(new ReflectedParameter(parameters[i], i));
+                list.add(new ReflectedParameter(parameters[i], i, this));
             }
         }
 

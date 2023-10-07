@@ -11,10 +11,14 @@ import me.ehp246.aufrest.api.annotation.OfHeader;
  *
  */
 @ByRest("http://localhost:${local.server.port}/header")
-interface TestCase001 {
+interface TestCase01 {
     Headers get();
 
     Headers get(@OfHeader("x-req-id") String value);
+
+    Headers get(@OfHeader("x-req-id") int reqId, @OfHeader("x-req-id") String reqId2);
+
+    Headers get(@OfHeader int reqId);
 
     Headers get(@OfHeader Map<String, List<String>> headers);
 

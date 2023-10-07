@@ -31,6 +31,8 @@ import java.lang.reflect.Parameter;
  *
  * @author Lei Yang
  * @since 4.0
+ * @see <a href='https://openjdk.org/jeps/118'>JEP 118: Access to Parameter
+ *      Names at Runtime</a>
  */
 @Retention(RUNTIME)
 @Target({ ElementType.PARAMETER })
@@ -43,9 +45,6 @@ public @interface OfHeader {
      * probably have <code>-parameters</code> turned on.
      * <p>
      * Repeated header from multiple parameters will be collected into a list.
-     *
-     * @see <a href='https://openjdk.org/jeps/118'>JEP 118: Access to Parameter
-     *      Names at Runtime</a>
      */
     String value() default "";
 }
