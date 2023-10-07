@@ -49,10 +49,9 @@ class Log4jContextTest {
 
         case01.postWithVoidHandler(expectedContext1, new Order(expectedContext1, 123));
 
-        final var map = appConfig.takeContextMap();
+        final var map = appConfig.takeResponseContextMap();
 
-        Assertions.assertEquals(4, map.size());
-        Assertions.assertEquals(expectedContext1, map.get("accountId"));
+        Assertions.assertEquals(2, map.size());
         Assertions.assertEquals(expectedContext1, map.get("logger_context_1"));
         Assertions.assertEquals(expectedContext2, map.get("logger_context_2"));
     }
@@ -66,30 +65,28 @@ class Log4jContextTest {
 
         case01.postWithVoidHandler("2", new Order("12", 123));
 
-        final var map = appConfig.takeContextMap();
+        final var map = appConfig.takeResponseContextMap();
 
-        Assertions.assertEquals(4, map.size());
-        Assertions.assertEquals("2", map.get("accountId"), "should follow the parameter");
+        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals(null, map.get("accountId"));
         Assertions.assertEquals(null, map.get("logger_context_1"));
         Assertions.assertEquals(expectedContext2, map.get("logger_context_2"));
     }
 
     @Test
     void executor_03() throws InterruptedException, ExecutionException {
-        final var orderId = UUID.randomUUID().toString();
+        final var context2 = UUID.randomUUID().toString();
 
-        ThreadContext.put("logger_context_2", UUID.randomUUID().toString());
-        ThreadContext.getContext();
+        ThreadContext.put("logger_context_2", context2);
 
-        case01.postWithVoidHandlerWithIntrospect("2", new Order(orderId, 123));
+        case01.postWithVoidHandlerWithIntrospect("2", new Order(UUID.randomUUID().toString(), 123));
 
-        final var map = appConfig.takeContextMap();
+        final var map = appConfig.takeResponseContextMap();
 
-        Assertions.assertEquals(4, map.size());
-        Assertions.assertEquals("2", map.get("accountId"), "should follow the parameter");
+        Assertions.assertEquals(2, map.size());
         Assertions.assertEquals(null, map.get("logger_context_1"));
-        Assertions.assertEquals(orderId, map.get("logger_context_2"));
+        Assertions.assertEquals(context2, map.get("logger_context_2"));
 
-        ThreadContext.getContext();
+        Assertions.assertEquals(context2, ThreadContext.getContext().get("logger_context_2"), "should be no change");
     }
 }

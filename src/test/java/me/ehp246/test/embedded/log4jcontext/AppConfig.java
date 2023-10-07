@@ -26,7 +26,7 @@ class AppConfig {
     private final AtomicReference<CompletableFuture<Map<String, String>>> ref = new AtomicReference<>(
             new CompletableFuture<>());
 
-    Map<String, String> takeContextMap() throws InterruptedException, ExecutionException {
+    Map<String, String> takeResponseContextMap() throws InterruptedException, ExecutionException {
         final var map = ref.get().get();
 
         ref.set(new CompletableFuture<>());
