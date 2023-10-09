@@ -28,15 +28,21 @@ class Log4jContextTest {
     @BeforeEach
     void clean() {
         ThreadContext.clearAll();
+        appConfig.reset();
     }
 
     @Test
-    void test_01() {
+    void test_01() throws InterruptedException, ExecutionException {
         final var expected = UUID.randomUUID().toString();
 
         final var order = case01.post(expected, new Order(expected, 123));
 
+        final var request = appConfig.takeRequest();
+        final var requestContextMap = appConfig.takeRequestContextMap();
+
         Assertions.assertEquals(expected, order.orderId());
+        Assertions.assertEquals(request.id(), requestContextMap.get("AufRestRequestId"));
+        Assertions.assertEquals(null, ThreadContext.get("AufRestRequestId"));
     }
 
     @Test
@@ -49,11 +55,13 @@ class Log4jContextTest {
 
         case01.postWithVoidHandler(expectedContext1, new Order(expectedContext1, 123));
 
+        final var request = appConfig.takeRequest();
         final var map = appConfig.takeResponseContextMap();
 
-        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals(3, map.size());
         Assertions.assertEquals(expectedContext1, map.get("logger_context_1"));
         Assertions.assertEquals(expectedContext2, map.get("logger_context_2"));
+        Assertions.assertEquals(request.id(), map.get("AufRestRequestId"));
     }
 
     @Test
@@ -67,7 +75,7 @@ class Log4jContextTest {
 
         final var map = appConfig.takeResponseContextMap();
 
-        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals(3, map.size());
         Assertions.assertEquals(null, map.get("accountId"));
         Assertions.assertEquals(null, map.get("logger_context_1"));
         Assertions.assertEquals(expectedContext2, map.get("logger_context_2"));
@@ -83,7 +91,7 @@ class Log4jContextTest {
 
         final var map = appConfig.takeResponseContextMap();
 
-        Assertions.assertEquals(2, map.size());
+        Assertions.assertEquals(3, map.size());
         Assertions.assertEquals(null, map.get("logger_context_1"));
         Assertions.assertEquals(context2, map.get("logger_context_2"));
 
