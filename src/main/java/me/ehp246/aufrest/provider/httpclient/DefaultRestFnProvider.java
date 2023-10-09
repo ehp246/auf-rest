@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
@@ -114,38 +115,44 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest req, final BodyOf<?> requestBodyDescriptor,
                     final BodyHandlerType<T> responseBodyDescriptor) {
-                final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
-
-                listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
-
-                if (restLogger != null) {
-                    restLogger.onRequest(httpReq, req);
-                }
-
-                final var handler = responseBodyDescriptor instanceof final BodyHandlerType.Provided<T> handlerSupplier
-                        ? handlerSupplier.handler()
-                        : handlerProvider.get(responseBodyDescriptor);
-
-                final HttpResponse<?> httpResponse;
                 try {
-                    httpResponse = sendForResponse(req, httpReq, handler);
-                } catch (IOException | InterruptedException | ErrorResponseException e) {
-                    if (e instanceof final ErrorResponseException error) {
-                        throw new UnhandledResponseException(error);
-                    } else {
-                        try {
-                            listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
-                        } catch (Exception le) {
-                            e.addSuppressed(le);
-                        }
-                    }
-                    /*
-                     * Wrap only the checked.
-                     */
-                    throw new RestFnException(e, httpReq, req);
-                }
+                    ThreadContext.put(AufRestConstants.AUFRESTREQUESTID, req.id());
 
-                return (HttpResponse<T>) httpResponse;
+                    final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
+
+                    listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
+
+                    if (restLogger != null) {
+                        restLogger.onRequest(httpReq, req);
+                    }
+
+                    final var handler = responseBodyDescriptor instanceof final BodyHandlerType.Provided<T> handlerSupplier
+                            ? handlerSupplier.handler()
+                            : handlerProvider.get(responseBodyDescriptor);
+
+                    final HttpResponse<?> httpResponse;
+                    try {
+                        httpResponse = sendForResponse(req, httpReq, handler);
+                    } catch (IOException | InterruptedException | ErrorResponseException e) {
+                        if (e instanceof final ErrorResponseException error) {
+                            throw new UnhandledResponseException(error);
+                        } else {
+                            try {
+                                listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
+                            } catch (Exception le) {
+                                e.addSuppressed(le);
+                            }
+                        }
+                        /*
+                         * Wrap only the checked.
+                         */
+                        throw new RestFnException(e, httpReq, req);
+                    }
+
+                    return (HttpResponse<T>) httpResponse;
+                } finally {
+                    ThreadContext.remove(AufRestConstants.AUFRESTREQUESTID);
+                }
             }
 
             private <T> HttpResponse<?> sendForResponse(final RestRequest req, final HttpRequest httpReq,
@@ -199,9 +206,10 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             private <T> BodyHandler<T> wrapInContext(final RestRequest req, final BodyHandler<T> handler) {
                 final var log4jContext = new HashMap<String, String>();
-
+                log4jContext.put(AufRestConstants.AUFRESTREQUESTID, req.id());
                 if (workerLog4jContextSuppliers != null && workerLog4jContextSuppliers.size() > 0) {
-                    workerLog4jContextSuppliers.entrySet().stream().forEach(entry ->log4jContext.put(entry.getKey(), entry.getValue().get()));
+                    workerLog4jContextSuppliers.entrySet().stream()
+                            .forEach(entry -> log4jContext.put(entry.getKey(), entry.getValue().get()));
                 }
 
                 return new BodyHandler<T>() {
