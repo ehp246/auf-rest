@@ -245,6 +245,7 @@
 					<encoding>UTF-8</encoding>
 					<compilerArgs>
 						<arg>-parameters</arg>
+						<arg>-proc:full</arg>
 					</compilerArgs>
 				</configuration>
 			</plugin>
