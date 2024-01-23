@@ -17,7 +17,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow.Subscription;
 import java.util.function.Supplier;
 
-import org.apache.logging.log4j.ThreadContext;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
@@ -80,10 +80,13 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final RestLogger restLogger;
 
     @Autowired
-    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final HttpClientExecutorProvider executorProvider,
-            final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
+            final HttpClientExecutorProvider executorProvider,
+            final InferringBodyHandlerProvider handlerProvider,
+            final HttpClientBuilderSupplier clientBuilderSupplier,
             final List<RestListener> listeners, final RestLogger restLogger) {
-        this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder : clientBuilderSupplier;
+        this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder
+                : clientBuilderSupplier;
         this.executorProvider = executorProvider;
         this.reqBuilder = Objects.requireNonNull(reqBuilder,
                 HttpRequestBuilder.class.getSimpleName() + " must be specified");
@@ -94,7 +97,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     }
 
     public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
-            final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
+            final InferringBodyHandlerProvider handlerProvider,
+            final HttpClientBuilderSupplier clientBuilderSupplier,
             final List<RestListener> listeners, final RestLogger restLogger) {
         this(reqBuilder, null, handlerProvider, clientBuilderSupplier, listeners, restLogger);
     }
@@ -103,7 +107,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     public RestFn get(final RestFnConfig restFnConfig) {
         final var builder = clientBuilderSupplier.get();
         if (executorProvider != null) {
-            builder.executor(executorProvider.get(new HttpClientExecutorProvider.Config(restFnConfig.name())));
+            builder.executor(executorProvider
+                    .get(new HttpClientExecutorProvider.Config(restFnConfig.name())));
         }
 
         return new RestFn() {
@@ -113,10 +118,11 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final BodyOf<?> requestBodyDescriptor,
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req,
+                    final BodyOf<?> requestBodyDescriptor,
                     final BodyHandlerType<T> responseBodyDescriptor) {
                 try {
-                    ThreadContext.put(AufRestConstants.AUFRESTREQUESTID, req.id());
+                    MDC.put(AufRestConstants.AUFRESTREQUESTID, req.id());
 
                     final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
 
@@ -138,7 +144,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             throw new UnhandledResponseException(error);
                         } else {
                             try {
-                                listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
+                                listeners.stream()
+                                        .forEach(listener -> listener.onException(e, httpReq, req));
                             } catch (Exception le) {
                                 e.addSuppressed(le);
                             }
@@ -151,16 +158,18 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
                     return (HttpResponse<T>) httpResponse;
                 } finally {
-                    ThreadContext.remove(AufRestConstants.AUFRESTREQUESTID);
+                    MDC.remove(AufRestConstants.AUFRESTREQUESTID);
                 }
             }
 
-            private <T> HttpResponse<?> sendForResponse(final RestRequest req, final HttpRequest httpReq,
-                    final BodyHandler<T> handler) throws IOException, InterruptedException, ErrorResponseException,
+            private <T> HttpResponse<?> sendForResponse(final RestRequest req,
+                    final HttpRequest httpReq, final BodyHandler<T> handler)
+                    throws IOException, InterruptedException, ErrorResponseException,
                     InternalServerErrorException, BadGatewayException, ServiceUnavailableException,
-                    GatewayTimeoutException, ServerErrorException, BadRequestException, NotAuthorizedException,
-                    ForbiddenException, NotFoundException, NotAllowedException, NotAcceptableException,
-                    NotSupportedException, ClientErrorException, RedirectionException {
+                    GatewayTimeoutException, ServerErrorException, BadRequestException,
+                    NotAuthorizedException, ForbiddenException, NotFoundException,
+                    NotAllowedException, NotAcceptableException, NotSupportedException,
+                    ClientErrorException, RedirectionException {
                 final HttpResponse<?> httpResponse;
                 httpResponse = client.send(httpReq, wrapInContext(req, handler));
 
@@ -204,18 +213,20 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 return httpResponse;
             }
 
-            private <T> BodyHandler<T> wrapInContext(final RestRequest req, final BodyHandler<T> handler) {
+            private <T> BodyHandler<T> wrapInContext(final RestRequest req,
+                    final BodyHandler<T> handler) {
                 final var log4jContext = new HashMap<String, String>();
                 log4jContext.put(AufRestConstants.AUFRESTREQUESTID, req.id());
                 if (workerLog4jContextSuppliers != null && workerLog4jContextSuppliers.size() > 0) {
-                    workerLog4jContextSuppliers.entrySet().stream()
-                            .forEach(entry -> log4jContext.put(entry.getKey(), entry.getValue().get()));
+                    workerLog4jContextSuppliers.entrySet().stream().forEach(
+                            entry -> log4jContext.put(entry.getKey(), entry.getValue().get()));
                 }
 
                 return new BodyHandler<T>() {
                     @Override
                     public BodySubscriber<T> apply(final ResponseInfo responseInfo) {
-                        ThreadContext.putAll(log4jContext);
+                        log4jContext.entrySet().stream()
+                                .forEach(e -> MDC.put(e.getKey(), e.getValue()));
 
                         final var target = handler.apply(responseInfo);
 
@@ -235,14 +246,14 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             public void onError(final Throwable throwable) {
                                 target.onError(throwable);
 
-                                ThreadContext.removeAll(log4jContext.keySet());
+                                log4jContext.keySet().forEach(MDC::remove);
                             }
 
                             @Override
                             public void onComplete() {
                                 target.onComplete();
 
-                                ThreadContext.removeAll(log4jContext.keySet());
+                                log4jContext.keySet().forEach(MDC::remove);
                             }
 
                             @Override

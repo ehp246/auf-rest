@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.apache.logging.log4j.ThreadContext;
-
 /**
  * The abstraction of a REST request that expects a response.
  *
@@ -116,8 +114,7 @@ public interface RestRequest {
     }
 
     /**
-     * Used for {@linkplain ThreadContext#put(String, String)} and
-     * {@linkplain HttpUtils#REQUEST_ID} header.
+     * Used for {@linkplain HttpUtils#REQUEST_ID} header.
      * <p>
      * <code>null</code> means no {@linkplain HttpUtils#REQUEST_ID} header.
      *
