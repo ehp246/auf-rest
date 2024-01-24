@@ -16,10 +16,10 @@ import java.util.Set;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * Helper bean for the convenience of the application.
@@ -28,16 +28,16 @@ import org.apache.logging.log4j.MarkerManager;
  *
  */
 public final class RestLogger {
-    private final static Logger LOGGER = LogManager.getLogger(RestLogger.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(RestLogger.class);
 
     private final static List<String> MASKED = List.of("*");
-    private final static Marker REQUEST = MarkerManager.getMarker("REQUEST");
-    private final static Marker REQUEST_HEADERS = MarkerManager.getMarker("REQUEST_HEADERS");
-    private final static Marker REQUEST_BODY = MarkerManager.getMarker("REQUEST_BODY");
+    private final static Marker REQUEST = MarkerFactory.getMarker("REQUEST");
+    private final static Marker REQUEST_HEADERS = MarkerFactory.getMarker("REQUEST_HEADERS");
+    private final static Marker REQUEST_BODY = MarkerFactory.getMarker("REQUEST_BODY");
 
-    private final static Marker RESPONSE = MarkerManager.getMarker("RESPONSE");
-    private final static Marker RESPONSE_HEADERS = MarkerManager.getMarker("RESPONSE_HEADERS");
-    private final static Marker RESPONSE_BODY = MarkerManager.getMarker("RESPONSE_BODY");
+    private final static Marker RESPONSE = MarkerFactory.getMarker("RESPONSE");
+    private final static Marker RESPONSE_HEADERS = MarkerFactory.getMarker("RESPONSE_HEADERS");
+    private final static Marker RESPONSE_BODY = MarkerFactory.getMarker("RESPONSE_BODY");
 
     private final static Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
 
@@ -48,13 +48,14 @@ public final class RestLogger {
 
         @Override
         public void onNext(final ByteBuffer item) {
-            LOGGER.atTrace().withMarker(REQUEST_BODY).log("{}", () -> new String(item.array(), StandardCharsets.UTF_8));
+            LOGGER.atTrace().addMarker(REQUEST_BODY).setMessage("{}")
+                    .addArgument(() -> new String(item.array(), StandardCharsets.UTF_8)).log();
         }
 
         @Override
         public void onError(final Throwable throwable) {
-            LOGGER.atTrace().withMarker(REQUEST_BODY).withThrowable(throwable).log("Failed to log body: {}",
-                    throwable::getMessage);
+            LOGGER.atTrace().addMarker(REQUEST_BODY).setCause(throwable)
+                    .setMessage("Failed to log body: {}").addArgument(throwable::getMessage).log();
         }
 
         @Override
@@ -67,34 +68,39 @@ public final class RestLogger {
     public RestLogger(final Set<String> maskedHeaders) {
         super();
         if (maskedHeaders != null) {
-            maskedHeaders.stream().forEach(name -> this.maskedHeaders.add(name.toLowerCase(Locale.US)));
+            maskedHeaders.stream()
+                    .forEach(name -> this.maskedHeaders.add(name.toLowerCase(Locale.US)));
         }
     }
 
     public void onRequest(final HttpRequest httpRequest, final RestRequest req) {
-        LOGGER.atInfo().withMarker(REQUEST).log("{}", () -> httpRequest.method() + " " + httpRequest.uri());
+        LOGGER.atInfo().addMarker(REQUEST).setMessage("{} {}").addArgument(httpRequest::method)
+                .addArgument(httpRequest::uri).log();
 
-        LOGGER.atDebug().withMarker(REQUEST_HEADERS).log("{}", () -> maskHeaders(httpRequest.headers().map()));
+        LOGGER.atDebug().addMarker(REQUEST_HEADERS).setMessage("{}")
+                .addArgument(() -> maskHeaders(httpRequest.headers().map())).log();
 
         final var body = req.body();
 
         if (body instanceof BodyPublisher || body instanceof InputStream || body instanceof Path) {
-            LOGGER.atTrace().withMarker(REQUEST_BODY).log("");
+            LOGGER.atTrace().addMarker(REQUEST_BODY).log("");
             return;
         }
 
         httpRequest.bodyPublisher().ifPresentOrElse(pub -> pub.subscribe(REQUEST_BODY_SUBSCRIBER),
-                () -> LOGGER.atTrace().withMarker(REQUEST_BODY).log(""));
+                () -> LOGGER.atTrace().addMarker(REQUEST_BODY).log(""));
     }
 
     public void onResponseInfo(final HttpResponse.ResponseInfo responseInfo) {
-        LOGGER.atInfo().withMarker(RESPONSE).log("{}", responseInfo::statusCode);
+        LOGGER.atInfo().addMarker(RESPONSE).setMessage("{}").addArgument(responseInfo::statusCode)
+                .log();
 
-        LOGGER.atDebug().withMarker(RESPONSE_HEADERS).log("{}", () -> maskHeaders(responseInfo.headers().map()));
+        LOGGER.atDebug().addMarker(RESPONSE_HEADERS).setMessage("{}")
+                .addArgument(() -> maskHeaders(responseInfo.headers().map())).log();
     }
 
     public void onResponseBody(final String text) {
-        LOGGER.atTrace().withMarker(RESPONSE_BODY).log(text);
+        LOGGER.atTrace().addMarker(RESPONSE_BODY).log(text);
     }
 
     private String maskHeaders(final Map<String, List<String>> headers) {

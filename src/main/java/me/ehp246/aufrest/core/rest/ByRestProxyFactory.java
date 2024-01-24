@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.ThreadContext;
+import org.slf4j.MDC;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
 import me.ehp246.aufrest.api.annotation.EnableByRest;
@@ -37,7 +37,8 @@ public final class ByRestProxyFactory {
     private final RestFnProvider clientProvider;
     private final ProxyMethodParser methodParser;
 
-    public ByRestProxyFactory(final RestFnProvider restFnProvider, final ProxyMethodParser methodParser) {
+    public ByRestProxyFactory(final RestFnProvider restFnProvider,
+            final ProxyMethodParser methodParser) {
         super();
         this.clientProvider = restFnProvider;
         this.methodParser = methodParser;
@@ -47,19 +48,21 @@ public final class ByRestProxyFactory {
     public <T> T newInstance(final Class<T> byRestInterface) {
         final var byRest = byRestInterface.getAnnotation(ByRest.class);
 
-        return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(), new Class[] { byRestInterface },
-                new InvocationHandler() {
+        return (T) Proxy.newProxyInstance(byRestInterface.getClassLoader(),
+                new Class[] { byRestInterface }, new InvocationHandler() {
                     private final int hashCode = new Object().hashCode();
                     private final RestFn restFn = clientProvider.get(new RestFnConfig(
                             OneUtil.firstUpper(OneUtil.byRestBeanName(byRestInterface)),
-                            Optional.ofNullable(byRest.executor()).map(ByRest.Executor::log4jContext)
-                                    .filter(names -> names.length > 0).map(Arrays::asList).orElseGet(List::of).stream()
-                                    .filter(OneUtil::hasValue).collect(Collectors.toMap(String::toString,
-                                            name -> ((Supplier<String>) () -> ThreadContext.get(name))))));
+                            Optional.ofNullable(byRest.executor())
+                                    .map(ByRest.Executor::mdc)
+                                    .filter(names -> names.length > 0).map(Arrays::asList)
+                                    .orElseGet(List::of).stream().filter(OneUtil::hasValue)
+                                    .collect(Collectors.toMap(String::toString,
+                                            name -> ((Supplier<String>) () -> MDC.get(name))))));
 
                     @Override
-                    public Object invoke(final Object proxy, final Method method, final Object[] args)
-                            throws Throwable {
+                    public Object invoke(final Object proxy, final Method method,
+                            final Object[] args) throws Throwable {
                         if (method.getName().equals("toString")) {
                             return byRestInterface.toString();
                         }
@@ -71,20 +74,25 @@ public final class ByRestProxyFactory {
                         }
 
                         if (method.isDefault()) {
-                            return MethodHandles.privateLookupIn(byRestInterface, MethodHandles.lookup())
+                            return MethodHandles
+                                    .privateLookupIn(byRestInterface, MethodHandles.lookup())
                                     .findSpecial(byRestInterface, method.getName(),
-                                            MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+                                            MethodType.methodType(method.getReturnType(),
+                                                    method.getParameterTypes()),
                                             byRestInterface)
                                     .bindTo(proxy).invokeWithArguments(args);
                         }
 
-                        final var bound = parsedCache.computeIfAbsent(method, m -> methodParser.parse(method))
+                        final var bound = parsedCache
+                                .computeIfAbsent(method, m -> methodParser.parse(method))
                                 .apply(proxy, args);
 
-                        final var outcome = FnOutcome.invoke(() -> restFn.applyForResponse(bound.request(),
-                                bound.requestBodyDescriptor(), bound.responseDescriptor()));
+                        final var outcome = FnOutcome
+                                .invoke(() -> restFn.applyForResponse(bound.request(),
+                                        bound.requestBodyDescriptor(), bound.responseDescriptor()));
 
-                        final var returnValue = bound.returnMapper().apply(bound.request(), outcome);
+                        final var returnValue = bound.returnMapper().apply(bound.request(),
+                                outcome);
 
                         return returnValue;
                     }

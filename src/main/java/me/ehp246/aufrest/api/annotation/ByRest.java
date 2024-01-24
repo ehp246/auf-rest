@@ -9,7 +9,7 @@ import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;
 
-import org.apache.logging.log4j.ThreadContext;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -197,15 +197,15 @@ public @interface ByRest {
     @Target({})
     @interface Executor {
         /**
-         * Defines {@linkplain ThreadContext}-map keys whose values should to be
-         * propagated to the worker threads from the invoking thread. The values are
-         * retrieved at the time of the invocation. If {@linkplain ThreadContext} of the
-         * current thread doesn't have a value for the key, <code>null</code> will be
-         * set as the value on the worker thread's context.
+         * Defines {@linkplain MDC}-map keys whose values should to be propagated to the
+         * worker threads from the invoking thread. The values are retrieved at the time
+         * of the invocation. If {@linkplain MDC} of the current thread doesn't have a
+         * value for the key, <code>null</code> will be set as the value on the worker
+         * thread's context.
          * <p>
          * If the same context key is defined both here and on a parameter, the
          * parameter argument has the precedence.
          */
-        String[] log4jContext() default {};
+        String[] mdc() default {};
     }
 }

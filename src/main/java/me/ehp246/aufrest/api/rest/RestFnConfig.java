@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  * @since 4.1.0
  * @see HttpClient#connectTimeout() \
  */
-public record RestFnConfig(String name, Map<String, Supplier<String>> log4jContextSuppliers) {
+public record RestFnConfig(String name, Map<String, Supplier<String>> mdcSuppliers) {
     public RestFnConfig() {
         this(null, null);
     }

@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.log4jcontext;
+package me.ehp246.test.embedded.mdc;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;

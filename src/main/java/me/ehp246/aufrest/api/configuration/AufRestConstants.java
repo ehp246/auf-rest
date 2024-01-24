@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Defines the constants supported by the framework.
  *
  * @author Lei Yang
- * @version 3.2
  */
 public final class AufRestConstants {
     /**
