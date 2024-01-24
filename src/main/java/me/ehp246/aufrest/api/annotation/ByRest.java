@@ -206,6 +206,6 @@ public @interface ByRest {
          * If the same context key is defined both here and on a parameter, the
          * parameter argument has the precedence.
          */
-        String[] log4jContext() default {};
+        String[] mdc() default {};
     }
 }

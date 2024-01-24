@@ -1,4 +1,4 @@
-package me.ehp246.test.embedded.log4jcontext;
+package me.ehp246.test.embedded.mdc;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -7,27 +7,28 @@ import org.apache.logging.log4j.ThreadContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import me.ehp246.test.embedded.log4jcontext.Log4jContextrCases.Order;
+import me.ehp246.test.embedded.mdc.MdcCases.Order;
 
 /**
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
-        "me.ehp246.aufrest.restlogger.enabled=true" })
-class Log4jContextTest {
+@SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT,
+        properties = { "me.ehp246.aufrest.restlogger.enabled=true" })
+class MdcTest {
     @Autowired
     private AppConfig appConfig;
     @Autowired
-    private Log4jContextrCases.Case01 case01;
+    private MdcCases.Case01 case01;
 
     @BeforeEach
     void clean() {
-        ThreadContext.clearAll();
+        MDC.clear();
         appConfig.reset();
     }
 
@@ -42,7 +43,7 @@ class Log4jContextTest {
 
         Assertions.assertEquals(expected, order.orderId());
         Assertions.assertEquals(request.id(), requestContextMap.get("AufRestRequestId"));
-        Assertions.assertEquals(null, ThreadContext.get("AufRestRequestId"));
+        Assertions.assertEquals(null, MDC.get("AufRestRequestId"));
     }
 
     @Test
@@ -50,8 +51,8 @@ class Log4jContextTest {
         final var expectedContext1 = UUID.randomUUID().toString();
         final var expectedContext2 = UUID.randomUUID().toString();
 
-        ThreadContext.put("logger_context_1", expectedContext1);
-        ThreadContext.put("logger_context_2", expectedContext2);
+        MDC.put("logger_context_1", expectedContext1);
+        MDC.put("logger_context_2", expectedContext2);
 
         case01.postWithVoidHandler(expectedContext1, new Order(expectedContext1, 123));
 
@@ -68,8 +69,8 @@ class Log4jContextTest {
     void executor_02() throws InterruptedException, ExecutionException {
         final var expectedContext2 = UUID.randomUUID().toString();
 
-        ThreadContext.put("accountId", "1");
-        ThreadContext.put("logger_context_2", expectedContext2);
+        MDC.put("accountId", "1");
+        MDC.put("logger_context_2", expectedContext2);
 
         case01.postWithVoidHandler("2", new Order("12", 123));
 
@@ -85,7 +86,7 @@ class Log4jContextTest {
     void executor_03() throws InterruptedException, ExecutionException {
         final var context2 = UUID.randomUUID().toString();
 
-        ThreadContext.put("logger_context_2", context2);
+        MDC.put("logger_context_2", context2);
 
         case01.postWithVoidHandlerWithIntrospect("2", new Order(UUID.randomUUID().toString(), 123));
 
@@ -95,6 +96,7 @@ class Log4jContextTest {
         Assertions.assertEquals(null, map.get("logger_context_1"));
         Assertions.assertEquals(context2, map.get("logger_context_2"));
 
-        Assertions.assertEquals(context2, ThreadContext.getContext().get("logger_context_2"), "should be no change");
+        Assertions.assertEquals(context2, ThreadContext.getContext().get("logger_context_2"),
+                "should be no change");
     }
 }

@@ -113,8 +113,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
         return new RestFn() {
             private final HttpClient client = builder.build();
-            private final Map<String, Supplier<String>> workerLog4jContextSuppliers = restFnConfig
-                    .log4jContextSuppliers();
+            private final Map<String, Supplier<String>> workerMdcSuppliers = restFnConfig
+                    .mdcSuppliers();
 
             @SuppressWarnings("unchecked")
             @Override
@@ -215,17 +215,17 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             private <T> BodyHandler<T> wrapInContext(final RestRequest req,
                     final BodyHandler<T> handler) {
-                final var log4jContext = new HashMap<String, String>();
-                log4jContext.put(AufRestConstants.AUFRESTREQUESTID, req.id());
-                if (workerLog4jContextSuppliers != null && workerLog4jContextSuppliers.size() > 0) {
-                    workerLog4jContextSuppliers.entrySet().stream().forEach(
-                            entry -> log4jContext.put(entry.getKey(), entry.getValue().get()));
+                final var mdcMap = new HashMap<String, String>();
+                mdcMap.put(AufRestConstants.AUFRESTREQUESTID, req.id());
+                if (workerMdcSuppliers != null && workerMdcSuppliers.size() > 0) {
+                    workerMdcSuppliers.entrySet().stream().forEach(
+                            entry -> mdcMap.put(entry.getKey(), entry.getValue().get()));
                 }
 
                 return new BodyHandler<T>() {
                     @Override
                     public BodySubscriber<T> apply(final ResponseInfo responseInfo) {
-                        log4jContext.entrySet().stream()
+                        mdcMap.entrySet().stream()
                                 .forEach(e -> MDC.put(e.getKey(), e.getValue()));
 
                         final var target = handler.apply(responseInfo);
@@ -246,14 +246,14 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             public void onError(final Throwable throwable) {
                                 target.onError(throwable);
 
-                                log4jContext.keySet().forEach(MDC::remove);
+                                mdcMap.keySet().forEach(MDC::remove);
                             }
 
                             @Override
                             public void onComplete() {
                                 target.onComplete();
 
-                                log4jContext.keySet().forEach(MDC::remove);
+                                mdcMap.keySet().forEach(MDC::remove);
                             }
 
                             @Override

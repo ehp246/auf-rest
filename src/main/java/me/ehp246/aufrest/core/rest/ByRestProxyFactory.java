@@ -54,7 +54,7 @@ public final class ByRestProxyFactory {
                     private final RestFn restFn = clientProvider.get(new RestFnConfig(
                             OneUtil.firstUpper(OneUtil.byRestBeanName(byRestInterface)),
                             Optional.ofNullable(byRest.executor())
-                                    .map(ByRest.Executor::log4jContext)
+                                    .map(ByRest.Executor::mdc)
                                     .filter(names -> names.length > 0).map(Arrays::asList)
                                     .orElseGet(List::of).stream().filter(OneUtil::hasValue)
                                     .collect(Collectors.toMap(String::toString,

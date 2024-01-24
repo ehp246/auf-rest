@@ -273,6 +273,7 @@
 						<log4j.configurationFile>test/main/resources/log4j2-surefire.xml</log4j.configurationFile>
 						<spring.main.banner-mode>off</spring.main.banner-mode>
 					</systemPropertyVariables>
+					<argLine>-XX:+EnableDynamicAgentLoading</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

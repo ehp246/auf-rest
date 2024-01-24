@@ -2,6 +2,7 @@ package me.ehp246.test.embedded.auth.basic;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
@@ -22,19 +23,22 @@ class WebSecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(final BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserDetailsService userDetailsService(
+            final BCryptPasswordEncoder bCryptPasswordEncoder) {
         final InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("basicuser").password(bCryptPasswordEncoder.encode("password"))
-                .roles("USER").build());
+        manager.createUser(User.withUsername("basicuser")
+                .password(bCryptPasswordEncoder.encode("password")).roles("USER").build());
         return manager;
     }
 
     @Bean
     SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeHttpRequests().requestMatchers("/auth/basic/**").authenticated().and()
-                .httpBasic()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(
+                        auth -> auth.requestMatchers("/auth/basic/**").authenticated())
+                .sessionManagement(
+                        sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
