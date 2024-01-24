@@ -270,10 +270,10 @@
 				<configuration>
 					<systemPropertyVariables>
 						<me.ehp246.aufrest.restlogger.enabled>false</me.ehp246.aufrest.restlogger.enabled>
-						<log4j.configurationFile>test/main/resources/log4j2-surefire.xml</log4j.configurationFile>
+						<log4j2.configurationFile>test/main/resources/log4j2-surefire.xml</log4j2.configurationFile>
 						<spring.main.banner-mode>off</spring.main.banner-mode>
 					</systemPropertyVariables>
-					<argLine>-XX:+EnableDynamicAgentLoading</argLine>
+					<argLine>-Xshare:off -XX:+EnableDynamicAgentLoading</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

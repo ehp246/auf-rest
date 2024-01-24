@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
-@RequestMapping(value = "/status-code/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/status-code/", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
 class ExController {
     @GetMapping("runtime")
     void get() {
-        throw new RuntimeException();
+        throw new RuntimeException("Runtime exception happened!");
     }
 
     @GetMapping("{statusCode}")
