@@ -12,9 +12,12 @@ import java.util.Set;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -34,7 +37,7 @@ import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
@@ -51,8 +54,8 @@ import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
  * @see me.ehp246.aufrest.api.annotation.EnableByRest
  * @since 1.0
  */
-@Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class,
-        DefaultContentPublisherProvider.class, DefaultHttpClientExecutorProvider.class })
+@Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class, DefaultContentPublisherProvider.class,
+        DefaultHttpClientExecutorProvider.class })
 public final class AufRestConfiguration {
     private final static List<String> MODULES = List.of("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
             "com.fasterxml.jackson.module.mrbean.MrBeanModule",
@@ -65,8 +68,16 @@ public final class AufRestConfiguration {
     }
 
     @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
-    public PropertyResolver propertyResolver(final org.springframework.core.env.PropertyResolver springResolver) {
-        return springResolver::resolveRequiredPlaceholders;
+    public ExpressionResolver expressionResolver(final org.springframework.core.env.PropertyResolver springPropertyResolver,
+            final ConfigurableBeanFactory beanFactory) {
+        final var springSpelResolver = new StandardBeanExpressionResolver();
+        final var context = new BeanExpressionContext(beanFactory, null);
+        return exp -> {
+            if (exp.startsWith("#{")) {
+                return springSpelResolver.evaluate(exp, context).toString();
+            }
+            return springPropertyResolver.resolveRequiredPlaceholders(exp);
+        };
     }
 
     @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
