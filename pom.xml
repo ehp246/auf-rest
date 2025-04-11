@@ -4,8 +4,7 @@
 	<artifactId>auf-rest</artifactId>
 	<version>5.0.0</version>
 	<name>Auf REST</name>
-	<description>An annotation-driven declarative REST development
-		framework</description>
+	<description>An annotation-driven declarative REST development framework</description>
 
 	<url>https://github.com/ehp246/auf-rest</url>
 
@@ -36,28 +35,29 @@
 
 		<jdk.version>21</jdk.version>
 
-		<spring-framework.version>6.1.3</spring-framework.version>
-		<spring-boot.version>3.2.2</spring-boot.version>
+		<spring-framework.version>6.2.5</spring-framework.version>
+		<spring-boot.version>3.4.4</spring-boot.version>
 
-		<slf4j.version>2.0.11</slf4j.version>
+		<slf4j.version>2.0.17</slf4j.version>
 
-		<jackson.version>2.16.1</jackson.version>
+		<jackson.version>2.18.3</jackson.version>
 
-		<log4j.version>2.22.1</log4j.version>
+		<slf4j.version>2.0.17</slf4j.version>
 
-		<junit-jupiter.version>5.10.1</junit-jupiter.version>
-		<junit-platform.version>1.10.1</junit-platform.version>
+		<log4j.version>2.24.3</log4j.version>
 
-		<mockito.version>5.9.0</mockito.version>
-		<mockito-inline.version>5.2.0</mockito-inline.version>
-		<bytebuddy.version>1.14.11</bytebuddy.version>
+		<junit-jupiter.version>5.12.1</junit-jupiter.version>
+		<junit-platform.version>1.12.1</junit-platform.version>
 
-		<maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
-		<maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
-		<maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
-		<maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-		<maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-		<maven-jacoco-plugin.version>0.8.11</maven-jacoco-plugin.version>
+		<mockito.version>5.16.1</mockito.version>
+
+		<maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+		<maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+		<maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+		<maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+		<maven-jacoco-plugin.version>0.8.13</maven-jacoco-plugin.version>
+		
+		<maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
 	</properties>
 
 	<dependencies>
@@ -177,36 +177,24 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-inline</artifactId>
-			<version>${mockito-inline.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.bytebuddy</groupId>
-			<artifactId>byte-buddy</artifactId>
-			<version>${bytebuddy.version}</version>
-			<scope>test</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
 			<version>${log4j.version}</version>
-			<scope>runtime</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>${log4j.version}</version>
-			<scope>runtime</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
 			<version>${log4j.version}</version>
-			<scope>runtime</scope>
+			<scope>test</scope>
 		</dependency>
 		
 		<dependency>
@@ -273,7 +261,10 @@
 						<log4j2.configurationFile>test/main/resources/log4j2-surefire.xml</log4j2.configurationFile>
 						<spring.main.banner-mode>off</spring.main.banner-mode>
 					</systemPropertyVariables>
-					<argLine>-Xshare:off -XX:+EnableDynamicAgentLoading</argLine>
+					<argLine>
+						-Xshare:off 
+						-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"
+					</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -321,6 +312,8 @@
 								<arg>--pinentry-mode</arg>
 								<arg>loopback</arg>
 							</gpgArguments>
+				            <keyname>${gpg.keyname}</keyname>
+				            <passphraseServerId>gpg-passphrase</passphraseServerId>
 						</configuration>
 					</execution>
 				</executions>
