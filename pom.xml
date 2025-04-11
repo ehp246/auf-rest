@@ -224,17 +224,6 @@
 		</dependency>
 	</dependencies>
 
-	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-central</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-		</snapshotRepository>
-		<repository>
-			<id>sonatype-central</id>
-			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-  	</distributionManagement>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -337,9 +326,14 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>${maven-deploy-plugin.version}</version>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>0.7.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>sonatype-central</publishingServerId>
+					<autoPublish>true</autoPublish>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
