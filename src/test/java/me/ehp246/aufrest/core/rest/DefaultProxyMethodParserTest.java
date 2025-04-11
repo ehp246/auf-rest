@@ -16,7 +16,7 @@ import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth03;
@@ -39,7 +39,7 @@ import me.ehp246.test.mock.MockBodyHandlerProvider;
 class DefaultProxyMethodParserTest {
     private final BodyHandlerResolver bodyHandlerResolver = name -> r -> null;
     private final InferringBodyHandlerProvider bindingBodyHandlerProvider = new MockBodyHandlerProvider();
-    private final PropertyResolver propertyResolver = new MockEnvironment()::resolveRequiredPlaceholders;
+    private final ExpressionResolver expressionResolver = new MockEnvironment()::resolveRequiredPlaceholders;
     private final MockAuthBean authBean = new MockAuthBean();
     private final AuthBeanResolver beanResolver = name -> {
         if (!name.equals("getOnInterface")) {
@@ -47,7 +47,7 @@ class DefaultProxyMethodParserTest {
         }
         return authBean;
     };
-    private final DefaultProxyMethodParser parser = new DefaultProxyMethodParser(propertyResolver, beanResolver,
+    private final DefaultProxyMethodParser parser = new DefaultProxyMethodParser(expressionResolver, beanResolver,
             bodyHandlerResolver, bindingBodyHandlerProvider);
 
     @Test
@@ -82,7 +82,7 @@ class DefaultProxyMethodParserTest {
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(authResolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captor = InvocationUtil.newCaptor(BeanAuth01.class);
@@ -109,7 +109,7 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var authSupplier = new DefaultProxyMethodParser(propertyResolver, name -> name, bodyHandlerResolver,
+        final var authSupplier = new DefaultProxyMethodParser(expressionResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
                         .request().authSupplier();
 
@@ -125,7 +125,7 @@ class DefaultProxyMethodParserTest {
 
         final var invocation = captor.invocation();
 
-        final var authSupplier = new DefaultProxyMethodParser(propertyResolver, name -> name, bodyHandlerResolver,
+        final var authSupplier = new DefaultProxyMethodParser(expressionResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
                         .request().authSupplier();
 
@@ -139,7 +139,7 @@ class DefaultProxyMethodParserTest {
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(authResolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
@@ -157,7 +157,7 @@ class DefaultProxyMethodParserTest {
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
@@ -176,7 +176,7 @@ class DefaultProxyMethodParserTest {
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, authResolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
@@ -197,7 +197,7 @@ class DefaultProxyMethodParserTest {
         final var resolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, resolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
@@ -214,7 +214,7 @@ class DefaultProxyMethodParserTest {
         final var resolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, resolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
@@ -231,7 +231,7 @@ class DefaultProxyMethodParserTest {
         final var resolver = Mockito.mock(AuthBeanResolver.class);
         Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
 
-        final var parser = new DefaultProxyMethodParser(propertyResolver, resolver, bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
@@ -245,7 +245,7 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void authBean_09() {
-        final var parser = new DefaultProxyMethodParser(propertyResolver, name -> new Object(), bodyHandlerResolver,
+        final var parser = new DefaultProxyMethodParser(expressionResolver, name -> new Object(), bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captor = InvocationUtil.newCaptor(BeanAuth02.class);

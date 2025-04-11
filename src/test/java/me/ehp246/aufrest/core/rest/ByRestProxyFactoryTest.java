@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase01;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase02;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BearerAuthCase01;
@@ -42,13 +42,13 @@ import me.ehp246.test.mock.MockRestFnProvider;
 class ByRestProxyFactoryTest {
     private final MockRestFn restFn = new MockRestFn();
 
-    private final PropertyResolver propertyResolver = new MockEnvironment()
+    private final ExpressionResolver expressionResolver = new MockEnvironment()
             .withProperty("echo.base", "https://localhost")
             .withProperty("api.bearer.token", "ec3fb099-7fa3-477b-82ce-05547babad95")
             .withProperty("postman.username", "postman")
             .withProperty("postman.password", "password")::resolveRequiredPlaceholders;
 
-    private final ProxyMethodParser parser = new DefaultProxyMethodParser(propertyResolver, name -> null,
+    private final ProxyMethodParser parser = new DefaultProxyMethodParser(expressionResolver, name -> null,
             name -> r -> null, new MockBodyHandlerProvider());
 
     private final ByRestProxyFactory factory = new ByRestProxyFactory(restFn.toProvider(), parser);

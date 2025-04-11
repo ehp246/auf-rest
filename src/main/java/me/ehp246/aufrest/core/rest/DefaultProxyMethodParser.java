@@ -46,7 +46,7 @@ import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.spi.PropertyResolver;
+import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
 import me.ehp246.aufrest.core.reflection.ReflectedMethod;
@@ -67,14 +67,14 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
     private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
-    private final PropertyResolver propertyResolver;
+    private final ExpressionResolver expressionResolver;
     private final AuthBeanResolver authBeanResolver;
     private final InferringBodyHandlerProvider inferredHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
-    public DefaultProxyMethodParser(final PropertyResolver propertyResolver, final AuthBeanResolver authBeanResolver,
+    public DefaultProxyMethodParser(final ExpressionResolver expressionResolver, final AuthBeanResolver authBeanResolver,
             final BodyHandlerResolver bodyHandlerResolver, final InferringBodyHandlerProvider inferredHandlerProvider) {
-        this.propertyResolver = propertyResolver;
+        this.expressionResolver = expressionResolver;
         this.authBeanResolver = authBeanResolver;
         this.inferredHandlerProvider = inferredHandlerProvider;
         this.bodyHandlerResolver = bodyHandlerResolver;
@@ -301,7 +301,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                         + reflected.method().getDeclaringClass());
             }
             headerStatic.compute(key, (k, v) -> new ArrayList<String>())
-                    .add(propertyResolver.resolve(headers.get(i + 1)));
+                    .add(expressionResolver.resolve(headers.get(i + 1)));
         }
         return headerStatic;
     }
@@ -315,7 +315,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final Map<String, List<String>> queryStatic = new HashMap<>();
         for (int i = 0; i < queries.size(); i += 2) {
             queryStatic.computeIfAbsent(queries.get(i), k -> new ArrayList<String>())
-                    .add(propertyResolver.resolve(queries.get(i + 1)));
+                    .add(expressionResolver.resolve(queries.get(i + 1)));
         }
         return queryStatic;
     }
@@ -351,7 +351,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private Duration timeout(final ByRest byRest) {
-        return Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue).map(propertyResolver::resolve)
+        return Optional.ofNullable(byRest.timeout()).filter(OneUtil::hasValue).map(expressionResolver::resolve)
                 .map(text -> OneUtil.orThrow(() -> Duration.parse(text),
                         e -> new IllegalArgumentException("Invalid timeout: " + text, e)))
                 .orElse(null);
@@ -364,7 +364,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
      * Empty string in case everything is missing/blank.
      */
     private String baseUrl(final ByRest byRest, final Optional<OfRequest> optionalOfMapping) {
-        return propertyResolver
+        return expressionResolver
                 .resolve(byRest.value() + optionalOfMapping.map(OfRequest::value).filter(OneUtil::hasValue).orElse(""));
     }
 
@@ -377,22 +377,22 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
                         + reflected.method().getDeclaringClass());
             }
-            final var simple = propertyResolver.resolve(value.get(0));
+            final var simple = expressionResolver.resolve(value.get(0));
             return (target, args) -> simple::toString;
         case BASIC:
             if (value.size() < 2) {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
                         + reflected.method().getDeclaringClass());
             }
-            final var basic = new BasicAuth(propertyResolver.resolve(value.get(0)),
-                    propertyResolver.resolve(value.get(1)));
+            final var basic = new BasicAuth(expressionResolver.resolve(value.get(0)),
+                    expressionResolver.resolve(value.get(1)));
             return (target, args) -> basic::header;
         case BEARER:
             if (value.size() < 1) {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
                         + reflected.method().getDeclaringClass());
             }
-            final var bearer = new BearerToken(propertyResolver.resolve(value.get(0)));
+            final var bearer = new BearerToken(expressionResolver.resolve(value.get(0)));
             return (target, args) -> bearer::header;
         case BEAN:
             if (value.size() < 2) {
