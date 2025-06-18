@@ -17,12 +17,12 @@ import java.util.stream.Stream;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -60,7 +60,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
     @SuppressWarnings("unchecked")
     @Override
-    public HttpRequest apply(final RestRequest req, final BodyOf<?> descriptor) {
+    public HttpRequest apply(final RestRequest req, final TypeOfJson descriptor) {
         final var builder = reqBuilderSupplier.get();
         final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
         /*
@@ -133,7 +133,8 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         } else {
             // Add query parameters
             uri = URI.create(Optional.ofNullable(req.queries()).filter(queries -> !queries.isEmpty())
-                    .map(queries -> String.join("?", boundBase, HttpUtils.encodeQueryString(queries))).orElse(boundBase));
+                    .map(queries -> String.join("?", boundBase, HttpUtils.encodeQueryString(queries)))
+                    .orElse(boundBase));
         }
 
         /*
@@ -156,7 +157,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         } else {
             // Infer it as the last resort.
             final var contentPublisher = this.publisherProvider.get(req.body(), req.contentType(),
-                    (BodyOf<Object>) descriptor);
+                    (TypeOfJson) descriptor);
 
             builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType());
 

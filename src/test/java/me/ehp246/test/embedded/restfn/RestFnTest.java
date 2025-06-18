@@ -34,12 +34,13 @@ import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.ParameterizedTypeBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
@@ -48,8 +49,7 @@ import me.ehp246.test.embedded.restfn.Logins.LoginName;
  * @author Lei Yang
  *
  */
-@SpringBootTest(classes = {
-        AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { AppConfig.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 class RestFnTest {
     @Value("${local.server.port}")
     private int port;
@@ -210,6 +210,7 @@ class RestFnTest {
                 return password;
             }
         };
+
         final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
@@ -221,12 +222,12 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new BodyOf<Logins.LoginName>(RestView.class, Logins.LoginName.class));
+        }, TypeOfJson.of(Logins.LoginName.class, RestView.class));
 
         final var body = response.body();
 
         Assertions.assertEquals(username, body.get("username"));
-        Assertions.assertEquals(null, body.get("password"));
+        Assertions.assertEquals(null, body.get("password"), "should not have it");
     }
 
     @Test
@@ -257,7 +258,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new BodyOf<Logins.LoginName>(RestView.class, Logins.LoginName.class));
+        }, TypeOfJson.of(Logins.LoginName.class, RestView.class));
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
@@ -280,8 +281,7 @@ class RestFnTest {
             }
         };
 
-        final var contentPublisher = this.publisherProvider.get(login,
-                new BodyOf<Logins.LoginName>(Logins.LoginName.class));
+        final var contentPublisher = this.publisherProvider.get(login, TypeOfJson.of(Logins.LoginName.class));
 
         final var response = restFn.applyForResponse(new RestRequest() {
 
@@ -341,7 +341,7 @@ class RestFnTest {
             public Object body() {
                 return bodyPublisher;
             }
-        }, new BodyOf<Logins.LoginName>(Logins.LoginName.class));
+        }, TypeOfJson.of(Logins.LoginName.class));
 
         final var body = response.body();
 
@@ -355,7 +355,7 @@ class RestFnTest {
         final var password = UUID.randomUUID().toString();
 
         final var login = new Logins.Login(username, password);
-        final var body = restFn.apply(new RestRequest() {
+        final var body = (LoginName) restFn.apply(new RestRequest() {
 
             @Override
             public String uri() {
@@ -366,18 +366,20 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, null, new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(RestView.class, LoginName.class)));
+        }, TypeOfJson.of(Logins.Login.class),
+                new BodyHandlerType.Inferring<LoginName>(TypeOfJson.of(LoginName.class, RestView.class)));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void responseBody_reifying_01() {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-        final var body = restFn.apply(newLoginsReq(login),
-                new Inferring<>(new BodyOf<List<LoginName>>(RestView.class, ArrayList.class, LoginName.class)));
+        final var body = (List<LoginName>) restFn.apply(newLoginsReq(login),
+                new Inferring<>(TypeOfJson.of(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class)));
 
         Assertions.assertEquals(1, body.size());
         Assertions.assertEquals(ArrayList.class, body.getClass());
@@ -412,9 +414,10 @@ class RestFnTest {
          * Get a handler that doesn't support View.
          */
         final var handler = this.handlerProvider
-                .get(new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(LoginName.class)));
+                .get(new BodyHandlerType.Inferring<LoginName>(TypeOfJson.of(LoginName.class)));
 
-        final var respons = restFn.applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler)).body();
+        final var respons = (LoginName) restFn
+                .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler)).body();
 
         /*
          * The provided handler doesn't support view. All properties should be /*
@@ -427,12 +430,12 @@ class RestFnTest {
          * Get a handler that does support View.
          */
         final var handlerWithView = this.handlerProvider
-                .get(new BodyHandlerType.Inferring<LoginName>(new BodyOf<>(RestView.class, LoginName.class)));
+                .get(new BodyHandlerType.Inferring<LoginName>(TypeOfJson.of(LoginName.class, RestView.class)));
 
         /**
          * Use it on the response.
          */
-        final var responseWithView = restFn
+        final var responseWithView = (LoginName) restFn
                 .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handlerWithView)).body();
 
         Assertions.assertEquals(login.username(), responseWithView.getUsername());

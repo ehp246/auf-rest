@@ -12,7 +12,7 @@ import me.ehp246.aufrest.api.exception.ErrorResponseException;
  * @author Lei Yang
  * @since 4.0
  */
-public sealed interface BodyHandlerType<T> {
+public sealed interface BodyHandlerType {
     /**
      * The Java type of the response body on a {@linkplain ErrorResponseException}.
      */
@@ -27,7 +27,7 @@ public sealed interface BodyHandlerType<T> {
      * @author Lei Yang
      * @since 4.0
      */
-    public final class Provided<T> implements BodyHandlerType<T> {
+    public final class Provided<T> implements BodyHandlerType {
         public static final Provided<Void> DISCARDING = new Provided<>(BodyHandlers.discarding());
 
         private final BodyHandler<T> handler;
@@ -65,27 +65,28 @@ public sealed interface BodyHandlerType<T> {
      * @since 4.0
      * @see InferringBodyHandlerProvider
      */
-    public final class Inferring<T> implements BodyHandlerType<T> {
-        private final BodyOf<T> bodyDescriptor;
+    public final class Inferring<T> implements BodyHandlerType {
+        private final TypeOfJson bodyDescriptor;
         private final Class<?> errorType;
 
-        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(BodyOf.MAP);
+        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(
+                TypeOfJson.of(ParameterizedTypeBuilder.ofMap(String.class, Object.class)));
 
-        public Inferring(final BodyOf<T> body, final Class<?> errorType) {
-            this.bodyDescriptor = body;
+        public Inferring(final TypeOfJson bodyType, final Class<?> errorType) {
+            this.bodyDescriptor = bodyType;
             this.errorType = errorType;
         }
 
-        public Inferring(final BodyOf<T> descriptor) {
+        public Inferring(final TypeOfJson descriptor) {
             this(descriptor, Map.class);
         }
 
         public Inferring(final Class<T> type) {
-            this(new BodyOf<T>(type), Map.class);
+            this(TypeOfJson.of(type), Map.class);
         }
 
         public Inferring(final Class<T> type, final Class<?> errorType) {
-            this(new BodyOf<T>(type), errorType);
+            this(TypeOfJson.of(type), errorType);
         }
 
         @Override
@@ -93,7 +94,7 @@ public sealed interface BodyHandlerType<T> {
             return errorType;
         }
 
-        public BodyOf<T> bodyOf() {
+        public TypeOfJson bodyType() {
             return bodyDescriptor;
         }
     }

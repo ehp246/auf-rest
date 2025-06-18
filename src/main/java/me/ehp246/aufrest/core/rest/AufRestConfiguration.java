@@ -41,7 +41,7 @@ import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.util.OneUtil;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 import me.ehp246.aufrest.provider.httpclient.DefaultRestFnProvider;
-import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
+import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 
 /**
  * Registers infrastructure beans needed by the framework.
@@ -68,7 +68,8 @@ public final class AufRestConfiguration {
     }
 
     @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
-    public ExpressionResolver expressionResolver(final org.springframework.core.env.PropertyResolver springPropertyResolver,
+    public ExpressionResolver expressionResolver(
+            final org.springframework.core.env.PropertyResolver springPropertyResolver,
             final ConfigurableBeanFactory beanFactory) {
         final var springSpelResolver = new StandardBeanExpressionResolver();
         final var context = new BeanExpressionContext(beanFactory, null);
@@ -121,15 +122,15 @@ public final class AufRestConfiguration {
     }
 
     @Bean("96eb8fd6-602c-4f61-8621-f29f70365be5")
-    public JsonByObjectMapper jsonByObjectMapper(final ApplicationContext appCtx) {
+    public JsonByJackson jsonByObjectMapper(final ApplicationContext appCtx) {
         final var aufRestObjectMapper = appCtx.getBeansOfType(ObjectMapper.class)
                 .get(AufRestConstants.AUF_REST_OBJECT_MAPPER);
         if (aufRestObjectMapper != null) {
-            return new JsonByObjectMapper(aufRestObjectMapper);
+            return new JsonByJackson(aufRestObjectMapper);
         }
 
         try {
-            return new JsonByObjectMapper(appCtx.getBean(ObjectMapper.class));
+            return new JsonByJackson(appCtx.getBean(ObjectMapper.class));
         } catch (final Exception e) {
             // Can not find a default. Creating private.
         }
@@ -150,6 +151,6 @@ public final class AufRestConfiguration {
             }
         }
 
-        return new JsonByObjectMapper(newMapper);
+        return new JsonByJackson(newMapper);
     }
 }

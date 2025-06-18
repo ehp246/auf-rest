@@ -16,8 +16,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -44,7 +44,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final BodyOf<?> bodyOf;
+    private final TypeOfJson bodyType;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ProxyReturnMapper returnMapper;
@@ -54,9 +54,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
-            final ArgBinder<Object, Object> bodyArgBinder, final BodyOf<?> bodyInfo,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final ProxyReturnMapper returnMapper) {
+            final ArgBinder<Object, Object> bodyArgBinder, final TypeOfJson bodyType,
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
         this.accept = accept;
@@ -71,7 +70,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.headerStatic = Collections.unmodifiableMap(headerStatic);
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
-        this.bodyOf = bodyInfo;
+        this.bodyType = bodyType;
         this.handlerBinder = consumerBinder;
         this.returnMapper = returnMapper;
     }
@@ -211,7 +210,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyOf, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+        }, bodyType, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 
     private Map<String, ?> paths(final Object[] args) {

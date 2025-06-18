@@ -12,9 +12,9 @@ import java.util.Map;
 
 import org.springframework.util.MimeTypeUtils;
 
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -30,7 +30,7 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
     }
 
     @Override
-    public <T> ContentPublisher get(final T body, final String mimeType, final BodyOf<T> descriptor) {
+    public <T> ContentPublisher get(final T body, final String mimeType, final TypeOfJson descriptor) {
         final var contentType = OneUtil.hasValue(mimeType) ? mimeType : HttpUtils.APPLICATION_JSON;
 
         if (body instanceof final BodyPublisher publisher) {
@@ -59,11 +59,11 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
 
         if (contentType.equalsIgnoreCase(HttpUtils.APPLICATION_JSON)) {
             // Must be a JSON object.
-            return new ContentPublisher(contentType, BodyPublishers.ofString(toJson.apply(body, descriptor)));
+            return new ContentPublisher(contentType, BodyPublishers.ofString(toJson.toJson(body, descriptor)));
         }
 
         throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + descriptor.reifying().get(0) + "'");
+                + body.toString() + "' of type '" + descriptor.type() + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {

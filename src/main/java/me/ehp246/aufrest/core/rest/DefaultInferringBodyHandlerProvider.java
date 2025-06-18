@@ -15,10 +15,10 @@ import org.springframework.lang.Nullable;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestLogger;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -41,15 +41,14 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> BodyHandler<T> get(final BodyHandlerType<T> descriptor) {
+    public <T> BodyHandler<T> get(final BodyHandlerType descriptor) {
         // In case of provided handler, the success body type is not used and
         // irrelevant.
-        final var handler = descriptor instanceof final Provided<?> provided ? provided.handler()
-                : null;
+        final var handler = descriptor instanceof final Provided<?> provided ? provided.handler() : null;
 
-        final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.bodyOf() : null;
+        final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.bodyType() : null;
         // Needed for both provided and inferring descriptors.
-        final var errorDescriptor = descriptor == null ? null : new BodyOf<>(descriptor.errorType());
+        final var errorDescriptor = descriptor == null ? null : TypeOfJson.of(descriptor.errorType());
 
         return responseInfo -> {
             // Log headers
@@ -77,7 +76,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
              * to infer by the content type.
              */
             final var resposneDescriptor = isSuccess ? successDescriptor : errorDescriptor;
-            final var type = resposneDescriptor == null ? null : resposneDescriptor.reifying().get(0);
+            final var type = resposneDescriptor == null ? null : resposneDescriptor.type();
             if (statusCode == 204 || type == void.class || type == Void.class) {
                 return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
             }
@@ -111,7 +110,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
                         }
 
                         if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-                            return fromJson.apply(text, resposneDescriptor);
+                            return fromJson.fromJson(text, resposneDescriptor);
                         }
 
                         // Returns the raw text for anything that is not JSON for now.

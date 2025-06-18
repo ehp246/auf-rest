@@ -42,10 +42,10 @@ import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.reflection.ArgBinderProvider;
@@ -72,8 +72,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final InferringBodyHandlerProvider inferredHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
-    public DefaultProxyMethodParser(final ExpressionResolver expressionResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerResolver bodyHandlerResolver, final InferringBodyHandlerProvider inferredHandlerProvider) {
+    public DefaultProxyMethodParser(final ExpressionResolver expressionResolver,
+            final AuthBeanResolver authBeanResolver, final BodyHandlerResolver bodyHandlerResolver,
+            final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.expressionResolver = expressionResolver;
         this.authBeanResolver = authBeanResolver;
         this.inferredHandlerProvider = inferredHandlerProvider;
@@ -121,16 +122,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
-        final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new BodyOf<>(Optional.ofNullable(parameter.getAnnotation(JsonView.class))
-                        .map(JsonView::value).filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
-                        parameter.getType()))
+        final var bodyType = bodyParam.map(ReflectedParameter::parameter)
+                .map(parameter -> TypeOfJson.of(parameter.getParameterizedType(),
+                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
+                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null)))
                 .orElse(null);
 
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
-                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
+                bodyArgBinder, bodyType, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
     }
 
     /**
@@ -174,8 +175,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 .map(views -> views[0]).orElse(null);
 
         final var descriptor = new BodyHandlerType.Inferring<>(
-                new BodyOf<>(jsonView, bodyTypes == null ? new Class<?>[] { returnType } : bodyTypes),
-                byRest.errorType());
+                TypeOfJson.of(reflected.method().getGenericReturnType(), jsonView), byRest.errorType());
 
         final var handler = inferredHandlerProvider.get(descriptor);
 

@@ -37,12 +37,13 @@ public interface RestFn {
      *         transformed into a Java object as dedicated by
      *         {@linkplain BodyHandlerType}.
      */
-    <T> HttpResponse<T> applyForResponse(RestRequest request, BodyOf<?> requestDescriptor,
-            BodyHandlerType<T> responseDescriptor);
+    <T> HttpResponse<T> applyForResponse(RestRequest request, TypeOfJson requestDescriptor,
+            BodyHandlerType responseDescriptor);
 
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
         return this.applyForResponse(request, null, Inferring.MAP);
     }
+
     /**
      * Sends the request body by inferring on the reference type of
      * {@linkplain RestRequest#body()}.
@@ -54,12 +55,11 @@ public interface RestFn {
      *
      */
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request,
-            final BodyOf<?> requestDescriptor) {
+            final TypeOfJson requestDescriptor) {
         return this.applyForResponse(request, requestDescriptor, Inferring.MAP);
     }
 
-    default <T> HttpResponse<T> applyForResponse(final RestRequest request,
-            final BodyHandlerType<T> responseDescriptor) {
+    default <T> HttpResponse<T> applyForResponse(final RestRequest request, final BodyHandlerType responseDescriptor) {
         return this.applyForResponse(request, null, responseDescriptor);
     }
 
@@ -75,24 +75,28 @@ public interface RestFn {
      * <p>
      * Simple Java types. No generic container types.
      */
+    @SuppressWarnings("unchecked")
     default <T> T apply(final RestRequest request, final Class<T> responseType) {
-        return this.applyForResponse(request, null, new Inferring<>(responseType)).body();
+        return (T) this.applyForResponse(request, null, new Inferring<>(responseType)).body();
     }
 
     /**
      * Executes the request and returns the response body as a {@linkplain Map}.
      */
-    default Map<String, Object> apply(final RestRequest request, final BodyOf<?> requestDescriptor) {
-        return this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
+    @SuppressWarnings("unchecked")
+    default Map<String, Object> apply(final RestRequest request, final TypeOfJson requestDescriptor) {
+        return (Map<String, Object>) this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
     }
 
-    default <T> T apply(final RestRequest request, final BodyHandlerType<T> responseDescriptor) {
-        return this.applyForResponse(request, null, responseDescriptor).body();
+    @SuppressWarnings("unchecked")
+    default <T> T apply(final RestRequest request, final BodyHandlerType responseDescriptor) {
+        return (T) this.applyForResponse(request, null, responseDescriptor).body();
     }
 
-    default <T> T apply(final RestRequest request, final BodyOf<?> requestDescriptor,
-            final BodyHandlerType<T> responseDescriptor) {
-        return this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
+    @SuppressWarnings("unchecked")
+    default <T> T apply(final RestRequest request, final TypeOfJson requestDescriptor,
+            final BodyHandlerType responseDescriptor) {
+        return (T) this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
     }
 
     /**

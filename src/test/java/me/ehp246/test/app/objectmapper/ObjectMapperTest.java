@@ -7,7 +7,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.provider.jackson.JsonByObjectMapper;
+import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 import me.ehp246.test.mock.Jackson;
 
 /**
@@ -29,28 +29,28 @@ class ObjectMapperTest {
     void provided_01() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config01.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 
     @Test
     void provided_02() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config04.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 
     @Test
     void provided_03() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config06.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 
     @Test
     void provided_04() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config07.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 
     @Test
@@ -66,20 +66,20 @@ class ObjectMapperTest {
     void private_01() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config03.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 
     @Test
     void private_02() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config05.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 
     @Test
     void private_03() {
         appCtx = new AnnotationConfigApplicationContext(AppConfig.Config08.class);
 
-        Assertions.assertEquals(true, appCtx.getBean(JsonByObjectMapper.class) != null);
+        Assertions.assertEquals(true, appCtx.getBean(JsonByJackson.class) != null);
     }
 }
