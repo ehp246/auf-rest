@@ -8,7 +8,7 @@ import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.TypeOfJson;
+import me.ehp246.aufrest.api.rest.JacksonTypeView;
 
 /**
  * @author Lei Yang
@@ -41,7 +41,7 @@ public class MockRestFn implements RestFn {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> HttpResponse<T> applyForResponse(final RestRequest request, final TypeOfJson requestDescriptor,
+    public <T> HttpResponse<T> applyForResponse(final RestRequest request, final JacksonTypeView requestDescriptor,
             final BodyHandlerType responseDescriptor) {
         this.req = request;
         this.responseDescriptor = responseDescriptor;

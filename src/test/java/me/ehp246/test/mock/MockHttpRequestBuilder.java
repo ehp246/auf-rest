@@ -5,7 +5,7 @@ import java.net.http.HttpRequest;
 import org.mockito.Mockito;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.TypeOfJson;
+import me.ehp246.aufrest.api.rest.JacksonTypeView;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
 /**
@@ -25,7 +25,7 @@ public class MockHttpRequestBuilder implements HttpRequestBuilder {
     }
 
     @Override
-    public HttpRequest apply(final RestRequest req, final TypeOfJson descriptor) {
+    public HttpRequest apply(final RestRequest req, final JacksonTypeView descriptor) {
         return this.httpRequest;
     }
 

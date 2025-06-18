@@ -57,7 +57,7 @@ public sealed interface BodyHandlerType {
     }
 
     /**
-     * Defines the typing information needed to transform the response body into a
+     * Defines the type information needed to transform the response body into a
      * Java object. Passed to {@linkplain InferringBodyHandlerProvider} for a
      * {@linkplain BodyHandler}.
      *
@@ -66,27 +66,27 @@ public sealed interface BodyHandlerType {
      * @see InferringBodyHandlerProvider
      */
     public final class Inferring<T> implements BodyHandlerType {
-        private final TypeOfJson bodyDescriptor;
+        private final JacksonTypeView bodyDescriptor;
         private final Class<?> errorType;
 
         public static final Inferring<Map<String, Object>> MAP = new Inferring<>(
-                TypeOfJson.of(ParameterizedTypeBuilder.ofMap(String.class, Object.class)));
+                new JacksonTypeView(ParameterizedTypeBuilder.ofMap(String.class, Object.class)));
 
-        public Inferring(final TypeOfJson bodyType, final Class<?> errorType) {
+        public Inferring(final JacksonTypeView bodyType, final Class<?> errorType) {
             this.bodyDescriptor = bodyType;
             this.errorType = errorType;
         }
 
-        public Inferring(final TypeOfJson descriptor) {
+        public Inferring(final JacksonTypeView descriptor) {
             this(descriptor, Map.class);
         }
 
         public Inferring(final Class<T> type) {
-            this(TypeOfJson.of(type), Map.class);
+            this(new JacksonTypeView(type), Map.class);
         }
 
         public Inferring(final Class<T> type, final Class<?> errorType) {
-            this(TypeOfJson.of(type), errorType);
+            this(new JacksonTypeView(type), errorType);
         }
 
         @Override
@@ -94,7 +94,7 @@ public sealed interface BodyHandlerType {
             return errorType;
         }
 
-        public TypeOfJson bodyType() {
+        public JacksonTypeView bodyType() {
             return bodyDescriptor;
         }
     }

@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.TypeOfJson;
+import me.ehp246.aufrest.api.rest.JacksonTypeView;
 
 /**
  * Internal abstraction for {@linkplain ObjectMapper} operations.
@@ -12,5 +12,5 @@ import me.ehp246.aufrest.api.rest.TypeOfJson;
  */
 @FunctionalInterface
 public interface FromJson {
-    Object fromJson(String json, TypeOfJson typeOf);
+    Object fromJson(String json, JacksonTypeView typeOf);
 }

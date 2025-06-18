@@ -37,7 +37,7 @@ public interface RestFn {
      *         transformed into a Java object as dedicated by
      *         {@linkplain BodyHandlerType}.
      */
-    <T> HttpResponse<T> applyForResponse(RestRequest request, TypeOfJson requestDescriptor,
+    <T> HttpResponse<T> applyForResponse(RestRequest request, JacksonTypeView requestDescriptor,
             BodyHandlerType responseDescriptor);
 
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
@@ -55,7 +55,7 @@ public interface RestFn {
      *
      */
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request,
-            final TypeOfJson requestDescriptor) {
+            final JacksonTypeView requestDescriptor) {
         return this.applyForResponse(request, requestDescriptor, Inferring.MAP);
     }
 
@@ -84,7 +84,7 @@ public interface RestFn {
      * Executes the request and returns the response body as a {@linkplain Map}.
      */
     @SuppressWarnings("unchecked")
-    default Map<String, Object> apply(final RestRequest request, final TypeOfJson requestDescriptor) {
+    default Map<String, Object> apply(final RestRequest request, final JacksonTypeView requestDescriptor) {
         return (Map<String, Object>) this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
     }
 
@@ -94,7 +94,7 @@ public interface RestFn {
     }
 
     @SuppressWarnings("unchecked")
-    default <T> T apply(final RestRequest request, final TypeOfJson requestDescriptor,
+    default <T> T apply(final RestRequest request, final JacksonTypeView requestDescriptor,
             final BodyHandlerType responseDescriptor) {
         return (T) this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
     }

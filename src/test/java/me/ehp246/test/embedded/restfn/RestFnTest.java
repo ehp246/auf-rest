@@ -37,10 +37,10 @@ import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.JacksonTypeView;
 import me.ehp246.aufrest.api.rest.ParameterizedTypeBuilder;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.embedded.restfn.Logins.Login;
 import me.ehp246.test.embedded.restfn.Logins.LoginName;
@@ -222,7 +222,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, TypeOfJson.of(Logins.LoginName.class, RestView.class));
+        }, new JacksonTypeView(Logins.LoginName.class, RestView.class));
 
         final var body = response.body();
 
@@ -258,7 +258,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, TypeOfJson.of(Logins.LoginName.class, RestView.class));
+        }, new JacksonTypeView(Logins.LoginName.class, RestView.class));
 
         Assertions.assertEquals(username, body.get("username"));
         Assertions.assertEquals(null, body.get("password"));
@@ -281,7 +281,7 @@ class RestFnTest {
             }
         };
 
-        final var contentPublisher = this.publisherProvider.get(login, TypeOfJson.of(Logins.LoginName.class));
+        final var contentPublisher = this.publisherProvider.get(login, new JacksonTypeView(Logins.LoginName.class));
 
         final var response = restFn.applyForResponse(new RestRequest() {
 
@@ -341,7 +341,7 @@ class RestFnTest {
             public Object body() {
                 return bodyPublisher;
             }
-        }, TypeOfJson.of(Logins.LoginName.class));
+        }, new JacksonTypeView(Logins.LoginName.class));
 
         final var body = response.body();
 
@@ -366,8 +366,8 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, TypeOfJson.of(Logins.Login.class),
-                new BodyHandlerType.Inferring<LoginName>(TypeOfJson.of(LoginName.class, RestView.class)));
+        }, new JacksonTypeView(Logins.Login.class),
+                new BodyHandlerType.Inferring<LoginName>(new JacksonTypeView(LoginName.class, RestView.class)));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -379,7 +379,7 @@ class RestFnTest {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var body = (List<LoginName>) restFn.apply(newLoginsReq(login),
-                new Inferring<>(TypeOfJson.of(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class)));
+                new Inferring<>(new JacksonTypeView(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class)));
 
         Assertions.assertEquals(1, body.size());
         Assertions.assertEquals(ArrayList.class, body.getClass());
@@ -414,7 +414,7 @@ class RestFnTest {
          * Get a handler that doesn't support View.
          */
         final var handler = this.handlerProvider
-                .get(new BodyHandlerType.Inferring<LoginName>(TypeOfJson.of(LoginName.class)));
+                .get(new BodyHandlerType.Inferring<LoginName>(new JacksonTypeView(LoginName.class)));
 
         final var respons = (LoginName) restFn
                 .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler)).body();
@@ -430,7 +430,7 @@ class RestFnTest {
          * Get a handler that does support View.
          */
         final var handlerWithView = this.handlerProvider
-                .get(new BodyHandlerType.Inferring<LoginName>(TypeOfJson.of(LoginName.class, RestView.class)));
+                .get(new BodyHandlerType.Inferring<LoginName>(new JacksonTypeView(LoginName.class, RestView.class)));
 
         /**
          * Use it on the response.

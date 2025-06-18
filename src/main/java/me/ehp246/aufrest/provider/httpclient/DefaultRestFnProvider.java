@@ -49,7 +49,7 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.TypeOfJson;
+import me.ehp246.aufrest.api.rest.JacksonTypeView;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
@@ -112,7 +112,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final TypeOfJson requestBodyDescriptor,
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final JacksonTypeView requestBodyDescriptor,
                     final BodyHandlerType responseBodyDescriptor) {
                 try {
                     MDC.put(AufRestConstants.AUFRESTREQUESTID, req.id());

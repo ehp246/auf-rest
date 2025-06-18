@@ -28,7 +28,13 @@ class ReturnTypeTest {
     }
 
     @Test
-    void return_type_003() {
+    void return_type_01() {
+        Assertions.assertThrows(UnsupportedOperationException.class, factory.newInstance(ReturnTypeCase01.class)::get02,
+                "should not have raw type");
+    }
+
+    @Test
+    void return_type_02() {
         Assertions.assertThrows(UnsupportedOperationException.class, factory.newInstance(ReturnTypeCase01.class)::get01,
                 "should specify the reponse body type");
     }
