@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -148,7 +150,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             return arg.map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p)).get();
         }
 
-        // Named bean?
+        // Named handler bean?
         final var handlerBean = ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue);
         if (handlerBean.isPresent()) {
             return handlerBean.map(bodyHandlerResolver::get)
@@ -156,26 +158,28 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
 
         // Infer from the return type
-        final var returnType = reflected.getReturnType();
-        if (returnType.isAssignableFrom(HttpHeaders.class)
-                || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
-            // The headers are wanted. Discard the body.
+        final var returnType = reflected.method().getGenericReturnType();
+        if (returnType == HttpResponse.class) {
+            throw new UnsupportedOperationException("Un-supported return type on " + reflected.method());
+        }
+        if (returnType == HttpHeaders.class || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
+            // The headers are wanted, discard the body.
             return (target, args) -> BodyHandlers.discarding();
         }
 
-        final var bodyTypes = ofResponse.map(OfResponse::body).map(OfResponse.BodyOf::value).filter(OneUtil::hasValue)
-                .orElse(null);
-
-        // Need to specify at least one type for the body.
-        if (returnType.isAssignableFrom(HttpResponse.class) && bodyTypes == null) {
-            throw new IllegalArgumentException("Missing required " + OfResponse.BodyOf.class);
+        Type responseBodyType = returnType;
+        if (returnType instanceof ParameterizedType paramType && paramType.getRawType() == HttpResponse.class) {
+            responseBodyType = paramType.getActualTypeArguments()[0];
+            if (responseBodyType == Void.class) {
+                return (target, args) -> BodyHandlers.discarding();
+            }
         }
 
         final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
                 .map(views -> views[0]).orElse(null);
 
-        final var descriptor = new BodyHandlerType.Inferring<>(
-                TypeOfJson.of(reflected.method().getGenericReturnType(), jsonView), byRest.errorType());
+        final var descriptor = new BodyHandlerType.Inferring<>(TypeOfJson.of(responseBodyType, jsonView),
+                byRest.errorType());
 
         final var handler = inferredHandlerProvider.get(descriptor);
 
