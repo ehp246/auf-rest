@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Lei Yang
@@ -22,6 +23,10 @@ public final class ParameterizedTypeBuilder {
 
     public static ParameterizedType ofList(final Type typeArg) {
         return ParameterizedTypeBuilder.of(null, List.class, typeArg);
+    }
+
+    public static ParameterizedType ofSet(final Type typeArg) {
+        return ParameterizedTypeBuilder.of(null, Set.class, typeArg);
     }
 
     public static ParameterizedType of(final Type ownerType, final Type rawType, final Type... typeArgs) {

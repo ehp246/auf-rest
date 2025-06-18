@@ -23,7 +23,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.mrbean.MrBeanModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
-import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.api.rest.ParameterizedTypeBuilder;
+import me.ehp246.aufrest.api.rest.TypeOfJson;
 import me.ehp246.aufrest.api.spi.RestView;
 import me.ehp246.test.TimingExtension;
 
@@ -32,7 +33,7 @@ import me.ehp246.test.TimingExtension;
  *
  */
 @ExtendWith(TimingExtension.class)
-class JsonByObjectMapperTest {
+class JsonByJacksonTest {
     public static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
             .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
@@ -40,16 +41,15 @@ class JsonByObjectMapperTest {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(new MrBeanModule())
             .registerModule(new ParameterNamesModule());
 
-    private final JsonByObjectMapper jackson = new JsonByObjectMapper(OBJECT_MAPPER);
-
+    private final JsonByJackson jackson = new JsonByJackson(OBJECT_MAPPER);
 
     @SuppressWarnings("unchecked")
     @Test
     void list_01() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(null, List.class, Instant.class));
+        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
+                TypeOfJson.of(ParameterizedTypeBuilder.ofList(Instant.class)));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -59,8 +59,8 @@ class JsonByObjectMapperTest {
     void list_02() {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
-        final List<Instant> back = (List<Instant>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(null, List.class, Instant.class));
+        final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
+                TypeOfJson.of(ParameterizedTypeBuilder.ofList(Instant.class)));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -70,8 +70,8 @@ class JsonByObjectMapperTest {
     void list_03() {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
-        final List<List<Instant>> back = (List<List<Instant>>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(null, List.class, List.class, Instant.class));
+        final List<List<Instant>> back = (List<List<Instant>>) jackson.fromJson(jackson.toJson(from),
+                TypeOfJson.of(ParameterizedTypeBuilder.ofList(ParameterizedTypeBuilder.ofList(Instant.class))));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -87,8 +87,8 @@ class JsonByObjectMapperTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<Person> back = (List<Person>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(null, List.class, Person.class));
+        final List<Person> back = (List<Person>) jackson.fromJson(jackson.toJson(from),
+                TypeOfJson.of(ParameterizedTypeBuilder.ofList(Person.class)));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -103,8 +103,8 @@ class JsonByObjectMapperTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.apply(jackson.apply(from),
-                new BodyOf<>(RestView.class, List.class, TestCases.Person01.class));
+        final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.fromJson(jackson.toJson(from),
+                TypeOfJson.of(ParameterizedTypeBuilder.ofList(TestCases.Person01.class), RestView.class));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());
@@ -119,8 +119,9 @@ class JsonByObjectMapperTest {
         final var from = List.of(new Person(Instant.now(), "Jon", "Snow"),
                 new Person(Instant.now(), "Eddard", "Starks"));
 
-        final var result = (Set<List<TestCases.Person01>>) jackson.apply(jackson.apply(Set.of(from)),
-                new BodyOf<>(RestView.class, Set.class, List.class, TestCases.Person01.class));
+        final var result = (Set<List<TestCases.Person01>>) jackson.fromJson(jackson.toJson(Set.of(from)),
+                TypeOfJson.of(ParameterizedTypeBuilder.ofSet(ParameterizedTypeBuilder.ofList(TestCases.Person01.class)),
+                        RestView.class));
 
         Assertions.assertEquals(1, result.size());
 
