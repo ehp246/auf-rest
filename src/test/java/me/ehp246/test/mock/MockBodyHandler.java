@@ -39,7 +39,7 @@ public class MockBodyHandler<T> implements HttpResponse.BodyHandler<T> {
         return new InferringBodyHandlerProvider() {
             @SuppressWarnings("unchecked")
             @Override
-            public <T> BodyHandler<T> get(final BodyHandlerType descriptor) {
+            public <T> BodyHandler<T> get(final BodyHandlerType.Inferring<T> descriptor) {
                 return (BodyHandler<T>) MockBodyHandler.this;
             }
         };

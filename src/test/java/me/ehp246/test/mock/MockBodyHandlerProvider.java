@@ -12,7 +12,7 @@ import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 public class MockBodyHandlerProvider implements InferringBodyHandlerProvider {
 
     @Override
-    public <T> BodyHandler<T> get(BodyHandlerType descriptor) {
+    public <T> BodyHandler<T> get(BodyHandlerType.Inferring<T> descriptor) {
         // TODO Auto-generated method stub
         return null;
     }

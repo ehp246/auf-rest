@@ -14,7 +14,6 @@ import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
@@ -41,16 +40,12 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> BodyHandler<T> get(final BodyHandlerType handlerType) {
-        /*
-         * In case of provided handler, the success body type is not used and
-         * irrelevant.
-         */
-        final var providedHandler = handlerType instanceof final Provided<?> provided ? provided.handler() : null;
+    public <T> BodyHandler<T> get(final BodyHandlerType.Inferring<T> handlerType) {
 
         final var successPayloadDescriptor = handlerType instanceof final Inferring<?> i ? i.bodyType() : null;
         // Needed for both provided and inferring descriptors.
-        final var errorPayloadDescriptor = handlerType == null ? null : new JacksonTypeDescriptor(handlerType.errorType());
+        final var errorPayloadDescriptor = handlerType == null ? null
+                : new JacksonTypeDescriptor(handlerType.errorType());
 
         return responseInfo -> {
             // Log headers
@@ -66,11 +61,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
             final var contentType = responseInfo.headers().firstValue(HttpUtils.CONTENT_TYPE)
                     .orElse(HttpUtils.APPLICATION_JSON);
 
-            // Use the supplied if it is supplied.
             final var isSuccess = HttpUtils.isSuccess(statusCode);
-            if (isSuccess && providedHandler != null) {
-                return (BodySubscriber<T>) providedHandler;
-            }
 
             /*
              * The descriptor for this particular response. By this time, the descriptor
