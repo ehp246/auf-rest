@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.JacksonTypeView;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -44,7 +44,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final JacksonTypeView bodyType;
+    private final JacksonTypeDescriptor bodyType;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ProxyReturnMapper returnMapper;
@@ -54,7 +54,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             final Map<String, Integer> pathParams, final Map<Integer, String> queryParams,
             final Map<String, List<String>> queryStatic, final Map<Integer, String> headerParams,
             final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
-            final ArgBinder<Object, Object> bodyArgBinder, final JacksonTypeView bodyType,
+            final ArgBinder<Object, Object> bodyArgBinder, final JacksonTypeDescriptor bodyType,
             final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;

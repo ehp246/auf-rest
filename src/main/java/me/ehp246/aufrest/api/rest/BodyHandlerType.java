@@ -66,27 +66,27 @@ public sealed interface BodyHandlerType {
      * @see InferringBodyHandlerProvider
      */
     public final class Inferring<T> implements BodyHandlerType {
-        private final JacksonTypeView bodyDescriptor;
+        private final JacksonTypeDescriptor bodyDescriptor;
         private final Class<?> errorType;
 
         public static final Inferring<Map<String, Object>> MAP = new Inferring<>(
-                new JacksonTypeView(ParameterizedTypeBuilder.ofMap(String.class, Object.class)));
+                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofMap(String.class, Object.class)));
 
-        public Inferring(final JacksonTypeView bodyType, final Class<?> errorType) {
+        public Inferring(final JacksonTypeDescriptor bodyType, final Class<?> errorType) {
             this.bodyDescriptor = bodyType;
             this.errorType = errorType;
         }
 
-        public Inferring(final JacksonTypeView descriptor) {
+        public Inferring(final JacksonTypeDescriptor descriptor) {
             this(descriptor, Map.class);
         }
 
         public Inferring(final Class<T> type) {
-            this(new JacksonTypeView(type), Map.class);
+            this(new JacksonTypeDescriptor(type), Map.class);
         }
 
         public Inferring(final Class<T> type, final Class<?> errorType) {
-            this(new JacksonTypeView(type), errorType);
+            this(new JacksonTypeDescriptor(type), errorType);
         }
 
         @Override
@@ -94,7 +94,7 @@ public sealed interface BodyHandlerType {
             return errorType;
         }
 
-        public JacksonTypeView bodyType() {
+        public JacksonTypeDescriptor bodyType() {
             return bodyDescriptor;
         }
     }

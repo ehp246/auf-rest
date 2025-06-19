@@ -1,6 +1,7 @@
 package me.ehp246.test.embedded.body;
 
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.UUID;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -19,6 +20,8 @@ import me.ehp246.test.mock.MockBodyHandler;
 @EnableByRest
 @Import(Jackson.class)
 class AppConfig {
+    final static String METHOD_HANDLER = UUID.randomUUID().toString();
+
     @Bean("onInterface")
     BodyHandler<String> interfaceHander() {
         return new MockBodyHandler<String>("interface");
@@ -26,6 +29,6 @@ class AppConfig {
 
     @Bean("onMethod")
     BodyHandler<String> methodHander() {
-        return new MockBodyHandler<String>("method");
+        return new MockBodyHandler<String>(METHOD_HANDLER);
     }
 }

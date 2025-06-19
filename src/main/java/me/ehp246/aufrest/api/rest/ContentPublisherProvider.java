@@ -24,9 +24,9 @@ public interface ContentPublisherProvider {
      *                   <code>application/json</code>.
      * @param descriptor
      */
-    <T> ContentPublisher get(T body, String mimeType, JacksonTypeView descriptor);
+    <T> ContentPublisher get(T body, String mimeType, JacksonTypeDescriptor descriptor);
 
-    default <T> ContentPublisher get(final T body, final JacksonTypeView descriptor) {
+    default <T> ContentPublisher get(final T body, final JacksonTypeDescriptor descriptor) {
         return this.get(body, null, descriptor);
     }
 

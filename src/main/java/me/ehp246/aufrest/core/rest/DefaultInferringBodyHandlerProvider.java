@@ -17,7 +17,7 @@ import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.JacksonTypeView;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -50,7 +50,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
         final var successPayloadDescriptor = handlerType instanceof final Inferring<?> i ? i.bodyType() : null;
         // Needed for both provided and inferring descriptors.
-        final var errorPayloadDescriptor = handlerType == null ? null : new JacksonTypeView(handlerType.errorType());
+        final var errorPayloadDescriptor = handlerType == null ? null : new JacksonTypeDescriptor(handlerType.errorType());
 
         return responseInfo -> {
             // Log headers

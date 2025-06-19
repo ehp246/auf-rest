@@ -27,9 +27,9 @@ public interface RestFn {
      *
      * @param <T>                The expected payload type.
      * @param request            Required, can't be <code>null</code>.
-     * @param requestDescriptor  Can be <code>null</code>. In which case, the object
+     * @param requestBodyDescriptor  Can be <code>null</code>. In which case, the object
      *                           reference type will be used for serialization.
-     * @param responseDescriptor Defines how to de-serialize the response body. Both
+     * @param responseBodyHnalderType Defines how to de-serialize the response body. Both
      *                           normal response and error response should be
      *                           specified. Can be <code>null</code>. For details,
      *                           see {@linkplain InferringBodyHandlerProvider}.
@@ -37,8 +37,8 @@ public interface RestFn {
      *         transformed into a Java object as dedicated by
      *         {@linkplain BodyHandlerType}.
      */
-    <T> HttpResponse<T> applyForResponse(RestRequest request, JacksonTypeView requestDescriptor,
-            BodyHandlerType responseDescriptor);
+    <T> HttpResponse<T> applyForResponse(RestRequest request, JacksonTypeDescriptor requestBodyDescriptor,
+            BodyHandlerType responseBodyHnalderType);
 
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
         return this.applyForResponse(request, null, Inferring.MAP);
@@ -55,7 +55,7 @@ public interface RestFn {
      *
      */
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request,
-            final JacksonTypeView requestDescriptor) {
+            final JacksonTypeDescriptor requestDescriptor) {
         return this.applyForResponse(request, requestDescriptor, Inferring.MAP);
     }
 
@@ -84,7 +84,7 @@ public interface RestFn {
      * Executes the request and returns the response body as a {@linkplain Map}.
      */
     @SuppressWarnings("unchecked")
-    default Map<String, Object> apply(final RestRequest request, final JacksonTypeView requestDescriptor) {
+    default Map<String, Object> apply(final RestRequest request, final JacksonTypeDescriptor requestDescriptor) {
         return (Map<String, Object>) this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
     }
 
@@ -94,7 +94,7 @@ public interface RestFn {
     }
 
     @SuppressWarnings("unchecked")
-    default <T> T apply(final RestRequest request, final JacksonTypeView requestDescriptor,
+    default <T> T apply(final RestRequest request, final JacksonTypeDescriptor requestDescriptor,
             final BodyHandlerType responseDescriptor) {
         return (T) this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
     }

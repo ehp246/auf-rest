@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-import me.ehp246.aufrest.api.rest.JacksonTypeView;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.core.rest.FromJson;
 import me.ehp246.aufrest.core.rest.ToJson;
 
@@ -21,7 +21,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String toJson(final Object value, final JacksonTypeView typeOf) {
+    public String toJson(final Object value, final JacksonTypeDescriptor typeOf) {
         if (value == null) {
             return null;
         }
@@ -44,7 +44,7 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public Object fromJson(final String json, final JacksonTypeView typeOf) {
+    public Object fromJson(final String json, final JacksonTypeDescriptor typeOf) {
         if (json == null || json.isBlank()) {
             return null;
         }

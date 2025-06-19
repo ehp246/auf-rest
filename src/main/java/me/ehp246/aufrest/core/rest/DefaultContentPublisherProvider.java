@@ -14,7 +14,7 @@ import org.springframework.util.MimeTypeUtils;
 
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
-import me.ehp246.aufrest.api.rest.JacksonTypeView;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -30,7 +30,7 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
     }
 
     @Override
-    public <T> ContentPublisher get(final T body, final String mimeType, final JacksonTypeView descriptor) {
+    public <T> ContentPublisher get(final T body, final String mimeType, final JacksonTypeDescriptor descriptor) {
         final var contentType = OneUtil.hasValue(mimeType) ? mimeType : HttpUtils.APPLICATION_JSON;
 
         if (body instanceof final BodyPublisher publisher) {

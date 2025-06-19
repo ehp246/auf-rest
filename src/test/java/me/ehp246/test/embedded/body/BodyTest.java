@@ -77,7 +77,7 @@ class BodyTest {
 
     @Test
     void handler_02() {
-        Assertions.assertEquals("method", handlerCase.postOnMethod(""));
+        Assertions.assertEquals(AppConfig.METHOD_HANDLER, handlerCase.postOnMethod(""));
     }
 
     @Test

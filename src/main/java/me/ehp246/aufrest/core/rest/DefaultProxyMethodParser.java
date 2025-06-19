@@ -46,7 +46,7 @@ import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.JacksonTypeView;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
@@ -125,7 +125,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyType = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new JacksonTypeView(parameter.getParameterizedType(),
+                .map(parameter -> new JacksonTypeDescriptor(parameter.getParameterizedType(),
                         Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
                                 .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null)))
                 .orElse(null);
@@ -178,7 +178,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
                 .map(views -> views[0]).orElse(null);
 
-        final var descriptor = new BodyHandlerType.Inferring<>(new JacksonTypeView(responseBodyType, jsonView),
+        final var descriptor = new BodyHandlerType.Inferring<>(new JacksonTypeDescriptor(responseBodyType, jsonView),
                 byRest.errorType());
 
         final var handler = inferredHandlerProvider.get(descriptor);

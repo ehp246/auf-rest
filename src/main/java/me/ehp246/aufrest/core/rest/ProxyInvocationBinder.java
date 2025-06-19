@@ -4,7 +4,7 @@ import java.lang.reflect.Proxy;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.JacksonTypeView;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 
 /**
  * The abstraction that turns an invocation on a {@linkplain Proxy} into a
@@ -19,7 +19,7 @@ import me.ehp246.aufrest.api.rest.JacksonTypeView;
 public interface ProxyInvocationBinder {
     Bound apply(Object target, Object[] args) throws Throwable;
 
-    record Bound(RestRequest request, JacksonTypeView requestBodyDescriptor, BodyHandlerType responseDescriptor,
+    record Bound(RestRequest request, JacksonTypeDescriptor requestBodyDescriptor, BodyHandlerType responseDescriptor,
             ProxyReturnMapper returnMapper) {
     }
 }
