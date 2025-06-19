@@ -61,14 +61,6 @@ public @interface OfResponse {
     String header() default "";
 
     /**
-     * Defines how to transform the response body to the return value.
-     * <p>
-     * Only applicable when binding to {@linkplain Bind#BODY} and the response is a
-     * success. Ignored when {@linkplain OfResponse#handler()} is defined.
-     */
-    BodyOf body() default @BodyOf({});
-
-    /**
      * Defines the components of a HTTP response that can be bound to as return
      * value.
      */
@@ -96,9 +88,4 @@ public @interface OfResponse {
      *      java.net.http.HttpResponse.BodyHandler)
      */
     String handler() default "";
-
-    @Target({})
-    @interface BodyOf {
-        Class<?>[] value();
-    }
 }

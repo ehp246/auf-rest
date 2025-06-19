@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -42,9 +44,9 @@ import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
 import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
@@ -72,8 +74,9 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final InferringBodyHandlerProvider inferredHandlerProvider;
     private final BodyHandlerResolver bodyHandlerResolver;
 
-    public DefaultProxyMethodParser(final ExpressionResolver expressionResolver, final AuthBeanResolver authBeanResolver,
-            final BodyHandlerResolver bodyHandlerResolver, final InferringBodyHandlerProvider inferredHandlerProvider) {
+    public DefaultProxyMethodParser(final ExpressionResolver expressionResolver,
+            final AuthBeanResolver authBeanResolver, final BodyHandlerResolver bodyHandlerResolver,
+            final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.expressionResolver = expressionResolver;
         this.authBeanResolver = authBeanResolver;
         this.inferredHandlerProvider = inferredHandlerProvider;
@@ -121,16 +124,16 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
-        final var bodyOf = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new BodyOf<>(Optional.ofNullable(parameter.getAnnotation(JsonView.class))
-                        .map(JsonView::value).filter(OneUtil::hasValue).map(views -> views[0]).orElse(null),
-                        parameter.getType()))
+        final var bodyType = bodyParam.map(ReflectedParameter::parameter)
+                .map(parameter -> new JacksonTypeDescriptor(parameter.getParameterizedType(),
+                        Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
+                                .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null)))
                 .orElse(null);
 
         return new DefaultProxyInvocationBinder(verb(reflected), accept(byRest, ofRequest), byRest.acceptGZip(),
                 contentType, timeout(byRest), baseUrl(byRest, ofRequest), pathParams(reflected), queryParams(reflected),
                 queryStatic(byRest), headerParams(reflected), headerStatic(byRest, reflected), authSupplierFn,
-                bodyArgBinder, bodyOf, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
+                bodyArgBinder, bodyType, responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected));
     }
 
     /**
@@ -147,7 +150,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             return arg.map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p)).get();
         }
 
-        // Named bean?
+        // Named handler bean?
         final var handlerBean = ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue);
         if (handlerBean.isPresent()) {
             return handlerBean.map(bodyHandlerResolver::get)
@@ -155,26 +158,27 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         }
 
         // Infer from the return type
-        final var returnType = reflected.getReturnType();
-        if (returnType.isAssignableFrom(HttpHeaders.class)
-                || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
-            // The headers are wanted. Discard the body.
+        final var returnType = reflected.method().getGenericReturnType();
+        if (returnType instanceof Class cls && cls.getTypeParameters().length > 0) {
+            throw new UnsupportedOperationException("Un-supported return type on " + reflected.method());
+        }
+        if (returnType == HttpHeaders.class || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
+            // The headers are wanted, discard the body.
             return (target, args) -> BodyHandlers.discarding();
         }
 
-        final var bodyTypes = ofResponse.map(OfResponse::body).map(OfResponse.BodyOf::value).filter(OneUtil::hasValue)
-                .orElse(null);
-
-        // Need to specify at least one type for the body.
-        if (returnType.isAssignableFrom(HttpResponse.class) && bodyTypes == null) {
-            throw new IllegalArgumentException("Missing required " + OfResponse.BodyOf.class);
+        Type responseBodyType = returnType;
+        if (returnType instanceof ParameterizedType paramType && paramType.getRawType() == HttpResponse.class) {
+            responseBodyType = paramType.getActualTypeArguments()[0];
+            if (responseBodyType == Void.class) {
+                return (target, args) -> BodyHandlers.discarding();
+            }
         }
 
         final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
                 .map(views -> views[0]).orElse(null);
 
-        final var descriptor = new BodyHandlerType.Inferring<>(
-                new BodyOf<>(jsonView, bodyTypes == null ? new Class<?>[] { returnType } : bodyTypes),
+        final var descriptor = new BodyHandlerType.Inferring<>(new JacksonTypeDescriptor(responseBodyType, jsonView),
                 byRest.errorType());
 
         final var handler = inferredHandlerProvider.get(descriptor);

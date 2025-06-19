@@ -1,6 +1,6 @@
 # Auf REST
 
-[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/me.ehp246/auf-rest/badge.svg?style=flat-square)](https://central.sonatype.com/artifact/me.ehp246/auf-rest)
+[![Sonatype Central](https://central.sonatype.com/artifact/me.ehp246/auf-rest)
 
 
 ## Introduction

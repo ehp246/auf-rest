@@ -27,9 +27,9 @@ public interface RestFn {
      *
      * @param <T>                The expected payload type.
      * @param request            Required, can't be <code>null</code>.
-     * @param requestDescriptor  Can be <code>null</code>. In which case, the object
+     * @param requestBodyDescriptor  Can be <code>null</code>. In which case, the object
      *                           reference type will be used for serialization.
-     * @param responseDescriptor Defines how to de-serialize the response body. Both
+     * @param responseBodyHnalderType Defines how to de-serialize the response body. Both
      *                           normal response and error response should be
      *                           specified. Can be <code>null</code>. For details,
      *                           see {@linkplain InferringBodyHandlerProvider}.
@@ -37,12 +37,13 @@ public interface RestFn {
      *         transformed into a Java object as dedicated by
      *         {@linkplain BodyHandlerType}.
      */
-    <T> HttpResponse<T> applyForResponse(RestRequest request, BodyOf<?> requestDescriptor,
-            BodyHandlerType<T> responseDescriptor);
+    <T> HttpResponse<T> applyForResponse(RestRequest request, JacksonTypeDescriptor requestBodyDescriptor,
+            BodyHandlerType responseBodyHnalderType);
 
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
         return this.applyForResponse(request, null, Inferring.MAP);
     }
+
     /**
      * Sends the request body by inferring on the reference type of
      * {@linkplain RestRequest#body()}.
@@ -54,12 +55,11 @@ public interface RestFn {
      *
      */
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request,
-            final BodyOf<?> requestDescriptor) {
+            final JacksonTypeDescriptor requestDescriptor) {
         return this.applyForResponse(request, requestDescriptor, Inferring.MAP);
     }
 
-    default <T> HttpResponse<T> applyForResponse(final RestRequest request,
-            final BodyHandlerType<T> responseDescriptor) {
+    default <T> HttpResponse<T> applyForResponse(final RestRequest request, final BodyHandlerType responseDescriptor) {
         return this.applyForResponse(request, null, responseDescriptor);
     }
 
@@ -75,24 +75,28 @@ public interface RestFn {
      * <p>
      * Simple Java types. No generic container types.
      */
+    @SuppressWarnings("unchecked")
     default <T> T apply(final RestRequest request, final Class<T> responseType) {
-        return this.applyForResponse(request, null, new Inferring<>(responseType)).body();
+        return (T) this.applyForResponse(request, null, new Inferring<>(responseType)).body();
     }
 
     /**
      * Executes the request and returns the response body as a {@linkplain Map}.
      */
-    default Map<String, Object> apply(final RestRequest request, final BodyOf<?> requestDescriptor) {
-        return this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
+    @SuppressWarnings("unchecked")
+    default Map<String, Object> apply(final RestRequest request, final JacksonTypeDescriptor requestDescriptor) {
+        return (Map<String, Object>) this.applyForResponse(request, requestDescriptor, Inferring.MAP).body();
     }
 
-    default <T> T apply(final RestRequest request, final BodyHandlerType<T> responseDescriptor) {
-        return this.applyForResponse(request, null, responseDescriptor).body();
+    @SuppressWarnings("unchecked")
+    default <T> T apply(final RestRequest request, final BodyHandlerType responseDescriptor) {
+        return (T) this.applyForResponse(request, null, responseDescriptor).body();
     }
 
-    default <T> T apply(final RestRequest request, final BodyOf<?> requestDescriptor,
-            final BodyHandlerType<T> responseDescriptor) {
-        return this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
+    @SuppressWarnings("unchecked")
+    default <T> T apply(final RestRequest request, final JacksonTypeDescriptor requestDescriptor,
+            final BodyHandlerType responseDescriptor) {
+        return (T) this.applyForResponse(request, requestDescriptor, responseDescriptor).body();
     }
 
     /**

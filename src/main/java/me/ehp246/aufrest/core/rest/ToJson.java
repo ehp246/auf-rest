@@ -1,20 +1,19 @@
 package me.ehp246.aufrest.core.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 
 /**
- * Internal abstraction for {@linkplain ObjectMapper} operations.
- *
  * @author Lei Yang
- * @since 4.0
+ * @since 1.0
  */
 @FunctionalInterface
 public interface ToJson {
-    String apply(Object value, BodyOf<?> descriptor);
+    /**
+     * Should return <code>null</code> for <code>null</code> reference.
+     */
+    String toJson(Object value, JacksonTypeDescriptor typeOf);
 
-    default String apply(final Object value) {
-        return this.apply(value, null);
+    default String toJson(final Object value) {
+        return this.toJson(value, value == null ? null : new JacksonTypeDescriptor(value.getClass()));
     }
 }

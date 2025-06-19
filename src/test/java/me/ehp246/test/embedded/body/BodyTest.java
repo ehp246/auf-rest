@@ -42,8 +42,7 @@ class BodyTest {
         final var payload = UUID.randomUUID().toString();
 
         Assertions.assertThrows(UnhandledResponseException.class,
-                () -> publisherCase.post(BodyPublishers.ofString(payload)), "should specify the content type")
-                ;
+                () -> publisherCase.post(BodyPublishers.ofString(payload)), "should specify the content type");
 
         Assertions.assertEquals(payload, publisherCase.postAsJson(BodyPublishers.ofString(payload)).get(0));
     }
@@ -73,12 +72,12 @@ class BodyTest {
         Assertions.assertEquals(1, handlerCase.postNumber(original, bodyHandler),
                 "should ignore the actual response body");
         // Somehow the string is not de-quoted by the controller
-        Assertions.assertEquals(toJson.apply(List.of("\"" + original + "\"")), bodyHandler.asReturned());
+        Assertions.assertEquals(toJson.toJson(List.of("\"" + original + "\"")), bodyHandler.asReturned());
     }
 
     @Test
     void handler_02() {
-        Assertions.assertEquals("method", handlerCase.postOnMethod(""));
+        Assertions.assertEquals(AppConfig.METHOD_HANDLER, handlerCase.postOnMethod(""));
     }
 
     @Test

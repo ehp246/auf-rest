@@ -3,12 +3,12 @@ package me.ehp246.test.mock;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 
-import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 
 /**
  * @author Lei Yang
@@ -18,7 +18,7 @@ public class MockRestFn implements RestFn {
     private RestRequest req;
     private final HttpResponse<?> response;
 
-    private BodyHandlerType<?> responseDescriptor;
+    private BodyHandlerType responseDescriptor;
     private final RuntimeException except;
 
     public MockRestFn() {
@@ -41,9 +41,8 @@ public class MockRestFn implements RestFn {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> HttpResponse<T> applyForResponse(final RestRequest request,
-            final BodyOf<?> requestDescriptor,
-            final BodyHandlerType<T> responseDescriptor) {
+    public <T> HttpResponse<T> applyForResponse(final RestRequest request, final JacksonTypeDescriptor requestDescriptor,
+            final BodyHandlerType responseDescriptor) {
         this.req = request;
         this.responseDescriptor = responseDescriptor;
 
@@ -54,7 +53,7 @@ public class MockRestFn implements RestFn {
         return (HttpResponse<T>) response;
     }
 
-    public BodyHandlerType<?> responseDescriptor() {
+    public BodyHandlerType responseDescriptor() {
         return this.responseDescriptor;
     }
 

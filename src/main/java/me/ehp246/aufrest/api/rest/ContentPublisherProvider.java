@@ -24,11 +24,12 @@ public interface ContentPublisherProvider {
      *                   <code>application/json</code>.
      * @param descriptor
      */
-    <T> ContentPublisher get(T body, String mimeType, BodyOf<T> descriptor);
+    <T> ContentPublisher get(T body, String mimeType, JacksonTypeDescriptor descriptor);
 
-    default <T> ContentPublisher get(final T body, final BodyOf<T> descriptor) {
+    default <T> ContentPublisher get(final T body, final JacksonTypeDescriptor descriptor) {
         return this.get(body, null, descriptor);
     }
+
     /**
      * {@linkplain ContentPublisher#contentType()} defines HTTP header
      * <code>content-type</code> on the out-going request. It can be different from

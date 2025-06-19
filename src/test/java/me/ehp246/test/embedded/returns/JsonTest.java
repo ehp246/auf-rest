@@ -59,7 +59,6 @@ class JsonTest {
         body.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void test_004() {
         final var count = (int) (Math.random() * 10);
@@ -68,7 +67,7 @@ class JsonTest {
         Assertions.assertEquals(true, returned instanceof HttpResponse);
         Assertions.assertEquals(true, returned.body() instanceof List);
 
-        final var body = (List<Instant>) returned.body();
+        final var body = returned.body();
 
         Assertions.assertEquals(count, body.size());
         body.stream().forEach(instant -> Assertions.assertEquals(true, instant instanceof Instant));
@@ -155,9 +154,8 @@ class JsonTest {
 
     @Test
     void zip_002() {
-        Assertions
-                .assertThrows(Exception.class, () -> case001.getZip("header not allowed"), "should not allow overwrite")
-                ;
+        Assertions.assertThrows(Exception.class, () -> case001.getZip("header not allowed"),
+                "should not allow overwrite");
         ;
     }
 }

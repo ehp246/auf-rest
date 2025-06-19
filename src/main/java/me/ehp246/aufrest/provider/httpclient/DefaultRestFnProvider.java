@@ -39,7 +39,6 @@ import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyOf;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpClientExecutorProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
@@ -50,6 +49,7 @@ import me.ehp246.aufrest.api.rest.RestFnProvider;
 import me.ehp246.aufrest.api.rest.RestListener;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.api.rest.RestRequest;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 
@@ -80,13 +80,10 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     private final RestLogger restLogger;
 
     @Autowired
-    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
-            final HttpClientExecutorProvider executorProvider,
-            final InferringBodyHandlerProvider handlerProvider,
-            final HttpClientBuilderSupplier clientBuilderSupplier,
+    public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final HttpClientExecutorProvider executorProvider,
+            final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
             final List<RestListener> listeners, final RestLogger restLogger) {
-        this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder
-                : clientBuilderSupplier;
+        this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder : clientBuilderSupplier;
         this.executorProvider = executorProvider;
         this.reqBuilder = Objects.requireNonNull(reqBuilder,
                 HttpRequestBuilder.class.getSimpleName() + " must be specified");
@@ -97,8 +94,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     }
 
     public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder,
-            final InferringBodyHandlerProvider handlerProvider,
-            final HttpClientBuilderSupplier clientBuilderSupplier,
+            final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
             final List<RestListener> listeners, final RestLogger restLogger) {
         this(reqBuilder, null, handlerProvider, clientBuilderSupplier, listeners, restLogger);
     }
@@ -107,20 +103,17 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     public RestFn get(final RestFnConfig restFnConfig) {
         final var builder = clientBuilderSupplier.get();
         if (executorProvider != null) {
-            builder.executor(executorProvider
-                    .get(new HttpClientExecutorProvider.Config(restFnConfig.name())));
+            builder.executor(executorProvider.get(new HttpClientExecutorProvider.Config(restFnConfig.name())));
         }
 
         return new RestFn() {
             private final HttpClient client = builder.build();
-            private final Map<String, Supplier<String>> workerMdcSuppliers = restFnConfig
-                    .mdcSuppliers();
+            private final Map<String, Supplier<String>> workerMdcSuppliers = restFnConfig.mdcSuppliers();
 
             @SuppressWarnings("unchecked")
             @Override
-            public <T> HttpResponse<T> applyForResponse(final RestRequest req,
-                    final BodyOf<?> requestBodyDescriptor,
-                    final BodyHandlerType<T> responseBodyDescriptor) {
+            public <T> HttpResponse<T> applyForResponse(final RestRequest req, final JacksonTypeDescriptor requestBodyDescriptor,
+                    final BodyHandlerType responseBodyHandlerType) {
                 try {
                     MDC.put(AufRestConstants.AUFRESTREQUESTID, req.id());
 
@@ -132,9 +125,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         restLogger.onRequest(httpReq, req);
                     }
 
-                    final var handler = responseBodyDescriptor instanceof final BodyHandlerType.Provided<T> handlerSupplier
+                    final var handler = responseBodyHandlerType instanceof final BodyHandlerType.Provided<?> handlerSupplier
                             ? handlerSupplier.handler()
-                            : handlerProvider.get(responseBodyDescriptor);
+                            : handlerProvider.get(responseBodyHandlerType);
 
                     final HttpResponse<?> httpResponse;
                     try {
@@ -144,8 +137,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             throw new UnhandledResponseException(error);
                         } else {
                             try {
-                                listeners.stream()
-                                        .forEach(listener -> listener.onException(e, httpReq, req));
+                                listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
                             } catch (Exception le) {
                                 e.addSuppressed(le);
                             }
@@ -162,14 +154,12 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 }
             }
 
-            private <T> HttpResponse<?> sendForResponse(final RestRequest req,
-                    final HttpRequest httpReq, final BodyHandler<T> handler)
-                    throws IOException, InterruptedException, ErrorResponseException,
+            private <T> HttpResponse<?> sendForResponse(final RestRequest req, final HttpRequest httpReq,
+                    final BodyHandler<T> handler) throws IOException, InterruptedException, ErrorResponseException,
                     InternalServerErrorException, BadGatewayException, ServiceUnavailableException,
-                    GatewayTimeoutException, ServerErrorException, BadRequestException,
-                    NotAuthorizedException, ForbiddenException, NotFoundException,
-                    NotAllowedException, NotAcceptableException, NotSupportedException,
-                    ClientErrorException, RedirectionException {
+                    GatewayTimeoutException, ServerErrorException, BadRequestException, NotAuthorizedException,
+                    ForbiddenException, NotFoundException, NotAllowedException, NotAcceptableException,
+                    NotSupportedException, ClientErrorException, RedirectionException {
                 final HttpResponse<?> httpResponse;
                 httpResponse = client.send(httpReq, wrapInContext(req, handler));
 
@@ -213,20 +203,18 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                 return httpResponse;
             }
 
-            private <T> BodyHandler<T> wrapInContext(final RestRequest req,
-                    final BodyHandler<T> handler) {
+            private <T> BodyHandler<T> wrapInContext(final RestRequest req, final BodyHandler<T> handler) {
                 final var mdcMap = new HashMap<String, String>();
                 mdcMap.put(AufRestConstants.AUFRESTREQUESTID, req.id());
                 if (workerMdcSuppliers != null && workerMdcSuppliers.size() > 0) {
-                    workerMdcSuppliers.entrySet().stream().forEach(
-                            entry -> mdcMap.put(entry.getKey(), entry.getValue().get()));
+                    workerMdcSuppliers.entrySet().stream()
+                            .forEach(entry -> mdcMap.put(entry.getKey(), entry.getValue().get()));
                 }
 
                 return new BodyHandler<T>() {
                     @Override
                     public BodySubscriber<T> apply(final ResponseInfo responseInfo) {
-                        mdcMap.entrySet().stream()
-                                .forEach(e -> MDC.put(e.getKey(), e.getValue()));
+                        mdcMap.entrySet().stream().forEach(e -> MDC.put(e.getKey(), e.getValue()));
 
                         final var target = handler.apply(responseInfo);
 

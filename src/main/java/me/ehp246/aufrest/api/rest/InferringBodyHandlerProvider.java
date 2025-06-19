@@ -28,5 +28,5 @@ public interface InferringBodyHandlerProvider {
      * {@linkplain String}.
      *
      */
-    <T> BodyHandler<T> get(BodyHandlerType<T> descriptor);
+    <T> BodyHandler<T> get(BodyHandlerType descriptor);
 }

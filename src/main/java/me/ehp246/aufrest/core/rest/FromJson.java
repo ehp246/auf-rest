@@ -2,22 +2,15 @@ package me.ehp246.aufrest.core.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import me.ehp246.aufrest.api.rest.BodyOf;
+import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 
 /**
  * Internal abstraction for {@linkplain ObjectMapper} operations.
  *
  * @author Lei Yang
- *
+ * @since 1.0
  */
 @FunctionalInterface
 public interface FromJson {
-    /**
-     *
-     * @param json
-     * @param descriptor Could be <code>null</code>. In which case, it is up to
-     *                   {@linkplain ObjectMapper}.
-     * @return
-     */
-    <T> T apply(final String json, final BodyOf<T> descriptor);
+    Object fromJson(String json, JacksonTypeDescriptor typeOf);
 }
