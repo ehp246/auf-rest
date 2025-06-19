@@ -14,7 +14,7 @@ import org.springframework.util.CollectionUtils;
 import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
-import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BeanAuth01;
@@ -37,7 +37,7 @@ import me.ehp246.test.mock.MockBodyHandlerProvider;
  *
  */
 class DefaultProxyMethodParserTest {
-    private final BodyHandlerResolver bodyHandlerResolver = name -> r -> null;
+    private final BodyHandlerBeanResolver bodyHandlerResolver = name -> r -> null;
     private final InferringBodyHandlerProvider bindingBodyHandlerProvider = new MockBodyHandlerProvider();
     private final ExpressionResolver expressionResolver = new MockEnvironment()::resolveRequiredPlaceholders;
     private final MockAuthBean authBean = new MockAuthBean();
