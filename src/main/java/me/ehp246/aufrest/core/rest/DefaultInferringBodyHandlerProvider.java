@@ -41,14 +41,16 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> BodyHandler<T> get(final BodyHandlerType descriptor) {
-        // In case of provided handler, the success body type is not used and
-        // irrelevant.
-        final var handler = descriptor instanceof final Provided<?> provided ? provided.handler() : null;
+    public <T> BodyHandler<T> get(final BodyHandlerType handlerType) {
+        /*
+         * In case of provided handler, the success body type is not used and
+         * irrelevant.
+         */
+        final var providedHandler = handlerType instanceof final Provided<?> provided ? provided.handler() : null;
 
-        final var successDescriptor = descriptor instanceof final Inferring<?> i ? i.bodyType() : null;
+        final var successPayloadDescriptor = handlerType instanceof final Inferring<?> i ? i.bodyType() : null;
         // Needed for both provided and inferring descriptors.
-        final var errorDescriptor = descriptor == null ? null : new JacksonTypeView(descriptor.errorType());
+        final var errorPayloadDescriptor = handlerType == null ? null : new JacksonTypeView(handlerType.errorType());
 
         return responseInfo -> {
             // Log headers
@@ -66,8 +68,8 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
             // Use the supplied if it is supplied.
             final var isSuccess = HttpUtils.isSuccess(statusCode);
-            if (isSuccess && handler != null) {
-                return (BodySubscriber<T>) handler;
+            if (isSuccess && providedHandler != null) {
+                return (BodySubscriber<T>) providedHandler;
             }
 
             /*
@@ -75,14 +77,14 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
              * could be for either a success or a failure. Can be null. In which case, try
              * to infer by the content type.
              */
-            final var resposneDescriptor = isSuccess ? successDescriptor : errorDescriptor;
-            final var type = resposneDescriptor == null ? null : resposneDescriptor.type();
-            if (statusCode == 204 || type == void.class || type == Void.class) {
+            final var resposnePayloadDescriptor = isSuccess ? successPayloadDescriptor : errorPayloadDescriptor;
+            final var responseReturnType = resposnePayloadDescriptor == null ? null : resposnePayloadDescriptor.type();
+            if (statusCode == 204 || responseReturnType == void.class || responseReturnType == Void.class) {
                 return BodySubscribers.mapping(BodySubscribers.discarding(), v -> null);
             }
 
             // Short-circuit the content-type.
-            if (type == InputStream.class) {
+            if (responseReturnType == InputStream.class) {
                 // Wrap it in a gzip stream.
                 return gzipped
                         ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
@@ -105,12 +107,12 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
                         }
 
                         // This means a JSON string will not be de-serialized.
-                        if (type == String.class) {
+                        if (responseReturnType == String.class) {
                             return text;
                         }
 
                         if (contentType.startsWith(HttpUtils.APPLICATION_JSON)) {
-                            return fromJson.fromJson(text, resposneDescriptor);
+                            return fromJson.fromJson(text, resposnePayloadDescriptor);
                         }
 
                         // Returns the raw text for anything that is not JSON for now.
