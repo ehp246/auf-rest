@@ -84,8 +84,8 @@ public interface RestRequest {
     }
 
     /**
-     * Defines the request body/payload. There is built-in support for the following
-     * types:
+     * Defines the request body/payload. There is built-in recognition for the
+     * following types:
      * <ul>
      * <li>{@linkplain InputStream}
      * <li>{@linkplain Path}
@@ -94,6 +94,10 @@ public interface RestRequest {
      * Un-recognized Java types will be sent as <code>application/json</code>.
      */
     default Object body() {
+        return null;
+    }
+
+    default JacksonTypeDescriptor bodyDescriptor() {
         return null;
     }
 

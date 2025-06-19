@@ -3,7 +3,6 @@ package me.ehp246.aufrest.core.rest;
 import java.net.http.HttpRequest;
 
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
 
 /**
@@ -16,9 +15,5 @@ import me.ehp246.aufrest.provider.httpclient.DefaultHttpRequestBuilder;
  */
 @FunctionalInterface
 public interface HttpRequestBuilder {
-    HttpRequest apply(RestRequest req, JacksonTypeDescriptor descriptor);
-
-    default HttpRequest apply(final RestRequest req) {
-        return this.apply(req, null);
-    }
+    HttpRequest apply(RestRequest req);
 }

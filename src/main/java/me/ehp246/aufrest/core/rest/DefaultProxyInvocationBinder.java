@@ -16,8 +16,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
+import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -44,7 +44,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final Duration timeout;
     // Request body related.
     private final ArgBinder<Object, Object> bodyArgBinder;
-    private final JacksonTypeDescriptor bodyType;
+    private final JacksonTypeDescriptor typeDescriptor;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ProxyReturnMapper returnMapper;
@@ -70,7 +70,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.headerStatic = Collections.unmodifiableMap(headerStatic);
         this.timeout = timeout;
         this.bodyArgBinder = bodyArgBinder;
-        this.bodyType = bodyType;
+        this.typeDescriptor = bodyType;
         this.handlerBinder = consumerBinder;
         this.returnMapper = returnMapper;
     }
@@ -210,7 +210,13 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             public Object body() {
                 return body;
             }
-        }, bodyType, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+
+            @Override
+            public JacksonTypeDescriptor bodyDescriptor() {
+                return typeDescriptor;
+            }
+
+        }, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 
     private Map<String, ?> paths(final Object[] args) {

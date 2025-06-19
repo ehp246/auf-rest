@@ -44,7 +44,6 @@ import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpClientExecutorProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
-import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -114,11 +113,11 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             @SuppressWarnings("unchecked")
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest req,
-                    final JacksonTypeDescriptor requestBodyDescriptor, final BodyHandlerType responseBodyHandlerType) {
+                    final BodyHandlerType responseBodyHandlerType) {
                 try {
                     MDC.put(AufRestConstants.AUFRESTREQUESTID, req.id());
 
-                    final var httpReq = reqBuilder.apply(req, requestBodyDescriptor);
+                    final var httpReq = reqBuilder.apply(req);
 
                     listeners.stream().forEach(listener -> listener.onRequest(httpReq, req));
 
