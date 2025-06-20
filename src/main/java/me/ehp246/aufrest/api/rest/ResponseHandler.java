@@ -8,12 +8,12 @@ import java.util.Map;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 
 /**
- * Marker type on how to handle a response body.
+ * Marker type on how to handle a response.
  *
  * @author Lei Yang
  * @since 4.0
  */
-public sealed interface BodyHandlerType {
+public sealed interface ResponseHandler {
     /**
      * The Java type of the response body on a {@linkplain ErrorResponseException}.
      */
@@ -28,7 +28,7 @@ public sealed interface BodyHandlerType {
      * @author Lei Yang
      * @since 4.0
      */
-    public final class Provided<T> implements BodyHandlerType {
+    public final class Provided<T> implements ResponseHandler {
         public static final Provided<Void> DISCARDING = new Provided<>(BodyHandlers.discarding());
 
         private final BodyHandler<T> handler;
@@ -66,9 +66,9 @@ public sealed interface BodyHandlerType {
      * @since 4.0
      * @see InferringBodyHandlerProvider
      */
-    public final class Inferring<T> implements BodyHandlerType, JacksonTypeDescriptor {
-        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(
-                ParameterizedTypeBuilder.ofMap(String.class, Object.class), null, Map.class);
+    public final class Inferring implements ResponseHandler, JacksonTypeDescriptor {
+        public static final Inferring MAP = new Inferring(ParameterizedTypeBuilder.ofMap(String.class, Object.class),
+                null, Map.class);
 
         private final Type type;
         private final Class<?> view;

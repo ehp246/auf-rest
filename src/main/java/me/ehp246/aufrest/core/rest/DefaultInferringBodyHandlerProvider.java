@@ -12,10 +12,10 @@ import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
 
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestLogger;
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -39,12 +39,11 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> BodyHandler<T> get(final BodyHandlerType.Inferring<T> handler) {
+    public <T> BodyHandler<T> get(final ResponseHandler.Inferring inferring) {
 
-        final var successPayloadDescriptor = handler;
+        final var successPayloadDescriptor = inferring;
         // Needed for both provided and inferring descriptors.
-        final var errorPayloadDescriptor = handler == null ? null
-                : JacksonTypeDescriptor.of(handler.errorType(), null);
+        final var errorPayloadDescriptor = inferring == null ? null : JacksonTypeDescriptor.of(inferring.errorType(), null);
 
         return responseInfo -> {
             // Log headers

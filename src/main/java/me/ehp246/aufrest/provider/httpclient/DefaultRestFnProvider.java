@@ -38,12 +38,12 @@ import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
 import me.ehp246.aufrest.api.rest.HttpClientExecutorProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
+import me.ehp246.aufrest.api.rest.ResponseHandler.Inferring;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestFnConfig;
 import me.ehp246.aufrest.api.rest.RestFnProvider;
@@ -113,7 +113,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             @SuppressWarnings("unchecked")
             @Override
             public <T> HttpResponse<T> applyForResponse(final RestRequest req,
-                    final BodyHandlerType responseBodyHandlerType) {
+                    final ResponseHandler responseBodyHandlerType) {
                 try {
                     MDC.put(AufRestConstants.AUFRESTREQUESTID, req.id());
 
@@ -125,9 +125,9 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         restLogger.onRequest(httpReq, req);
                     }
 
-                    final var handler = responseBodyHandlerType instanceof final BodyHandlerType.Provided<?> handlerSupplier
+                    final var handler = responseBodyHandlerType instanceof final ResponseHandler.Provided<?> handlerSupplier
                             ? handlerSupplier.handler()
-                            : handlerProvider.get((Inferring<T>) responseBodyHandlerType);
+                            : handlerProvider.get((Inferring) responseBodyHandlerType);
 
                     final HttpResponse<?> httpResponse;
                     try {

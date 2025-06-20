@@ -2,8 +2,8 @@ package me.ehp246.test.mock;
 
 import java.net.http.HttpResponse.BodyHandler;
 
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 
 /**
  * @author Lei Yang
@@ -12,7 +12,7 @@ import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 public class MockBodyHandlerProvider implements InferringBodyHandlerProvider {
 
     @Override
-    public <T> BodyHandler<T> get(BodyHandlerType.Inferring<T> descriptor) {
+    public <T> BodyHandler<T> get(ResponseHandler.Inferring descriptor) {
         // TODO Auto-generated method stub
         return null;
     }

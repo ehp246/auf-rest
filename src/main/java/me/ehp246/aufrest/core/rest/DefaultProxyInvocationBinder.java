@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
@@ -216,7 +216,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
                 return typeDescriptor;
             }
 
-        }, new BodyHandlerType.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+        }, new ResponseHandler.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 
     private Map<String, ?> paths(final Object[] args) {

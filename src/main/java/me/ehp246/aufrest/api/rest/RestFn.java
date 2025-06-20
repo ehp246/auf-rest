@@ -5,8 +5,8 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Provided;
+import me.ehp246.aufrest.api.rest.ResponseHandler.Inferring;
+import me.ehp246.aufrest.api.rest.ResponseHandler.Provided;
 
 /**
  * The abstraction of a HttpClient that takes in a request and returns a
@@ -25,18 +25,17 @@ public interface RestFn {
      * If the status code is larger than 299, a
      * {@linkplain UnhandledResponseException} will be raised.
      *
-     * @param <T>                     The expected payload type.
-     * @param request                 Required, can't be <code>null</code>.
-     * @param responseBodyHnalderType Defines how to de-serialize the response body.
-     *                                Both normal response and error response should
-     *                                be specified. Can be <code>null</code>. For
-     *                                details, see
-     *                                {@linkplain InferringBodyHandlerProvider}.
+     * @param <T>             The expected payload type.
+     * @param request         Required, can't be <code>null</code>.
+     * @param responseHanlder Defines how to de-serialize the response body. Both
+     *                        normal response and error response should be
+     *                        specified. Can be <code>null</code>. For details, see
+     *                        {@linkplain InferringBodyHandlerProvider}.
      * @return The response whose {@linkplain HttpResponse#body()} has the payload
      *         transformed into a Java object as dedicated by
-     *         {@linkplain BodyHandlerType}.
+     *         {@linkplain ResponseHandler}.
      */
-    <T> HttpResponse<T> applyForResponse(RestRequest request, BodyHandlerType responseBodyHnalderType);
+    <T> HttpResponse<T> applyForResponse(RestRequest request, ResponseHandler responseHanlder);
 
     default HttpResponse<Map<String, Object>> applyForResponse(final RestRequest request) {
         return this.applyForResponse(request, Inferring.MAP);
@@ -56,11 +55,11 @@ public interface RestFn {
      */
     @SuppressWarnings("unchecked")
     default <T> T apply(final RestRequest request, final Class<T> responseType) {
-        return (T) this.applyForResponse(request, new Inferring<>(responseType)).body();
+        return (T) this.applyForResponse(request, new Inferring(responseType)).body();
     }
 
     @SuppressWarnings("unchecked")
-    default <T> T apply(final RestRequest request, final BodyHandlerType responseDescriptor) {
+    default <T> T apply(final RestRequest request, final ResponseHandler responseDescriptor) {
         return (T) this.applyForResponse(request, responseDescriptor).body();
     }
 

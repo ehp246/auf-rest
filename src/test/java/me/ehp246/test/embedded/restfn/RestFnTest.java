@@ -1,6 +1,7 @@
 package me.ehp246.test.embedded.restfn;
 
 import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +33,13 @@ import me.ehp246.aufrest.api.exception.RedirectionException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
-import me.ehp246.aufrest.api.rest.BodyHandlerType.Inferring;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.ParameterizedTypeBuilder;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
+import me.ehp246.aufrest.api.rest.ResponseHandler.Inferring;
 import me.ehp246.aufrest.api.rest.RestFn;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.RestView;
@@ -381,7 +382,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new BodyHandlerType.Inferring<LoginName>(LoginName.class, RestView.class));
+        }, new ResponseHandler.Inferring(LoginName.class, RestView.class));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -393,7 +394,7 @@ class RestFnTest {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var body = (List<LoginName>) restFn.apply(newLoginsReq(login),
-                new Inferring<>(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class));
+                new Inferring(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class));
 
         Assertions.assertEquals(1, body.size());
         Assertions.assertEquals(ArrayList.class, body.getClass());
@@ -427,10 +428,11 @@ class RestFnTest {
         /*
          * Get a handler that doesn't support View.
          */
-        final var handler = this.handlerProvider.get(new BodyHandlerType.Inferring<LoginName>(LoginName.class));
+        final var handler = this.handlerProvider
+                .<BodyHandler<LoginName>>get(new ResponseHandler.Inferring(LoginName.class));
 
         final var respons = (LoginName) restFn
-                .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler)).body();
+                .applyForResponse(newLoginReq(login), new ResponseHandler.Provided<>(handler)).body();
 
         /*
          * The provided handler doesn't support view. All properties should be /*
@@ -443,13 +445,13 @@ class RestFnTest {
          * Get a handler that does support View.
          */
         final var handlerWithView = this.handlerProvider
-                .get(new BodyHandlerType.Inferring<LoginName>(LoginName.class, RestView.class));
+                .get(new ResponseHandler.Inferring(LoginName.class, RestView.class));
 
         /**
          * Use it on the response.
          */
         final var responseWithView = (LoginName) restFn
-                .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handlerWithView)).body();
+                .applyForResponse(newLoginReq(login), new ResponseHandler.Provided<>(handlerWithView)).body();
 
         Assertions.assertEquals(login.username(), responseWithView.getUsername());
         Assertions.assertEquals(null, responseWithView.getPassword());
@@ -476,7 +478,7 @@ class RestFnTest {
                         return Map.of("message", List.of(expected));
                     }
 
-                }, new BodyHandlerType.Inferring<String>(String.class, null, Error.class))).getCause().httpResponse();
+                }, new ResponseHandler.Inferring(String.class, null, Error.class))).getCause().httpResponse();
 
         Assertions.assertEquals(410, response.statusCode());
 

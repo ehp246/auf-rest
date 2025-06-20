@@ -2,7 +2,7 @@ package me.ehp246.aufrest.core.rest;
 
 import java.lang.reflect.Proxy;
 
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestRequest;
 
 /**
@@ -18,6 +18,6 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 public interface ProxyInvocationBinder {
     Bound apply(Object target, Object[] args) throws Throwable;
 
-    record Bound(RestRequest request, BodyHandlerType responseDescriptor, ProxyReturnMapper returnMapper) {
+    record Bound(RestRequest request, ResponseHandler responseDescriptor, ProxyReturnMapper returnMapper) {
     }
 }

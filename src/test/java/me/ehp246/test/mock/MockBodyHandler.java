@@ -7,8 +7,8 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.HttpResponse.ResponseInfo;
 import java.nio.charset.StandardCharsets;
 
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 
 /**
  * @author Lei Yang
@@ -39,7 +39,7 @@ public class MockBodyHandler<T> implements HttpResponse.BodyHandler<T> {
         return new InferringBodyHandlerProvider() {
             @SuppressWarnings("unchecked")
             @Override
-            public <T> BodyHandler<T> get(final BodyHandlerType.Inferring<T> descriptor) {
+            public <T> BodyHandler<T> get(final ResponseHandler.Inferring descriptor) {
                 return (BodyHandler<T>) MockBodyHandler.this;
             }
         };
