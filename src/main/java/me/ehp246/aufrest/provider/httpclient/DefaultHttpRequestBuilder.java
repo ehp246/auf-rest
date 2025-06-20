@@ -22,7 +22,6 @@ import me.ehp246.aufrest.api.rest.HeaderContext;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.core.rest.AufRestConfiguration;
 import me.ehp246.aufrest.core.rest.HttpRequestBuilder;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -60,7 +59,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
 
     @SuppressWarnings("unchecked")
     @Override
-    public HttpRequest apply(final RestRequest req, final JacksonTypeDescriptor descriptor) {
+    public HttpRequest apply(final RestRequest req) {
         final var builder = reqBuilderSupplier.get();
         final var providedHeaders = headerProvider.map(provider -> provider.get(req)).orElseGet(HashMap::new);
         /*
@@ -157,7 +156,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         } else {
             // Infer it as the last resort.
             final var contentPublisher = this.publisherProvider.get(req.body(), req.contentType(),
-                    (JacksonTypeDescriptor) descriptor);
+                    req.bodyDescriptor());
 
             builder.setHeader(HttpUtils.CONTENT_TYPE, contentPublisher.contentType());
 

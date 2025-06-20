@@ -42,11 +42,11 @@ import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
 import me.ehp246.aufrest.api.rest.BearerToken;
-import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
-import me.ehp246.aufrest.api.rest.BodyHandlerType;
+import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
@@ -72,15 +72,15 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private final ExpressionResolver expressionResolver;
     private final AuthBeanResolver authBeanResolver;
     private final InferringBodyHandlerProvider inferredHandlerProvider;
-    private final BodyHandlerResolver bodyHandlerResolver;
+    private final BodyHandlerBeanResolver bodyHandlerBeanResolver;
 
     public DefaultProxyMethodParser(final ExpressionResolver expressionResolver,
-            final AuthBeanResolver authBeanResolver, final BodyHandlerResolver bodyHandlerResolver,
+            final AuthBeanResolver authBeanResolver, final BodyHandlerBeanResolver bodyHandlerResolver,
             final InferringBodyHandlerProvider inferredHandlerProvider) {
         this.expressionResolver = expressionResolver;
         this.authBeanResolver = authBeanResolver;
         this.inferredHandlerProvider = inferredHandlerProvider;
-        this.bodyHandlerResolver = bodyHandlerResolver;
+        this.bodyHandlerBeanResolver = bodyHandlerResolver;
     }
 
     @Override
@@ -125,7 +125,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var bodyArgBinder = (ArgBinder<Object, Object>) bodyParam.map(ARG_BINDER_PROVIDER::apply).orElse(null);
 
         final var bodyType = bodyParam.map(ReflectedParameter::parameter)
-                .map(parameter -> new JacksonTypeDescriptor(parameter.getParameterizedType(),
+                .map(parameter -> JacksonTypeDescriptor.of(parameter.getParameterizedType(),
                         Optional.ofNullable(parameter.getAnnotation(JsonView.class)).map(JsonView::value)
                                 .filter(OneUtil::hasValue).map(views -> views[0]).orElse(null)))
                 .orElse(null);
@@ -153,7 +153,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         // Named handler bean?
         final var handlerBean = ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue);
         if (handlerBean.isPresent()) {
-            return handlerBean.map(bodyHandlerResolver::get)
+            return handlerBean.map(bodyHandlerBeanResolver::get)
                     .map(handler -> (ArgBinder<Object, BodyHandler<?>>) (target, args) -> handler).get();
         }
 
@@ -178,8 +178,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var jsonView = reflected.findOnMethod(JsonView.class).map(JsonView::value).filter(OneUtil::hasValue)
                 .map(views -> views[0]).orElse(null);
 
-        final var descriptor = new BodyHandlerType.Inferring<>(new JacksonTypeDescriptor(responseBodyType, jsonView),
-                byRest.errorType());
+        final var descriptor = new ResponseHandler.Inferring(responseBodyType, jsonView, byRest.errorType());
 
         final var handler = inferredHandlerProvider.get(descriptor);
 

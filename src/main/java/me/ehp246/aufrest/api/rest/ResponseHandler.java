@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.api.rest;
 
+import java.lang.reflect.Type;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
@@ -7,12 +8,12 @@ import java.util.Map;
 import me.ehp246.aufrest.api.exception.ErrorResponseException;
 
 /**
- * Marker type on how to handle a response body.
+ * Marker type on how to handle a response.
  *
  * @author Lei Yang
  * @since 4.0
  */
-public sealed interface BodyHandlerType {
+public sealed interface ResponseHandler {
     /**
      * The Java type of the response body on a {@linkplain ErrorResponseException}.
      */
@@ -27,7 +28,7 @@ public sealed interface BodyHandlerType {
      * @author Lei Yang
      * @since 4.0
      */
-    public final class Provided<T> implements BodyHandlerType {
+    public final class Provided<T> implements ResponseHandler {
         public static final Provided<Void> DISCARDING = new Provided<>(BodyHandlers.discarding());
 
         private final BodyHandler<T> handler;
@@ -65,28 +66,27 @@ public sealed interface BodyHandlerType {
      * @since 4.0
      * @see InferringBodyHandlerProvider
      */
-    public final class Inferring<T> implements BodyHandlerType {
-        private final JacksonTypeDescriptor bodyDescriptor;
+    public final class Inferring implements ResponseHandler, JacksonTypeDescriptor {
+        public static final Inferring MAP = new Inferring(ParameterizedTypeBuilder.ofMap(String.class, Object.class),
+                null, Map.class);
+
+        private final Type type;
+        private final Class<?> view;
         private final Class<?> errorType;
 
-        public static final Inferring<Map<String, Object>> MAP = new Inferring<>(
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofMap(String.class, Object.class)));
-
-        public Inferring(final JacksonTypeDescriptor bodyType, final Class<?> errorType) {
-            this.bodyDescriptor = bodyType;
-            this.errorType = errorType;
+        public Inferring(Type type, Class<?> view, Class<?> errorType) {
+            super();
+            this.type = type;
+            this.view = view;
+            this.errorType = errorType == null ? Map.class : errorType;
         }
 
-        public Inferring(final JacksonTypeDescriptor descriptor) {
-            this(descriptor, Map.class);
+        public Inferring(final Type type) {
+            this(type, null, null);
         }
 
-        public Inferring(final Class<T> type) {
-            this(new JacksonTypeDescriptor(type), Map.class);
-        }
-
-        public Inferring(final Class<T> type, final Class<?> errorType) {
-            this(new JacksonTypeDescriptor(type), errorType);
+        public Inferring(final Type type, final Class<?> view) {
+            this(type, view, null);
         }
 
         @Override
@@ -94,8 +94,15 @@ public sealed interface BodyHandlerType {
             return errorType;
         }
 
-        public JacksonTypeDescriptor bodyType() {
-            return bodyDescriptor;
+        @Override
+        public Type type() {
+            return this.type;
         }
+
+        @Override
+        public Class<?> view() {
+            return this.view;
+        }
+
     }
 }

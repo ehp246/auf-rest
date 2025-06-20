@@ -21,18 +21,18 @@ public final class JsonByJackson implements FromJson, ToJson {
     }
 
     @Override
-    public String toJson(final Object value, final JacksonTypeDescriptor typeOf) {
+    public String toJson(final Object value, final JacksonTypeDescriptor descriptor) {
         if (value == null) {
             return null;
         }
 
         ObjectWriter writer = null;
-        if (typeOf == null) {
+        if (descriptor == null) {
             writer = this.objectMapper.writerFor(value.getClass());
         } else {
-            writer = this.objectMapper.writerFor(this.objectMapper.constructType(typeOf.type()));
-            if (typeOf.view() != null) {
-                writer = writer.withView(typeOf.view());
+            writer = this.objectMapper.writerFor(this.objectMapper.constructType(descriptor.type()));
+            if (descriptor.view() != null) {
+                writer = writer.withView(descriptor.view());
             }
         }
 

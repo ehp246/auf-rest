@@ -49,7 +49,7 @@ class JsonByJacksonTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofList(Instant.class)));
+                JacksonTypeDescriptor.of(ParameterizedTypeBuilder.ofList(Instant.class)));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -60,7 +60,7 @@ class JsonByJacksonTest {
         final var from = List.of(Instant.now(), Instant.now(), Instant.now());
 
         final List<Instant> back = (List<Instant>) jackson.fromJson(jackson.toJson(from),
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofList(Instant.class)));
+                JacksonTypeDescriptor.of(ParameterizedTypeBuilder.ofList(Instant.class)));
 
         back.stream().forEach(value -> Assertions.assertEquals(true, value instanceof Instant));
     }
@@ -71,7 +71,8 @@ class JsonByJacksonTest {
         final var from = List.of(List.of(Instant.now()), List.of(Instant.now(), Instant.now()), List.of(Instant.now()));
 
         final List<List<Instant>> back = (List<List<Instant>>) jackson.fromJson(jackson.toJson(from),
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofList(ParameterizedTypeBuilder.ofList(Instant.class))));
+                JacksonTypeDescriptor
+                        .of(ParameterizedTypeBuilder.ofList(ParameterizedTypeBuilder.ofList(Instant.class))));
 
         final var all = back.stream().flatMap(List::stream).map(value -> {
             Assertions.assertEquals(true, value instanceof Instant);
@@ -88,7 +89,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<Person> back = (List<Person>) jackson.fromJson(jackson.toJson(from),
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofList(Person.class)));
+                JacksonTypeDescriptor.of(ParameterizedTypeBuilder.ofList(Person.class)));
 
         back.stream().forEach(value -> {
             Assertions.assertEquals(true, value instanceof Person);
@@ -104,7 +105,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final List<TestCases.Person01> result = (List<TestCases.Person01>) jackson.fromJson(jackson.toJson(from),
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofList(TestCases.Person01.class), RestView.class));
+                JacksonTypeDescriptor.of(ParameterizedTypeBuilder.ofList(TestCases.Person01.class), RestView.class));
 
         IntStream.range(0, from.size()).forEach(i -> {
             Assertions.assertEquals(null, result.get(i).getDob());
@@ -120,7 +121,7 @@ class JsonByJacksonTest {
                 new Person(Instant.now(), "Eddard", "Starks"));
 
         final var result = (Set<List<TestCases.Person01>>) jackson.fromJson(jackson.toJson(Set.of(from)),
-                new JacksonTypeDescriptor(
+                JacksonTypeDescriptor.of(
                         ParameterizedTypeBuilder.ofSet(ParameterizedTypeBuilder.ofList(TestCases.Person01.class)),
                         RestView.class));
 

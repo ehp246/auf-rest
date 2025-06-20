@@ -1,6 +1,6 @@
 # Auf REST
 
-[![Sonatype Central](https://central.sonatype.com/artifact/me.ehp246/auf-rest)
+[Sonatype Central](https://central.sonatype.com/artifact/me.ehp246/auf-rest)
 
 
 ## Introduction

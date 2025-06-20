@@ -10,8 +10,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Lei Yang
  */
-public record JacksonTypeDescriptor(Type type, Class<?> view) {
-    public JacksonTypeDescriptor(final Type type) {
-        this(type, null);
+public interface JacksonTypeDescriptor {
+    Type type();
+
+    default Class<?> view() {
+        return null;
+    }
+
+    static JacksonTypeDescriptor of(final Type type, final Class<?> view) {
+        return new JacksonTypeDescriptor() {
+
+            @Override
+            public Type type() {
+                return type;
+            }
+
+            @Override
+            public Class<?> view() {
+                return view;
+            }
+
+        };
+    }
+
+    static JacksonTypeDescriptor of(final Type type) {
+        return new JacksonTypeDescriptor() {
+
+            @Override
+            public Type type() {
+                return type;
+            }
+
+            @Override
+            public Class<?> view() {
+                return null;
+            }
+
+        };
     }
 }

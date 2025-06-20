@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.AuthProvider;
-import me.ehp246.aufrest.api.rest.BodyHandlerResolver;
+import me.ehp246.aufrest.api.rest.BodyHandlerBeanResolver;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HeaderProvider;
 import me.ehp246.aufrest.api.rest.HttpClientBuilderSupplier;
@@ -91,7 +91,7 @@ public final class AufRestConfiguration {
     }
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
-    public AuthBeanResolver methodAuthProviderMap(final BeanFactory env) {
+    public AuthBeanResolver authBeanResolver(final BeanFactory env) {
         return name -> env.getBean(name);
     }
 
@@ -101,7 +101,7 @@ public final class AufRestConfiguration {
     }
 
     @Bean("216fbb62-0701-43fb-9fdd-a6df279c92bc")
-    public BodyHandlerResolver invocationBodyHandlerProvider(final BeanFactory env) {
+    public BodyHandlerBeanResolver bodyHandlerBeanResolver(final BeanFactory env) {
         return name -> env.getBean(name, BodyHandler.class);
     }
 
