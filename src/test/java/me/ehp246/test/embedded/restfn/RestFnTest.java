@@ -211,7 +211,7 @@ class RestFnTest {
             }
         };
 
-        final var descriptor = new JacksonTypeDescriptor(Logins.LoginName.class, RestView.class);
+        final var descriptor = JacksonTypeDescriptor.of(Logins.LoginName.class, RestView.class);
         final var response = restFn.applyForResponse(new RestRequest() {
 
             @Override
@@ -242,7 +242,7 @@ class RestFnTest {
         final var username = UUID.randomUUID().toString();
         final var password = UUID.randomUUID().toString();
 
-        final var descriptor = new JacksonTypeDescriptor(Logins.LoginName.class, RestView.class);
+        final var descriptor = JacksonTypeDescriptor.of(Logins.LoginName.class, RestView.class);
         final var login = new Logins.LoginName() {
 
             @Override
@@ -296,7 +296,7 @@ class RestFnTest {
         };
 
         final var contentPublisher = this.publisherProvider.get(login,
-                new JacksonTypeDescriptor(Logins.LoginName.class));
+                JacksonTypeDescriptor.of(Logins.LoginName.class, null));
 
         final var response = restFn.applyForResponse(new RestRequest() {
 
@@ -381,7 +381,7 @@ class RestFnTest {
             public Object body() {
                 return login;
             }
-        }, new BodyHandlerType.Inferring<LoginName>(new JacksonTypeDescriptor(LoginName.class, RestView.class)));
+        }, new BodyHandlerType.Inferring<LoginName>(LoginName.class, RestView.class));
 
         Assertions.assertEquals(username, body.getUsername());
         Assertions.assertEquals(null, body.getPassword());
@@ -392,8 +392,8 @@ class RestFnTest {
     void responseBody_reifying_01() {
         final var login = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
-        final var body = (List<LoginName>) restFn.apply(newLoginsReq(login), new Inferring<>(
-                new JacksonTypeDescriptor(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class)));
+        final var body = (List<LoginName>) restFn.apply(newLoginsReq(login),
+                new Inferring<>(ParameterizedTypeBuilder.ofList(LoginName.class), RestView.class));
 
         Assertions.assertEquals(1, body.size());
         Assertions.assertEquals(ArrayList.class, body.getClass());
@@ -427,8 +427,7 @@ class RestFnTest {
         /*
          * Get a handler that doesn't support View.
          */
-        final var handler = this.handlerProvider
-                .get(new BodyHandlerType.Inferring<LoginName>(new JacksonTypeDescriptor(LoginName.class)));
+        final var handler = this.handlerProvider.get(new BodyHandlerType.Inferring<LoginName>(LoginName.class));
 
         final var respons = (LoginName) restFn
                 .applyForResponse(newLoginReq(login), new BodyHandlerType.Provided<>(handler)).body();
@@ -443,8 +442,8 @@ class RestFnTest {
         /*
          * Get a handler that does support View.
          */
-        final var handlerWithView = this.handlerProvider.get(
-                new BodyHandlerType.Inferring<LoginName>(new JacksonTypeDescriptor(LoginName.class, RestView.class)));
+        final var handlerWithView = this.handlerProvider
+                .get(new BodyHandlerType.Inferring<LoginName>(LoginName.class, RestView.class));
 
         /**
          * Use it on the response.
@@ -477,7 +476,7 @@ class RestFnTest {
                         return Map.of("message", List.of(expected));
                     }
 
-                }, new BodyHandlerType.Inferring<String>(String.class, Error.class))).getCause().httpResponse();
+                }, new BodyHandlerType.Inferring<String>(String.class, null, Error.class))).getCause().httpResponse();
 
         Assertions.assertEquals(410, response.statusCode());
 
