@@ -1,0 +1,1 @@
+Automatic-Module-Name: me.ehp246.aufrest
