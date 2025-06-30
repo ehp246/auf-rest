@@ -3,7 +3,6 @@ package me.ehp246.aufrest.provider.httpclient;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -676,26 +675,6 @@ class DefaultHttpRequestBuilderTest {
 
         Assertions.assertEquals("2", headers.allValues(name).get(0));
         Assertions.assertEquals(2, headers.allValues("merge-these").size());
-    }
-
-    @Test
-    void body_01() {
-        final var expected = BodyPublishers.noBody();
-
-        final var req = defBuilder.apply(new RestRequest() {
-            @Override
-            public String uri() {
-                return "http://nowhere";
-            }
-
-            @Override
-            public Object body() {
-                return expected;
-            }
-
-        });
-
-        Assertions.assertEquals(expected, req.bodyPublisher().get());
     }
 
     @Test

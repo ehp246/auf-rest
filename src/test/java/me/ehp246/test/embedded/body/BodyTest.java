@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -12,12 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.mock.http.MockHttpOutputMessage;
-import org.springframework.util.MultiValueMapAdapter;
 
-import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.core.rest.ToJson;
 import me.ehp246.test.mock.MockBodyHandler;
 
@@ -41,8 +36,8 @@ class BodyTest {
     void publisher_01() {
         final var payload = UUID.randomUUID().toString();
 
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> publisherCase.post(BodyPublishers.ofString(payload)), "should specify the content type");
+        Assertions.assertEquals(payload, publisherCase.post(BodyPublishers.ofString(payload)).get(0),
+                "should be app/json");
 
         Assertions.assertEquals(payload, publisherCase.postAsJson(BodyPublishers.ofString(payload)).get(0));
     }
@@ -51,17 +46,11 @@ class BodyTest {
     void publisher_02() throws HttpMessageNotWritableException, IOException {
         final var first = UUID.randomUUID().toString();
         final var last = UUID.randomUUID().toString();
-        final var converter = new FormHttpMessageConverter();
 
-        final var outputMessage = new MockHttpOutputMessage();
-        converter.write(
-                new MultiValueMapAdapter<String, String>(Map.of("first", List.of(first), "last", List.of(last))), null,
-                outputMessage);
+        final var returned = publisherCase.postQueryParams(first, last);
 
-        Assertions.assertEquals(first,
-                publisherCase.postQueryParams(BodyPublishers.ofString(outputMessage.getBodyAsString())).get(0));
-        Assertions.assertEquals(last,
-                publisherCase.postQueryParams(BodyPublishers.ofString(outputMessage.getBodyAsString())).get(1));
+        Assertions.assertEquals(first, returned.get(0));
+        Assertions.assertEquals(last, returned.get(1));
     }
 
     @Test

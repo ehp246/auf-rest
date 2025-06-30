@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.http.MediaType;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
+import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 
@@ -22,5 +23,5 @@ interface BodyPublisherCase {
     List<String> postAsJson(BodyPublisher publisher);
 
     @OfRequest(value = "/publisher/query", contentType = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    List<String> postQueryParams(BodyPublisher publisher);
+    List<String> postQueryParams(@OfQuery String first, @OfQuery String last);
 }

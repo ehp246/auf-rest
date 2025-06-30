@@ -46,6 +46,8 @@ public @interface OfRequest {
 
     /**
      * Defines the content type and appropriate serialization provider.
+     * 
+     * @see ByRest#contentType()
      */
     String contentType() default "";
 

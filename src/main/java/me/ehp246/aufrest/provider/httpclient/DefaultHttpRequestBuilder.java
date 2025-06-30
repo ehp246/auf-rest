@@ -2,7 +2,6 @@ package me.ehp246.aufrest.provider.httpclient;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Duration;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
                 .orElse(null);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public HttpRequest apply(final RestRequest req) {
         final var builder = reqBuilderSupplier.get();
@@ -136,25 +134,16 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
                     .orElse(boundBase));
         }
 
-        /*
-         * Body
-         */
-        if (req.body() instanceof final BodyPublisher publisher) {
-            /*
-             * Respect a provided body publisher as much as possible. In this case, respect
-             * the provide content type as well.
-             */
-            builder.setHeader(HttpUtils.CONTENT_TYPE, req.contentType());
-
-            builder.method(req.method().toUpperCase(), publisher).uri(uri);
-        } else if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
+        if (req.contentType().equalsIgnoreCase(HttpUtils.APPLICATION_FORM_URLENCODED)) {
             // Encode query parameters as the body ignoring the body object.
             builder.setHeader(HttpUtils.CONTENT_TYPE, req.contentType());
 
             builder.method(req.method().toUpperCase(),
                     BodyPublishers.ofString(HttpUtils.encodeFormUrlBody(req.queries()))).uri(uri);
         } else {
-            // Infer it as the last resort.
+            /*
+             * Body object
+             */
             final var contentPublisher = this.publisherProvider.get(req.body(), req.contentType(),
                     req.bodyDescriptor());
 
