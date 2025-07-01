@@ -33,15 +33,18 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
     public <T> ContentPublisher get(final T body, final String mimeType, final JacksonTypeDescriptor descriptor) {
         final var contentType = OneUtil.hasValue(mimeType) ? mimeType : HttpUtils.APPLICATION_JSON;
 
-        if (body instanceof final BodyPublisher publisher) {
-            return new ContentPublisher(contentType, publisher);
-        }
-
         if (body == null) {
             return new ContentPublisher(contentType, BodyPublishers.noBody());
         }
 
-        // The rest requires a body.
+        if (body instanceof final BodyPublisher publisher) {
+            /*
+             * Respect a provided body publisher as much as possible. In this case, respect
+             * the provide content type as well.
+             */
+            return new ContentPublisher(contentType, publisher);
+        }
+
         if (body instanceof final InputStream stream) {
             return new ContentPublisher(contentType, BodyPublishers.ofInputStream(() -> stream));
         }
@@ -62,8 +65,8 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
             return new ContentPublisher(contentType, BodyPublishers.ofString(toJson.toJson(body, descriptor)));
         }
 
-        throw new IllegalArgumentException("Un-supported content type '" + contentType + "' and object '"
-                + body.toString() + "' of type '" + descriptor.type() + "'");
+        throw new IllegalArgumentException(
+                "Un-supported content type '" + contentType + "' and object '" + body.toString() + "'");
     }
 
     private BodyPublisher ofMimeMultipartData(final Map<Object, Object> data, final String boundary) {
