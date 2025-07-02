@@ -81,8 +81,6 @@ public @interface OfResponse {
      * <p>
      * Only applicable when binding to {@linkplain Bind#BODY} and the response is a
      * success.
-     * <p>
-     * Overwrites {@linkplain OfResponse#body()}.
      *
      * @see HttpClient#send(java.net.http.HttpRequest,
      *      java.net.http.HttpResponse.BodyHandler)

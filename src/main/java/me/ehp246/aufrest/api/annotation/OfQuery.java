@@ -20,7 +20,6 @@ import java.lang.reflect.Parameter;
  * <p>
  * In this case, the query parameter name is from {@linkplain OfQuery#value()}.
  * It will have a list of values.
- * <p>
  * <li>{@link java.util.Map Map&lt;String, String&gt;}
  * <li>{@link java.util.Map Map&lt;String, List&lt;String, String&gt;&gt;}
  * <p>

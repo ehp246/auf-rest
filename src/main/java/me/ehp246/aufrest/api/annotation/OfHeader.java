@@ -15,19 +15,16 @@ import java.lang.reflect.Parameter;
  * <li>{@link java.util.List List&lt;?&gt;}
  * <p>
  * The header will have all the values.
- * <p>
  * <li>{@link java.util.Map Map&lt;String, ?&gt;}
  * <p>
  * Map keys will become header names and map values header values.
  * {@linkplain OfHeader#value()} is ignored in this case.
- * <p>
  * <li>{@linkplain Object}
  * <p>
  * {@linkplain Object#toString()} will be called for the text value.
  * </ul>
  * <p>
  * <code>null</code> encountered will be skipped.
- * <p>
  *
  * @author Lei Yang
  * @since 4.0
