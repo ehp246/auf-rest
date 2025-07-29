@@ -1,7 +1,16 @@
 # Auf REST
+[![Java CI with Maven](https://github.com/ehp246/auf-rest/actions/workflows/build.yml/badge.svg)](https://github.com/ehp246/auf-rest/actions/workflows/build.yml)
 
-[Sonatype Central](https://central.sonatype.com/artifact/me.ehp246/auf-rest)
-
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=bugs)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=ehp246_auf-rest&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=ehp246_auf-rest)
 
 ## Introduction
 Auf REST is aimed at <a href='https://spring.io/'>Spring</a>-based applications that need to implement REST clients to dependent services/applications. It offers an annotation-driven and declarative programming model similar to  <a href='https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories'>Spring Data Repositories</a>. It abstracts away underline HTTP/REST concerns by offering a set of annotations and conventions with which application developers declare the intentions via Java interfaces with provided annotations. The developers don't need to dictate in an imperative way the details on how a HTTP client should be created, requests created/sent, responses processed, and exceptions propogated. The library takes care of these low-level details so they can focus on application logic. The library can reduce the code base of an application significantly by removing commonly-seen <a href='https://openjdk.org/groups/net/httpclient/intro.html'>HttpClient</a>/<a href='https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html'>RestTemplate</a>-based helper/utility/<a href='https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html'>Service</a> classes that are largely repetitive in implementation, difficult to test and error prone. Because the programming model is centered on Java interfaces, the library also makes implementing unit tests much easier as it removes the need for heavy and brittle mocking.
