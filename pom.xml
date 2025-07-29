@@ -56,6 +56,9 @@
 		<maven-jacoco-plugin.version>0.8.13</maven-jacoco-plugin.version>
 		
 		<maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+
+		<sonar.organization>me-ehp246</sonar.organization>
+  		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>
@@ -175,6 +178,12 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -247,8 +256,9 @@
 						<spring.main.banner-mode>off</spring.main.banner-mode>
 					</systemPropertyVariables>
 					<argLine>
-						-Xshare:off 
+						-javaagent:"${settings.localRepository}/org/jacoco/org.jacoco.agent/${maven-jacoco-plugin.version}/org.jacoco.agent-${maven-jacoco-plugin.version}-runtime.jar=destfile=${project.build.directory}/jacoco.exec,output=file"
 						-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"
+						-Xshare:off 
 					</argLine>
 				</configuration>
 			</plugin>
@@ -315,7 +325,7 @@
 					</execution>
 					<execution>
 						<id>report</id>
-						<phase>prepare-package</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
