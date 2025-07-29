@@ -91,8 +91,8 @@ public final class AufRestConfiguration {
     }
 
     @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
-    public AuthBeanResolver authBeanResolver(final BeanFactory env) {
-        return name -> env.getBean(name);
+    public AuthBeanResolver authBeanResolver(final BeanFactory factory) {
+        return name -> factory.getBean(name);
     }
 
     @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")

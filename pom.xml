@@ -247,8 +247,9 @@
 						<spring.main.banner-mode>off</spring.main.banner-mode>
 					</systemPropertyVariables>
 					<argLine>
-						-Xshare:off 
+						-javaagent:"${settings.localRepository}/org/jacoco/org.jacoco.agent/${maven-jacoco-plugin.version}/org.jacoco.agent-${maven-jacoco-plugin.version}-runtime.jar=destfile=${project.build.directory}/jacoco.exec,output=file"
 						-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"
+						-Xshare:off 
 					</argLine>
 				</configuration>
 			</plugin>
@@ -315,7 +316,7 @@
 					</execution>
 					<execution>
 						<id>report</id>
-						<phase>prepare-package</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
