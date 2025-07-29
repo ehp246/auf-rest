@@ -56,6 +56,9 @@
 		<maven-jacoco-plugin.version>0.8.13</maven-jacoco-plugin.version>
 		
 		<maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+
+		<sonar.organization>me-ehp246</sonar.organization>
+  		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>
