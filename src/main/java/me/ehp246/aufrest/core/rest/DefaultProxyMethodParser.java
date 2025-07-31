@@ -154,8 +154,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         // Named handler bean?
         final var handlerBean = ofResponse.map(OfResponse::handler).filter(OneUtil::hasValue);
         if (handlerBean.isPresent()) {
-            return handlerBean.map(bodyHandlerBeanResolver::get)
-                    .map(handler -> (ArgBinder<Object, BodyHandler<?>>) (target, args) -> handler).get();
+            final var handler = bodyHandlerBeanResolver.get(handlerBean.get());
+            return (ArgBinder<Object, BodyHandler<?>>) (target, args) -> handler;
         }
 
         // Infer from the return type
