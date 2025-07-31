@@ -147,7 +147,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         // Try argument first.
         final var arg = reflected.findArgumentsOfType(BodyHandler.class).stream().findFirst();
         if (arg.isPresent()) {
-            return arg.map(p -> (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(p)).get();
+            final var param = arg.get();
+            return (ArgBinder<Object, BodyHandler<?>>) ARG_BINDER_PROVIDER.apply(param);
         }
 
         // Named handler bean?
