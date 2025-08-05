@@ -340,7 +340,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     }
 
     private String accept(final ByRest byRest, final Optional<OfRequest> optionalOfMapping) {
-        return optionalOfMapping.map(OfRequest::accept).filter(OneUtil::hasValue).orElseGet(byRest::accept);
+        return optionalOfMapping.map(OfRequest::accept).orElseGet(byRest::accept);
     }
 
     private String verb(final ReflectedMethod reflected) {

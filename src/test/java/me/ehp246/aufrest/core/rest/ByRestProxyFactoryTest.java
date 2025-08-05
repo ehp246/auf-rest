@@ -417,8 +417,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void contentType_001() {
-        final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
+    void contentType_01() {
+        final var newInstance = factory.newInstance(ContentTypeTestCases.Case01.class);
 
         newInstance.get1();
 
@@ -430,7 +430,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void contentType_02() {
-        final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
+        final var newInstance = factory.newInstance(ContentTypeTestCases.Case01.class);
 
         newInstance.get2();
 
@@ -441,8 +441,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void contentType_003() {
-        final var newInstance = factory.newInstance(ContentTypeTestCases.Case001.class);
+    void contentType_03() {
+        final var newInstance = factory.newInstance(ContentTypeTestCases.Case01.class);
 
         newInstance.get3();
 
@@ -453,8 +453,8 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    void contentType_004() {
-        final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
+    void contentType_04() {
+        final var newInstance = factory.newInstance(ContentTypeTestCases.Case02.class);
 
         newInstance.get1();
 
@@ -466,7 +466,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void contentType_05() {
-        final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
+        final var newInstance = factory.newInstance(ContentTypeTestCases.Case02.class);
 
         newInstance.get2();
 
@@ -478,7 +478,7 @@ class ByRestProxyFactoryTest {
 
     @Test
     void contentType_06() {
-        final var newInstance = factory.newInstance(ContentTypeTestCases.Case002.class);
+        final var newInstance = factory.newInstance(ContentTypeTestCases.Case02.class);
 
         newInstance.get3();
 
@@ -486,6 +486,38 @@ class ByRestProxyFactoryTest {
 
         Assertions.assertEquals("m-type", req.contentType());
         Assertions.assertEquals("m-accept", req.accept());
+    }
+
+    @Test
+    void accept_01() {
+        final var newInstance = factory.newInstance(AcceptTestCases.Case01.class);
+
+        newInstance.get1();
+
+        Assertions.assertEquals("", restFn.req().accept());
+    }
+
+    @Test
+    void accept_02() {
+        factory.newInstance(AcceptTestCases.Case01.class).get2();
+
+        Assertions.assertEquals("application/json", restFn.req().accept());
+    }
+
+    @Test
+    void accept_03() {
+        final var newInstance = factory.newInstance(AcceptTestCases.Case02.class);
+
+        newInstance.get1();
+
+        Assertions.assertEquals("application/json", restFn.req().accept());
+    }
+
+    @Test
+    void accept_04() {
+        factory.newInstance(AcceptTestCases.Case02.class).get2();
+
+        Assertions.assertEquals("", restFn.req().accept());
     }
 
     @Test
@@ -544,7 +576,7 @@ class ByRestProxyFactoryTest {
                 .assertThrows(ClassCastException.class,
                         new ByRestProxyFactory(
                                 config -> new MockRestFn(new MockHttpResponse<Object>(200, Instant.now())), parser)
-                                        .newInstance(ExceptionCase.class)::post);
+                                .newInstance(ExceptionCase.class)::post);
     }
 
     @Test
