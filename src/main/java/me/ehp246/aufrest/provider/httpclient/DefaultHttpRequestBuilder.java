@@ -83,12 +83,8 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             builder.header(HttpUtils.REQUEST_ID, req.id());
         }
 
-        /**
-         * Required headers. Null and blank not allowed.
-         *
-         * accept, accept-encoding
-         */
-        builder.setHeader(HttpUtils.ACCEPT, Optional.of(req.accept()).filter(OneUtil::hasValue).get());
+        Optional.ofNullable(req.accept()).filter(OneUtil::hasValue)
+                .ifPresent(value -> builder.setHeader(HttpUtils.ACCEPT, value));
         Optional.ofNullable(req.acceptEncoding()).filter(OneUtil::hasValue)
                 .ifPresent(value -> builder.setHeader(HttpUtils.ACCEPT_ENCODING, value));
 
