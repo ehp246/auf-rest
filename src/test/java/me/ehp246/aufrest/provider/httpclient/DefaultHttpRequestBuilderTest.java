@@ -894,4 +894,40 @@ class DefaultHttpRequestBuilderTest {
 
         Assertions.assertEquals(true, httpReq.uri().getQuery() != null);
     }
+
+    @Test
+    void accept_01() {
+        Assertions.assertEquals(0, defBuilder.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return BASE_URL;
+            }
+
+            @Override
+            public String accept() {
+                return null;
+            }
+        }).headers().allValues(HttpUtils.ACCEPT).size());
+    }
+
+    @Test
+    void accept_02() {
+        final var expected = UUID.randomUUID().toString();
+        final var allValues = defBuilder.apply(new RestRequest() {
+
+            @Override
+            public String uri() {
+                return BASE_URL;
+            }
+
+            @Override
+            public String accept() {
+                return expected;
+            }
+        }).headers().allValues(HttpUtils.ACCEPT);
+
+        Assertions.assertEquals(1, allValues.size());
+        Assertions.assertEquals(expected, allValues.get(0));
+    }
 }

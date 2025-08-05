@@ -12,7 +12,7 @@ import me.ehp246.aufrest.api.annotation.OfRequest;
  */
 interface ContentTypeTestCases {
     @ByRest(value = "", contentType = "i-type", accept = "i-accept")
-    interface Case001 {
+    interface Case01 {
         // Should go with the interface
         void get1();
 
@@ -26,7 +26,7 @@ interface ContentTypeTestCases {
     }
 
     @ByRest(value = "", contentType = "i-type")
-    interface Case002 {
+    interface Case02 {
         // Should go with the interface
         void get1();
 
