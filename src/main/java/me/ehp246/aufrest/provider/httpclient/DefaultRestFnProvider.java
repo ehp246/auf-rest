@@ -135,13 +135,13 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                     } catch (IOException | InterruptedException | ErrorResponseException e) {
                         if (e instanceof final ErrorResponseException error) {
                             throw new UnhandledResponseException(error);
-                        } else {
-                            try {
-                                listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
-                            } catch (Exception le) {
-                                e.addSuppressed(le);
-                            }
                         }
+                        try {
+                            listeners.stream().forEach(listener -> listener.onException(e, httpReq, req));
+                        } catch (Exception le) {
+                            e.addSuppressed(le);
+                        }
+                        Thread.currentThread().interrupt();
                         /*
                          * Wrap only the checked.
                          */
