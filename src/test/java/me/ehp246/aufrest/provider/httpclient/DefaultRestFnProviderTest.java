@@ -357,4 +357,18 @@ class DefaultRestFnProviderTest {
         Assertions.assertEquals(true, Thread.currentThread().isInterrupted());
         Assertions.assertEquals(expected, ex.getCause());
     }
+
+    @Test
+    void exception_12() {
+        final RestRequest req = () -> "http://nowhere";
+        final var expected = new IOException();
+
+        final var ex = Assertions.assertThrows(RestFnException.class,
+                () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
+                        MockClientBuilderSupplier.supplier(expected), null, null).get(new RestFnConfig())
+                        .applyForResponse(req));
+
+        Assertions.assertEquals(false, Thread.currentThread().isInterrupted());
+        Assertions.assertEquals(expected, ex.getCause());
+    }
 }
