@@ -3,6 +3,7 @@ package me.ehp246.aufrest.api.rest;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -41,7 +42,7 @@ public interface RestRequest {
      * The values should NOT be encoded.
      */
     default Map<String, ?> paths() {
-        return null;
+        return Collections.emptyMap();
     }
 
     /**
@@ -51,7 +52,7 @@ public interface RestRequest {
      * {@linkplain HttpUtils#RESERVED_HEADERS}.
      */
     default Map<String, List<String>> headers() {
-        return null;
+        return Collections.emptyMap();
     }
 
     /**
@@ -80,7 +81,7 @@ public interface RestRequest {
      * Encoding will be taken care of by the HTTP client.
      */
     default Map<String, List<String>> queries() {
-        return null;
+        return Collections.emptyMap();
     }
 
     /**
