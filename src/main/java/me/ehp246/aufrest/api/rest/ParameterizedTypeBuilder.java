@@ -14,7 +14,7 @@ public final class ParameterizedTypeBuilder {
     }
 
     public static ParameterizedType of(final Type rawType, final Type typeArg) {
-        return ParameterizedTypeBuilder.of(null, rawType, new Type[] { typeArg });
+        return ParameterizedTypeBuilder.of(null, rawType, typeArg);
     }
 
     public static ParameterizedType ofMap(final Type... typeArgs) {

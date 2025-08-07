@@ -66,7 +66,7 @@ public interface RestFn {
     /**
      * Executes the request and returns the response headers. Discarding the body.
      */
-    default <T> HttpHeaders applyForHeaders(final RestRequest request) {
+    default HttpHeaders applyForHeaders(final RestRequest request) {
         return this.applyForResponse(request, Provided.DISCARDING).headers();
     }
 }
