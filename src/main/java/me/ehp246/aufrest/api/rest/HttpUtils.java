@@ -10,7 +10,6 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.core.util.OneUtil;
 
@@ -22,27 +21,27 @@ import me.ehp246.aufrest.core.util.OneUtil;
  */
 public final class HttpUtils {
     // Methods
-    public final static String GET = "GET";
-    public final static String POST = "POST";
-    public final static String PUT = "PUT";
-    public final static String PATCH = "PATCH";
-    public final static String DELETE = "DELETE";
-    public final static Set<String> METHOD_NAMES = Set.of(GET, POST, PUT, PATCH, DELETE);
+    public static final String GET = "GET";
+    public static final String POST = "POST";
+    public static final String PUT = "PUT";
+    public static final String PATCH = "PATCH";
+    public static final String DELETE = "DELETE";
+    public static final Set<String> METHOD_NAMES = Set.of(GET, POST, PUT, PATCH, DELETE);
 
     // Headers
-    public final static String AUTHORIZATION = "authorization";
-    public final static String CONTENT_TYPE = "content-type";
-    public final static String CONTENT_LENGTH = "content-length";
+    public static final String AUTHORIZATION = "authorization";
+    public static final String CONTENT_TYPE = "content-type";
+    public static final String CONTENT_LENGTH = "content-length";
     public static final String CONTENT_ENCODING = "content-encoding";
-    public final static String ACCEPT = "accept";
+    public static final String ACCEPT = "accept";
     public static final String ACCEPT_ENCODING = "accept-encoding";
     public static final String TRACEPARENT = "traceparent";
     public static final String REQUEST_ID = "aufrest-request-id";
 
-    public final static String BEARER = "Bearer";
-    public final static String BASIC = "Basic";
+    public static final String BEARER = "Bearer";
+    public static final String BASIC = "Basic";
 
-    public final static Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, ACCEPT_ENCODING,
+    public static final Set<String> RESERVED_HEADERS = Set.of(AUTHORIZATION, CONTENT_TYPE, ACCEPT, ACCEPT_ENCODING,
             REQUEST_ID);
 
     // Media types
@@ -67,9 +66,8 @@ public final class HttpUtils {
         if (path == null) {
             return null;
         }
-        return URLEncoder.encode(path.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20")
-                .replaceAll("\\%21", "!").replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")")
-                .replaceAll("\\%7E", "~");
+        return URLEncoder.encode(path.toString(), StandardCharsets.UTF_8).replaceAll("\\+", "%20").replace("\\%21", "!")
+                .replace("\\%27", "'").replace("\\%28", "(").replace("\\%29", ")").replace("\\%7E", "~");
     }
 
     public static String encodeQueryString(final Map<String, List<String>> queries) {
@@ -81,18 +79,16 @@ public final class HttpUtils {
         for (final var entry : queries.entrySet()) {
             final var name = entry.getKey();
             final var values = entry.getValue();
-            if (values == null || values.size() == 0) {
+            if (values == null || values.isEmpty()) {
                 continue;
             }
 
-            final var encoded = values.stream().map(value -> URLEncoder.encode(value, StandardCharsets.UTF_8))
-                    .collect(Collectors.toList());
+            final var encoded = values.stream().map(value -> URLEncoder.encode(value, StandardCharsets.UTF_8)).toList();
 
             if (!strBuf.isEmpty()) {
                 strBuf.append("&");
             }
-            strBuf.append(name + "=");
-            strBuf.append(String.join(",", encoded));
+            strBuf.append(name).append("=").append(String.join(",", encoded));
         }
 
         return strBuf.toString();

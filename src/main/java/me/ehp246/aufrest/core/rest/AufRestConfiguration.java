@@ -57,7 +57,7 @@ import me.ehp246.aufrest.provider.jackson.JsonByJackson;
 @Import({ DefaultRestFnProvider.class, DefaultInferringBodyHandlerProvider.class, DefaultContentPublisherProvider.class,
         DefaultHttpClientExecutorProvider.class })
 public final class AufRestConfiguration {
-    private final static List<String> MODULES = List.of("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
+    private static final List<String> MODULES = List.of("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
             "com.fasterxml.jackson.module.mrbean.MrBeanModule",
             "com.fasterxml.jackson.module.paramnames.ParameterNamesModule");
 
@@ -132,7 +132,9 @@ public final class AufRestConfiguration {
         try {
             return new JsonByJackson(appCtx.getBean(ObjectMapper.class));
         } catch (final Exception e) {
-            // Can not find a default. Creating private.
+            /*
+             * Can not find a default. Creating private.
+             */
         }
 
         final ObjectMapper newMapper = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
@@ -147,6 +149,9 @@ public final class AufRestConfiguration {
                 } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                         | InvocationTargetException | NoSuchMethodException | SecurityException
                         | ClassNotFoundException e) {
+                    /*
+                     * Should not happen. Ignored.
+                     */
                 }
             }
         }

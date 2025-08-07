@@ -88,8 +88,28 @@ class MockClientBuilderSupplier {
         return builder;
     }
 
+    static HttpClient.Builder builder(final Exception exception) {
+        final HttpClient client = Mockito.mock(HttpClient.class);
+
+        try {
+            Mockito.when(client.send(Mockito.any(), Mockito.any())).thenThrow(exception);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException();
+        }
+
+        final var builder = Mockito.mock(HttpClient.Builder.class);
+
+        Mockito.when(builder.build()).thenReturn(client);
+
+        return builder;
+    }
+
     public static HttpClientBuilderSupplier supplier(final HttpResponse<?> httpResponse) {
         return () -> builder(httpResponse);
+    }
+
+    public static HttpClientBuilderSupplier supplier(final Exception exception) {
+        return () -> builder(exception);
     }
 
     int builderCount() {

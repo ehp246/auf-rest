@@ -17,14 +17,6 @@ class HttpUtilsTest {
 
     @Test
     void encodePath_01() {
-        final var expected = UriComponentsBuilder.fromUriString("http://localhost/{path1}/{path2}/{path3}/{path4}")
-                .buildAndExpand(
-                        Map.of("path1", "3 = 1", "path2", "3 &= 1", "path3", "3 &= 1: / 4 ? 5:", "path4", "?,=,/,&,:"))
-                .toUriString();
-
-        // Assertions.assertEquals(expected, "http://localhost/" +
-        // HttpUtils.encodUrlPath("3 = 1"));
-
         Assertions.assertEquals("3%20%3D%201", HttpUtils.encodeUrlPath("3 = 1"));
         Assertions.assertEquals("3%20%26%3D%201", HttpUtils.encodeUrlPath("3 &= 1"));
         Assertions.assertEquals("3%20%26%3D%201%3A%20%2F%204%20%3F%205%3A",
@@ -65,9 +57,8 @@ class HttpUtilsTest {
 
     @Test
     void expandPath_02() {
-        Assertions.assertEquals("get/1/path2/3",
-                HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}", Map.of("path1", "1", "path2", "2", "path3", "3"),
-                        HttpUtils::encodeUrlPath));
+        Assertions.assertEquals("get/1/path2/3", HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}",
+                Map.of("path1", "1", "path2", "2", "path3", "3"), HttpUtils::encodeUrlPath));
     }
 
     @Test
@@ -80,7 +71,6 @@ class HttpUtilsTest {
     @Test
     void expandPath_04() {
         Assertions.assertEquals("get/1/path2/{path3}",
-                HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}",
-                Map.of("path1", "1"), HttpUtils::encodeUrlPath));
+                HttpUtils.bindPlaceholder("get/{path1}/path2/{path3}", Map.of("path1", "1"), HttpUtils::encodeUrlPath));
     }
 }

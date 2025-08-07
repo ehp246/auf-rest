@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
+import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
@@ -85,7 +85,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             if (arg instanceof final Map<?, ?> map) {
                 map.entrySet().stream().forEach(e -> {
                     final List<String> value = e.getValue() instanceof final List<?> list
-                            ? list.stream().map(Object::toString).collect(Collectors.toList())
+                            ? list.stream().map(Object::toString).toList()
                             : new ArrayList<>(Arrays.asList(OneUtil.toString(e.getValue())));
                     queryBound.merge(e.getKey().toString(), value, (o, p) -> {
                         o.add(p.get(0));
@@ -130,9 +130,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
                 // One level only. No recursive yet.
                 if (newValue instanceof final Map<?, ?> map) {
-                    map.entrySet().forEach(entry -> {
-                        newValue(entry.getKey().toString().toLowerCase(Locale.ROOT), entry.getValue());
-                    });
+                    map.entrySet().forEach(
+                            entry -> newValue(entry.getKey().toString().toLowerCase(Locale.ROOT), entry.getValue()));
                     return;
                 }
 

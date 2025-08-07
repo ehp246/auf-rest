@@ -28,18 +28,18 @@ import org.slf4j.MarkerFactory;
  *
  */
 public final class RestLogger {
-    private final static Logger LOGGER = LoggerFactory.getLogger(RestLogger.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestLogger.class);
 
-    private final static List<String> MASKED = List.of("*");
-    private final static Marker REQUEST = MarkerFactory.getMarker("REQUEST");
-    private final static Marker REQUEST_HEADERS = MarkerFactory.getMarker("REQUEST_HEADERS");
-    private final static Marker REQUEST_BODY = MarkerFactory.getMarker("REQUEST_BODY");
+    private static final List<String> MASKED = List.of("*");
+    private static final Marker REQUEST = MarkerFactory.getMarker("REQUEST");
+    private static final Marker REQUEST_HEADERS = MarkerFactory.getMarker("REQUEST_HEADERS");
+    private static final Marker REQUEST_BODY = MarkerFactory.getMarker("REQUEST_BODY");
 
-    private final static Marker RESPONSE = MarkerFactory.getMarker("RESPONSE");
-    private final static Marker RESPONSE_HEADERS = MarkerFactory.getMarker("RESPONSE_HEADERS");
-    private final static Marker RESPONSE_BODY = MarkerFactory.getMarker("RESPONSE_BODY");
+    private static final Marker RESPONSE = MarkerFactory.getMarker("RESPONSE");
+    private static final Marker RESPONSE_HEADERS = MarkerFactory.getMarker("RESPONSE_HEADERS");
+    private static final Marker RESPONSE_BODY = MarkerFactory.getMarker("RESPONSE_BODY");
 
-    private final static Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
+    private static final Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
 
         @Override
         public void onSubscribe(final Subscription subscription) {
@@ -54,8 +54,8 @@ public final class RestLogger {
 
         @Override
         public void onError(final Throwable throwable) {
-            LOGGER.atTrace().addMarker(REQUEST_BODY).setCause(throwable)
-                    .setMessage("Failed to log body: {}").addArgument(throwable::getMessage).log();
+            LOGGER.atTrace().addMarker(REQUEST_BODY).setCause(throwable).setMessage("Failed to log body: {}")
+                    .addArgument(throwable::getMessage).log();
         }
 
         @Override
@@ -68,8 +68,7 @@ public final class RestLogger {
     public RestLogger(final Set<String> maskedHeaders) {
         super();
         if (maskedHeaders != null) {
-            maskedHeaders.stream()
-                    .forEach(name -> this.maskedHeaders.add(name.toLowerCase(Locale.US)));
+            maskedHeaders.stream().forEach(name -> this.maskedHeaders.add(name.toLowerCase(Locale.US)));
         }
     }
 
@@ -92,8 +91,7 @@ public final class RestLogger {
     }
 
     public void onResponseInfo(final HttpResponse.ResponseInfo responseInfo) {
-        LOGGER.atInfo().addMarker(RESPONSE).setMessage("{}").addArgument(responseInfo::statusCode)
-                .log();
+        LOGGER.atInfo().addMarker(RESPONSE).setMessage("{}").addArgument(responseInfo::statusCode).log();
 
         LOGGER.atDebug().addMarker(RESPONSE_HEADERS).setMessage("{}")
                 .addArgument(() -> maskHeaders(responseInfo.headers().map())).log();

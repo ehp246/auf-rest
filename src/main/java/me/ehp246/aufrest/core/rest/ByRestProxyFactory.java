@@ -84,9 +84,7 @@ public final class ByRestProxyFactory {
                         final var outcome = FnOutcome
                                 .invoke(() -> restFn.applyForResponse(bound.request(), bound.responseDescriptor()));
 
-                        final var returnValue = bound.returnMapper().apply(bound.request(), outcome);
-
-                        return returnValue;
+                        return bound.returnMapper().apply(bound.request(), outcome);
                     }
                 });
     }
