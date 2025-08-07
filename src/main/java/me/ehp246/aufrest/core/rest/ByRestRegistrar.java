@@ -1,8 +1,5 @@
 package me.ehp246.aufrest.core.rest;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -18,18 +15,14 @@ import me.ehp246.aufrest.api.annotation.EnableByRest;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ByRestRegistrar.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ByRestRegistrar.class);
 
     @Override
-    public void registerBeanDefinitions(final AnnotationMetadata metadata,
-            final BeanDefinitionRegistry registry) {
-        LOGGER.atDebug().setMessage("Scanning for {}").addArgument(ByRest.class::getCanonicalName)
-                .log();
+    public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
+        LOGGER.atDebug().setMessage("Scanning for {}").addArgument(ByRest.class::getCanonicalName).log();
 
-        for (final var found : new ByRestScanner(EnableByRest.class, ByRest.class, metadata)
-                .perform().collect(Collectors.toList())) {
-            LOGGER.atTrace().setMessage("Registering {}").addArgument(found::getBeanClassName)
-                    .log();
+        for (final var found : new ByRestScanner(EnableByRest.class, ByRest.class, metadata).perform().toList()) {
+            LOGGER.atTrace().setMessage("Registering {}").addArgument(found::getBeanClassName).log();
 
             final Class<?> byRestInterface;
             try {
@@ -40,9 +33,7 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
             }
 
             final var beanName = OneUtil.byRestBeanName(byRestInterface);
-            final var proxyBeanDefinition = this.getProxyBeanDefinition(
-                    metadata.getAnnotationAttributes(EnableByRest.class.getCanonicalName()),
-                    byRestInterface);
+            final var proxyBeanDefinition = this.getProxyBeanDefinition(byRestInterface);
 
             if (registry.containsBeanDefinition(beanName)) {
                 throw new BeanDefinitionOverrideException(beanName, proxyBeanDefinition,
@@ -53,8 +44,7 @@ public final class ByRestRegistrar implements ImportBeanDefinitionRegistrar {
         }
     }
 
-    private BeanDefinition getProxyBeanDefinition(final Map<String, Object> map,
-            final Class<?> byRestInterface) {
+    private BeanDefinition getProxyBeanDefinition(final Class<?> byRestInterface) {
         final var args = new ConstructorArgumentValues();
 
         args.addGenericArgumentValue(byRestInterface);

@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import me.ehp246.aufrest.api.annotation.ByRest;
@@ -40,7 +39,7 @@ public final class OneUtil {
     }
 
     public static List<String> listValues(final Collection<String> values) {
-        return streamValues(values).collect(Collectors.toList());
+        return streamValues(values).toList();
     }
 
     public static <V> V orThrow(final Callable<V> callable) {
@@ -62,10 +61,10 @@ public final class OneUtil {
 
     public static Map<String, List<String>> toQueryParamMap(final Map<String, List<Object>> input) {
         if (input == null || input.size() == 0) {
-            return new HashMap<String, List<String>>();
+            return new HashMap<>();
         }
 
-        final var map = new HashMap<String, List<String>>(input.size());
+        final var map = HashMap.<String, List<String>>newHashMap(input.size());
 
         for (final var entry : input.entrySet()) {
             final var args = entry.getValue();
@@ -87,7 +86,7 @@ public final class OneUtil {
                         map.put(t.getKey().toString(), mapped);
                     });
                 } else if (arg instanceof final List<?> v) {
-                    v.stream().map(t -> t == null ? (String) null : t.toString()).forEach(t -> mapped.add(t));
+                    v.stream().map(t -> t == null ? null : t.toString()).forEach(mapped::add);
                     map.put(entry.getKey(), mapped);
                 } else {
                     mapped.add(arg.toString());
@@ -106,14 +105,14 @@ public final class OneUtil {
             return name;
         }
 
-        final char c[] = byRestInterface.getSimpleName().toCharArray();
+        final char[] c = byRestInterface.getSimpleName().toCharArray();
         c[0] = Character.toLowerCase(c[0]);
 
         return new String(c);
     }
 
     public static String firstUpper(final String value) {
-        return value == null || value.length() == 0 ? value
+        return value == null || value.isEmpty() ? value
                 : value.substring(0, 1).toUpperCase(Locale.US) + value.substring(1);
     }
 }

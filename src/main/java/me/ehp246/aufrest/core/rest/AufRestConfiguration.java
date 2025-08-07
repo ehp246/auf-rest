@@ -132,7 +132,9 @@ public final class AufRestConfiguration {
         try {
             return new JsonByJackson(appCtx.getBean(ObjectMapper.class));
         } catch (final Exception e) {
-            // Can not find a default. Creating private.
+            /*
+             * Can not find a default. Creating private.
+             */
         }
 
         final ObjectMapper newMapper = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
@@ -147,6 +149,9 @@ public final class AufRestConfiguration {
                 } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                         | InvocationTargetException | NoSuchMethodException | SecurityException
                         | ClassNotFoundException e) {
+                    /*
+                     * Should not happen. Ignored.
+                     */
                 }
             }
         }

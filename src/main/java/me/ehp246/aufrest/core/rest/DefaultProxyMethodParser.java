@@ -64,10 +64,10 @@ import me.ehp246.aufrest.core.util.OneUtil;
  * @see DefaultProxyInvocationBinder
  */
 public final class DefaultProxyMethodParser implements ProxyMethodParser {
-    private final static Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class, OfPath.class,
+    private static final Set<Class<? extends Annotation>> PARAMETER_ANNOTATED = Set.of(OfHeader.class, OfPath.class,
             OfQuery.class, OfAuth.class, AuthBean.Param.class);
-    private final static Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
-    private final static ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
+    private static final Set<Class<?>> PARAMETER_RECOGNIZED = Set.of(BodyPublisher.class, BodyHandler.class);
+    private static final ArgBinderProvider<?, ?> ARG_BINDER_PROVIDER = p -> (target, args) -> args[p.index()];
 
     private final ExpressionResolver expressionResolver;
     private final AuthBeanResolver authBeanResolver;
@@ -160,7 +160,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
 
         // Infer from the return type
         final var returnType = reflected.method().getGenericReturnType();
-        if (returnType instanceof Class cls && cls.getTypeParameters().length > 0) {
+        if (returnType instanceof Class<?> cls && cls.getTypeParameters().length > 0) {
             throw new UnsupportedOperationException("Un-supported return type on " + reflected.method());
         }
         if (returnType == HttpHeaders.class || ofResponse.map(of -> of.value() == Bind.HEADER).orElse(false)) {
@@ -194,7 +194,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
     private ProxyReturnMapper proxyReturnMapper(final ReflectedMethod reflected) {
         final Class<?> returnType = reflected.getReturnType();
         final var ofResponse = reflected.findOnMethod(OfResponse.class);
-        final var bindToHeader = ofResponse.map(OfResponse::value).map(value -> value == Bind.HEADER).orElse(false);
+        final var bindToHeader = ofResponse.map(OfResponse::value).map(value -> value == Bind.HEADER).orElse(false)
+                .booleanValue();
 
         // Normal return mapper. Defaults to return the body.
         final Function<HttpResponse<?>, ?> valueMapper;
@@ -229,7 +230,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
          *
          * An Response Exception based on the status code is always raised first.
          */
-        final ProxyReturnMapper mapper = (restReq, outcome) -> {
+        return (restReq, outcome) -> {
             final var received = outcome.received();
             /*
              * Was a response received?
@@ -272,14 +273,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
              */
             throw new RuntimeException("Un-known received: " + received);
         };
-
-        return mapper;
     }
 
     private Map<Integer, String> headerParams(final ReflectedMethod reflected) {
         return reflected.allParametersWith(OfHeader.class).stream()
                 .collect(Collectors.toMap(ReflectedParameter::index, p -> {
-                    final var name = Optional.ofNullable(p.parameter().getAnnotation(OfHeader.class).value().toString())
+                    final var name = Optional.ofNullable(p.parameter().getAnnotation(OfHeader.class).value())
                             .filter(OneUtil::hasValue).orElseGet(() -> p.parameter().getName()).toLowerCase(Locale.US);
                     if (HttpUtils.RESERVED_HEADERS.contains(name)) {
                         throw new IllegalArgumentException("Illegal header '" + name + "' on "
@@ -377,7 +376,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final var value = List.of(auth.value());
         switch (auth.scheme()) {
         case SIMPLE:
-            if (value.size() < 1) {
+            if (value.isEmpty()) {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
                         + reflected.method().getDeclaringClass());
             }
@@ -392,7 +391,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                     expressionResolver.resolve(value.get(1)));
             return (target, args) -> basic::header;
         case BEARER:
-            if (value.size() < 1) {
+            if (value.isEmpty()) {
                 throw new IllegalArgumentException("Missing required arguments for " + auth.scheme() + " on "
                         + reflected.method().getDeclaringClass());
             }
