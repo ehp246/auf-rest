@@ -107,7 +107,7 @@ public final class RestLogger {
     }
 
     private String maskHeaders(final Map<String, List<String>> headers) {
-        final var workingMap = new HashMap<>(headers.size());
+        final var workingMap = HashMap.newHashMap(headers.size());
 
         headers.entrySet().forEach(entry -> {
             final var key = entry.getKey();
