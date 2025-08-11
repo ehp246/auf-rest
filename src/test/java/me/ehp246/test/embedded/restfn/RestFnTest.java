@@ -165,7 +165,7 @@ class RestFnTest {
             }
 
             @Override
-            public Map<String, ?> paths() {
+            public Map<String, Object> paths() {
                 return Map.of("root", "restfn", "path", "auth");
             }
         });

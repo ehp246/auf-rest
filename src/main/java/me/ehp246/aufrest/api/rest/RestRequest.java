@@ -41,7 +41,7 @@ public interface RestRequest {
      * <p>
      * The values should NOT be encoded.
      */
-    default Map<String, ?> paths() {
+    default Map<String, Object> paths() {
         return Collections.emptyMap();
     }
 

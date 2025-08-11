@@ -113,7 +113,7 @@ class DefaultHttpRequestBuilderTest {
             }
 
             @Override
-            public Map<String, String> paths() {
+            public Map<String, Object> paths() {
                 return Map.of("path1", "1", "path2", "2");
             }
         });
@@ -131,7 +131,7 @@ class DefaultHttpRequestBuilderTest {
             }
 
             @Override
-            public Map<String, String> paths() {
+            public Map<String, Object> paths() {
                 return Map.of("path1", "1", "path2", "1 + 1");
             }
         });
@@ -149,7 +149,7 @@ class DefaultHttpRequestBuilderTest {
             }
 
             @Override
-            public Map<String, String> paths() {
+            public Map<String, Object> paths() {
                 return Map.of();
             }
         });
