@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.rest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,7 @@ class DefaultProxyMethodParserTest {
 
         final var authSupplier = new DefaultProxyMethodParser(expressionResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
-                        .request().authSupplier();
+                .request().authSupplier();
 
         Assertions.assertEquals(expected, authSupplier.get(), "should have the AuthHeader value");
     }
@@ -127,7 +128,7 @@ class DefaultProxyMethodParserTest {
 
         final var authSupplier = new DefaultProxyMethodParser(expressionResolver, name -> name, bodyHandlerResolver,
                 bindingBodyHandlerProvider).parse(invocation.method()).apply(captor.proxy(), invocation.args())
-                        .request().authSupplier();
+                .request().authSupplier();
 
         Assertions.assertEquals(expected, authSupplier.get(), "should have the AuthHeader value");
     }
@@ -189,6 +190,24 @@ class DefaultProxyMethodParserTest {
                                         .request().authSupplier().get())
                                 .getCause(),
                         "should wrap the checked in a Runtime");
+    }
+
+    @Test
+    void authBean_throws_03() throws IOException {
+        final var expected = new IOException();
+        final var authBean = new MockThrowingAuthBean();
+
+        final var authResolver = Mockito.mock(AuthBeanResolver.class);
+        Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
+
+        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
+                bindingBodyHandlerProvider);
+
+        final var captRef = new Invocation[1];
+        InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).getIo(expected);
+
+        Assertions.assertEquals(expected, Assertions.assertThrows(IOException.class,
+                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args())));
     }
 
     @Test

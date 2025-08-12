@@ -1,5 +1,6 @@
 package me.ehp246.aufrest.core.rest;
 
+import java.io.IOException;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -124,6 +125,8 @@ interface AuthTestCases {
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.BEAN, value = { "throwingBean", "throwChecked" }))
     interface BeanAuthThrowing02 {
         void get(@AuthBean.Param Exception exception);
+
+        void getIo(@AuthBean.Param Exception exception) throws IOException;
     }
 
     @ByRest(value = "", auth = @Auth(scheme = AuthScheme.NONE))
