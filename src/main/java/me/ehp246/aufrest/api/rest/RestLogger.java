@@ -39,8 +39,6 @@ public final class RestLogger {
     private static final Marker RESPONSE_HEADERS = MarkerFactory.getMarker("RESPONSE_HEADERS");
     private static final Marker RESPONSE_BODY = MarkerFactory.getMarker("RESPONSE_BODY");
 
-    private static final Marker END = MarkerFactory.getMarker("END");
-
     private static final Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
 
         @Override
