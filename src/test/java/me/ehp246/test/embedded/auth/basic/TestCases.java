@@ -1,5 +1,6 @@
 package me.ehp246.test.embedded.auth.basic;
 
+import java.io.IOException;
 import java.net.http.HttpResponse;
 
 import me.ehp246.aufrest.api.annotation.AuthBean;
@@ -77,6 +78,6 @@ interface TestCases {
     interface BeanAuthThrowing02 {
         void get(@AuthBean.Param Exception e);
 
-        void getWithThrows(@AuthBean.Param Exception e) throws Exception;
+        void getWithThrows(@AuthBean.Param Exception e) throws IOException;
     }
 }

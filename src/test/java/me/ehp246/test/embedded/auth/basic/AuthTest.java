@@ -1,5 +1,7 @@
 package me.ehp246.test.embedded.auth.basic;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -114,9 +116,9 @@ class AuthTest {
 
     @Test
     void authBean_throwing_02() {
-        final var expected = new IllegalAccessException();
+        final var expected = new IOException();
 
-        Assertions.assertEquals(expected, Assertions.assertThrows(IllegalAccessException.class,
+        Assertions.assertEquals(expected, Assertions.assertThrows(IOException.class,
                 () -> factory.getBean(BeanAuthThrowing02.class).getWithThrows(expected)));
     }
 
@@ -126,5 +128,17 @@ class AuthTest {
 
         Assertions.assertEquals(expected, Assertions.assertThrows(ProxyInvocationBinderException.class,
                 () -> factory.getBean(BeanAuthThrowing02.class).get(expected)).getCause());
+    }
+
+    @Test
+    void authBean_throwing_04() {
+        final var expected = new IllegalAccessException();
+
+        Assertions
+                .assertEquals(expected,
+                        Assertions
+                                .assertThrows(ProxyInvocationBinderException.class,
+                                        () -> factory.getBean(BeanAuthThrowing02.class).getWithThrows(expected))
+                                .getCause());
     }
 }

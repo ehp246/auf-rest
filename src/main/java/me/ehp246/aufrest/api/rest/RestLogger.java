@@ -39,6 +39,8 @@ public final class RestLogger {
     private static final Marker RESPONSE_HEADERS = MarkerFactory.getMarker("RESPONSE_HEADERS");
     private static final Marker RESPONSE_BODY = MarkerFactory.getMarker("RESPONSE_BODY");
 
+    private static final Marker END = MarkerFactory.getMarker("END");
+
     private static final Subscriber<ByteBuffer> REQUEST_BODY_SUBSCRIBER = new Subscriber<>() {
 
         @Override
@@ -60,6 +62,9 @@ public final class RestLogger {
 
         @Override
         public void onComplete() {
+            /*
+             * Not sure how to mark the end.
+             */
         }
     };
 
@@ -102,7 +107,7 @@ public final class RestLogger {
     }
 
     private String maskHeaders(final Map<String, List<String>> headers) {
-        final var workingMap = new HashMap<>(headers.size());
+        final var workingMap = HashMap.newHashMap(headers.size());
 
         headers.entrySet().forEach(entry -> {
             final var key = entry.getKey();

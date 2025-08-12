@@ -14,5 +14,5 @@ import me.ehp246.aufrest.api.annotation.OfResponse;
  */
 @FunctionalInterface
 public interface BodyHandlerBeanResolver {
-    BodyHandler<?> get(String name);
+    BodyHandler<Object> get(String name);
 }

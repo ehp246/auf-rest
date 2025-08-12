@@ -7,7 +7,7 @@ import me.ehp246.aufrest.api.annotation.AuthBean;
  * operation. E.g., {@linkplain AuthBean.Invoking} methods.
  *
  * @author Lei Yang
- *
+ * @see AuthBean
  */
 @FunctionalInterface
 public interface ArgBinder<T, V> {

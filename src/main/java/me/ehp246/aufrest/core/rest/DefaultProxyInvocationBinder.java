@@ -166,7 +166,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             }
 
             @Override
-            public Map<String, ?> paths() {
+            public Map<String, Object> paths() {
                 return paths;
             }
 
@@ -218,7 +218,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         }, new ResponseHandler.Provided<>(handlerBinder.apply(target, args)), returnMapper);
     }
 
-    private Map<String, ?> paths(final Object[] args) {
+    private Map<String, Object> paths(final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
         this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
