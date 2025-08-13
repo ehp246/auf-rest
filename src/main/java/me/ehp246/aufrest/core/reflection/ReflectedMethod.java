@@ -24,7 +24,6 @@ public final class ReflectedMethod {
     private final List<Annotation> declaredAnnotations;
     private final List<Class<?>> exceptionTypes;
 
-
     public ReflectedMethod(final Method method) {
         this.method = Objects.requireNonNull(method);
         this.declaringType = method.getDeclaringClass();
@@ -34,7 +33,8 @@ public final class ReflectedMethod {
         this.exceptionTypes = List.of(method.getExceptionTypes());
     }
 
-    public List<ReflectedParameter> filterParametersWith(final Set<Class<? extends Annotation>> excludedAnnotations, final Set<Class<?>> excludedTypes) {
+    public List<ReflectedParameter> filterParametersWith(final Set<Class<? extends Annotation>> excludedAnnotations,
+            final Set<Class<?>> excludedTypes) {
         final var list = new ArrayList<ReflectedParameter>();
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
@@ -47,7 +47,7 @@ public final class ReflectedMethod {
                 continue;
             }
 
-            list.add(new ReflectedParameter(parameters[i], i, this));
+            list.add(new ReflectedParameter(parameters[i], i));
         }
 
         return list;
@@ -59,7 +59,7 @@ public final class ReflectedMethod {
         for (int i = 0; i < parameters.length; i++) {
             final var parameter = parameters[i];
             if (parameter.isAnnotationPresent(annotationType)) {
-                list.add(new ReflectedParameter(parameter, i, this));
+                list.add(new ReflectedParameter(parameter, i));
             }
         }
 
@@ -93,7 +93,7 @@ public final class ReflectedMethod {
 
         for (int i = 0; i < parameterTypes.length; i++) {
             if (type.isAssignableFrom(parameterTypes[i])) {
-                list.add(new ReflectedParameter(parameters[i], i, this));
+                list.add(new ReflectedParameter(parameters[i], i));
             }
         }
 
