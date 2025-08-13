@@ -32,7 +32,7 @@ import me.ehp246.aufrest.core.util.OneUtil;
  *
  * @author Lei Yang
  * @since 1.0
- * @see AufRestConfiguration#requestBuilder(HeaderProvider, AuthProvider,
+ * @see AufRestConfiguration#httpRequestBuilder(HeaderProvider, AuthProvider,
  *      ContentPublisherProvider, String)
  */
 public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {

@@ -24,7 +24,6 @@ public final class ReflectedMethod {
     private final List<Annotation> declaredAnnotations;
     private final List<Class<?>> exceptionTypes;
 
-
     public ReflectedMethod(final Method method) {
         this.method = Objects.requireNonNull(method);
         this.declaringType = method.getDeclaringClass();
@@ -34,20 +33,17 @@ public final class ReflectedMethod {
         this.exceptionTypes = List.of(method.getExceptionTypes());
     }
 
-    public List<ReflectedParameter> filterParametersWith(final Set<Class<? extends Annotation>> excludedAnnotations, final Set<Class<?>> excludedTypes) {
+    public List<ReflectedParameter> filterParametersWith(final Set<Class<? extends Annotation>> excludedAnnotations,
+            final Set<Class<?>> excludedTypes) {
         final var list = new ArrayList<ReflectedParameter>();
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
-                    .filter(annotation -> excludedAnnotations.contains(annotation.annotationType())).findAny()
-                    .isPresent()) {
+                    .anyMatch(annotation -> excludedAnnotations.contains(annotation.annotationType()))
+                    || excludedTypes.contains(parameters[i].getType())) {
                 continue;
             }
 
-            if (excludedTypes.contains(parameters[i].getType())) {
-                continue;
-            }
-
-            list.add(new ReflectedParameter(parameters[i], i, this));
+            list.add(new ReflectedParameter(parameters[i], i));
         }
 
         return list;
@@ -59,7 +55,7 @@ public final class ReflectedMethod {
         for (int i = 0; i < parameters.length; i++) {
             final var parameter = parameters[i];
             if (parameter.isAnnotationPresent(annotationType)) {
-                list.add(new ReflectedParameter(parameter, i, this));
+                list.add(new ReflectedParameter(parameter, i));
             }
         }
 
@@ -93,7 +89,7 @@ public final class ReflectedMethod {
 
         for (int i = 0; i < parameterTypes.length; i++) {
             if (type.isAssignableFrom(parameterTypes[i])) {
-                list.add(new ReflectedParameter(parameters[i], i, this));
+                list.add(new ReflectedParameter(parameters[i], i));
             }
         }
 
@@ -113,7 +109,7 @@ public final class ReflectedMethod {
         return this.findOnMethod(annotationClass).map(mapper).orElseGet(supplier);
     }
 
-    public List<? extends Annotation> getMethodDeclaredAnnotations() {
+    public List<Annotation> getMethodDeclaredAnnotations() {
         return declaredAnnotations;
     }
 
@@ -135,6 +131,6 @@ public final class ReflectedMethod {
         }
         final var type = e.getClass();
         return RuntimeException.class.isAssignableFrom(type)
-                || this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
+                || this.exceptionTypes.stream().anyMatch(t -> t.isAssignableFrom(type));
     }
 }

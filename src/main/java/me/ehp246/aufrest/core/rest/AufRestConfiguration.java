@@ -61,13 +61,13 @@ public final class AufRestConfiguration {
             "com.fasterxml.jackson.module.mrbean.MrBeanModule",
             "com.fasterxml.jackson.module.paramnames.ParameterNamesModule");
 
-    @Bean("3eddc6a6-f990-4f41-b6e5-2ae1f931dde7")
+    @Bean
     public RestLogger restLogger(@Value("${" + AufRestConstants.REST_LOGGER_ENABLED + ":false}") final boolean enabled,
             @Value("${" + AufRestConstants.REST_LOGGER_MASKED + ":authorization}") final Set<String> masked) {
         return enabled ? new RestLogger(masked) : null;
     }
 
-    @Bean("55b212a8-2783-4a46-aa5d-60ceb4b2c0d9")
+    @Bean
     public ExpressionResolver expressionResolver(
             final org.springframework.core.env.PropertyResolver springPropertyResolver,
             final ConfigurableBeanFactory beanFactory) {
@@ -81,8 +81,8 @@ public final class AufRestConfiguration {
         };
     }
 
-    @Bean("baa8af0b-4da4-487f-a686-3d1e8387dbb6")
-    public HttpRequestBuilder requestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
+    @Bean
+    public HttpRequestBuilder httpRequestBuilder(@Autowired(required = false) final HeaderProvider headerProvider,
             @Autowired(required = false) final AuthProvider authProvider,
             final ContentPublisherProvider publisherProvider,
             @Value("${" + AufRestConstants.RESPONSE_TIMEOUT + ":}") final String requestTimeout) {
@@ -90,23 +90,24 @@ public final class AufRestConfiguration {
                 requestTimeout);
     }
 
-    @Bean("8a7808c6-d088-42e5-a504-ab3dad149e1d")
+    @Bean
     public AuthBeanResolver authBeanResolver(final BeanFactory factory) {
-        return name -> factory.getBean(name);
+        return factory::getBean;
     }
 
-    @Bean("ac6621d6-1220-4248-ba3f-29f9dc54499b")
+    @Bean
     public RestFn restFn(final RestFnProvider restFnProvider) {
-        return restFnProvider.get(new RestFnConfig("ac6621d6-1220-4248-ba3f-29f9dc54499b"));
+        return restFnProvider.get(new RestFnConfig(""));
     }
 
-    @Bean("216fbb62-0701-43fb-9fdd-a6df279c92bc")
-    public BodyHandlerBeanResolver bodyHandlerBeanResolver(final BeanFactory env) {
-        return name -> env.getBean(name, BodyHandler.class);
+    @SuppressWarnings("unchecked")
+    @Bean
+    public BodyHandlerBeanResolver bodyHandlerBeanResolver(final BeanFactory factory) {
+        return name -> factory.getBean(name, BodyHandler.class);
     }
 
-    @Bean("404d421e-45a8-483e-9f62-2367cfda4a80")
-    public HttpClientBuilderSupplier httpClientBuilderProvider(
+    @Bean
+    public HttpClientBuilderSupplier httpClientBuilderSupplier(
             @Value("${" + AufRestConstants.CONNECT_TIMEOUT + ":}") final String connectTimeout) {
         final var conTimeout = Optional.ofNullable(connectTimeout).filter(OneUtil::hasValue)
                 .map(value -> OneUtil.orThrow(() -> Duration.parse(value),
@@ -121,8 +122,8 @@ public final class AufRestConfiguration {
         };
     }
 
-    @Bean("96eb8fd6-602c-4f61-8621-f29f70365be5")
-    public JsonByJackson jsonByObjectMapper(final ApplicationContext appCtx) {
+    @Bean
+    public JsonByJackson jsonByJackson(final ApplicationContext appCtx) {
         final var aufRestObjectMapper = appCtx.getBeansOfType(ObjectMapper.class)
                 .get(AufRestConstants.AUF_REST_OBJECT_MAPPER);
         if (aufRestObjectMapper != null) {
