@@ -38,8 +38,8 @@ public final class ReflectedMethod {
         final var list = new ArrayList<ReflectedParameter>();
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
-                    .filter(annotation -> excludedAnnotations.contains(annotation.annotationType())).findAny()
-                    .isPresent() || excludedTypes.contains(parameters[i].getType())) {
+                    .anyMatch(annotation -> excludedAnnotations.contains(annotation.annotationType()))
+                    || excludedTypes.contains(parameters[i].getType())) {
                 continue;
             }
 
@@ -109,7 +109,7 @@ public final class ReflectedMethod {
         return this.findOnMethod(annotationClass).map(mapper).orElseGet(supplier);
     }
 
-    public List<? extends Annotation> getMethodDeclaredAnnotations() {
+    public List<Annotation> getMethodDeclaredAnnotations() {
         return declaredAnnotations;
     }
 
@@ -131,6 +131,6 @@ public final class ReflectedMethod {
         }
         final var type = e.getClass();
         return RuntimeException.class.isAssignableFrom(type)
-                || this.exceptionTypes.stream().filter(t -> t.isAssignableFrom(type)).findAny().isPresent();
+                || this.exceptionTypes.stream().anyMatch(t -> t.isAssignableFrom(type));
     }
 }
