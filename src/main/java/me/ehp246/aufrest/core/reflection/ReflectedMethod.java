@@ -39,11 +39,7 @@ public final class ReflectedMethod {
         for (var i = 0; i < parameterAnnotations.length; i++) {
             if (Stream.of(parameterAnnotations[i])
                     .filter(annotation -> excludedAnnotations.contains(annotation.annotationType())).findAny()
-                    .isPresent()) {
-                continue;
-            }
-
-            if (excludedTypes.contains(parameters[i].getType())) {
+                    .isPresent() || excludedTypes.contains(parameters[i].getType())) {
                 continue;
             }
 
