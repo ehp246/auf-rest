@@ -19,6 +19,7 @@ import java.util.function.Supplier;
 
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
 import me.ehp246.aufrest.api.exception.BadGatewayException;
@@ -82,7 +83,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
     @Autowired
     public DefaultRestFnProvider(final HttpRequestBuilder reqBuilder, final HttpClientExecutorProvider executorProvider,
             final InferringBodyHandlerProvider handlerProvider, final HttpClientBuilderSupplier clientBuilderSupplier,
-            final List<RestListener> listeners, final RestLogger restLogger) {
+            final List<RestListener> listeners, @Nullable final RestLogger restLogger) {
         this.clientBuilderSupplier = clientBuilderSupplier == null ? HttpClient::newBuilder : clientBuilderSupplier;
         this.executorProvider = executorProvider;
         this.reqBuilder = Objects.requireNonNull(reqBuilder,
