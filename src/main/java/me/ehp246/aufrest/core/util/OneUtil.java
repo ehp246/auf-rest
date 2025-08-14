@@ -42,14 +42,6 @@ public final class OneUtil {
         return streamValues(values).toList();
     }
 
-    public static <V> V orThrow(final Callable<V> callable) {
-        try {
-            return callable.call();
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static <V, X extends RuntimeException> V orThrow(final Callable<V> callable,
             final Function<Exception, X> fn) {
         try {
@@ -81,7 +73,7 @@ public final class OneUtil {
                 } else if (arg instanceof final Map<?, ?> m) {
                     m.entrySet().stream().forEach(t -> {
                         final var v = t.getValue();
-                        mapped.add(v == null ? (String) null : v.toString());
+                        mapped.add(v == null ? null : v.toString());
 
                         map.put(t.getKey().toString(), mapped);
                     });

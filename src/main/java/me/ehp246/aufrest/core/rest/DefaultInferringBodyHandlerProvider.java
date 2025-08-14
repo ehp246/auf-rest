@@ -12,12 +12,12 @@ import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
 
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.InferringBodyHandlerProvider;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestLogger;
-import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
  * Implementation of the bean of {@linkplain InferringBodyHandlerProvider}.
@@ -43,7 +43,8 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
         final var successPayloadDescriptor = inferring;
         // Needed for both provided and inferring descriptors.
-        final var errorPayloadDescriptor = inferring == null ? null : JacksonTypeDescriptor.of(inferring.errorType(), null);
+        final var errorPayloadDescriptor = inferring == null ? null
+                : JacksonTypeDescriptor.of(inferring.errorType(), null);
 
         return responseInfo -> {
             // Log headers
@@ -75,10 +76,13 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
             // Short-circuit the content-type.
             if (responseReturnType == InputStream.class) {
                 // Wrap it in a gzip stream.
-                return gzipped
-                        ? BodySubscribers.mapping(BodySubscribers.ofInputStream(),
-                                in -> OneUtil.orThrow(() -> (T) new GZIPInputStream(in)))
-                        : BodySubscribers.mapping(BodySubscribers.ofInputStream(), t -> (T) t);
+                return gzipped ? BodySubscribers.mapping(BodySubscribers.ofInputStream(), in -> {
+                    try {
+                        return (T) new GZIPInputStream(in);
+                    } catch (IOException e) {
+                        throw new AufRestOpException(e);
+                    }
+                }) : BodySubscribers.mapping(BodySubscribers.ofInputStream(), t -> (T) t);
             }
 
             return (BodySubscriber<T>) BodySubscribers
@@ -88,7 +92,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
                             gis.transferTo(byteOs);
                             return byteOs.toString(StandardCharsets.UTF_8);
                         } catch (final IOException e) {
-                            throw new RuntimeException(e);
+                            throw new AufRestOpException(e);
                         }
                     }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
                         if (restLogger != null) {
