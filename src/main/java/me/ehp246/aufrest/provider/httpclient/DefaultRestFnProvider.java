@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
+import me.ehp246.aufrest.api.exception.AufRestException;
 import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
@@ -35,7 +36,6 @@ import me.ehp246.aufrest.api.exception.NotAuthorizedException;
 import me.ehp246.aufrest.api.exception.NotFoundException;
 import me.ehp246.aufrest.api.exception.NotSupportedException;
 import me.ehp246.aufrest.api.exception.RedirectionException;
-import me.ehp246.aufrest.api.exception.RestFnException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
@@ -148,7 +148,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         /*
                          * Wrap only the checked.
                          */
-                        throw new RestFnException(e, httpReq, req);
+                        throw new AufRestException(e);
                     }
 
                     return (HttpResponse<T>) httpResponse;

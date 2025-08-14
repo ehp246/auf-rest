@@ -18,7 +18,7 @@ import me.ehp246.aufrest.api.exception.ClientErrorException;
 import me.ehp246.aufrest.api.exception.GatewayTimeoutException;
 import me.ehp246.aufrest.api.exception.InternalServerErrorException;
 import me.ehp246.aufrest.api.exception.RedirectionException;
-import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.exception.AufRestException;
 import me.ehp246.aufrest.api.exception.ServerErrorException;
 import me.ehp246.aufrest.api.exception.ServiceUnavailableException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
@@ -231,7 +231,7 @@ class DefaultRestFnProviderTest {
     void exception_01() {
         final var toBeThrown = new IOException();
 
-        final var ex = Assertions.assertThrows(RestFnException.class,
+        final var ex = Assertions.assertThrows(AufRestException.class,
                 () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
                         new MockClientBuilderSupplier(toBeThrown)::builder, null, null).get(new RestFnConfig())
                         .applyForResponse(() -> "http://nowhere"));
@@ -243,7 +243,7 @@ class DefaultRestFnProviderTest {
     void exception_02() {
         final var toBeThrown = new InterruptedException();
 
-        final var ex = Assertions.assertThrows(RestFnException.class,
+        final var ex = Assertions.assertThrows(AufRestException.class,
                 () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
                         new MockClientBuilderSupplier(toBeThrown)::builder, null, null).get(new RestFnConfig())
                         .applyForResponse(() -> "http://nowhere"));
@@ -349,7 +349,7 @@ class DefaultRestFnProviderTest {
         final RestRequest req = () -> "http://nowhere";
         final var expected = new InterruptedException();
 
-        final var ex = Assertions.assertThrows(RestFnException.class,
+        final var ex = Assertions.assertThrows(AufRestException.class,
                 () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
                         MockClientBuilderSupplier.supplier(expected), null, null).get(new RestFnConfig())
                         .applyForResponse(req));
@@ -363,7 +363,21 @@ class DefaultRestFnProviderTest {
         final RestRequest req = () -> "http://nowhere";
         final var expected = new IOException();
 
-        final var ex = Assertions.assertThrows(RestFnException.class,
+        final var ex = Assertions.assertThrows(AufRestException.class,
+                () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
+                        MockClientBuilderSupplier.supplier(expected), null, null).get(new RestFnConfig())
+                        .applyForResponse(req));
+
+        Assertions.assertEquals(false, Thread.currentThread().isInterrupted());
+        Assertions.assertEquals(expected, ex.getCause());
+    }
+
+    @Test
+    void exception_13() {
+        final RestRequest req = () -> "http://nowhere";
+        final var expected = new IOException();
+
+        final var ex = Assertions.assertThrows(AufRestException.class,
                 () -> new DefaultRestFnProvider(new MockHttpRequestBuilder(), handlerProvider.toProvider(),
                         MockClientBuilderSupplier.supplier(expected), null, null).get(new RestFnConfig())
                         .applyForResponse(req));

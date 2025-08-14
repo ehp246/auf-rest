@@ -37,7 +37,7 @@ import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
 import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
 import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
-import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.exception.AufRestException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
@@ -257,7 +257,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             /*
              * Must be an RestFnException.
              */
-            if (received instanceof final RestFnException restFnException) {
+            if (received instanceof final AufRestException restFnException) {
                 final var cause = restFnException.getCause();
                 if (cause != null && reflected.canThrow(cause)) {
                     throw cause;

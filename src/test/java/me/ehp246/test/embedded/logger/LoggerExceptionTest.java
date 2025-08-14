@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.ApplicationContext;
 
-import me.ehp246.aufrest.api.exception.RestFnException;
+import me.ehp246.aufrest.api.exception.AufRestException;
 import me.ehp246.aufrest.api.rest.RestLogger;
 
 /**
@@ -32,6 +32,6 @@ class LoggerExceptionTest {
 
     @Test
     void onException_01() {
-        Assertions.assertThrows(RestFnException.class, () -> case02.post(Instant.now()));
+        Assertions.assertThrows(AufRestException.class, () -> case02.post(Instant.now()));
     }
 }
