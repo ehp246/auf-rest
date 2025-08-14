@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import me.ehp246.aufrest.api.exception.AufRestException;
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.spi.ExpressionResolver;
 import me.ehp246.aufrest.core.rest.AuthTestCases.BasicAuthCase01;
@@ -520,11 +520,11 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_01() {
         final var checked = new IOException();
-        final var restFnException = new AufRestException(checked);
+        final var restFnException = new AufRestOpException(checked);
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), parser)
                 .newInstance(ExceptionCase.class);
 
-        final var thrown = Assertions.assertThrows(AufRestException.class, newInstance::get);
+        final var thrown = Assertions.assertThrows(AufRestOpException.class, newInstance::get);
 
         Assertions.assertEquals(restFnException, thrown);
     }
@@ -532,7 +532,7 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_02() {
         final var checked = new IOException();
-        final var restFnException = new AufRestException(checked);
+        final var restFnException = new AufRestOpException(checked);
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), parser)
                 .newInstance(ExceptionCase.class);
 
@@ -544,7 +544,7 @@ class ByRestProxyFactoryTest {
     @Test
     void exception_03() {
         final var checked = new InterruptedException();
-        final var restFnException = new AufRestException(checked);
+        final var restFnException = new AufRestOpException(checked);
         final var newInstance = new ByRestProxyFactory(new MockRestFnProvider(restFnException), parser)
                 .newInstance(ExceptionCase.class);
 

@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
 import me.ehp246.aufrest.api.configuration.AufRestConstants;
-import me.ehp246.aufrest.api.exception.AufRestException;
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 import me.ehp246.aufrest.api.exception.BadGatewayException;
 import me.ehp246.aufrest.api.exception.BadRequestException;
 import me.ehp246.aufrest.api.exception.ClientErrorException;
@@ -148,7 +148,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                         /*
                          * Wrap only the checked.
                          */
-                        throw new AufRestException(e);
+                        throw new AufRestOpException(e);
                     }
 
                     return (HttpResponse<T>) httpResponse;

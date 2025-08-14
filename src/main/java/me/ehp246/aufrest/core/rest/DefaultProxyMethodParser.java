@@ -36,8 +36,8 @@ import me.ehp246.aufrest.api.annotation.OfQuery;
 import me.ehp246.aufrest.api.annotation.OfRequest;
 import me.ehp246.aufrest.api.annotation.OfResponse;
 import me.ehp246.aufrest.api.annotation.OfResponse.Bind;
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 import me.ehp246.aufrest.api.exception.ProxyInvocationBinderException;
-import me.ehp246.aufrest.api.exception.AufRestException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 import me.ehp246.aufrest.api.rest.AuthBeanResolver;
 import me.ehp246.aufrest.api.rest.BasicAuth;
@@ -201,7 +201,7 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
         final Function<HttpResponse<?>, ?> valueMapper;
 
         /*
-         * For this type, no annotation is needed.
+         * For these types, no annotation is needed.
          */
         if (returnType.isAssignableFrom(HttpHeaders.class)) {
             valueMapper = HttpResponse::headers;
@@ -255,23 +255,23 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
             }
 
             /*
-             * Must be an RestFnException.
+             * Is it a wrapped checked?
              */
-            if (received instanceof final AufRestException restFnException) {
-                final var cause = restFnException.getCause();
+            if (received instanceof final AufRestOpException opException) {
+                final var cause = opException.getCause();
                 if (cause != null && reflected.canThrow(cause)) {
                     throw cause;
                 }
-                throw restFnException;
+                throw opException;
             }
 
             if (received instanceof final RuntimeException runtime) {
                 throw runtime;
             }
             /*
-             * What happened? Shouldn't be here.
+             * What happened? Shouldn't run to here.
              */
-            throw new RuntimeException("Un-known received: " + received);
+            throw new UnsupportedOperationException("Un-known received: " + received);
         };
     }
 
@@ -427,12 +427,12 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 try {
                     header = OneUtil.toString(method.invoke(bean, beanArgs));
                 } catch (final InvocationTargetException e) {
-                    final var t = e.getTargetException();
+                    final var t = e.getCause();
                     if (reflected.canThrow(t)) {
                         throw t;
                     }
                     throw new ProxyInvocationBinderException(t);
-                } catch (final Throwable e) {
+                } catch (final IllegalAccessException e) {
                     if (reflected.canThrow(e)) {
                         throw e;
                     }

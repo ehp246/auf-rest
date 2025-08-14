@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.springframework.util.MimeTypeUtils;
 
-import me.ehp246.aufrest.api.exception.AufRestException;
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 import me.ehp246.aufrest.api.rest.ContentPublisherProvider;
 import me.ehp246.aufrest.api.rest.HttpUtils;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
@@ -93,7 +93,7 @@ public class DefaultContentPublisherProvider implements ContentPublisherProvider
                 }
             }
         } catch (final IOException e) {
-            throw new AufRestException(e);
+            throw new AufRestOpException(e);
         }
 
         byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));

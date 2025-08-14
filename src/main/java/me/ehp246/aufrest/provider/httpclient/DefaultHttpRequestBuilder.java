@@ -95,13 +95,13 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
             Optional.ofNullable(req.authSupplier().get()).map(Object::toString).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
         } else if (providedHeaders.get(HttpUtils.AUTHORIZATION) != null
-                && providedHeaders.get(HttpUtils.AUTHORIZATION).size() > 0) {
+                && !providedHeaders.get(HttpUtils.AUTHORIZATION).isEmpty()) {
             Optional.ofNullable(providedHeaders.get(HttpUtils.AUTHORIZATION).get(0)).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
         } else if (authProvider.isPresent()) {
             authProvider.map(provider -> provider.get(req)).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
-        } else if (HeaderContext.map().getOrDefault(HttpUtils.AUTHORIZATION, List.of()).size() > 0) {
+        } else if (!HeaderContext.map().getOrDefault(HttpUtils.AUTHORIZATION, List.of()).isEmpty()) {
             Optional.ofNullable(HeaderContext.map().get(HttpUtils.AUTHORIZATION).get(0)).filter(OneUtil::hasValue)
                     .ifPresent(value -> builder.setHeader(HttpUtils.AUTHORIZATION, value));
         }
@@ -109,8 +109,7 @@ public final class DefaultHttpRequestBuilder implements HttpRequestBuilder {
         /*
          * Timeout
          */
-        Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout())
-                .ifPresent(timeout -> builder.timeout(timeout));
+        Optional.ofNullable(req.timeout() == null ? responseTimeout : req.timeout()).ifPresent(builder::timeout);
 
         /*
          * URI

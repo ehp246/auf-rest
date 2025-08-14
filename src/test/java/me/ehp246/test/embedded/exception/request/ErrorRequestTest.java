@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import me.ehp246.aufrest.api.exception.AufRestException;
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 
 /**
  * @author Lei Yang
@@ -22,7 +22,7 @@ class ErrorRequestTest {
 
     @Test
     void restFn_01() {
-        Assertions.assertThrows(AufRestException.class, case01::get);
+        Assertions.assertThrows(AufRestOpException.class, case01::get);
     }
 
     @Test
