@@ -68,7 +68,7 @@ class StreamTest {
 
     @Test
     void json_003() {
-        final var count = new Random().nextInt();
+        final var count = Math.abs(new Random().nextInt());
 
         Assertions.assertEquals(count, case001.post(new ByteArrayInputStream(new byte[count])).intValue());
     }
