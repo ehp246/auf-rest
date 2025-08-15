@@ -13,7 +13,6 @@ public class MockBodyHandlerProvider implements InferringBodyHandlerProvider {
 
     @Override
     public <T> BodyHandler<T> get(ResponseHandler.Inferring descriptor) {
-        // TODO Auto-generated method stub
         return null;
     }
 

@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -32,7 +30,7 @@ class StreamTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void stream_001() throws JsonParseException, JsonMappingException, IOException {
+    void stream_001() throws IOException {
         final var in = case001.get("Jon Snow");
 
         Assertions.assertTrue(in instanceof GZIPInputStream);
@@ -44,7 +42,7 @@ class StreamTest {
     }
 
     @Test
-    void stream_002() throws JsonParseException, JsonMappingException, IOException {
+    void stream_002() throws IOException {
         final var in = case001.get002("Jon Snow").body();
 
         Assertions.assertTrue(in instanceof GZIPInputStream);
@@ -56,7 +54,7 @@ class StreamTest {
     }
 
     @Test
-    void json_002() throws JsonParseException, JsonMappingException, IOException {
+    void json_002() throws IOException {
         final var in = case002.get("Jon Snow");
 
         Assertions.assertFalse(in instanceof GZIPInputStream);
