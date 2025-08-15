@@ -3,6 +3,7 @@ package me.ehp246.test.embedded.stream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 import org.junit.jupiter.api.Assertions;
@@ -37,7 +38,7 @@ class StreamTest {
 
         final var person = objectMapper.readValue(in, Person.class);
 
-        Assertions.assertTrue(person.getName().equals("Jon Snow"));
+        Assertions.assertEquals("Jon Snow", person.getName());
         Assertions.assertTrue(person.getDob() instanceof Instant);
     }
 
@@ -49,7 +50,7 @@ class StreamTest {
 
         final var person = objectMapper.readValue(in, Person.class);
 
-        Assertions.assertTrue(person.getName().equals("Jon Snow"));
+        Assertions.assertEquals("Jon Snow", person.getName());
         Assertions.assertTrue(person.getDob() instanceof Instant);
     }
 
@@ -61,13 +62,13 @@ class StreamTest {
 
         final var person = objectMapper.readValue(in, Person.class);
 
-        Assertions.assertTrue(person.getName().equals("Jon Snow"));
+        Assertions.assertEquals("Jon Snow", person.getName());
         Assertions.assertTrue(person.getDob() instanceof Instant);
     }
 
     @Test
     void json_003() {
-        final var count = (int) (Math.random() * 100);
+        final var count = new Random().nextInt();
 
         Assertions.assertEquals(count, case001.post(new ByteArrayInputStream(new byte[count])).intValue());
     }
