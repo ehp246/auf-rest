@@ -6,7 +6,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
-import java.net.http.HttpResponse.ResponseInfo;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
@@ -158,11 +157,7 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             }
 
             private <T> HttpResponse<?> sendForResponse(final RestRequest req, final HttpRequest httpReq,
-                    final BodyHandler<T> handler) throws IOException, InterruptedException, ErrorResponseException,
-                    InternalServerErrorException, BadGatewayException, ServiceUnavailableException,
-                    GatewayTimeoutException, ServerErrorException, BadRequestException, NotAuthorizedException,
-                    ForbiddenException, NotFoundException, NotAllowedException, NotAcceptableException,
-                    NotSupportedException, ClientErrorException, RedirectionException {
+                    final BodyHandler<T> handler) throws IOException, InterruptedException, ErrorResponseException {
                 final HttpResponse<?> httpResponse;
                 httpResponse = client.send(httpReq, wrapInContext(req, handler));
 
@@ -214,45 +209,42 @@ public final class DefaultRestFnProvider implements RestFnProvider {
                             .forEach(entry -> mdcMap.put(entry.getKey(), entry.getValue().get()));
                 }
 
-                return new BodyHandler<T>() {
-                    @Override
-                    public BodySubscriber<T> apply(final ResponseInfo responseInfo) {
-                        mdcMap.entrySet().stream().forEach(e -> MDC.put(e.getKey(), e.getValue()));
+                return responseInfo -> {
+                    mdcMap.entrySet().stream().forEach(e -> MDC.put(e.getKey(), e.getValue()));
 
-                        final var target = handler.apply(responseInfo);
+                    final var target = handler.apply(responseInfo);
 
-                        return new BodySubscriber<T>() {
+                    return new BodySubscriber<T>() {
 
-                            @Override
-                            public void onSubscribe(final Subscription subscription) {
-                                target.onSubscribe(subscription);
-                            }
+                        @Override
+                        public void onSubscribe(final Subscription subscription) {
+                            target.onSubscribe(subscription);
+                        }
 
-                            @Override
-                            public void onNext(final List<ByteBuffer> item) {
-                                target.onNext(item);
-                            }
+                        @Override
+                        public void onNext(final List<ByteBuffer> item) {
+                            target.onNext(item);
+                        }
 
-                            @Override
-                            public void onError(final Throwable throwable) {
-                                target.onError(throwable);
+                        @Override
+                        public void onError(final Throwable throwable) {
+                            target.onError(throwable);
 
-                                mdcMap.keySet().forEach(MDC::remove);
-                            }
+                            mdcMap.keySet().forEach(MDC::remove);
+                        }
 
-                            @Override
-                            public void onComplete() {
-                                target.onComplete();
+                        @Override
+                        public void onComplete() {
+                            target.onComplete();
 
-                                mdcMap.keySet().forEach(MDC::remove);
-                            }
+                            mdcMap.keySet().forEach(MDC::remove);
+                        }
 
-                            @Override
-                            public CompletionStage<T> getBody() {
-                                return target.getBody();
-                            }
-                        };
-                    }
+                        @Override
+                        public CompletionStage<T> getBody() {
+                            return target.getBody();
+                        }
+                    };
                 };
             }
         };

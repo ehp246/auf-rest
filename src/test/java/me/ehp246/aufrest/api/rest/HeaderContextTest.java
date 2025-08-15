@@ -78,9 +78,10 @@ class HeaderContextTest {
 
     @Test
     void add_list_002() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add(null, List.of("1")));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("", List.of("1")));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("   ", List.of("1")));
+        final var ofOne = List.of("1");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add(null, ofOne));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("", ofOne));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.add("   ", ofOne));
 
         Assertions.assertThrows(NullPointerException.class, () -> HeaderContext.add("x-trace-id", (List<String>) null));
 
@@ -121,24 +122,22 @@ class HeaderContextTest {
 
     @Test
     void set_001() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> HeaderContext.set(null, UUID.randomUUID().toString()));
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> HeaderContext.set("", UUID.randomUUID().toString()));
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> HeaderContext.set("  ", UUID.randomUUID().toString()));
+        final var value = UUID.randomUUID().toString();
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.set(null, value));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.set("", value));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.set("  ", value));
 
         Assertions.assertThrows(Exception.class, () -> HeaderContext.set(UUID.randomUUID().toString(), (String) null));
     }
 
     @Test
     void set_002() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> HeaderContext.set(null, List.of(UUID.randomUUID().toString())));
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> HeaderContext.set("", List.of(UUID.randomUUID().toString())));
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> HeaderContext.set(" \r\n ", List.of(UUID.randomUUID().toString())));
+        final var value = List.of(UUID.randomUUID().toString());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.set(null, value));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.set("", value));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> HeaderContext.set(" \r\n ", value));
 
         HeaderContext.set("x-trace-id", List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
 

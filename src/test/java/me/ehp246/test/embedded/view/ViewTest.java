@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 /**
  * @author Lei Yang
  *
@@ -39,7 +37,7 @@ class ViewTest {
     }
 
     @Test
-    void responseView_01() throws JsonProcessingException {
+    void responseView_01() {
         final var expected = new Logins.Login(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
         final var result = this.cases.postResponseWithDefault(expected);

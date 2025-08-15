@@ -40,43 +40,59 @@ class ErrorResponseExceptionTest {
 
     @Test
     void client_01() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ClientErrorException(new MockRestRequest(), new MockHttpResponse<>(500)));
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(500);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new ClientErrorException(request, response));
     }
 
     @Test
     void gateway_01() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new BadGatewayException(new MockRestRequest(), new MockHttpResponse<>(500)));
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(500);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new BadGatewayException(request, response));
     }
 
     @Test
     void gateway_02() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new GatewayTimeoutException(new MockRestRequest(), new MockHttpResponse<>(500)));
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(500);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new GatewayTimeoutException(request, response));
     }
 
     @Test
     void internal_01() {
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(501);
+
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new InternalServerErrorException(new MockRestRequest(), new MockHttpResponse<>(501)));
+                () -> new InternalServerErrorException(request, response));
     }
 
     @Test
     void redirect_01() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new RedirectionException(new MockRestRequest(), new MockHttpResponse<>(501)));
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(501);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new RedirectionException(request, response));
     }
 
     @Test
     void server_01() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ServerErrorException(new MockRestRequest(), new MockHttpResponse<>(401)));
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(401);
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new ServerErrorException(request, response));
     }
 
     @Test
     void service_01() {
+        final var request = new MockRestRequest();
+        final var response = new MockHttpResponse<>(501);
+
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> new ServiceUnavailableException(new MockRestRequest(), new MockHttpResponse<>(501)));
+                () -> new ServiceUnavailableException(request, response));
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import me.ehp246.aufrest.api.exception.AufRestOpException;
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.core.rest.FromJson;
 import me.ehp246.aufrest.core.rest.ToJson;
@@ -39,7 +40,7 @@ public final class JsonByJackson implements FromJson, ToJson {
         try {
             return writer.writeValueAsString(value);
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new AufRestOpException(e);
         }
     }
 
@@ -57,7 +58,7 @@ public final class JsonByJackson implements FromJson, ToJson {
         try {
             return reader.readValue(json);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new AufRestOpException(e);
         }
     }
 }

@@ -34,7 +34,7 @@ class BlobTest {
     }
 
     @Test
-    void get_01() throws IOException {
+    void get_01() {
         final var text = container.get("Perf.txt");
 
         LOGGER.info(text);

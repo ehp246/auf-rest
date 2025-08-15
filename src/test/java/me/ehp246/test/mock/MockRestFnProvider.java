@@ -56,9 +56,9 @@ public class MockRestFnProvider implements RestFnProvider {
     }
 
     public RestRequest takeReq() {
-        final var req = this.req;
+        final var value = this.req;
         this.req = null;
-        return req;
+        return value;
     }
 
     public RestRequest getReq() {

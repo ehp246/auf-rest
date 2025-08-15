@@ -18,7 +18,7 @@ import me.ehp246.test.mock.Jackson;
  */
 @SpringBootTest(classes = AufRestConfiguration.class)
 @Import(Jackson.class)
-class ByRestConfigurationTest01 {
+class ByRestConfigurationTest {
     @Autowired
     private ListableBeanFactory beanFactory;
 
