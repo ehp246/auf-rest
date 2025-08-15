@@ -30,7 +30,7 @@ class HttpUtilsTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("To be implemented")
     void queryString_02() {
         final var queries = Map.of("email", List.of("test+1@email.com"));
         final var expected = UriComponentsBuilder.fromUriString("http://localhost")
@@ -40,7 +40,7 @@ class HttpUtilsTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("To be implemented")
     void queryString_03() {
         final var queries = Map.of("email", List.of("test=1@email&com"));
 
