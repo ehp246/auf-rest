@@ -158,11 +158,8 @@ public final class DefaultRestFnProvider implements RestFnProvider {
             }
 
             private <T> HttpResponse<?> sendForResponse(final RestRequest req, final HttpRequest httpReq,
-                    final BodyHandler<T> handler) throws IOException, InterruptedException, ErrorResponseException,
-                    InternalServerErrorException, BadGatewayException, ServiceUnavailableException,
-                    GatewayTimeoutException, ServerErrorException, BadRequestException, NotAuthorizedException,
-                    ForbiddenException, NotFoundException, NotAllowedException, NotAcceptableException,
-                    NotSupportedException, ClientErrorException, RedirectionException {
+                    final BodyHandler<T> handler)
+                    throws IOException, InterruptedException, ErrorResponseException, ClientErrorException {
                 final HttpResponse<?> httpResponse;
                 httpResponse = client.send(httpReq, wrapInContext(req, handler));
 
