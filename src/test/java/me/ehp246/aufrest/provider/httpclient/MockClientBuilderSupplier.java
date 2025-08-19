@@ -20,24 +20,24 @@ class MockClientBuilderSupplier {
     private int builderCount = 0;
     private final Supplier<HttpResponse<?>> responseSupplier;
     private HttpRequest sent = null;
-    private final Exception e;
+    private final Exception ex;
 
     MockClientBuilderSupplier() {
         super();
         this.responseSupplier = null;
-        this.e = null;
+        this.ex = null;
     }
 
     MockClientBuilderSupplier(final Exception e) {
         super();
         this.responseSupplier = null;
-        this.e = e;
+        this.ex = e;
     }
 
     MockClientBuilderSupplier(final Supplier<HttpResponse<?>> responseSupplier) {
         super();
         this.responseSupplier = responseSupplier;
-        this.e = null;
+        this.ex = null;
     }
 
     static Supplier<HttpClient.Builder> supplierOn(final Supplier<HttpResponse<?>> responseSupplier) {
@@ -52,14 +52,14 @@ class MockClientBuilderSupplier {
         final HttpClient client = Mockito.mock(HttpClient.class);
 
         try {
-            if (this.e == null) {
+            if (this.ex == null) {
                 Mockito.when(client.send(Mockito.any(), Mockito.any())).thenAnswer(invocation -> {
                     sent = invocation.getArgument(0);
                     return (HttpResponse<Object>) Optional.ofNullable(responseSupplier).map(Supplier::get)
                             .orElseGet(MockHttpResponse::new);
                 });
             } else {
-                Mockito.when(client.send(Mockito.any(), Mockito.any())).thenThrow(e);
+                Mockito.when(client.send(Mockito.any(), Mockito.any())).thenThrow(ex);
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException();
