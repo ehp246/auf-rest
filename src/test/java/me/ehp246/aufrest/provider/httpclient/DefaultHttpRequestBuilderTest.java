@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
@@ -30,11 +31,11 @@ import me.ehp246.test.mock.MockReq;
  *
  */
 class DefaultHttpRequestBuilderTest {
-    private final static String BASE_URL = "http://losthost:8080";
-    private final static String BEARER = "I'm a bearer.";
-    private final static String BASIC = "I'm basic.";
+    private static final String BASE_URL = "http://losthost:8080";
+    private static final String BEARER = "I'm a bearer.";
+    private static final String BASIC = "I'm basic.";
 
-    private final static MockContentPublisherProvider CONTENT_PROVIDER = new MockContentPublisherProvider();
+    private static final MockContentPublisherProvider CONTENT_PROVIDER = new MockContentPublisherProvider();
 
     private final AuthProvider authProvider = new AuthProvider() {
         private int count = 0;
@@ -42,11 +43,11 @@ class DefaultHttpRequestBuilderTest {
         @Override
         public String get(final RestRequest req) {
             final var uri = req.uri();
-            if (uri.toString().contains("bearer")) {
+            if (uri.contains("bearer")) {
                 return BEARER;
-            } else if (uri.toString().contains("basic")) {
+            } else if (uri.contains("basic")) {
                 return BASIC;
-            } else if (uri.toString().contains("count")) {
+            } else if (uri.contains("count")) {
                 return ++count + "";
             }
             return null;
@@ -159,13 +160,14 @@ class DefaultHttpRequestBuilderTest {
 
     @Test
     void uri_07() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> defBuilder.apply(new RestRequest() {
+        final var req = new RestRequest() {
 
             @Override
             public String uri() {
                 return BASE_URL + "/{path1}/{path2}";
             }
-        }));
+        };
+        Assertions.assertThrows(IllegalArgumentException.class, () -> defBuilder.apply(req));
     }
 
     @Test
@@ -210,14 +212,6 @@ class DefaultHttpRequestBuilderTest {
 
     @Test
     void auth_global_004() {
-        final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
-                .apply(() -> BASE_URL + "/basic");
-
-        Assertions.assertEquals(0, req.headers().allValues(HttpUtils.AUTHORIZATION).size(), "Should have no Auth");
-    }
-
-    @Test
-    void auth_global_005() {
         final var req = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, null, null, null, null)
                 .apply(() -> BASE_URL + "/basic");
 
@@ -831,7 +825,7 @@ class DefaultHttpRequestBuilderTest {
 
         final var builder = new DefaultHttpRequestBuilder(CONTENT_PROVIDER, reqBuilderSupplier, null, null, null);
 
-        final int count = (int) (Math.random() * 20);
+        final int count = Math.abs(RandomGenerator.getDefault().nextInt(20));
 
         IntStream.range(0, count).forEach(i -> builder.apply(() -> BASE_URL));
 
