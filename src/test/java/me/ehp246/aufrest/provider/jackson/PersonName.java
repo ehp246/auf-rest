@@ -6,12 +6,12 @@ package me.ehp246.aufrest.provider.jackson;
  */
 class PersonName {
     private final String firstName;
-    private final String LastName;
+    private final String lastName;
 
     PersonName(final String firstName, final String lastName) {
         super();
         this.firstName = firstName;
-        LastName = lastName;
+        this.lastName = lastName;
     }
 
     public String getFirstName() {
@@ -19,6 +19,6 @@ class PersonName {
     }
 
     public String getLastName() {
-        return LastName;
+        return lastName;
     }
 }
