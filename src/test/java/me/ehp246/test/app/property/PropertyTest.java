@@ -1,6 +1,5 @@
 package me.ehp246.test.app.property;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanInstantiationException;
@@ -17,30 +16,23 @@ import me.ehp246.aufrest.api.rest.RestLogger;
  *
  */
 class PropertyTest {
-    private AnnotationConfigApplicationContext appCtx;
-
-    @AfterEach
-    void close() {
-        if (appCtx != null) {
-            appCtx.close();
-            appCtx = null;
-        }
-    }
 
     @Test
     void connectTimeout_01() {
-        appCtx = new AnnotationConfigApplicationContext();
+        final var appCtx = new AnnotationConfigApplicationContext();
         appCtx.setEnvironment(new MockEnvironment().withProperty("me.ehp246.aufrest.connect-timeout", "123"));
         appCtx.register(AppConfig.class);
 
         final var e = Assertions.assertThrows(BeanCreationException.class, appCtx::refresh);
 
         Assertions.assertEquals(BeanInstantiationException.class, e.getCause().getCause().getClass());
+
+        appCtx.close();
     }
 
     @Test
     void connectTimeout_02() {
-        appCtx = new AnnotationConfigApplicationContext();
+        final var appCtx = new AnnotationConfigApplicationContext();
         appCtx.setEnvironment(new MockEnvironment().withProperty("me.ehp246.aufrest.connect-timeout", " "));
         appCtx.register(AppConfig.class);
 
@@ -48,11 +40,13 @@ class PropertyTest {
 
         Assertions.assertEquals(true,
                 appCtx.getBean(HttpClientBuilderSupplier.class).get().build().connectTimeout().isEmpty());
+
+        appCtx.close();
     }
 
     @Test
     void connectTimeout_03() {
-        appCtx = new AnnotationConfigApplicationContext();
+        final var appCtx = new AnnotationConfigApplicationContext();
         appCtx.setEnvironment(new MockEnvironment().withProperty("me.ehp246.aufrest.connect-timeout", "PT1M"));
         appCtx.register(AppConfig.class);
 
@@ -60,6 +54,8 @@ class PropertyTest {
 
         Assertions.assertEquals(1,
                 appCtx.getBean(HttpClientBuilderSupplier.class).get().build().connectTimeout().get().toMinutes());
+
+        appCtx.close();
     }
 
     @Test
