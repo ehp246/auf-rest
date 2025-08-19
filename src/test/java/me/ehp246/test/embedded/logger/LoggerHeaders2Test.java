@@ -2,6 +2,7 @@ package me.ehp246.test.embedded.logger;
 
 import java.time.Instant;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,12 +20,12 @@ class LoggerHeaders2Test {
 
     @Test
     void test_01() {
-        case01.post(Instant.now());
+        Assertions.assertDoesNotThrow(() -> case01.post(Instant.now()));
     }
 
     @Test
     void test_02() {
         // should show everything.
-        case01.post(Instant.now(), Instant.now().toString());
+        Assertions.assertDoesNotThrow(() -> case01.post(Instant.now(), Instant.now().toString()));
     }
 }

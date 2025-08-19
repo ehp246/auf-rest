@@ -40,8 +40,9 @@ class LoginTest {
 
         login.getToken(new Account(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
 
+        final var token2 = token.token();
         final var httpRespon = Assertions
-                .assertThrows(UnhandledResponseException.class, () -> case01.getBalance(token.token())).getCause()
+                .assertThrows(UnhandledResponseException.class, () -> case01.getBalance(token2)).getCause()
                 .httpResponse();
 
         Assertions.assertEquals(401, httpRespon.statusCode());

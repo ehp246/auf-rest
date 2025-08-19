@@ -1,6 +1,5 @@
 package me.ehp246.test.embedded.body;
 
-import java.io.IOException;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Instant;
 import java.util.List;
@@ -43,7 +42,7 @@ class BodyTest {
     }
 
     @Test
-    void publisher_02() throws HttpMessageNotWritableException, IOException {
+    void publisher_02() throws HttpMessageNotWritableException {
         final var first = UUID.randomUUID().toString();
         final var last = UUID.randomUUID().toString();
 
