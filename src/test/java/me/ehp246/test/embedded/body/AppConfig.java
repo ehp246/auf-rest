@@ -20,7 +20,7 @@ import me.ehp246.test.mock.MockBodyHandler;
 @EnableByRest
 @Import(Jackson.class)
 class AppConfig {
-    final static String METHOD_HANDLER = UUID.randomUUID().toString();
+    static final String METHOD_HANDLER = UUID.randomUUID().toString();
 
     @Bean("onInterface")
     BodyHandler<String> interfaceHander() {

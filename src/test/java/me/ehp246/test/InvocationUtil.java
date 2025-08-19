@@ -36,7 +36,7 @@ public class InvocationUtil {
 
     @SuppressWarnings("unchecked")
     public static <T> T newInvocation(final Class<T> t, final Invocation[] captured) {
-        final var proxy = (T) (Proxy.newProxyInstance(InvocationUtil.class.getClassLoader(), new Class[] { t },
+        return (T) (Proxy.newProxyInstance(InvocationUtil.class.getClassLoader(), new Class[] { t },
                 (target, method, args) -> {
                     captured[0] = new Invocation() {
 
@@ -57,8 +57,6 @@ public class InvocationUtil {
                     };
                     return null;
                 }));
-
-        return proxy;
     }
 
     @SuppressWarnings("unchecked")

@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -166,8 +165,8 @@ class ByRestProxyFactoryTest {
 
     @Test
     void method_14() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(MethodTestCase01.class).query(1));
+        final var newInstance = factory.newInstance(MethodTestCase01.class);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> newInstance.query(1));
     }
 
     @Test
@@ -315,7 +314,6 @@ class ByRestProxyFactoryTest {
     }
 
     @Test
-    @Disabled
     void queryParamMap_03() {
         final var newInstance = factory.newInstance(QueryParamCases.Case01.class);
 
@@ -343,7 +341,7 @@ class ByRestProxyFactoryTest {
     void acceptGzip_02() {
         factory.newInstance(HeaderTestCases.AcceptGZipCase01.class).get();
 
-        Assertions.assertTrue(restFn.req().acceptEncoding() == null, "should have not the value");
+        Assertions.assertEquals(null, restFn.req().acceptEncoding(), "should have not the value");
     }
 
     @Test
@@ -589,13 +587,14 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authSimple_10() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(SimpleAuthCase02.class).get());
+        final var newInstance = factory.newInstance(SimpleAuthCase02.class);
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test
     void authBasic_01() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> factory.newInstance(BasicAuthCase01.class).get());
+        final var newInstance = factory.newInstance(BasicAuthCase01.class);
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test
@@ -614,8 +613,8 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authBearer_01() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(BearerAuthCase01.class).get());
+        final var newInstance = factory.newInstance(BearerAuthCase01.class);
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test
@@ -737,12 +736,20 @@ class ByRestProxyFactoryTest {
 
     @Test
     void authException_01() {
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(AuthTestCases.Case07.class).get());
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(AuthTestCases.Case08.class).get());
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> factory.newInstance(AuthTestCases.Case09.class).get());
+        final var newInstance = factory.newInstance(AuthTestCases.Case07.class);
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
+    }
+
+    @Test
+    void authException_02() {
+        final var newInstance = factory.newInstance(AuthTestCases.Case08.class);
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
+    }
+
+    @Test
+    void authException_03() {
+        final var newInstance = factory.newInstance(AuthTestCases.Case09.class);
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test

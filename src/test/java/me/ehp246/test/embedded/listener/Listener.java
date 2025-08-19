@@ -57,6 +57,9 @@ class Listener implements RestListener {
 
     @Override
     public void onException(final Exception exception, final HttpRequest httpRequest, final RestRequest req) {
+        /*
+         * Not used
+         */
     }
 
     /**

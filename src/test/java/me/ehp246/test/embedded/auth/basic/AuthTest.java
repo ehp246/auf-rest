@@ -35,8 +35,8 @@ class AuthTest {
 
     @Test
     void basic_auth_001() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.Default01.class).get());
+        final var bean = factory.getBean(TestCases.Default01.class);
+        Assertions.assertThrows(UnhandledResponseException.class, () -> bean.get());
     }
 
     @Test
@@ -78,24 +78,27 @@ class AuthTest {
 
     @Test
     void auth_header_001() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> factory.getBean(TestCases.Default01.class).get(""));
+        final var bean = factory.getBean(TestCases.Default01.class);
+        Assertions.assertThrows(UnhandledResponseException.class, () -> bean.get(""));
     }
 
     @Test
     void auth_header_002() {
-        factory.getBean(TestCases.Default01.class).get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk");
+        final var bean = factory.getBean(TestCases.Default01.class);
+        Assertions.assertDoesNotThrow(() -> bean.get("Basic YmFzaWN1c2VyOnBhc3N3b3Jk"));
     }
 
     @Test
     void method_auth_001() {
         // Should follow the interface
-        factory.getBean(TestCases.MethodAuth01.class).get();
+        final var bean = factory.getBean(TestCases.MethodAuth01.class);
+        Assertions.assertDoesNotThrow(() -> bean.get());
     }
 
     @Test
     void authBean_02() {
-        factory.getBean(BeanAuth02.class).get("basicuser", "password");
+        final var bean = factory.getBean(BeanAuth02.class);
+        Assertions.assertDoesNotThrow(() -> bean.get("basicuser", "password"));
     }
 
     @Test
@@ -110,24 +113,26 @@ class AuthTest {
     void authBean_throwing_01() {
         final var expected = new RuntimeException();
 
-        Assertions.assertEquals(expected, Assertions.assertThrows(RuntimeException.class,
-                () -> factory.getBean(BeanAuthThrowing01.class).get(expected)));
+        final var bean = factory.getBean(BeanAuthThrowing01.class);
+        Assertions.assertEquals(expected, Assertions.assertThrows(RuntimeException.class, () -> bean.get(expected)));
     }
 
     @Test
     void authBean_throwing_02() {
         final var expected = new IOException();
 
-        Assertions.assertEquals(expected, Assertions.assertThrows(IOException.class,
-                () -> factory.getBean(BeanAuthThrowing02.class).getWithThrows(expected)));
+        final var bean = factory.getBean(BeanAuthThrowing02.class);
+        Assertions.assertEquals(expected,
+                Assertions.assertThrows(IOException.class, () -> bean.getWithThrows(expected)));
     }
 
     @Test
     void authBean_throwing_03() {
         final var expected = new IllegalAccessException();
 
-        Assertions.assertEquals(expected, Assertions.assertThrows(ProxyInvocationBinderException.class,
-                () -> factory.getBean(BeanAuthThrowing02.class).get(expected)).getCause());
+        final var bean = factory.getBean(BeanAuthThrowing02.class);
+        Assertions.assertEquals(expected,
+                Assertions.assertThrows(ProxyInvocationBinderException.class, () -> bean.get(expected)).getCause());
     }
 
     @Test

@@ -14,5 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 class BasicAuthController {
     @GetMapping
     void get() {
+        /*
+         * Only needed to confirm client call was successful.
+         */
     }
 }

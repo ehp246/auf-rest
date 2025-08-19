@@ -32,6 +32,7 @@ class LoggerExceptionTest {
 
     @Test
     void onException_01() {
-        Assertions.assertThrows(AufRestOpException.class, () -> case02.post(Instant.now()));
+        final var now = Instant.now();
+        Assertions.assertThrows(AufRestOpException.class, () -> case02.post(now));
     }
 }

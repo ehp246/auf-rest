@@ -41,13 +41,19 @@ class DefaultProxyMethodParserTest {
     private final BodyHandlerBeanResolver bodyHandlerResolver = name -> r -> null;
     private final InferringBodyHandlerProvider bindingBodyHandlerProvider = new MockBodyHandlerProvider();
     private final ExpressionResolver expressionResolver = new MockEnvironment()::resolveRequiredPlaceholders;
-    private final MockAuthBean authBean = new MockAuthBean();
-    private final AuthBeanResolver beanResolver = name -> {
-        if (!name.equals("getOnInterface")) {
-            throw new RuntimeException(name);
+
+    private final AuthBeanResolver beanResolver = new AuthBeanResolver() {
+        private final MockAuthBean authBean = new MockAuthBean();
+
+        @Override
+        public Object get(String name) {
+            if (!name.equals("getOnInterface")) {
+                throw new RuntimeException(name);
+            }
+            return authBean;
         }
-        return authBean;
     };
+
     private final DefaultProxyMethodParser parser = new DefaultProxyMethodParser(expressionResolver, beanResolver,
             bodyHandlerResolver, bindingBodyHandlerProvider);
 
@@ -77,20 +83,23 @@ class DefaultProxyMethodParserTest {
         Assertions.assertEquals(expected, req.body());
     }
 
+    /**
+     * @throws Throwable
+     */
     @Test
     void authBean_01() throws Throwable {
-        final var authBean = new MockAuthBean();
+        final var mockAuthBean = new MockAuthBean();
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(authResolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+        Mockito.when(authResolver.get("getOnInterface")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captor = InvocationUtil.newCaptor(BeanAuth01.class);
         captor.proxy().getOnArgs("username", "password");
         final var invocation = captor.invocation();
 
-        final var authSupplier = parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
+        final var authSupplier = newParser.parse(invocation.method()).apply(captor.proxy(), invocation.args()).request()
                 .authSupplier();
 
         final var expected = new BasicAuth("username", "password").header();
@@ -98,7 +107,7 @@ class DefaultProxyMethodParserTest {
         Assertions.assertEquals(expected, authSupplier.get());
         Assertions.assertEquals(expected, authSupplier.get());
         Assertions.assertEquals(expected, authSupplier.get());
-        Assertions.assertEquals(1, authBean.takeBasicCount());
+        Assertions.assertEquals(1, mockAuthBean.takeBasicCount());
     }
 
     @Test
@@ -135,142 +144,142 @@ class DefaultProxyMethodParserTest {
 
     @Test
     void authBean_04() {
-        final var authBean = new MockAuthBean();
+        final var mockAuthBean = new MockAuthBean();
 
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(authResolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+        Mockito.when(authResolver.get("getOnInterface")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuth01.class, captRef).get();
 
+        final var binder = newParser.parse(captRef[0].method());
         Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()));
+                () -> binder.apply(captRef[0].target(), captRef[0].args()));
     }
 
     @Test
     void authBean_throws_01() {
         final var expected = new NullPointerException();
-        final var authBean = new MockThrowingAuthBean();
+        final var mockAuthBean = new MockThrowingAuthBean();
 
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
+        Mockito.when(authResolver.get("throwingBean")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuthThrowing01.class, captRef).get(expected);
 
-        Assertions.assertEquals(expected,
-                Assertions.assertThrows(NullPointerException.class, () -> parser.parse(captRef[0].method())
-                        .apply(captRef[0].target(), captRef[0].args()).request().authSupplier().get()));
+        final var binder = newParser.parse(captRef[0].method());
+        Assertions.assertEquals(expected, Assertions.assertThrows(NullPointerException.class,
+                () -> binder.apply(captRef[0].target(), captRef[0].args())));
     }
 
     @Test
     void authBean_throws_02() {
         final var expected = new Exception();
-        final var authBean = new MockThrowingAuthBean();
+        final var mockAuthBean = new MockThrowingAuthBean();
 
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
+        Mockito.when(authResolver.get("throwingBean")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).get(expected);
 
-        Assertions
-                .assertEquals(expected,
-                        Assertions.assertThrows(ProxyInvocationBinderException.class,
-                                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args())
-                                        .request().authSupplier().get())
-                                .getCause(),
-                        "should wrap the checked in a Runtime");
+        final var binder = newParser.parse(captRef[0].method());
+        Assertions.assertEquals(expected,
+                Assertions.assertThrows(ProxyInvocationBinderException.class,
+                        () -> binder.apply(captRef[0].target(), captRef[0].args())).getCause(),
+                "should wrap the checked in a Runtime");
     }
 
     @Test
     void authBean_throws_03() throws IOException {
         final var expected = new IOException();
-        final var authBean = new MockThrowingAuthBean();
+        final var mockAuthBean = new MockThrowingAuthBean();
 
         final var authResolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(authResolver.get(Mockito.eq("throwingBean"))).thenReturn(authBean);
+        Mockito.when(authResolver.get("throwingBean")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, authResolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).getIo(expected);
 
         Assertions.assertEquals(expected, Assertions.assertThrows(IOException.class,
-                () -> parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args())));
+                () -> newParser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args())));
     }
 
     @Test
     void authBean_method_01() throws Throwable {
-        final var authBean = new MockAuthBean();
+        final var mockAuthBean = new MockAuthBean();
         final var resolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+        Mockito.when(resolver.get("getOnInterface")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuth03.class, captRef).get(UUID.randomUUID().toString());
 
-        parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
+        newParser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
 
-        Assertions.assertEquals(1, authBean.takeBearerTokenCount());
+        Assertions.assertEquals(1, mockAuthBean.takeBearerTokenCount());
     }
 
     @Test
     void authBean_method_02() throws Throwable {
-        final var authBean = new MockAuthBean();
+        final var mockAuthBean = new MockAuthBean();
         final var resolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+        Mockito.when(resolver.get("getOnInterface")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuth04.class, captRef).get();
 
-        parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
+        newParser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args());
 
-        Assertions.assertEquals(1, authBean.takeRandomCount());
+        Assertions.assertEquals(1, mockAuthBean.takeRandomCount());
     }
 
     @Test
     void authBean_08() throws Throwable {
-        final var authBean = new BasicAuth(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        final var mockAuthBean = new BasicAuth(UUID.randomUUID().toString(), UUID.randomUUID().toString());
         final var resolver = Mockito.mock(AuthBeanResolver.class);
-        Mockito.when(resolver.get(Mockito.eq("getOnInterface"))).thenReturn(authBean);
+        Mockito.when(resolver.get("getOnInterface")).thenReturn(mockAuthBean);
 
-        final var parser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, resolver, bodyHandlerResolver,
                 bindingBodyHandlerProvider);
 
         final var captRef = new Invocation[1];
         InvocationUtil.newInvocation(BeanAuth05.class, captRef).get();
 
-        final var req = parser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()).request();
+        final var req = newParser.parse(captRef[0].method()).apply(captRef[0].target(), captRef[0].args()).request();
 
-        Assertions.assertEquals(authBean.header(), req.authSupplier().get(),
+        Assertions.assertEquals(mockAuthBean.header(), req.authSupplier().get(),
                 "should call the un-annotated named method");
     }
 
     @Test
     void authBean_09() {
-        final var parser = new DefaultProxyMethodParser(expressionResolver, name -> new Object(), bodyHandlerResolver,
-                bindingBodyHandlerProvider);
+        final var newParser = new DefaultProxyMethodParser(expressionResolver, name -> new Object(),
+                bodyHandlerResolver, bindingBodyHandlerProvider);
 
         final var captor = InvocationUtil.newCaptor(BeanAuth02.class);
         captor.proxy().get();
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(captor.invocation().method()));
+        final var method = captor.invocation().method();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> newParser.parse(method));
     }
 
     @Test
@@ -511,10 +520,9 @@ class DefaultProxyMethodParserTest {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase03.class);
         captor.proxy().get();
 
-        final var invocation = captor.invocation();
+        final var method = captor.invocation().method();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(method));
     }
 
     @Test
@@ -539,10 +547,9 @@ class DefaultProxyMethodParserTest {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase05.class);
         captor.proxy().get();
 
-        final var invocation = captor.invocation();
+        final var method = captor.invocation().method();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(method));
     }
 
     @Test
@@ -550,10 +557,9 @@ class DefaultProxyMethodParserTest {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase06.class);
         captor.proxy().get();
 
-        final var invocation = captor.invocation();
+        final var method = captor.invocation().method();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()),
+        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(method),
                 "should not allow duplicate names");
     }
 
@@ -562,9 +568,8 @@ class DefaultProxyMethodParserTest {
         final var captor = InvocationUtil.newCaptor(HeaderTestCases.HeaderCase07.class);
         captor.proxy().get();
 
-        final var invocation = captor.invocation();
+        final var method = captor.invocation().method();
 
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> parser.parse(invocation.method()).apply(captor.proxy(), invocation.args()));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(method));
     }
 }

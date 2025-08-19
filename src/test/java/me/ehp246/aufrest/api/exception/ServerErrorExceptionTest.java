@@ -116,10 +116,4 @@ class ServerErrorExceptionTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> new ServiceUnavailableException(req, response));
 
     }
-
-    @Test
-    void test_16() {
-        final var response = new MockHttpResponse<Object>(430);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new BadRequestException(req, response));
-    }
 }

@@ -21,7 +21,8 @@ class ListenerExceptionTest {
 
     @Test
     void test_001() {
-        final var ex = Assertions.assertThrows(NullPointerException.class, () -> case1.post(Instant.now()));
+        final var now = Instant.now();
+        final var ex = Assertions.assertThrows(NullPointerException.class, () -> case1.post(now));
 
         Assertions.assertEquals("onRequest from listenerException", ex.getMessage());
     }

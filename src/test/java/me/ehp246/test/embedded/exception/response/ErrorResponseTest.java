@@ -51,7 +51,7 @@ class ErrorResponseTest {
     }
 
     @Test
-    void test300_002() throws RedirectionException {
+    void test300_002() {
         final var ex = Assertions.assertThrows(RedirectionException.class, () -> errorResponseTestCase.get02(301));
 
         Assertions.assertEquals(301, ex.statusCode());
@@ -106,8 +106,8 @@ class ErrorResponseTest {
 
     @Test
     void test_client_300() {
-        final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> errorResponseTestCase.getClientError(300),
-                "Should be wrapped");
+        final var ex = Assertions.assertThrows(UnhandledResponseException.class,
+                () -> errorResponseTestCase.getClientError(300), "Should be wrapped");
 
         Assertions.assertEquals(300, ex.statusCode());
         Assertions.assertTrue(ex.getCause() instanceof RedirectionException, "Should be more specific");
@@ -115,79 +115,88 @@ class ErrorResponseTest {
 
     @Test
     void test_client_400() {
-        final var ex = Assertions.assertThrows(BadRequestException.class, () -> errorResponseTestCase.getClientError(400));
+        final var ex = Assertions.assertThrows(BadRequestException.class,
+                () -> errorResponseTestCase.getClientError(400));
 
         Assertions.assertEquals(400, ex.statusCode());
     }
 
     @Test
     void test_client_401() {
-        final var ex = Assertions.assertThrows(NotAuthorizedException.class, () -> errorResponseTestCase.getClientError(401));
+        final var ex = Assertions.assertThrows(NotAuthorizedException.class,
+                () -> errorResponseTestCase.getClientError(401));
 
         Assertions.assertEquals(401, ex.statusCode());
     }
 
     @Test
     void test_client_403() {
-        final var ex = Assertions.assertThrows(ForbiddenException.class, () -> errorResponseTestCase.getClientError(403));
+        final var ex = Assertions.assertThrows(ForbiddenException.class,
+                () -> errorResponseTestCase.getClientError(403));
 
         Assertions.assertEquals(403, ex.statusCode());
     }
 
     @Test
     void test_client_404() {
-        final var ex = Assertions.assertThrows(NotFoundException.class, () -> errorResponseTestCase.getClientError(404));
+        final var ex = Assertions.assertThrows(NotFoundException.class,
+                () -> errorResponseTestCase.getClientError(404));
 
         Assertions.assertEquals(404, ex.statusCode());
     }
 
     @Test
     void test_client_405() {
-        final var ex = Assertions.assertThrows(NotAllowedException.class, () -> errorResponseTestCase.getClientError(405));
+        final var ex = Assertions.assertThrows(NotAllowedException.class,
+                () -> errorResponseTestCase.getClientError(405));
 
         Assertions.assertEquals(405, ex.statusCode());
     }
 
     @Test
     void test_client_406() {
-        final var ex = Assertions.assertThrows(NotAcceptableException.class, () -> errorResponseTestCase.getClientError(406));
+        final var ex = Assertions.assertThrows(NotAcceptableException.class,
+                () -> errorResponseTestCase.getClientError(406));
 
         Assertions.assertEquals(406, ex.statusCode());
     }
 
     @Test
     void test_client_415() {
-        final var ex = Assertions.assertThrows(NotSupportedException.class, () -> errorResponseTestCase.getClientError(415));
+        final var ex = Assertions.assertThrows(NotSupportedException.class,
+                () -> errorResponseTestCase.getClientError(415));
 
         Assertions.assertEquals(415, ex.statusCode());
     }
 
     @Test
     void test_server_003() {
-        final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> errorResponseTestCase.getClientError(500),
-                "Should be wrapped");
+        final var ex = Assertions.assertThrows(UnhandledResponseException.class,
+                () -> errorResponseTestCase.getClientError(500), "Should be wrapped");
 
         Assertions.assertEquals(500, ex.statusCode());
     }
 
     @Test
     void test_server_004() {
-        final var ex = Assertions.assertThrows(UnhandledResponseException.class, () -> errorResponseTestCase.getClientError(600),
-                "Should be wrapped");
+        final var ex = Assertions.assertThrows(UnhandledResponseException.class,
+                () -> errorResponseTestCase.getClientError(600), "Should be wrapped");
 
         Assertions.assertEquals(600, ex.statusCode());
     }
 
     @Test
     void test_redirect_001() {
-        final var ex = Assertions.assertThrows(RedirectionException.class, () -> errorResponseTestCase.getRedirect(300));
+        final var ex = Assertions.assertThrows(RedirectionException.class,
+                () -> errorResponseTestCase.getRedirect(300));
 
         Assertions.assertEquals(300, ex.statusCode());
     }
 
     @Test
     void test_redirect_002() {
-        final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> errorResponseTestCase.getRedirect(400));
+        final var ex = Assertions.assertThrows(ErrorResponseException.class,
+                () -> errorResponseTestCase.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
         Assertions.assertEquals(BadRequestException.class, ex.getClass());
@@ -195,28 +204,32 @@ class ErrorResponseTest {
 
     @Test
     void test_redirect_003() {
-        final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> errorResponseTestCase.getRedirect(599));
+        final var ex = Assertions.assertThrows(ErrorResponseException.class,
+                () -> errorResponseTestCase.getRedirect(599));
 
         Assertions.assertEquals(599, ex.statusCode());
     }
 
     @Test
     void test_redirect_004() {
-        final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> errorResponseTestCase.getRedirect(699));
+        final var ex = Assertions.assertThrows(ErrorResponseException.class,
+                () -> errorResponseTestCase.getRedirect(699));
 
         Assertions.assertEquals(699, ex.statusCode());
     }
 
     @Test
     void test_server_01() {
-        final var ex = Assertions.assertThrows(BadGatewayException.class, () -> errorResponseTestCase.getServerError(502));
+        final var ex = Assertions.assertThrows(BadGatewayException.class,
+                () -> errorResponseTestCase.getServerError(502));
 
         Assertions.assertEquals(502, ex.statusCode());
     }
 
     @Test
     void test_server_02() {
-        final var ex = Assertions.assertThrows(ServerErrorException.class, () -> errorResponseTestCase.getServerError(504));
+        final var ex = Assertions.assertThrows(ServerErrorException.class,
+                () -> errorResponseTestCase.getServerError(504));
 
         Assertions.assertEquals(GatewayTimeoutException.class, ex.getClass());
         Assertions.assertEquals(504, ex.statusCode());
@@ -247,7 +260,8 @@ class ErrorResponseTest {
 
     @Test
     void test_error_500() {
-        final var ex = Assertions.assertThrows(InternalServerErrorException.class, () -> errorResponseTestCase.getError(500));
+        final var ex = Assertions.assertThrows(InternalServerErrorException.class,
+                () -> errorResponseTestCase.getError(500));
 
         Assertions.assertEquals(500, ex.statusCode());
     }
@@ -261,14 +275,16 @@ class ErrorResponseTest {
 
     @Test
     void test_error_503() {
-        final var ex = Assertions.assertThrows(ServiceUnavailableException.class, () -> errorResponseTestCase.getError(503));
+        final var ex = Assertions.assertThrows(ServiceUnavailableException.class,
+                () -> errorResponseTestCase.getError(503));
 
         Assertions.assertEquals(503, ex.statusCode());
     }
 
     @Test
     void test_error_504() {
-        final var ex = Assertions.assertThrows(GatewayTimeoutException.class, () -> errorResponseTestCase.getError(504));
+        final var ex = Assertions.assertThrows(GatewayTimeoutException.class,
+                () -> errorResponseTestCase.getError(504));
 
         Assertions.assertEquals(504, ex.statusCode());
     }
@@ -282,7 +298,8 @@ class ErrorResponseTest {
 
     @Test
     void errorrType_01() {
-        final var ex = Assertions.assertThrows(ErrorResponseException.class, () -> errorResponseTestCase.getRedirect(400));
+        final var ex = Assertions.assertThrows(ErrorResponseException.class,
+                () -> errorResponseTestCase.getRedirect(400));
 
         Assertions.assertEquals(400, ex.statusCode());
 

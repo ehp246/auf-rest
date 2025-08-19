@@ -11,9 +11,6 @@ import me.ehp246.aufrest.api.spi.RestView;
  *
  */
 class TestCases {
-    public void toJson01(final Person person) {
-    };
-
     public static interface Person01 {
         Instant getDob();
 
