@@ -20,7 +20,10 @@ class DefaultHttpClientExecutorProviderTest {
         final var provider = new DefaultHttpClientExecutorProvider();
 
         Assertions.assertThrows(NullPointerException.class, () -> provider.get(null));
-        Assertions.assertThrows(NullPointerException.class, () -> provider.get(new Config(null)));
+
+        final var config = new Config(null);
+        Assertions.assertThrows(NullPointerException.class, () -> provider.get(config));
+
         Assertions.assertNotNull(provider.get(new Config("")));
     }
 
