@@ -3,6 +3,7 @@ package me.ehp246.test.embedded.auth.basic;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,11 +59,11 @@ class AuthProviderTest {
         /**
          * Should work on the first call.
          */
-        Assertions.assertDoesNotThrow(() -> case002.get());
+        Assertions.assertDoesNotThrow((Executable) case002::get);
 
         /**
          * Should work on the second call since the global provider is by-passed.
          */
-        Assertions.assertDoesNotThrow(() -> case002.get());
+        Assertions.assertDoesNotThrow((Executable) case002::get);
     }
 }

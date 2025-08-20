@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-import me.ehp246.aufrest.api.exception.NotFoundException;
 import me.ehp246.aufrest.api.exception.AufRestOpException;
+import me.ehp246.aufrest.api.exception.NotFoundException;
 import me.ehp246.aufrest.api.exception.UnhandledResponseException;
 
 /**
@@ -27,29 +27,32 @@ class LoggerTest {
 
     @Test
     void test_01() {
-        case01.post(Instant.now());
+        final var now = Instant.now();
+        Assertions.assertDoesNotThrow(() -> case01.post(now));
     }
 
     @Test
     void test_02() {
-        case01.post(Instant.now(), Instant.now().toString());
+        final var now = Instant.now();
+        Assertions.assertDoesNotThrow(() -> case01.post(now, now.toString()));
     }
 
     @Test
     void test_03() {
-        Assertions.assertThrows(UnhandledResponseException.class,
-                () -> case01.postNull(Instant.now(), Instant.now().toString()));
+        final var now = Instant.now();
+        Assertions.assertThrows(UnhandledResponseException.class, () -> case01.postNull(now, now.toString()));
     }
 
     @Test
     void onException_01() {
-        Assertions.assertThrows(AufRestOpException.class, () -> case02.post(Instant.now()));
+        final var now = Instant.now();
+        Assertions.assertThrows(AufRestOpException.class, () -> case02.post(now));
     }
 
     @Test
     void onException_02() {
-        Assertions.assertThrows(NotFoundException.class,
-                () -> case01.postNullThrowing(Instant.now(), Instant.now().toString()));
+        final var now = Instant.now();
+        Assertions.assertThrows(NotFoundException.class, () -> case01.postNullThrowing(now, now.toString()));
     }
 
 }
