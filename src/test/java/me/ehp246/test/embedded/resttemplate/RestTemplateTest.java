@@ -31,7 +31,7 @@ import me.ehp246.aufrest.provider.TimingExtension;
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(TimingExtension.class)
 class RestTemplateTest {
-    private final static int COUNT = 10_000;
+    private static final int COUNT = 10_000;
     @Autowired
     private PersonProxy proxy;
 
@@ -112,11 +112,8 @@ class RestTemplateTest {
                 + "/resttemplate/person?firstName={firstName}&lastName={lastName}&dob={dob}";
 
         for (int i = 0; i <= COUNT; i++) {
-            final var person = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    httpEntity, Person.class, UUID.randomUUID().toString(), UUID.randomUUID().toString(),
-                    Instant.now().toString());
+            final var person = restTemplate.exchange(url, HttpMethod.GET, httpEntity, Person.class,
+                    UUID.randomUUID().toString(), UUID.randomUUID().toString(), Instant.now().toString());
             Assertions.assertEquals(true, person != null);
         }
     }
@@ -131,8 +128,7 @@ class RestTemplateTest {
         headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 
-        final var url = "http://localhost:" + port
-                + "/resttemplate/person/{firstName}/{lastName}";
+        final var url = "http://localhost:" + port + "/resttemplate/person/{firstName}/{lastName}";
 
         for (int i = 0; i <= COUNT; i++) {
             final var httpEntity = new HttpEntity<>(
@@ -142,6 +138,7 @@ class RestTemplateTest {
             Assertions.assertEquals(true, person != null);
         }
     }
+
     /**
      * 13,145 ms
      */

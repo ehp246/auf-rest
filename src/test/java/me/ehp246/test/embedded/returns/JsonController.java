@@ -2,7 +2,6 @@ package me.ehp246.test.embedded.returns;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,7 @@ class JsonController {
 
     @GetMapping("instants")
     List<Instant> getInstants(@RequestParam("count") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> Instant.now()).collect(Collectors.toList());
+        return IntStream.range(0, count).mapToObj(i -> Instant.now()).toList();
     }
 
     @GetMapping("instant")
@@ -40,7 +39,7 @@ class JsonController {
 
     @GetMapping("persons")
     List<Person> getPersons(@RequestParam(value = "count", defaultValue = "1") final int count) {
-        return IntStream.range(0, count).mapToObj(i -> new Person(Instant.now(), null)).collect(Collectors.toList());
+        return IntStream.range(0, count).mapToObj(i -> new Person(Instant.now(), null)).toList();
     }
 
     // Text
