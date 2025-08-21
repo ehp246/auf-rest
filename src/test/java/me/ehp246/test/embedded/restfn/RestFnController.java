@@ -23,6 +23,9 @@ import me.ehp246.test.embedded.restfn.Logins.Login;
 class RestFnController {
     @GetMapping("auth")
     void get() {
+        /*
+         * No return needed.
+         */
     }
 
     @GetMapping("path/{id}")

@@ -36,7 +36,7 @@ class AuthTest {
     @Test
     void basic_auth_001() {
         final var bean = factory.getBean(TestCases.Default01.class);
-        Assertions.assertThrows(UnhandledResponseException.class, () -> bean.get());
+        Assertions.assertThrows(UnhandledResponseException.class, bean::get);
     }
 
     @Test
@@ -92,7 +92,7 @@ class AuthTest {
     void method_auth_001() {
         // Should follow the interface
         final var bean = factory.getBean(TestCases.MethodAuth01.class);
-        Assertions.assertDoesNotThrow(() -> bean.get());
+        Assertions.assertDoesNotThrow(bean::get);
     }
 
     @Test
@@ -139,11 +139,8 @@ class AuthTest {
     void authBean_throwing_04() {
         final var expected = new IllegalAccessException();
 
-        Assertions
-                .assertEquals(expected,
-                        Assertions
-                                .assertThrows(ProxyInvocationBinderException.class,
-                                        () -> factory.getBean(BeanAuthThrowing02.class).getWithThrows(expected))
-                                .getCause());
+        final var bean = factory.getBean(BeanAuthThrowing02.class);
+        Assertions.assertEquals(expected, Assertions
+                .assertThrows(ProxyInvocationBinderException.class, () -> bean.getWithThrows(expected)).getCause());
     }
 }

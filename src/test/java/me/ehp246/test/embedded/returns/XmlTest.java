@@ -4,6 +4,7 @@
 package me.ehp246.test.embedded.returns;
 
 import java.util.UUID;
+import java.util.random.RandomGenerator;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ class XmlTest {
 
     @Test
     void test_01() {
-        final var count = (int) (Math.random() * 10) + 10;
+        final var count = Math.abs(RandomGenerator.getDefault().nextInt()) % 10 + 1;
         final var xml = case01.get01(count);
 
         Assertions.assertEquals(true, xml.length() > 10);

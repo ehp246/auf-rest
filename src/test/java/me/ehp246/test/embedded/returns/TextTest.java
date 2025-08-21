@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -47,7 +46,7 @@ class TextTest {
     }
 
     @Test
-    void text_04() throws JsonMappingException, JsonProcessingException {
+    void text_04() throws JsonProcessingException {
         final var expected = UUID.randomUUID().toString();
 
         final var result = this.objectMapper.readValue(testCase.getPerson(expected), Map.class);

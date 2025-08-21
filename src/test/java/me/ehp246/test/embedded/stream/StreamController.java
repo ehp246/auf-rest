@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 /**
  * @author Lei Yang
  *
@@ -27,7 +24,7 @@ class StreamController {
     }
 
     @PostMapping("inputstream")
-    int postStream(final InputStream in) throws JsonParseException, JsonMappingException, IOException {
+    int postStream(final InputStream in) throws IOException {
         int count = 0;
         // Should be all zeros.
         while (in.read() == 0) {

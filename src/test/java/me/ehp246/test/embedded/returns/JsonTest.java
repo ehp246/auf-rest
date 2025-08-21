@@ -3,6 +3,7 @@ package me.ehp246.test.embedded.returns;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
+import java.util.random.RandomGenerator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @SpringBootTest(classes = AppConfig.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class JsonTest {
-    private static Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -32,7 +32,7 @@ class JsonTest {
 
     @Test
     void test_001() {
-        final var count = (int) (Math.random() * 10);
+        final var count = Math.abs(RandomGenerator.getDefault().nextInt(10));
         List<Instant> instants;
         try {
             instants = case001.get001(count);
@@ -48,7 +48,7 @@ class JsonTest {
 
     @Test
     void test_002() {
-        final var count = (int) (Math.random() * 10);
+        final var count = Math.abs(RandomGenerator.getDefault().nextInt(10));
         final var returned = case001.get002(count);
 
         Assertions.assertEquals(true, returned instanceof HttpResponse);
@@ -61,7 +61,7 @@ class JsonTest {
 
     @Test
     void test_004() {
-        final var count = (int) (Math.random() * 10);
+        final var count = Math.abs(RandomGenerator.getDefault().nextInt(10));
         final var returned = case001.get004(count);
 
         Assertions.assertEquals(true, returned instanceof HttpResponse);
@@ -75,8 +75,8 @@ class JsonTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void test_005() throws JsonMappingException, JsonProcessingException {
-        final var count = (int) (Math.random() * 10);
+    void test_005() throws JsonProcessingException {
+        final var count = Math.abs(RandomGenerator.getDefault().nextInt(10));
         final var returned = case001.get006(count);
 
         Assertions.assertEquals(true, returned instanceof String);
@@ -95,8 +95,8 @@ class JsonTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void test_006() throws JsonMappingException, JsonProcessingException {
-        final var count = (int) (Math.random() * 10);
+    void test_006() throws JsonProcessingException {
+        final var count = Math.abs(RandomGenerator.getDefault().nextInt(10));
         final var returned = case001.get007(count).body();
 
         Assertions.assertEquals(true, returned instanceof String);
@@ -156,6 +156,5 @@ class JsonTest {
     void zip_002() {
         Assertions.assertThrows(Exception.class, () -> case001.getZip("header not allowed"),
                 "should not allow overwrite");
-        ;
     }
 }

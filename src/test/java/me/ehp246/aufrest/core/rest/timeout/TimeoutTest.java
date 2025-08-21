@@ -32,7 +32,7 @@ class TimeoutTest {
     @Test
     void timeout_02() {
         final var newInstance = factory.newInstance(TestCase002.class);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> newInstance.get());
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test
@@ -52,13 +52,13 @@ class TimeoutTest {
     @Test
     void timeout_05() {
         final var newInstance = factory.newInstance(TestCase05.class);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> newInstance.get());
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test
     void timeout_06() {
         final var newInstance = factory.newInstance(TestCase06.class);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> newInstance.get());
+        Assertions.assertThrows(IllegalArgumentException.class, newInstance::get);
     }
 
     @Test
