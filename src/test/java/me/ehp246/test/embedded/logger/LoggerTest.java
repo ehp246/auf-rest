@@ -40,7 +40,8 @@ class LoggerTest {
     @Test
     void test_03() {
         final var now = Instant.now();
-        Assertions.assertThrows(UnhandledResponseException.class, () -> case01.postNull(now, now.toString()));
+        final var str = now.toString();
+        Assertions.assertThrows(UnhandledResponseException.class, () -> case01.postNull(now, str));
     }
 
     @Test
