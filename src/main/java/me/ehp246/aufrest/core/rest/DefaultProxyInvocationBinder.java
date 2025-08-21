@@ -2,15 +2,12 @@ package me.ehp246.aufrest.core.rest;
 
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -19,6 +16,7 @@ import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.rest.binder.BodyBinder;
+import me.ehp246.aufrest.core.rest.binder.HeaderBinder;
 import me.ehp246.aufrest.core.rest.binder.QueryBinder;
 
 /**
@@ -31,38 +29,28 @@ import me.ehp246.aufrest.core.rest.binder.QueryBinder;
  */
 final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final String method;
-    private final String accept;
-    private final String acceptEncoding;
     private final String baseUri;
-    private final ArgBinder<Object, Supplier<String>> authSupplierFn;
     private final Map<String, Integer> pathParams;
-    private final Map<Integer, String> headerParams;
-    private final Map<String, List<String>> headerStatic;
     private final Duration timeout;
     private final BodyBinder bodyBinder;
     private final QueryBinder queryBinder;
+    private final HeaderBinder headerBinder;
     // Response body
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ProxyReturnMapper returnMapper;
 
-    DefaultProxyInvocationBinder(final String method, final String accept, final boolean acceptGZip,
-            final Duration timeout, final String baseUrl, final Map<String, Integer> pathParams,
-            final QueryBinder queryBinder, final Map<Integer, String> headerParams,
-            final Map<String, List<String>> headerStatic, final ArgBinder<Object, Supplier<String>> authSupplierFn,
+    DefaultProxyInvocationBinder(final String method, final Duration timeout, final String baseUrl,
+            final Map<String, Integer> pathParams, final QueryBinder queryBinder, final HeaderBinder headerBinder,
             final BodyBinder bodyBinder, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
             final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
-        this.accept = accept;
-        this.acceptEncoding = acceptGZip ? "gzip" : null;
         this.baseUri = baseUrl;
-        this.authSupplierFn = authSupplierFn;
         this.pathParams = Collections.unmodifiableMap(pathParams);
-        this.headerParams = Collections.unmodifiableMap(headerParams);
-        this.headerStatic = Collections.unmodifiableMap(headerStatic);
         this.timeout = timeout;
         this.bodyBinder = bodyBinder;
         this.queryBinder = queryBinder;
+        this.headerBinder = headerBinder;
         this.handlerBinder = consumerBinder;
         this.returnMapper = returnMapper;
     }
@@ -73,42 +61,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
         final var boundQuery = this.queryBinder.aapply(target, args);
 
-        final var headerStaticCopy = new HashMap<String, List<String>>(this.headerStatic);
-        final var headerBound = new HashMap<String, List<String>>();
-        this.headerParams.entrySet().forEach(new Consumer<Entry<Integer, String>>() {
-            @Override
-            public void accept(final Entry<Integer, String> entry) {
-                final var arg = args[entry.getKey()];
-                final var name = entry.getValue();
-                headerStaticCopy.remove(name);
-                newValue(name, arg);
-            }
-
-            private void newValue(final String key, final Object newValue) {
-                if (newValue == null) {
-                    return;
-                }
-
-                if (newValue instanceof final Iterable<?> iter) {
-                    iter.forEach(v -> newValue(key, v));
-                    return;
-                }
-
-                // One level only. No recursive yet.
-                if (newValue instanceof final Map<?, ?> map) {
-                    map.entrySet().forEach(
-                            entry -> newValue(entry.getKey().toString().toLowerCase(Locale.ROOT), entry.getValue()));
-                    return;
-                }
-
-                headerBound.computeIfAbsent(key, v -> new ArrayList<String>()).add(newValue.toString());
-            }
-        });
-
-        headerStaticCopy.entrySet().stream()
-                .forEach(entry -> headerBound.putIfAbsent(entry.getKey(), entry.getValue()));
-
-        final var authSupplier = authSupplierFn == null ? null : authSupplierFn.apply(target, args);
+        final var boundHeaders = this.headerBinder.apply(target, args);
 
         final var boundBody = this.bodyBinder.apply(target, args);
 
@@ -143,7 +96,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
             @Override
             public Map<String, List<String>> headers() {
-                return headerBound;
+                return boundHeaders.headers();
             }
 
             @Override
@@ -153,17 +106,17 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
             @Override
             public String accept() {
-                return accept;
+                return boundHeaders.accept();
             }
 
             @Override
             public String acceptEncoding() {
-                return acceptEncoding;
+                return boundHeaders.acceptEncoding();
             }
 
             @Override
             public Supplier<String> authSupplier() {
-                return authSupplier;
+                return boundHeaders.authSupplier();
             }
 
             @Override
