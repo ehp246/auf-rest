@@ -156,8 +156,9 @@ class DefaultProxyMethodParserTest {
         InvocationUtil.newInvocation(BeanAuth01.class, captRef).get();
 
         final var binder = newParser.parse(captRef[0].method());
-        Assertions.assertThrows(IllegalArgumentException.class,
-                () -> binder.apply(captRef[0].target(), captRef[0].args()));
+        final var target = captRef[0].target();
+        final var args = captRef[0].args();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> binder.apply(target, args));
     }
 
     @Test
@@ -175,8 +176,10 @@ class DefaultProxyMethodParserTest {
         InvocationUtil.newInvocation(BeanAuthThrowing01.class, captRef).get(expected);
 
         final var binder = newParser.parse(captRef[0].method());
-        Assertions.assertEquals(expected, Assertions.assertThrows(NullPointerException.class,
-                () -> binder.apply(captRef[0].target(), captRef[0].args())));
+        final var target = captRef[0].target();
+        final var args = captRef[0].args();
+        Assertions.assertEquals(expected,
+                Assertions.assertThrows(NullPointerException.class, () -> binder.apply(target, args)));
     }
 
     @Test
@@ -194,9 +197,10 @@ class DefaultProxyMethodParserTest {
         InvocationUtil.newInvocation(BeanAuthThrowing02.class, captRef).get(expected);
 
         final var binder = newParser.parse(captRef[0].method());
-        Assertions.assertEquals(expected,
-                Assertions.assertThrows(ProxyInvocationBinderException.class,
-                        () -> binder.apply(captRef[0].target(), captRef[0].args())).getCause(),
+        final var target = captRef[0].target();
+        final var args = captRef[0].args();
+        Assertions.assertEquals(expected, Assertions
+                .assertThrows(ProxyInvocationBinderException.class, () -> binder.apply(target, args)).getCause(),
                 "should wrap the checked in a Runtime");
     }
 

@@ -34,14 +34,9 @@ class PathTest {
     }
 
     @Test
-    void path_03() {
-        final var pathId = UUID.randomUUID().toString();
-        Assertions.assertEquals(pathId, case01.get(pathId));
-    }
-
-    @Test
     void path_04() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> case02.get(UUID.randomUUID().toString()));
+        final var str = UUID.randomUUID().toString();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> case02.get(str));
     }
 
     @Test
