@@ -1,6 +1,5 @@
 package me.ehp246.aufrest.core.rest;
 
-import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -8,13 +7,12 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
-import me.ehp246.aufrest.api.rest.ResponseHandler;
 import me.ehp246.aufrest.api.rest.RestRequest;
-import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.rest.binder.BodyBinder;
 import me.ehp246.aufrest.core.rest.binder.HeaderBinder;
 import me.ehp246.aufrest.core.rest.binder.PathBinder;
 import me.ehp246.aufrest.core.rest.binder.QueryBinder;
+import me.ehp246.aufrest.core.rest.binder.ResponseBinder;
 
 /**
  * Builds a {@linkplain RestRequest} from an invocation on a parsed proxy
@@ -27,17 +25,15 @@ import me.ehp246.aufrest.core.rest.binder.QueryBinder;
 final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final String method;
     private final PathBinder pathBinder;
-    private final Duration timeout;
     private final BodyBinder bodyBinder;
     private final QueryBinder queryBinder;
     private final HeaderBinder headerBinder;
-    // Response body
-    private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
-    private final ProxyReturnMapper returnMapper;
+    private final Duration timeout;
+    private final ResponseBinder responseBinder;
 
     DefaultProxyInvocationBinder(final String method, final Duration timeout, final PathBinder pathBinder,
             final QueryBinder queryBinder, final HeaderBinder headerBinder, final BodyBinder bodyBinder,
-            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
+            final ResponseBinder responseBinder) {
         super();
         this.method = method;
         this.pathBinder = pathBinder;
@@ -45,8 +41,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         this.bodyBinder = bodyBinder;
         this.queryBinder = queryBinder;
         this.headerBinder = headerBinder;
-        this.handlerBinder = consumerBinder;
-        this.returnMapper = returnMapper;
+        this.responseBinder = responseBinder;
     }
 
     @Override
@@ -58,6 +53,8 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
         final var boundHeaders = this.headerBinder.apply(target, args);
 
         final var boundBody = this.bodyBinder.apply(target, args);
+
+        final var boundResponse = this.responseBinder.apply(target, args);
 
         final var id = UUID.randomUUID().toString();
 
@@ -128,6 +125,6 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
                 return boundBody.bodyDescriptor();
             }
 
-        }, new ResponseHandler.Provided<>(handlerBinder.apply(target, args)), returnMapper);
+        }, boundResponse.provided(), boundResponse.returnMapper());
     }
 }

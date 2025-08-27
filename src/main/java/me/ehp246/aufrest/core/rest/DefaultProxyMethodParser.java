@@ -58,6 +58,7 @@ import me.ehp246.aufrest.core.rest.binder.DefaultBodyBinder;
 import me.ehp246.aufrest.core.rest.binder.DefaultHeaderBinder;
 import me.ehp246.aufrest.core.rest.binder.DefaultPathBinder;
 import me.ehp246.aufrest.core.rest.binder.DefaultQueryBinder;
+import me.ehp246.aufrest.core.rest.binder.DefaultResponseBinder;
 import me.ehp246.aufrest.core.util.OneUtil;
 
 /**
@@ -139,8 +140,8 @@ public final class DefaultProxyMethodParser implements ProxyMethodParser {
                 new DefaultQueryBinder(queryParams(reflected), queryStatic(byRest)),
                 new DefaultHeaderBinder(accept(byRest, ofRequest), byRest.acceptGZip(), authSupplierFn,
                         headerParams(reflected), headerStatic(byRest, reflected)),
-                new DefaultBodyBinder(contentType, bodyArgBinder, bodyType), responseHandlerBinder(byRest, reflected),
-                proxyReturnMapper(reflected));
+                new DefaultBodyBinder(contentType, bodyArgBinder, bodyType),
+                new DefaultResponseBinder(responseHandlerBinder(byRest, reflected), proxyReturnMapper(reflected)));
     }
 
     /**
