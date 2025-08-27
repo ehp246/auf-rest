@@ -2,14 +2,10 @@ package me.ehp246.aufrest.core.rest;
 
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import me.ehp246.aufrest.api.rest.JacksonTypeDescriptor;
 import me.ehp246.aufrest.api.rest.ResponseHandler;
@@ -17,6 +13,7 @@ import me.ehp246.aufrest.api.rest.RestRequest;
 import me.ehp246.aufrest.core.reflection.ArgBinder;
 import me.ehp246.aufrest.core.rest.binder.BodyBinder;
 import me.ehp246.aufrest.core.rest.binder.HeaderBinder;
+import me.ehp246.aufrest.core.rest.binder.PathBinder;
 import me.ehp246.aufrest.core.rest.binder.QueryBinder;
 
 /**
@@ -29,8 +26,7 @@ import me.ehp246.aufrest.core.rest.binder.QueryBinder;
  */
 final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final String method;
-    private final String baseUri;
-    private final Map<String, Integer> pathParams;
+    private final PathBinder pathBinder;
     private final Duration timeout;
     private final BodyBinder bodyBinder;
     private final QueryBinder queryBinder;
@@ -39,14 +35,12 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
     private final ArgBinder<Object, BodyHandler<?>> handlerBinder;
     private final ProxyReturnMapper returnMapper;
 
-    DefaultProxyInvocationBinder(final String method, final Duration timeout, final String baseUrl,
-            final Map<String, Integer> pathParams, final QueryBinder queryBinder, final HeaderBinder headerBinder,
-            final BodyBinder bodyBinder, final ArgBinder<Object, BodyHandler<?>> consumerBinder,
-            final ProxyReturnMapper returnMapper) {
+    DefaultProxyInvocationBinder(final String method, final Duration timeout, final PathBinder pathBinder,
+            final QueryBinder queryBinder, final HeaderBinder headerBinder, final BodyBinder bodyBinder,
+            final ArgBinder<Object, BodyHandler<?>> consumerBinder, final ProxyReturnMapper returnMapper) {
         super();
         this.method = method;
-        this.baseUri = baseUrl;
-        this.pathParams = Collections.unmodifiableMap(pathParams);
+        this.pathBinder = pathBinder;
         this.timeout = timeout;
         this.bodyBinder = bodyBinder;
         this.queryBinder = queryBinder;
@@ -57,7 +51,7 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
     @Override
     public Bound apply(final Object target, final Object[] args) throws Throwable {
-        final var paths = paths(args);
+        final var boundPath = this.pathBinder.apply(target, args);
 
         final var boundQuery = this.queryBinder.aapply(target, args);
 
@@ -81,12 +75,12 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
 
             @Override
             public String uri() {
-                return baseUri;
+                return boundPath.baseUrl();
             }
 
             @Override
             public Map<String, Object> paths() {
-                return paths;
+                return boundPath.paths();
             }
 
             @Override
@@ -135,21 +129,5 @@ final class DefaultProxyInvocationBinder implements ProxyInvocationBinder {
             }
 
         }, new ResponseHandler.Provided<>(handlerBinder.apply(target, args)), returnMapper);
-    }
-
-    private Map<String, Object> paths(final Object[] args) {
-        final var pathArgs = new HashMap<String, Object>();
-        this.pathParams.entrySet().forEach(entry -> {
-            final var arg = args[entry.getValue()];
-            if (arg instanceof final Map<?, ?> map) {
-                pathArgs.putAll(
-                        map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), Entry::getValue)));
-
-                map.entrySet().stream().forEach(e -> pathArgs.putIfAbsent(e.getKey().toString(), e.getValue()));
-            } else {
-                pathArgs.put(entry.getKey(), arg);
-            }
-        });
-        return pathArgs;
     }
 }
