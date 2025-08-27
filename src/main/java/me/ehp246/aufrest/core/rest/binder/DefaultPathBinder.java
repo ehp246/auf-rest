@@ -21,11 +21,8 @@ public class DefaultPathBinder implements PathBinder {
 
     @Override
     public Bound apply(Object target, Object[] args) {
-        return new Bound(baseUrl, paths(args));
-    }
-
-    private Map<String, Object> paths(final Object[] args) {
         final var pathArgs = new HashMap<String, Object>();
+
         this.pathParams.entrySet().forEach(entry -> {
             final var arg = args[entry.getValue()];
             if (arg instanceof final Map<?, ?> map) {
@@ -37,6 +34,7 @@ public class DefaultPathBinder implements PathBinder {
                 pathArgs.put(entry.getKey(), arg);
             }
         });
-        return pathArgs;
+
+        return new Bound(baseUrl, pathArgs);
     }
 }
