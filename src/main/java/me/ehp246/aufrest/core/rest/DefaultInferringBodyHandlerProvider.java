@@ -8,6 +8,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.lang.Nullable;
@@ -29,12 +30,12 @@ import me.ehp246.aufrest.api.rest.RestLogger;
  */
 final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerProvider {
     private final FromJson fromJson;
-    private final RestLogger restLogger;
+    private final Optional<RestLogger> restLogger;
 
     public DefaultInferringBodyHandlerProvider(final FromJson jsonFn, @Nullable final RestLogger restLogger) {
         super();
         this.fromJson = jsonFn;
-        this.restLogger = restLogger;
+        this.restLogger = Optional.ofNullable(restLogger);
     }
 
     @SuppressWarnings("unchecked")
@@ -48,9 +49,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
 
         return responseInfo -> {
             // Log headers
-            if (restLogger != null) {
-                this.restLogger.onResponseInfo(responseInfo);
-            }
+            this.restLogger.ifPresent(logger -> logger.onResponseInfo(responseInfo));
 
             final var statusCode = responseInfo.statusCode();
             final var gzipped = responseInfo.headers().firstValue(HttpUtils.CONTENT_ENCODING).orElse("")
@@ -95,9 +94,7 @@ final class DefaultInferringBodyHandlerProvider implements InferringBodyHandlerP
                             throw new AufRestOpException(e);
                         }
                     }) : BodySubscribers.ofString(StandardCharsets.UTF_8), text -> {
-                        if (restLogger != null) {
-                            restLogger.onResponseBody(text);
-                        }
+                        this.restLogger.ifPresent(logger -> logger.onResponseBody(text));
 
                         // This means a JSON string will not be de-serialized.
                         if (responseReturnType == String.class) {
